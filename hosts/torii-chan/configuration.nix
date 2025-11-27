@@ -8,6 +8,15 @@ in
     ./disko.nix
   ];
 
+  sops.defaultSopsFile = ../../secrets/secrets.yaml;
+  sops.defaultSopsFormat = "yaml";
+
+  sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+
+  sops.secrets.t3u_password_hash = {
+    neededForUsers = true;
+  };
+
   boot.loader.generic-extlinux-compatible.enable = true;
   boot.loader.grub.enable = false;
 
@@ -17,6 +26,7 @@ in
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
+    hashedPasswordFile = config.sops.secrets.t3u_password_hash.path;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
     ];
