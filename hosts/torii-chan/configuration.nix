@@ -58,7 +58,7 @@ in
     enable = true;
     ports = [ 42540 ];
     settings = {
-      PermitRootLogin = "prohibit-password";
+      PermitRootLogin = "no";
       PasswordAuthentication = false;
     };
   };
