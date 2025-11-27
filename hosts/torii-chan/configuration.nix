@@ -69,5 +69,10 @@ in
     };
   };
 
+  disko.imageBuilder = {
+    enableBinfmt = true;
+    pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+  };
+
   system.stateVersion = "25.05";
 }
