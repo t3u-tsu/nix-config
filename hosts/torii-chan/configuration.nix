@@ -21,7 +21,23 @@ in
   boot.loader.grub.enable = false;
 
   networking.hostName = "torii-chan";
-  networking.networkmanager.enable = true;
+  # networking.networkmanager.enable = true; # Using static config below
+
+  networking.interfaces.end0 = {
+    ipv4.addresses = [{
+      address = "192.168.0.128";
+      prefixLength = 24;
+    }];
+    macAddress = "02:00:63:9d:fd:24";
+  };
+
+  networking.defaultGateway = "192.168.0.1";
+  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
+
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 42540 ];
+  };
 
   users.users.${username} = {
     isNormalUser = true;
@@ -38,6 +54,7 @@ in
 
   services.openssh = {
     enable = true;
+    ports = [ 42540 ];
     settings = {
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false;
