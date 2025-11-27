@@ -4,7 +4,6 @@
       mmc = {
         type = "disk";
         device = "/dev/mmcblk0";
-        imageSize = "4G";
         content = {
           type = "gpt";
           partitions = {
