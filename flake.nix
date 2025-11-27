@@ -11,12 +11,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, disko, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, disko, sops-nix, ... }@inputs:
     let
       lib = import ./lib {
-        inherit nixpkgs inputs home-manager disko;
+        inherit nixpkgs inputs home-manager disko sops-nix;
       };
     in
     {

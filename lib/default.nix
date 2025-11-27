@@ -1,4 +1,4 @@
-{ nixpkgs, inputs, home-manager, disko }:
+{ nixpkgs, inputs, home-manager, disko, sops-nix }:
 
 {
   mkSystem = { name, system, disks ? [] }:
@@ -15,6 +15,7 @@
 
       modules = [
         disko.nixosModules.disko
+        sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
