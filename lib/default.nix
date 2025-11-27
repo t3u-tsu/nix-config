@@ -2,18 +2,15 @@
 
 {
   mkSystem = { name, system, disks ? [] }:
-    let
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-    in
     nixpkgs.lib.nixosSystem {
-      inherit system;
-
-      specialArgs = { inherit inputs pkgs; };
+      specialArgs = { inherit inputs; };
 
       modules = [
+        {
+          nixpkgs.buildPlatform.system = "x86_64-linux";
+          nixpkgs.hostPlatform.system = system;
+          nixpkgs.config.allowUnfree = true;
+        }
         disko.nixosModules.disko
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
