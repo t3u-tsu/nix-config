@@ -4,6 +4,12 @@ let
   username = "t3u";
 in
 {
+  nixpkgs.overlays = [
+    (final: prev: {
+      qemu = prev.qemu;
+    })
+  ];
+
   imports = [
     ./disko.nix
   ];
