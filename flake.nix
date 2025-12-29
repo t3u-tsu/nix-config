@@ -63,14 +63,7 @@
           system = "x86_64-linux"; # 実機でリビルドするなら "aarch64-linux" だが、クロスで管理するならこのまま
           targetSystem = "aarch64-linux";
           extraModules = [
-             # SSD用のファイルシステム設定をここに書く予定
-             # ./hosts/torii-chan/fs-ssd.nix 
-             
-             # とりあえずビルドが通るようにダミー設定（またはSD設定の流用）
-             ({ config, pkgs, ... }: {
-               fileSystems."/" = { device = "/dev/disk/by-label/NIXOS_ROOT"; fsType = "ext4"; };
-               fileSystems."/boot" = { device = "/dev/disk/by-label/BOOT"; fsType = "vfat"; };
-             })
+             ./hosts/torii-chan/fs-hdd.nix
           ];
         };
       };
