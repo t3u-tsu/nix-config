@@ -29,12 +29,13 @@
             version = "2024.01";
             defconfig = "orangepi_zero3_defconfig";
             extraMeta.platforms = [ "aarch64-linux" ];
+            BL31 = "${prev.armTrustedFirmwareAllwinnerH616}/bl31.bin";
             filesToInstall = [ "u-boot-sunxi-with-spl.bin" ];
             src = prev.fetchFromGitHub {
               owner = "u-boot";
               repo = "u-boot";
               rev = "v2024.01"; # H618サポートが含まれる新しいバージョンを指定
-              sha256 = "sha256-Ca4f5v5QfR6jZk3T1nZ5x3b6vFk5hN7m0k7h5v5QfR6="; # ハッシュは一旦仮置き、エラーが出たら修正
+              sha256 = "sha256-0Da7Czy9cpQ+D5EICc3/QSZhAdCBsmeMvBgykYhAQFw="; # ハッシュは一旦仮置き、エラーが出たら修正
             };
           };
         })
