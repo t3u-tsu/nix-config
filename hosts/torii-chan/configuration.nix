@@ -62,6 +62,10 @@ in
     ];
   };
 
+  # デフォルトではsudo実行時にパスワードを要求する（本番運用時のセキュリティ）
+  # SDイメージ作成時のみ、sd-image-installer.nix でこれを無効化(mkForce false)している
+  security.sudo.wheelNeedsPassword = true;
+
   services.openssh = {
     enable = true;
     ports = [ 42540 ];

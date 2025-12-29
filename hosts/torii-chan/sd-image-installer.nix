@@ -15,5 +15,7 @@
     dd if=${pkgs.ubootOrangePiZero3}/u-boot-sunxi-with-spl.bin of=$img bs=1024 seek=8 conv=notrunc
   '';
 
-  # インストーラー用なので、最小限の構成にする設定があればここに追加
+  # 初回起動時はSOPS鍵がなくパスワードハッシュが読み込めないため、
+  # sudoをパスワードなしで実行できるようにする（ロックアウト回避）。
+  security.sudo.wheelNeedsPassword = lib.mkForce false;
 }
