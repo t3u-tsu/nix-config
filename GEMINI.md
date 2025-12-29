@@ -6,7 +6,7 @@
 
 ## 現在の状況 (2025-12-29)
 
-**sops-nixのデバッグ完了、デプロイ成功。**
+**デプロイ環境の安定化とDDNS認証の修正完了。**
 
 ### 達成したマイルストーン
 
@@ -14,23 +14,21 @@
     - Root SSH許可版のSDイメージで起動成功。
 2.  **sops-nixの正常動作確認:**
     - `/var/lib/sops-nix/key.txt` に正しい age 秘密鍵を配置。
-    - `/run/secrets/` への展開を確認。
-    - `configuration.nix` にて `sops.age.sshKeyPaths = []` と `sops.age.generateKey = false` を設定し、挙動を安定化。
-3.  **パスワードハッシュの反映:**
-    - `users.mutableUsers = false` を設定し、`sops-nix` で復号されたハッシュが確実に `/etc/shadow` に反映されるように修正。
+    - パスワードハッシュの反映に成功 (`users.mutableUsers = false` 設定済み)。
+3.  **デプロイ権限の改善:**
+    - `nix.settings.trusted-users = [ "root" "t3u" ]` を追加し、非特権ユーザーからのリモートデプロイを許可。
 4.  **Cloudflare DDNSの修正:**
-    - `secrets.yaml` 内のインデント問題を解消。
-    - `ddns.nix` にて正しいオプション名 `ip4Domains` / `ip6Domains` を使用するように修正。
-    - IPv6検出エラー回避のため、IPv4のみを更新する設定に変更。
+    - **Global API Key への対応**: `CF_API_EMAIL` と `CF_API_KEY` を使用する形式に `secrets.yaml` を修正。
+    - タイムアウト延長 (`15s`) と IPv6 検出の無効化による安定化。
 
 ### 次のステップ
 
-1.  **HDD移行の最終確認:**
-    - `fs-hdd.nix` と `torii-chan` ターゲットを使用した HDD ブートの検証。
+1.  **HDD移行の実行:**
+    - `fs-hdd.nix` を適用し、ルートパーティションを外付けHDDへ移動する。
 2.  **本番セキュリティの適用:**
-    - WireGuard経由でのSSHアクセスが安定していることを確認し、LAN側SSHを閉じる。
+    - 全ての設定が安定した後、LAN側のSSHポートを閉じ、WireGuard経由のみにする。
 
 ### デプロイコマンド
 - SDイメージ作成: `nix build .#nixosConfigurations.torii-chan-sd.config.system.build.sdImage`
-- 初回デプロイ (SD運用): `nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd-live --target-host root@192.168.0.128`
-- 本番デプロイ (HDD運用): `nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan --target-host t3u@192.168.0.128 --use-remote-sudo`
+- 初回デプロイ (SD運用): `nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd-live --target-host root@10.0.0.1`
+- 通常デプロイ (t3u使用): `nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd-live --target-host t3u@10.0.0.1 --use-remote-sudo`

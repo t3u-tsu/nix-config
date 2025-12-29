@@ -174,7 +174,9 @@ SDカードの寿命を延ばすため、ルートファイルシステムをHDD
 
 2.  **Secrets の確認:**
     `secrets/secrets.yaml` に以下が含まれていることを確認してください:
-    - `cloudflare_api_env` (DDNS用)
+    - `cloudflare_api_env`:
+      - **APIトークン**の場合: `CLOUDFLARE_API_TOKEN=...`
+      - **Global API Key**の場合: `CF_API_EMAIL=...` と `CF_API_KEY=...`
     - `torii_chan_wireguard_private_key` (サーバー用)
 
 3.  **HDD の準備:**

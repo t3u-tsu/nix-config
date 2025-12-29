@@ -171,9 +171,11 @@ To prevent being locked out of the system (since SSH is blocked on LAN in produc
     ```
     *Without this, you cannot connect to the VPN, and thus cannot access SSH.*
 
-2.  **Verify Secrets:**
+- **Verify Secrets:**
     Ensure `secrets/secrets.yaml` contains:
-    - `cloudflare_api_env` (for DDNS)
+    - `cloudflare_api_env`:
+      - For **API Token**: `CLOUDFLARE_API_TOKEN=...`
+      - For **Global API Key**: `CF_API_EMAIL=...` and `CF_API_KEY=...`
     - `torii_chan_wireguard_private_key` (for Server)
 
 3.  **Prepare HDD:**
