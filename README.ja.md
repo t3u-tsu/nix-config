@@ -11,8 +11,7 @@
 │   └── torii-chan/     # Orange Pi Zero3 の設定
 ├── lib/                # mkSystem などの共通ライブラリ関数
 ├── secrets/            # 暗号化された秘密情報 (SOPS)
-│   └── secrets.yaml
-└── temp/               # ドキュメントや参考資料
+    └── secrets.yaml
 ```
 
 ## ホスト一覧
