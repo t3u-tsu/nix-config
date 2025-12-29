@@ -17,9 +17,9 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 
 ## Hosts
 
-| Hostname | Platform | Role | Documentation |
-| :--- | :--- | :--- | :--- |
-| `torii-chan` | aarch64-linux | WireGuard / DDNS / Edge Node | [README](hosts/torii-chan/README.md) |
+| Hostname | Hardware | Platform | Role | Documentation |
+| :--- | :--- | :--- | :--- | :--- |
+| `torii-chan` | Orange Pi Zero3 | aarch64-linux | WireGuard / DDNS | [README](hosts/torii-chan/README.md) |
 
 ## Key Technologies
 

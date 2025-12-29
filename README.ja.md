@@ -17,9 +17,9 @@
 
 ## ホスト一覧
 
-| ホスト名 | プラットフォーム | 役割 | ドキュメント |
-| :--- | :--- | :--- | :--- |
-| `torii-chan` | aarch64-linux | WireGuard / DDNS / エッジノード | [README](hosts/torii-chan/README.ja.md) |
+| ホスト名 | ハードウェア | プラットフォーム | 役割 | ドキュメント |
+| :--- | :--- | :--- | :--- | :--- |
+| `torii-chan` | Orange Pi Zero3 | aarch64-linux | WireGuard / DDNS | [README](hosts/torii-chan/README.ja.md) |
 
 ## 使用テクノロジー
 
