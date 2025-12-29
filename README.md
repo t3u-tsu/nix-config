@@ -10,9 +10,8 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 ├── hosts/              # Host-specific configurations
 │   └── torii-chan/     # Orange Pi Zero3 configuration
 ├── lib/                # Common library functions for mkSystem
-├── secrets/            # Encrypted secrets (SOPS)
-│   └── secrets.yaml
-└── temp/               # Documentation and references
+└── secrets/            # Encrypted secrets (SOPS)
+    └── secrets.yaml
 ```
 
 ## Hosts
