@@ -67,6 +67,17 @@
              ./hosts/torii-chan/production-security.nix
           ];
         };
+
+        # 3. SDカード運用での継続開発用 (HDDなし)
+        "torii-chan-sd-live" = lib.mkSystem {
+          name = "torii-chan";
+          system = "x86_64-linux";
+          targetSystem = "aarch64-linux";
+          extraModules = [
+             ./hosts/torii-chan/fs-sd.nix
+             ./hosts/torii-chan/production-security.nix
+          ];
+        };
       };
     };
 }
