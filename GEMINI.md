@@ -18,12 +18,10 @@
 3.  **サービス設定の追加:**
     - `hosts/torii-chan/services/` ディレクトリを作成。
     - `ddns.nix`: Cloudflare DDNS (**Go版 `services.cloudflare-ddns`**) を設定。軽量化のため採用。
-    - `wireguard.nix`: WireGuardサーバーの基本設定。
+    - `wireguard.nix`: WireGuardサーバー設定。
+        - **Subnet:** `10.0.0.1/24` (変更済み)。
+        - **Mode:** Gateway (NAT/IP Forwarding有効)。
     - シークレットはSOPS経由で管理。
-4.  **SSHセキュリティ強化:**
-    - ポート番号を `42540` から標準の `22` に変更。
-    - **初期設定 (SD):** 全インターフェースで許可。
-    - **本番運用 (HDD):** `production-security.nix` により、**WireGuard経由のみ許可** するよう制限。
 
 ### 次のステップ（シークレット設定）
 

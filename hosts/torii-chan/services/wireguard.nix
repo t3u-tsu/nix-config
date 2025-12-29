@@ -15,11 +15,23 @@
     restartUnits = [ "wireguard-wg0.service" ];
   };
 
-  # 3. WireGuard Interface
+  # 3. Enable IP Forwarding & NAT (Gateway Mode)
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = 1;
+    "net.ipv6.conf.all.forwarding" = 1; # IPv6もフォワードしたい場合
+  };
+
+  networking.nat = {
+    enable = true;
+    externalInterface = "end0"; # WAN interface
+    internalInterfaces = [ "wg0" ];
+  };
+
+  # 4. WireGuard Interface
   networking.wireguard.interfaces = {
     wg0 = {
       # The IP address and subnet of the server's internal WireGuard interface
-      ips = [ "10.100.0.1/24" ];
+      ips = [ "10.0.0.1/24" ];
 
       # The port that WireGuard listens to.
       listenPort = 51820;
@@ -32,7 +44,7 @@
         # Example Peer (You can add real peers later)
         # { 
         #   publicKey = "CLIENT_PUBLIC_KEY";
-        #   allowedIPs = [ "10.100.0.2/32" ];
+        #   allowedIPs = [ "10.0.0.2/32" ];
         # }
       ];
     };
