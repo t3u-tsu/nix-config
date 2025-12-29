@@ -42,10 +42,11 @@ The `flake.nix` exposes two main configurations:
     - SSH is enabled on port `42540`.
 
 4.  **Install Secrets Key:**
+    - **Note:** On the initial SD card boot, `sudo` is configured to run **without a password**. This is intentional to allow you to set up the keys before the password hashes can be decrypted.
     - Since `sops-nix` is used, you must manually place the decryption key on the device.
     - Create the directory and file:
       ```bash
-      # On the Orange Pi
+      # On the Orange Pi (sudo will not ask for password)
       sudo mkdir -p /var/lib/sops-nix
       sudo vi /var/lib/sops-nix/key.txt
       ```
@@ -53,6 +54,7 @@ The `flake.nix` exposes two main configurations:
       ```bash
       sudo chmod 600 /var/lib/sops-nix/key.txt
       ```
+    - **After Deployment:** Once you deploy the production configuration (Phase 2), `sudo` will revert to requiring a password.
 
 ### Phase 2: Migrate to HDD (Root on HDD)
 
