@@ -142,7 +142,11 @@ To extend SD card life, we move the root filesystem to an HDD.
   nix shell nixpkgs#sops -c sops secrets/secrets.yaml
   ```
 - **Key Location:** `secrets/.sops.yaml` defines the public keys.
-- **Recovery:** If you lose the `key.txt`, you must regenerate keys and re-encrypt `secrets.yaml` (see `GEMINI.md` history).
+- **Node Setup:** The secret key must be placed at `/var/lib/sops-nix/key.txt` on the target machine.
+- **Troubleshooting:**
+  - If password hashes are not reflecting in `/etc/shadow`, ensure `users.mutableUsers = false` is set.
+  - Check `/run/secrets/` and `/run/secrets-for-users/` for decrypted files.
+  - Verify `sops-nix` activation logs: `journalctl -t nixos-activation-script`.
 
 ## 🛠 Troubleshooting
 

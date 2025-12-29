@@ -143,7 +143,11 @@ SDカードの寿命を延ばすため、ルートファイルシステムをHDD
   nix shell nixpkgs#sops -c sops secrets/secrets.yaml
   ```
 - **公開鍵の場所:** `secrets/.sops.yaml` で定義されています。
-- **復旧:** もし `key.txt` を紛失した場合、鍵を再生成して `secrets.yaml` を再暗号化する必要があります（`GEMINI.md` の履歴を参照）。
+- **実機での設定:** 秘密鍵を `/var/lib/sops-nix/key.txt` に配置する必要があります。
+- **トラブルシューティング:**
+  - パスワードハッシュが `/etc/shadow` に反映されない場合は、`users.mutableUsers = false` が設定されているか確認してください。
+  - `/run/secrets/` や `/run/secrets-for-users/` に復号されたファイルがあるか確認してください。
+  - `journalctl -t nixos-activation-script` でアクティベーション時のログを確認できます。
 
 ## 🛠 トラブルシューティング
 

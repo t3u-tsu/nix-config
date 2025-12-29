@@ -17,12 +17,11 @@
     # Path to the file containing CLOUDFLARE_API_TOKEN=...
     credentialsFile = config.sops.secrets.cloudflare_api_env.path;
     
+    # Update only IPv4 (A record)
+    ip4Domains = [ "torii-chan.t3u.uk" ];
+    ip6Domains = [ ];
+
     # Target Domains
     domains = [ "torii-chan.t3u.uk" ];
-    
-    # IPv4/IPv6 are enabled by default for 'domains' list in this module usually,
-    # or it auto-detects.
-    # If specific control is needed, 'ip4Domains' / 'ip6Domains' can be used,
-    # but 'domains' usually covers both A and AAAA records if available.
   };
 }

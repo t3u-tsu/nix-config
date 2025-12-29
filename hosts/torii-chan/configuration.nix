@@ -48,6 +48,8 @@ in
   networking.defaultGateway = "192.168.0.1";
   networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
 
+  users.mutableUsers = false;
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 ];
