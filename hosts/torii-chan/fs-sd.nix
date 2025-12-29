@@ -7,7 +7,7 @@
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";
-    # Add noatime to reduce writes to SD card
+    # Add noatime to reduce writes and extend SD card lifespan.
     options = [ "noatime" ];
   };
 

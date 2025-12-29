@@ -1,21 +1,21 @@
 { config, lib, pkgs, ... }:
 
 {
-  # HDD運用用のファイルシステム設定
-  # 前提:
-  # 1. USB接続のHDD/SSDが接続されていること。
-  # 2. そのHDDにext4パーティションが作成され、ラベル "NIXOS_HDD" が付与されていること。
-  # 3. SDカードの中身（特に /nix と /boot）がHDDにコピーされていること。
+  # Filesystem configuration for HDD operation.
+  # Prerequisites:
+  # 1. USB HDD/SSD is connected.
+  # 2. An ext4 partition with label "NIXOS_HDD" exists on the HDD.
+  # 3. System data (at least /nix) has been copied from SD card to HDD.
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_HDD";
     fsType = "ext4";
-    # USBストレージの認識待ちなどでブートに失敗しないよう、重要フラグを立てる
+    # Ensure this is mounted early during boot (especially for USB storage).
     neededForBoot = true;
   };
 
-  # SDカードの元のルートパーティションを /boot としてマウントする
-  # これにより、カーネルの更新などがSDカード側に書き込まれ、U-Bootがそれを読み込める状態を維持する
+  # Mount the original SD card root partition as /boot.
+  # This ensures kernel updates are written to the SD card where U-Boot can find them.
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";

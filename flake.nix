@@ -22,7 +22,7 @@
       lib = import ./lib {
         inherit nixpkgs inputs home-manager disko sops-nix;
       };
-      # クロスコンパイル用のオーバーレイ
+      # Overlays for cross-compilation
       overlays = [
         (final: prev: {
           ubootOrangePiZero3 = prev.buildUBoot {
@@ -34,8 +34,8 @@
             src = prev.fetchFromGitHub {
               owner = "u-boot";
               repo = "u-boot";
-              rev = "v2024.01"; # H618サポートが含まれる新しいバージョンを指定
-              sha256 = "sha256-0Da7Czy9cpQ+D5EICc3/QSZhAdCBsmeMvBgykYhAQFw="; # ハッシュは一旦仮置き、エラーが出たら修正
+              rev = "v2024.01"; # New version with H618 support
+              sha256 = "sha256-0Da7Czy9cpQ+D5EICc3/QSZhAdCBsmeMvBgykYhAQFw="; # Placeholder hash
             };
           };
         })
@@ -43,24 +43,24 @@
     in
     {
       nixosConfigurations = {
-        # 1. SDカード作成用 (Diskoなし、標準モジュール使用)
+        # 1. For SD card creation (No Disko, uses standard modules)
         "torii-chan-sd" = lib.mkSystem {
-          name = "torii-chan"; # ホスト名は同じ
+          name = "torii-chan"; # Same hostname
           system = "x86_64-linux";
           targetSystem = "aarch64-linux";
           extraModules = [
             ./hosts/torii-chan/sd-image-installer.nix
-            # U-BootパッケージをOverlay等で提供する必要がある場合はここに追加
+            # Add U-Boot package via Overlays if necessary
             ({ config, pkgs, ... }: {
                nixpkgs.overlays = overlays;
             })
           ];
         };
 
-        # 2. 本番/SSD運用用 (将来的にSSD設定を追加)
+        # 2. For Production / HDD operation
         "torii-chan" = lib.mkSystem {
           name = "torii-chan";
-          system = "x86_64-linux"; # 実機でリビルドするなら "aarch64-linux" だが、クロスで管理するならこのまま
+          system = "x86_64-linux"; # Using cross-compilation
           targetSystem = "aarch64-linux";
           extraModules = [
              ./hosts/torii-chan/fs-hdd.nix
@@ -68,7 +68,7 @@
           ];
         };
 
-        # 3. SDカード運用での継続開発用 (HDDなし)
+        # 3. For continuous development on SD card (No HDD)
         "torii-chan-sd-live" = lib.mkSystem {
           name = "torii-chan";
           system = "x86_64-linux";

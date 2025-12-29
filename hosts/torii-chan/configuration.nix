@@ -71,8 +71,8 @@ in
     ];
   };
 
-  # デフォルトではsudo実行時にパスワードを要求する（本番運用時のセキュリティ）
-  # SDイメージ作成時のみ、sd-image-installer.nix でこれを無効化(mkForce false)している
+  # Request password for sudo by default (Production Security)
+  # This is disabled only during initial SD image creation in sd-image-installer.nix (mkForce false)
   security.sudo.wheelNeedsPassword = true;
 
   services.openssh = {
