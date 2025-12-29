@@ -22,21 +22,56 @@
       lib = import ./lib {
         inherit nixpkgs inputs home-manager disko sops-nix;
       };
-      pkgs-x86 = import nixpkgs { system = "x86_64-linux"; };
+      # クロスコンパイル用のオーバーレイ
+      overlays = [
+        (final: prev: {
+          ubootOrangePiZero3 = prev.buildUBoot {
+            version = "2024.01";
+            defconfig = "orangepi_zero3_defconfig";
+            extraMeta.platforms = [ "aarch64-linux" ];
+            filesToInstall = [ "u-boot-sunxi-with-spl.bin" ];
+            src = prev.fetchFromGitHub {
+              owner = "u-boot";
+              repo = "u-boot";
+              rev = "v2024.01"; # H618サポートが含まれる新しいバージョンを指定
+              sha256 = "sha256-Ca4f5v5QfR6jZk3T1nZ5x3b6vFk5hN7m0k7h5v5QfR6="; # ハッシュは一旦仮置き、エラーが出たら修正
+            };
+          };
+        })
+      ];
     in
     {
       nixosConfigurations = {
-        "torii-chan" = lib.mkSystem {
-          name = "torii-chan";
+        # 1. SDカード作成用 (Diskoなし、標準モジュール使用)
+        "torii-chan-sd" = lib.mkSystem {
+          name = "torii-chan"; # ホスト名は同じ
           system = "x86_64-linux";
           targetSystem = "aarch64-linux";
+          extraModules = [
+            ./hosts/torii-chan/sd-image-installer.nix
+            # U-BootパッケージをOverlay等で提供する必要がある場合はここに追加
+            ({ config, pkgs, ... }: {
+               nixpkgs.overlays = overlays;
+            })
+          ];
         };
-      };
 
-      packages.x86_64-linux.sd-image = import ./hosts/torii-chan/sd-image.nix {
-        pkgs = pkgs-x86;
-        config = self.nixosConfigurations.torii-chan.config;
-        uboot = pkgs-x86.pkgsCross.aarch64-multiplatform.ubootOrangePiZero3;
+        # 2. 本番/SSD運用用 (将来的にSSD設定を追加)
+        "torii-chan" = lib.mkSystem {
+          name = "torii-chan";
+          system = "x86_64-linux"; # 実機でリビルドするなら "aarch64-linux" だが、クロスで管理するならこのまま
+          targetSystem = "aarch64-linux";
+          extraModules = [
+             # SSD用のファイルシステム設定をここに書く予定
+             # ./hosts/torii-chan/fs-ssd.nix 
+             
+             # とりあえずビルドが通るようにダミー設定（またはSD設定の流用）
+             ({ config, pkgs, ... }: {
+               fileSystems."/" = { device = "/dev/disk/by-label/NIXOS_ROOT"; fsType = "ext4"; };
+               fileSystems."/boot" = { device = "/dev/disk/by-label/BOOT"; fsType = "vfat"; };
+             })
+          ];
+        };
       };
     };
 }

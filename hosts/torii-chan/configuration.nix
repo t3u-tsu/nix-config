@@ -5,13 +5,9 @@ let
 in
 {
   nixpkgs.overlays = [
-    (final: prev: {
-      qemu = prev.qemu_test;
-    })
   ];
 
   imports = [
-    ./disko.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/secrets.yaml;
