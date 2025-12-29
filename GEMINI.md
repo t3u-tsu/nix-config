@@ -17,14 +17,15 @@
 2.  **SOPS鍵の再生成:** 秘密鍵紛失のため再暗号化済み。
 3.  **サービス設定の追加:**
     - `hosts/torii-chan/services/` ディレクトリを作成。
-    - `ddns.nix`: Cloudflare DDNS (`services.cloudflare-dyndns`) を設定。
+    - `ddns.nix`: Cloudflare DDNS (**Go版 `services.cloudflare-ddns`**) を設定。軽量化のため採用。
     - `wireguard.nix`: WireGuardサーバーの基本設定。
     - シークレットはSOPS経由で管理。
 
 ### 次のステップ（シークレット設定）
 
 以下のシークレットを `secrets/secrets.yaml` に追加する必要がある。
-- `cloudflare_api_token`: DDNS用APIトークン。
+- `cloudflare_api_env`: DDNS用APIトークン環境変数ファイル。
+    - **内容形式:** `CLOUDFLARE_API_TOKEN=your_token_here`
 - `torii_chan_wireguard_private_key`: WireGuardサーバー秘密鍵。
 
 ### デプロイフロー

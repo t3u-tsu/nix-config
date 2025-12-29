@@ -1,27 +1,28 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Cloudflare Dynamic DNS
-  # API Token must have "Zone.DNS:Edit" permission for the target zone.
+  # Cloudflare Dynamic DNS (Go implementation: favonia/cloudflare-ddns)
+  # Lightweight, fast, and supports IPv4/IPv6.
 
-  sops.secrets.cloudflare_api_token = {
-    # サービスが読み取れるように所有者を設定 (Systemd Dynamic Userの場合は調整が必要だが、
-    # cloudflare-dyndnsは通常rootまたは専用ユーザーで動作する。
-    # ここではデフォルトのroot所有にしておく)
+  # SOPS Secret for API Token
+  # Note: The content of this secret must be in environment file format:
+  # CLOUDFLARE_API_TOKEN=your_token_here
+  sops.secrets.cloudflare_api_env = {
+    # Service user needs to read this
+    owner = "root"; # Systemd service usually runs as root or dynamic user with root group access, but we'll stick to root for now
   };
 
-  services.cloudflare-dyndns = {
+  services.cloudflare-ddns = {
     enable = true;
-    # API Token file path (managed by sops-nix)
-    apiTokenFile = config.sops.secrets.cloudflare_api_token.path;
+    # Path to the file containing CLOUDFLARE_API_TOKEN=...
+    credentialsFile = config.sops.secrets.cloudflare_api_env.path;
     
     # Target Domains
     domains = [ "torii-chan.t3u.uk" ];
     
-    # Update IPv4 (A record)
-    ipv4 = true;
-    
-    # Update IPv6 (AAAA record) - Orange Pi usually has IPv6
-    ipv6 = true; # 無効にする場合は false にしてください
+    # IPv4/IPv6 are enabled by default for 'domains' list in this module usually,
+    # or it auto-detects.
+    # If specific control is needed, 'ip4Domains' / 'ip6Domains' can be used,
+    # but 'domains' usually covers both A and AAAA records if available.
   };
 }
