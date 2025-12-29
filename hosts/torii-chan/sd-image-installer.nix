@@ -8,7 +8,7 @@
   # Disable SD image compression for faster build times and immediate flashing.
   sdImage.compressImage = false;
 
-  # Write U-Boot to the image for Orange Pi Zero 3
+  # Write U-Boot to the image for Orange Pi Zero3
   # Assumes ubootOrangePiZero3 is provided via Overlays in flake.nix
   sdImage.postBuildCommands = ''
     echo "Writing U-Boot to image..."

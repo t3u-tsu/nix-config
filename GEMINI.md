@@ -2,6 +2,8 @@
 
 ## 目的
 
+
+
 Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用からHDD運用への移行準備を完了する。
 
 ## 現在の状況 (2025-12-29)
