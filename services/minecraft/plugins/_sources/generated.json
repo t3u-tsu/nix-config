@@ -1,0 +1,62 @@
+{
+    "gsit": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "gsit",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-fHM05GM5hOzEpfZIZklaAubBJehUwQWaIeib5KHLjwA=",
+            "type": "url",
+            "url": "https://github.com/Gecolay/GSit/releases/download/3.1.1/GSit-3.1.1.jar"
+        },
+        "version": "3.1.1"
+    },
+    "lunachat": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "lunachat",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-k9A1ptno5uxcw8+mC9BoB0KWaop6ccS+APgpwjJzM2o=",
+            "type": "url",
+            "url": "https://github.com/ucchyocean/LunaChat/releases/download/v3.0.16/LunaChat.jar"
+        },
+        "version": "v3.0.16"
+    },
+    "viabackwards": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "viabackwards",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-dxN2z1y1Lp6PgU9iYoTWS2VI5JmYbnVRUrmV1PdWqjU=",
+            "type": "url",
+            "url": "https://github.com/ViaVersion/ViaBackwards/releases/download/5.7.0/ViaBackwards-5.7.0.jar"
+        },
+        "version": "5.7.0"
+    },
+    "viaversion": {
+        "cargoLocks": null,
+        "date": null,
+        "extract": null,
+        "name": "viaversion",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-9qwEGBYqOrUUVTVAOSi4uGBi9VHGGUAg97G31Pe2K6U=",
+            "type": "url",
+            "url": "https://github.com/ViaVersion/ViaVersion/releases/download/5.7.0/ViaVersion-5.7.0.jar"
+        },
+        "version": "5.7.0"
+    }
+}
