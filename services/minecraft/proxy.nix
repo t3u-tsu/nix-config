@@ -5,7 +5,6 @@ let
   serverMapping = {
     "mc.t3u.uk" = "lobby";
     "nitac23s.mc.t3u.uk" = "nitac23s";
-    "torii-chan.t3u.uk" = "lobby";
   };
 in
 {
