@@ -16,18 +16,12 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 
 ## Hosts
 
-- **torii-chan**: Orange Pi Zero3 (Allwinner H618)
-  - Role: Gateway, WireGuard Server (10.0.0.1), DDNS
-  - CPU: Allwinner H618, RAM: 1GB
-  - Storage: 64GB microSD (Boot), 500GB HDD (Root)
-- **shosoin-tan**: Tower Server
-  - Role: Home Server, ZFS Storage, WireGuard Client (10.0.0.4)
-  - CPU: Core i7 870, GPU: Quadro K2200, RAM: 16GB
-  - Storage: 480GB SSD (Root), 1TB x2 + 320GB x2 (ZFS Mirror), 2TB HDD (Backup)
-- **kagutsuchi-sama**: High-power Tower Server
-  - Role: Compute / Heavy Workloads, WireGuard Client (10.0.0.3)
-  - CPU: Xeon E5-2650 v2, GPU: GTX 980 Ti, RAM: 16GB
-  - Storage: 500GB SSD (Root), 3TB + 160GB HDD
+| Host | Mgmt IP | Role | Hardware | Storage |
+| :--- | :--- | :--- | :--- | :--- |
+| `torii-chan` | `10.0.0.1` | Gateway / WG Server | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
+| `shosoin-tan` | `10.0.0.4` | ZFS / Home Server | i7 870 / 16GB / K2200 | 480GB SSD / ZFS Mirror |
+| `kagutsuchi-sama` | `10.0.0.3` | Compute Server | Xeon E5-2650 v2 / 16GB / GTX 980 Ti | 500GB SSD / 3TB HDD |
+| `sando-kun` | `10.0.0.2` | (Reserved) | - | - |
 
 ## Security
 
