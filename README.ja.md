@@ -19,6 +19,7 @@
 | ホスト名 | ハードウェア | プラットフォーム | 役割 | ドキュメント |
 | :--- | :--- | :--- | :--- | :--- |
 | `torii-chan` | Orange Pi Zero3 | aarch64-linux | WireGuard / DDNS | [README](hosts/torii-chan/README.ja.md) |
+| `shosoin-tan` | Core i7 870 / K2200 | x86_64-linux | ZFS Server | [README](hosts/shosoin-tan/README.ja.md) |
 
 ## 使用テクノロジー
 

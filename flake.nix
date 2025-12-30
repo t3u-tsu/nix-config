@@ -78,6 +78,12 @@
              ./hosts/torii-chan/production-security.nix
           ];
         };
+
+        # 4. Tower Server (shosoin-tan)
+        "shosoin-tan" = lib.mkSystem {
+          name = "shosoin-tan";
+          system = "x86_64-linux";
+        };
       };
     };
 }

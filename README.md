@@ -16,9 +16,12 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 
 ## Hosts
 
-| Hostname | Hardware | Platform | Role | Documentation |
-| :--- | :--- | :--- | :--- | :--- |
-| `torii-chan` | Orange Pi Zero3 | aarch64-linux | WireGuard / DDNS | [README](hosts/torii-chan/README.md) |
+- **torii-chan**: Orange Pi Zero3 (Allwinner H618).
+  - Role: Gateway, WireGuard Server, DDNS.
+  - Storage: SD (Root) + HDD (Data/Work).
+- **shosoin-tan**: Tower Server (Core i7 870, Quadro K2200).
+  - Role: Home Server, ZFS Storage.
+  - Storage: SSD (Root) + ZFS Mirror (1TB x2, 320GB x2) + HDD (2TB Backup).
 
 ## Key Technologies
 
