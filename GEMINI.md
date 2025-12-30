@@ -12,7 +12,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-**kagutsuchi-sama: 新規追加。Xeon / GTX 980 Ti 構成の初期設定完了。インストール実施中。**
+**kagutsuchi-sama: 新規追加。Xeon / GTX 980 Ti 構成の初期設定完了。ディスク by-id 特定済み。手動インストール手順を整備中。**
 
 
 
@@ -25,13 +25,44 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 1.  **WireGuard**: サーバー起動およびクライアントからの `10.0.0.1` 経由の接続を確認。
+
+
+
 2.  **sops-nix**: `key.txt` による復号、および `mutableUsers = false` によるパスワード同期の成功。
+
+
+
 3.  **Cloudflare DDNS**: API Token による正常動作を確認。
+
+
+
 4.  **デプロイ権限**: `trusted-users` 設定完了。
+
+
+
 5.  **セキュリティ強化**: `production-security.nix` を適用し、SSHアクセスを WireGuard (wg0) 経由のみに制限済み。
+
+
+
 6.  **shosoin-tan**: Core i7 870 / Quadro K2200 / ZFS Mirror 構成の初期設定を完了。
+
+
+
 7.  **torii-chan HDD Boot Fix**: USBストレージ用カーネルモジュール (`uas`, `usb_storage`等) を `initrd` に追加し、`rootdelay` を設定。
+
+
+
 8.  **torii-chan HDD移行**: `fs-hdd.nix` を適用し、実データの `rsync` および HDD 起動への移行に成功。
+
+
+
+9.  **kagutsuchi-sama Disk ID**: 実機での `lsblk` により `by-id` を特定し、`disko-config.nix` に反映済み。
+
+
+
+
+
+
 
 ### 次のステップ
 
@@ -41,7 +72,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-1.  **kagutsuchi-sama インストール**: `nixos-anywhere` を使用して SSD/HDD 構成のインストールを完了させる。
+1.  **kagutsuchi-sama 手動インストール**: `disko` 実行後、`nixos-install` を行い、環境構築を完了させる。
 
 
 

@@ -47,6 +47,32 @@
 - **sops-nix:** `age` を使用した機密情報の暗号化管理。
 - **クロスコンパイル:** x86_64マシンでのaarch64 (ARM) ビルド。
 
+## デプロイガイド
+
+### x86_64 ホスト (kagutsuchi-sama, shosoin-tan)
+
+`nixos-anywhere` 等の自動ツールが失敗する場合、インストーラー環境から以下の手動手順を実行します：
+
+1. **Disko によるパーティショニングとマウント:**
+   ターゲットマシン上（または SSH 経由）で実行します：
+   ```bash
+   sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- \
+     --mode destroy,format,mount \
+     --flake github:t3u-tsu/nix-config#<ホスト名>
+   ```
+
+2. **NixOS のインストール:**
+   ```bash
+   sudo nixos-install --flake github:t3u-tsu/nix-config#<ホスト名>
+   ```
+
+3. **再起動:**
+   ```bash
+   sudo reboot
+   ```
+
+---
+
 ## はじめかた
 
 特定のホストについて詳しく知るには、`hosts/` 配下の各ディレクトリにあるREADMEを参照してください。

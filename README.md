@@ -35,6 +35,37 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 - **sops-nix:** For encrypting secrets (passwords, API keys) via `age`.
 - **Cross-Compilation:** Building aarch64 (ARM) images on x86_64 machines.
 
-## Getting Started
+## Deployment Guide
 
-To explore a specific host, navigate to its directory in `hosts/` and read the local README.
+### For x86_64 hosts (kagutsuchi-sama, shosoin-tan)
+
+If automatic deployment via `nixos-anywhere` fails, follow these manual steps from the installer environment:
+
+1. **Partitioning with Disko:**
+   Run this from the target machine (or via SSH):
+   ```bash
+   sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- \
+     --mode destroy,format,mount \
+     --flake github:t3u-tsu/nix-config#<hostname>
+   ```
+
+2. **Install NixOS:**
+   ```bash
+   sudo nixos-install --flake github:t3u-tsu/nix-config#<hostname>
+   ```
+
+3. **Reboot:**
+   ```bash
+   sudo reboot
+   ```
+
+### For torii-chan (SD to HDD)
+
+1. **Rsync data to HDD:** (Assuming HDD is mounted at `/mnt`)
+   ```bash
+   rsync -avxHAX --progress / /mnt/
+   ```
+2. **Switch config:**
+   ```bash
+   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan --target-host root@<ip>
+   ```
