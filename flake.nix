@@ -84,6 +84,12 @@
           name = "shosoin-tan";
           system = "x86_64-linux";
         };
+
+        # 5. Compute Server (kagutsuchi-sama)
+        "kagutsuchi-sama" = lib.mkSystem {
+          name = "kagutsuchi-sama";
+          system = "x86_64-linux";
+        };
       };
     };
 }
