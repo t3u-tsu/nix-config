@@ -7,6 +7,7 @@ in
   imports = [
     ./disko-config.nix
     ./services
+    ./production-security.nix
   ];
 
   # Use the LTS kernel for stability (consistent with kagutsuchi-sama)
