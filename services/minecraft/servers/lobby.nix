@@ -15,9 +15,15 @@
       force-gamemode = true;
       difficulty = "peaceful";
       level-type = "flat";
+      level-seed = "";
+      # スーパーフラットのカスタマイズ（地面を Y=64 に設定してスライム湧き層を避ける）
+      # 形式: minecraft:bedrock,2*minecraft:dirt,minecraft:grass_block;minecraft:plains
+      # ここでは高さを稼ぐために 60層の石を追加
+      generator-settings = "{\"layers\": [{\"block\": \"minecraft:bedrock\", \"height\": 1}, {\"block\": \"minecraft:stone\", \"height\": 60}, {\"block\": \"minecraft:dirt\", \"height\": 2}, {\"block\": \"minecraft:grass_block\", \"height\": 1}], \"biome\": \"minecraft:plains\"}";
       spawn-monsters = false;
       spawn-animals = false;
       spawn-npcs = false;
+      allow-flight = true;
     };
 
     symlinks = {
