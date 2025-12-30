@@ -36,10 +36,13 @@
         destination = "10.0.1.3:25565";
       }
     ];
-    # wg0:
-      # WireGuard interface dedicated to host management.
-      # SSH and other administrative access are ONLY permitted via this network.
   };
+
+  # Extra iptables rules for proper NAT loopback/hairpin handling from LAN
+  networking.firewall.extraCommands = ''
+    # Ensure DNATed traffic to Minecraft server is masqueraded so return path is correct
+    iptables -t nat -A POSTROUTING -d 10.0.1.3 -p tcp --dport 25565 -j MASQUERADE
+  '';
 
   # 4. WireGuard Interface
   networking.wireguard.interfaces = {
