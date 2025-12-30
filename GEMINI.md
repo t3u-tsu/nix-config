@@ -31,11 +31,17 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 15. sando-kun 設定追加: i7 860 / 250GB HDD 構成の初期設定を完了。WireGuard (10.0.0.2 / 10.0.1.2) 設定済み。
 16. nitac23s 移行完了: 旧サーバーからのワールドデータ (world, nether, end)、usercache、whitelist の移行および Kagutsuchi-sama での稼働を確認。
 17. 基本ツールのモジュール化: 全ホスト共通の基本ツール (`vim`, `git`, `tmux`, `htop`, `rsync` 等) を `common/` に集約し、保守性を向上。
+18. Cloudflare DDNS 拡張: `mc.t3u.uk` および `*.mc.t3u.uk` を追加し、Minecraft ネットワーク用のドメイン運用を開始。
+19. Velocity 構成の最適化: `forced-hosts` を Nix 式で動的に生成するように変更。`mc.t3u.uk` を `lobby` に、`nitac23s.mc.t3u.uk` を `nitac23s` にマッピング。
+20. Lobby サーバーの Void 化: 既存ワールドをリセットし、一切のブロックがない Void ワールドとして再構築。
+21. プラグイン自動更新の導入: `nvfetcher` を導入し、ViaVersion/ViaBackwards を常に最新の GitHub リリースから取得してビルドする仕組みを構築。
+22. サーバー警告の解消: `LD_LIBRARY_PATH` への `udev` 追加によるライブラリ不足警告の修正、および `paper-global.yml` の `config-version` 指定による警告の解消。
 
 ### 次のステップ
 
 1.  **shosoin-tan 実機確認**: モニターアダプタ入手後、ディスクの `by-id` を確認し Disko 設定を最適化、インストール実施。
-2.  **共通設定の拡充**: シェルの設定 (zsh/fish) や alias など、全ホストで共通化したい設定を `common/` に追加していく。
+2.  **自動更新タイマーの構築**: `nvfetcher` による更新と `nixos-rebuild` を深夜に自動実行する Systemd Timer の作成。
+3.  **共通設定の拡充**: シェルの設定 (zsh/fish) や alias など、全ホストで共通化したい設定を `common/` に追加していく。
 
 ### 運用ルール (開発ワークフロー)
 

@@ -11,6 +11,8 @@
 │   └── torii-chan/     # Orange Pi Zero3 の設定
 ├── common/             # 全ホスト共通の基本設定
 ├── services/           # 共通サービス（Minecraft, 等）の設定
+│   └── minecraft/
+│       └── plugins/    # nvfetcher によるプラグイン管理
 ├── lib/                # mkSystem などの共通ライブラリ関数
 ├── secrets/            # 暗号化された秘密情報 (SOPS)
     └── secrets.yaml
@@ -20,7 +22,7 @@
 
 | ホスト名 | 管理IP (WG0) | アプリIP (WG1) | 役割 | ハードウェア詳細 | ストレージ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `torii-chan` | `10.0.0.1` | `10.0.1.1` | Gateway / WG Server | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
+| `torii-chan` | `10.0.0.1` | `10.0.1.1` | Gateway / DDNS (`mc.t3u.uk`) | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
 | `sando-kun` | `10.0.0.2` | `10.0.1.2` | Sando Server | i7 860 / 8GB | 250GB HDD / ZFS Mirror |
 | `kagutsuchi-sama` | `10.0.0.3` | `10.0.1.3` | Compute / Minecraft Server | Xeon E5-2650 v2 / 16GB / GTX 980 Ti | 500GB SSD / 3TB HDD |
 | `shosoin-tan` | `10.0.0.4` | `10.0.1.4` | ZFS / Home Server | i7 870 / 16GB / K2200 | 480GB SSD / ZFS Mirror |
@@ -36,6 +38,7 @@
 
 - **Flakes:** 再現可能なビルドと依存関係管理。
 - **sops-nix:** `age` を使用した機密情報の暗号化管理。
+- **nvfetcher:** GitHub等の外部バイナリ（Minecraftプラグイン等）のバージョン追跡とハッシュ計算を自動化。
 - **クロスコンパイル:** x86_64マシンでのaarch64 (ARM) ビルド。
 
 ## デプロイガイド

@@ -11,8 +11,10 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 │   └── torii-chan/     # Orange Pi Zero3 configuration
 ├── common/             # Shared configurations across all hosts
 ├── services/           # Common service configurations (Minecraft, etc.)
+│   └── minecraft/
+│       └── plugins/    # Plugin management via nvfetcher
 ├── lib/                # Common library functions for mkSystem
-└── secrets/            # Encrypted secrets (SOPS)
+├── secrets/            # Encrypted secrets (SOPS)
     └── secrets.yaml
 ```
 
@@ -20,7 +22,7 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 
 | Host | Mgmt IP (WG0) | App IP (WG1) | Role | Hardware | Storage |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `torii-chan` | `10.0.0.1` | `10.0.1.1` | Gateway / WG Server | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
+| `torii-chan` | `10.0.0.1` | `10.0.1.1` | Gateway / DDNS (`mc.t3u.uk`) | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
 | `sando-kun` | `10.0.0.2` | `10.0.1.2` | Sando Server | i7 860 / 8GB | 250GB HDD / ZFS Mirror |
 | `kagutsuchi-sama` | `10.0.0.3` | `10.0.1.3` | Compute / Minecraft Server | Xeon E5-2650 v2 / 16GB / GTX 980 Ti | 500GB SSD / 3TB HDD |
 | `shosoin-tan` | `10.0.0.4` | `10.0.1.4` | ZFS / Home Server | i7 870 / 16GB / K2200 | 480GB SSD / ZFS Mirror |
@@ -32,8 +34,11 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 - **Application Network (wg1):** Private 10.0.1.0/24 network for inter-server communication (proxies, etc.).
 - **SOPS:** Secrets are managed via `sops-nix` and `age`.
 
+## Technologies
+
 - **Flakes:** For reproducible builds and dependency management.
 - **sops-nix:** For encrypting secrets (passwords, API keys) via `age`.
+- **nvfetcher:** For managing external binary assets (like Minecraft plugins) with automatic version tracking and hash calculation.
 - **Cross-Compilation:** Building aarch64 (ARM) images on x86_64 machines.
 
 ## Deployment Guide
