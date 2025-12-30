@@ -45,9 +45,9 @@
       # List of allowed peers.
       peers = [
         {
-          # Existing Peer (Example/Admin)
+          # Management PC
           publicKey = "bd7DKPnKfc7s73oYT3uHP0jM+6TrSvf2nr83Cb6kZhU=";
-          allowedIPs = [ "10.0.0.2/32" ];
+          allowedIPs = [ "10.0.0.100/32" ];
         }
         {
           # kagutsuchi-sama
@@ -59,6 +59,7 @@
           publicKey = "nTYFHpES11zywOPDkVg5Y9jlsFF6vEg5y8WVFSVHKhg=";
           allowedIPs = [ "10.0.0.4/32" ];
         }
+        # Reserved: 10.0.0.2 for sando-kun
       ];
     };
   };

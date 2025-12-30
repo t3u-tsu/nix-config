@@ -72,7 +72,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 12. **kagutsuchi-sama セットアップ完了**: 宣言的パスワード管理の導入と、実機での正常起動・動作を確認。
 
-13. **WireGuard ネットワーク拡張**: `kagutsuchi-sama` (10.0.0.3) および `shosoin-tan` (10.0.0.4) を管理用ネットワーク (wg0) に追加。
+13. **WireGuard ネットワーク拡張**: `kagutsuchi-sama` (10.0.0.3) および `shosoin-tan` (10.0.0.4) を管理用ネットワーク (wg0) に追加。管理用PCは `10.0.0.100` に設定。`10.0.0.2` は `sando-kun` 用に予約。
 
 
 
