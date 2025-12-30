@@ -4,17 +4,25 @@ with lib;
 
 let
   cfg = config.my.autoUpdate;
+  # システム設定から指定ユーザーのホームディレクトリを解決
+  targetUser = config.users.users.${cfg.user};
+  flakePath = "${targetUser.home}/${cfg.subdir}";
 in {
   options.my.autoUpdate = {
     enable = mkEnableOption "Automatic system and plugin updates";
-    flakePath = mkOption {
+    user = mkOption {
       type = types.str;
-      description = "Absolute path to the nix-config repository";
+      default = "t3u";
+      description = "The user who owns the nix-config repository";
+    };
+    subdir = mkOption {
+      type = types.str;
+      default = "nix-config";
+      description = "Subdirectory under home for the repository";
     };
     remoteUrl = mkOption {
       type = types.str;
       default = "github.com/t3u-tsu/nix-config.git";
-      description = "Remote URL (without https://) for the repository";
     };
     gitUserName = mkOption {
       type = types.str;
@@ -27,60 +35,46 @@ in {
   };
 
   config = mkIf cfg.enable {
-    sops.secrets.github_token = {
-      owner = "root";
-    };
+    sops.secrets.github_token.owner = "root";
 
     systemd.services.nixos-auto-update = {
-      description = "NixOS Auto Update, Flake Update, and Minecraft Plugins Sync";
+      description = "NixOS Auto Update Service";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
+      
+      path = with pkgs; [ nix git openssh coreutils nvfetcher nixos-rebuild gnused ];
+
       serviceConfig = {
         Type = "oneshot";
         User = "root";
       };
-      path = with pkgs; [
-        nix
-        git
-        openssh
-        coreutils
-        gnugrep
-        gnused
-        nvfetcher
-        nixos-rebuild
-      ];
+
       script = ''
         export NIX_CONFIG="extra-experimental-features = nix-command flakes"
-        GITHUB_TOKEN=$(cat ${config.sops.secrets.github_token.path})
-
-        # 0. リポジトリが存在しない場合はクローン
-        if [ ! -d "${cfg.flakePath}/.git" ]; then
-          echo "Repository not found at ${cfg.flakePath}. Cloning..."
-          mkdir -p "$(dirname "${cfg.flakePath}")"
-          git clone "https://x-access-token:$GITHUB_TOKEN@${cfg.remoteUrl}" "${cfg.flakePath}"
+        TOKEN=$(cat ${config.sops.secrets.github_token.path})
+        
+        # リポジトリの準備 (存在しなければクローン、所有権を設定)
+        if [ ! -d "${flakePath}/.git" ]; then
+          echo "Cloning repository to ${flakePath}..."
+          mkdir -p "$(dirname "${flakePath}")"
+          git clone "https://x-access-token:$TOKEN@${cfg.remoteUrl}" "${flakePath}"
+          chown -R ${cfg.user}:${targetUser.group} "${flakePath}"
         fi
 
-        cd "${cfg.flakePath}"
-        
-        # 1. Nix Flake の更新
-        nix flake update
+        cd "${flakePath}"
 
-        # 2. nvfetcher によるプラグイン更新
+        # 更新処理
+        nix flake update
         nvfetcher -c services/minecraft/plugins/nvfetcher.toml -o services/minecraft/plugins
 
-        # 3. 変更があればコミット
-        git config user.name "${cfg.gitUserName}"
-        git config user.email "${cfg.gitUserEmail}"
-        
-        git add .
+        # Git操作 (一時的な設定でコミット)
+        git -c user.name="${cfg.gitUserName}" -c user.email="${cfg.gitUserEmail}" add .
         if ! git diff --cached --exit-code; then
-          git commit -m "chore(auto): update system and plugins $(date +%F)"
-          
-          # 4. GitHub へ Push
-          git push "https://x-access-token:$GITHUB_TOKEN@${cfg.remoteUrl}" main
+          git -c user.name="${cfg.gitUserName}" -c user.email="${cfg.gitUserEmail}" commit -m "chore(auto): update system and plugins $(date +%F)"
+          git push "https://x-access-token:$TOKEN@${cfg.remoteUrl}" main
         fi
 
-        # 5. システムに反映
+        # 反映
         nixos-rebuild switch --flake .
       '';
     };

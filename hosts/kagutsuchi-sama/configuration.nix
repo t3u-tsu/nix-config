@@ -95,7 +95,7 @@ in
 
   my.autoUpdate = {
     enable = true;
-    flakePath = "/home/${username}/nix-config";
+    user = username;
   };
 
   system.stateVersion = "25.05";
