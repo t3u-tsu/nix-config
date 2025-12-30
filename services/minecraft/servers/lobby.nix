@@ -17,9 +17,8 @@
       level-type = "flat";
       level-seed = "";
       # スーパーフラットのカスタマイズ（地面を Y=64 に設定してスライム湧き層を避ける）
-      # 形式: minecraft:bedrock,2*minecraft:dirt,minecraft:grass_block;minecraft:plains
-      # ここでは高さを稼ぐために 60層の石を追加
       generator-settings = "{\"layers\": [{\"block\": \"minecraft:bedrock\", \"height\": 1}, {\"block\": \"minecraft:stone\", \"height\": 60}, {\"block\": \"minecraft:dirt\", \"height\": 2}, {\"block\": \"minecraft:grass_block\", \"height\": 1}], \"biome\": \"minecraft:plains\"}";
+      generate-structures = false; # 構造物を生成しない
       spawn-monsters = false;
       spawn-animals = false;
       spawn-npcs = false;
@@ -46,6 +45,9 @@
               monsters = 0;
               animals = 0;
               water-animals = 0;
+              water-ambient = 0;
+              water-underground-creature = 0;
+              axolotls = 0;
               ambient = 0;
             };
           };
@@ -57,10 +59,11 @@
   # nix-minecraft が生成するサービスを拡張
   systemd.services.minecraft-server-lobby = {
     preStart = ''
-      # ワールドリセットのチェック
+      # ワールドおよびプレイヤーデータリセットのチェック
       if [ -f ".reset_world" ]; then
-        echo "Resetting world data as requested..."
-        rm -rf world world_nether world_the_end
+        echo "Resetting world and player data as requested..."
+        rm -rf world*
+        rm -f usercache.json
         rm .reset_world
       fi
 
