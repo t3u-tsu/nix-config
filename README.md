@@ -44,7 +44,6 @@ To deploy to a new machine using the NixOS Live USB:
 1. **Boot the target machine from the Live USB.**
 2. **Setup SSH on the target:** (if not already accessible)
    ```bash
-   sudo systemctl start sshd
    sudo passwd root # Set a temporary password
    ```
 3. **Partitioning with Disko (from local machine):**
