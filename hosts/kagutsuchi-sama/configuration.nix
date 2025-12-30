@@ -93,5 +93,10 @@ in
 
   nix.settings.trusted-users = [ "root" "t3u" ];
 
+  my.autoUpdate = {
+    enable = true;
+    flakePath = "/home/${username}/nix-config";
+  };
+
   system.stateVersion = "25.05";
 }

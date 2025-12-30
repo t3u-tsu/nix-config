@@ -1,6 +1,10 @@
 { pkgs, ... }:
 
 {
+  imports = [
+    ./auto-update.nix
+  ];
+
   environment.systemPackages = with pkgs; [
     vim
     git
