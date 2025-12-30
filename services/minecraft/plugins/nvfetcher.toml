@@ -1,0 +1,15 @@
+[viaversion]
+src.github = "ViaVersion/ViaVersion"
+fetch.url = "https://github.com/ViaVersion/ViaVersion/releases/download/$ver/ViaVersion-$ver.jar"
+
+[viabackwards]
+src.github = "ViaVersion/ViaBackwards"
+fetch.url = "https://github.com/ViaVersion/ViaBackwards/releases/download/$ver/ViaBackwards-$ver.jar"
+
+[gsit]
+src.github = "Gecolay/GSit"
+fetch.url = "https://github.com/Gecolay/GSit/releases/download/$ver/GSit-$ver.jar"
+
+[lunachat]
+src.github = "ucchyocean/LunaChat"
+fetch.url = "https://github.com/ucchyocean/LunaChat/releases/download/$ver/LunaChat.jar"

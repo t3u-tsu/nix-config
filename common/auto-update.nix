@@ -57,7 +57,6 @@ in {
         if [ ! -d "${flakePath}/.git" ]; then
           echo "Preparing repository at ${flakePath}..."
           mkdir -p "${flakePath}"
-          # ディレクトリが空でない場合（既に何かある場合）に備えて一度削除してクローン
           rm -rf "${flakePath}"
           git clone "https://x-access-token:$TOKEN@${cfg.remoteUrl}" "${flakePath}"
           chown -R ${cfg.user}:${targetUser.group} "${flakePath}"
@@ -65,13 +64,15 @@ in {
 
         cd "${flakePath}"
 
-        # 念のため、最新の状態であることを確認
+        # 念のため、最新の状態であることを確認 (他からのプッシュを取り込む)
         git fetch origin main
         git reset --hard origin/main
 
         # 更新処理
         nix flake update
-        nvfetcher -c services/minecraft/plugins/nvfetcher.toml -o services/minecraft/plugins
+        
+        # nvfetcher の実行 (設定ファイルのディレクトリで実行して削除を防ぐ)
+        (cd services/minecraft/plugins && nvfetcher -c nvfetcher.toml)
 
         # Git操作
         git -c user.name="${cfg.gitUserName}" -c user.email="${cfg.gitUserEmail}" add .
