@@ -12,7 +12,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-**kagutsuchi-sama: 新規追加。Disko によるディスク初期化・マウント完了。OSインストール（nixos-install）実施中。**
+**kagutsuchi-sama: 新規追加。Disko 完了。現在 nixos-install により OS インストール中（NVIDIA ドライバのビルド段階）。**
 
 
 
