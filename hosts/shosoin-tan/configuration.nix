@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./disko-config.nix
+    ./services
   ];
 
   # Use the LTS kernel for stability (consistent with kagutsuchi-sama)

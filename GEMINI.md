@@ -4,23 +4,13 @@
 
 Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用からHDD運用への移行準備を完了する。
 
-## 現在の状況 (2025-12-30)
+## 現在の状況 (2025-12-31)
 
-**torii-chan: HDD移行完了。NIXOS_HDDをルートとして正常起動。**
+**torii-chan: HDD移行完了。NIXOS_HDDをルートとして正常起動。WireGuard ピア設定追加完了。**
 
-**shosoin-tan: モニターアダプタ待ちのため一時中断。設定をLTSカーネルに同期済み。**
+**shosoin-tan: モニターアダプタ待ち。WireGuard クライアント設定完了。**
 
-
-
-**shosoin-tan: モニターアダプタ待ちのため一時中断。設定をLTSカーネルに同期済み。**
-
-
-
-
-
-
-
-**kagutsuchi-sama: セットアップ完了。SSD/HDD 構成および宣言的パスワード管理 (sops-nix) の正常動作を確認済み。**
+**kagutsuchi-sama: セットアップ完了。WireGuard クライアント設定完了。**
 
 
 
@@ -81,6 +71,8 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 12. **kagutsuchi-sama セットアップ完了**: 宣言的パスワード管理の導入と、実機での正常起動・動作を確認。
+
+13. **WireGuard ネットワーク拡張**: `kagutsuchi-sama` (10.0.0.3) および `shosoin-tan` (10.0.0.4) を管理用ネットワーク (wg0) に追加。
 
 
 

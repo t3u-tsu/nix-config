@@ -45,8 +45,19 @@
       # List of allowed peers.
       peers = [
         {
+          # Existing Peer (Example/Admin)
           publicKey = "bd7DKPnKfc7s73oYT3uHP0jM+6TrSvf2nr83Cb6kZhU=";
           allowedIPs = [ "10.0.0.2/32" ];
+        }
+        {
+          # kagutsuchi-sama
+          publicKey = "S9Tb8hQQIMDhCuV9Ya3/yodraebnoRwkYXURXpoPxyY=";
+          allowedIPs = [ "10.0.0.3/32" ];
+        }
+        {
+          # shosoin-tan
+          publicKey = "nTYFHpES11zywOPDkVg5Y9jlsFF6vEg5y8WVFSVHKhg=";
+          allowedIPs = [ "10.0.0.4/32" ];
         }
       ];
     };
