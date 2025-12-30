@@ -23,11 +23,11 @@
     detectionTimeout = "15s";
 
     # Update only IPv4 (A record)
-    ip4Domains = [ "torii-chan.t3u.uk" ];
+    ip4Domains = [ "torii-chan.t3u.uk" "mc.t3u.uk" "*.mc.t3u.uk" ];
     ip6Domains = [ ];
 
     # Target Domains
-    domains = [ "torii-chan.t3u.uk" ];
+    domains = [ "torii-chan.t3u.uk" "mc.t3u.uk" "*.mc.t3u.uk" ];
   };
 
   # Explicitly disable IPv6 detection via environment variable to avoid timeouts
