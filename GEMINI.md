@@ -12,7 +12,15 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-**kagutsuchi-sama: インストール完了。正常起動確認待ち。**
+**shosoin-tan: モニターアダプタ待ちのため一時中断。設定をLTSカーネルに同期済み。**
+
+
+
+
+
+
+
+**kagutsuchi-sama: セットアップ完了。SSD/HDD 構成および宣言的パスワード管理 (sops-nix) の正常動作を確認済み。**
 
 
 
@@ -72,6 +80,10 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
+12. **kagutsuchi-sama セットアップ完了**: 宣言的パスワード管理の導入と、実機での正常起動・動作を確認。
+
+
+
 
 
 
@@ -84,11 +96,11 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-1.  **kagutsuchi-sama 起動確認**: 再起動後、`t3u` ユーザーでのログインおよび NVIDIA ドライバの動作を確認。
+1.  **shosoin-tan 実機確認**: モニターアダプタ入手後、ディスクの `by-id` を確認し Disko 設定を最適化、インストール実施.
 
 
 
-2.  **shosoin-tan 実機確認**: モニターアダプタ入手後、ディスクの `by-id` を確認し Disko 設定を最適化、インストール実施。
+
 
 
 
