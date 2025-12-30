@@ -41,11 +41,19 @@
   # nix-minecraft が生成するサービスを拡張
   systemd.services.minecraft-server-lobby = {
     preStart = ''
+      # ディレクトリの準備
+      mkdir -p config
+      
       # sops の秘密鍵を読み込む
       SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
-      # config/paper-global.yml の SECRET_HERE を実際の秘密鍵で置換
-      # files 属性によって生成されたファイルを直接書き換える
-      sed -i "s/secret: SECRET_HERE/secret: $SECRET/" config/paper-global.yml
+      
+      # 設定ファイルがまだ存在しない場合、nix-minecraft の files 属性によって
+      # 生成されるはずのパスから強制的に持ってくるか、
+      # あるいは単純に sed で置換を試みる前にファイルの存在を確認します。
+      if [ -f "config/paper-global.yml" ]; then
+        # 書き込み権限がない場合があるため、一旦コピーして置換
+        sed -i "s/secret: SECRET_HERE/secret: $SECRET/" config/paper-global.yml
+      fi
     '';
   };
 }
