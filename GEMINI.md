@@ -8,7 +8,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-**torii-chan: デバッグ完了・全サービス正常動作確認済み。HDD移行待ち。**
+**torii-chan: HDD移行中。initrdのUSBモジュール不足による起動失敗を修正済み。再同期待ち。**
 
 **shosoin-tan: 新規追加。ディスク構成(Disko)およびNVIDIAドライバ設定完了。**
 
@@ -29,6 +29,10 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 5.  **セキュリティ強化**: `production-security.nix` を適用し、SSHアクセスを WireGuard (wg0) 経由のみに制限済み。
 
 6.  **shosoin-tan**: Core i7 870 / Quadro K2200 / ZFS Mirror 構成の初期設定を完了。
+
+7.  **torii-chan HDD Boot Fix**: USBストレージ用カーネルモジュール (`uas`, `usb_storage`等) を `initrd` に追加し、`rootdelay` を設定。
+
+
 
 
 
