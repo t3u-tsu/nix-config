@@ -12,7 +12,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-**kagutsuchi-sama: 新規追加。ライブUSBからの起動準備完了。SSH (root) 経由でのリモート Disko 実行手順を整備。**
+**kagutsuchi-sama: 新規追加。Disko によるディスク初期化・マウント完了。OSインストール（nixos-install）実施中。**
 
 
 
@@ -64,11 +64,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-10. **kagutsuchi-sama Live USB**: ライブ環境での SSH 経由リモートインストール手順を確立。
-
-
-
-
+10. **kagutsuchi-sama Disko**: ライブUSB環境からの SSH リモート Disko 実行に成功。ディスクの初期化と `/mnt` へのマウントを完了。
 
 
 
@@ -84,11 +80,15 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 
 
-1.  **kagutsuchi-sama ライブ環境デプロイ**: ライブUSBで起動後、外部から SSH 経由で `disko` および `nixos-install` を実行し、環境構築を完了させる。
+1.  **kagutsuchi-sama OSインストール**: `nixos-install` を実行し、ブートローダーの設定を含めた環境構築を完了させる。
 
 
 
 2.  **shosoin-tan 実機確認**: モニターアダプタ入手後、ディスクの `by-id` を確認し Disko 設定を最適化、インストール実施。
+
+
+
+
 
 
 
