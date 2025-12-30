@@ -3,7 +3,7 @@
 {
   services.minecraft-servers.servers.lobby = {
     enable = true;
-    package = pkgs.papermcServers.papermc-1_21_1; # バージョン指定
+    package = pkgs.papermcServers.papermc-1_21_4; # バージョン指定
 
     jvmOpts = "-Xms2G -Xmx4G";
 
@@ -11,6 +11,17 @@
       server-port = 25566;
       online-mode = false; # Velocity が認証を行うため false
       white-list = false;
+    };
+
+    symlinks = {
+      "plugins/ViaVersion.jar" = pkgs.fetchurl {
+        url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.2.1/ViaVersion-5.2.1.jar";
+        sha256 = "sha256-Kx83C9gb5gVd0ebM5GkmvYUrI15kSNZr2myV+6yWKsM=";
+      };
+      "plugins/ViaBackwards.jar" = pkgs.fetchurl {
+        url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.2.1/ViaBackwards-5.2.1.jar";
+        sha256 = "sha256-2wbj6CvMu8hnL260XLf8hqhr6GG/wxh+SU8uX5+x8NY=";
+      };
     };
 
     files = {
