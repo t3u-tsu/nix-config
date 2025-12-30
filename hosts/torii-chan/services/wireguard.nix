@@ -5,6 +5,7 @@
   
   # 1. Open Firewall
   networking.firewall.allowedUDPPorts = [ 51820 51821 ];
+  networking.firewall.allowedTCPPorts = [ 25565 ]; # Minecraft
 
   # 2. Manage Private Keys via SOPS
   sops.secrets.torii_chan_wireguard_private_key = {
@@ -27,7 +28,14 @@
   networking.nat = {
     enable = true;
     externalInterface = "end0"; # WAN interface
-    internalInterfaces = [ "wg0" ];
+    internalInterfaces = [ "wg0" "wg1" ];
+    forwardPorts = [
+      {
+        proto = "tcp";
+        sourcePort = 25565;
+        destination = "10.0.1.3:25565";
+      }
+    ];
     # wg0:
       # WireGuard interface dedicated to host management.
       # SSH and other administrative access are ONLY permitted via this network.

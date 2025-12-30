@@ -8,7 +8,14 @@ in
     ./disko-config.nix
     ./services
     ./production-security.nix
+    ../../services/minecraft
   ];
+
+  sops.secrets.minecraft_forwarding_secret = {
+    owner = "minecraft"; # nix-minecraft のユーザー
+    group = "minecraft";
+    mode = "0400";
+  };
 
   # Use the LTS kernel for stability
   boot.kernelPackages = pkgs.linuxPackages;

@@ -15,15 +15,14 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-minecraft.url = "github:Infinidoge/nix-minecraft";
   };
 
-  outputs = { self, nixpkgs, home-manager, disko, sops-nix, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, disko, sops-nix, nix-minecraft, ... }@inputs:
     let
-      lib = import ./lib {
-        inherit nixpkgs inputs home-manager disko sops-nix;
-      };
-      # Overlays for cross-compilation
+      # Overlays for cross-compilation and Minecraft
       overlays = [
+        nix-minecraft.overlay
         (final: prev: {
           ubootOrangePiZero3 = prev.buildUBoot {
             version = "2024.01";
@@ -40,6 +39,9 @@
           };
         })
       ];
+      lib = import ./lib {
+        inherit nixpkgs inputs home-manager disko sops-nix nix-minecraft overlays;
+      };
     in
     {
       nixosConfigurations = {
