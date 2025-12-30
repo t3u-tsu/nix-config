@@ -7,8 +7,8 @@
   # By default (in configuration.nix), port 22 is open on all interfaces.
   # For production, we strictly limit SSH access to the WireGuard VPN interface.
   
-  # Close port 22 on global interfaces (Ethernet/Wi-Fi)
-  networking.firewall.allowedTCPPorts = lib.mkForce [];
+  # Close all ports on global interfaces except for explicitly allowed ones
+  networking.firewall.allowedTCPPorts = lib.mkForce [ 25565 ];
 
   # Open port 22 ONLY on WireGuard interface (wg0)
   # WARNING: You must have a working WireGuard peer connection to SSH into the box after deploying this!
