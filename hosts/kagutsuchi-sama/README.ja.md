@@ -13,19 +13,33 @@
 
 ## 🚀 インストールガイド
 
-NixOS インストーラー環境から以下のコマンドを実行します：
+NixOS インストーラー環境から、外部マシン（BrokenPC）経由で以下のコマンドを実行します：
 
 1. **ディスクの初期化とマウント:**
    ```bash
-   sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- \
+   ssh -t root@<ターゲットIP> "nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- \
      --mode destroy,format,mount \
-     --flake github:t3u-tsu/nix-config#kagutsuchi-sama
+     --flake github:t3u-tsu/nix-config#kagutsuchi-sama"
    ```
 
-2. **NixOS のインストール:**
+2. **SOPS 秘密鍵の配置:** (パスワード管理に必須)
    ```bash
-   sudo nixos-install --flake github:t3u-tsu/nix-config#kagutsuchi-sama
+   ssh root@<ターゲットIP> "mkdir -p /mnt/var/lib/sops-nix"
+   cat ~/.config/sops/age/keys.txt | ssh root@<ターゲットIP> "cat > /mnt/var/lib/sops-nix/key.txt"
    ```
 
-3. **t3u ユーザーのパスワード設定:**
-   再起動後、`configuration.nix` で定義された SSH 公開鍵を使用して `t3u` ユーザーでログインできます。
+3. **NixOS のインストール:**
+   ```bash
+   ssh root@<ターゲットIP> "nixos-install --flake github:t3u-tsu/nix-config#kagutsuchi-sama"
+   ```
+
+4. **再起動:**
+   ```bash
+   ssh root@<ターゲットIP> "reboot"
+   ```
+
+## 🔐 アクセス
+- **ユーザー:** `t3u` (wheel/sudo 権限あり)
+- **パスワード:** `secrets.yaml` で定義 (sops-nix で管理)
+- **SSH 鍵:** `t3u` および `root` ユーザーで有効
+
