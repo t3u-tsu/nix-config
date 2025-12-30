@@ -1,5 +1,9 @@
 { config, pkgs, lib, ... }:
 
+let
+  # 自動生成されたプラグイン情報を読み込む
+  plugins = pkgs.callPackage ../plugins/generated.nix { };
+in
 {
   services.minecraft-servers.servers.lobby = {
     enable = true;
@@ -26,14 +30,8 @@
     };
 
     symlinks = {
-      "plugins/ViaVersion.jar" = pkgs.fetchurl {
-        url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.7.0/ViaVersion-5.7.0.jar";
-        sha256 = "f6ac0418162a3ab5145535403928b8b86062f551c6194020f7b1b7d4f7b62ba5";
-      };
-      "plugins/ViaBackwards.jar" = pkgs.fetchurl {
-        url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.7.0/ViaBackwards-5.7.0.jar";
-        sha256 = "771376cf5cb52e9e8f814f626284d64b6548e499986e755152b995d4f756aa35";
-      };
+      "plugins/ViaVersion.jar" = plugins.viaversion.src;
+      "plugins/ViaBackwards.jar" = plugins.viabackwards.src;
       "velocity-forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
     };
 
