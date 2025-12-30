@@ -19,9 +19,10 @@ This repository manages multiple NixOS configurations using Flakes. It is design
 | Host | Mgmt IP | Role | Hardware | Storage |
 | :--- | :--- | :--- | :--- | :--- |
 | `torii-chan` | `10.0.0.1` | Gateway / WG Server | Orange Pi Zero3 (H618 / 1GB) | 64GB SD / 500GB HDD |
-| `shosoin-tan` | `10.0.0.4` | ZFS / Home Server | i7 870 / 16GB / K2200 | 480GB SSD / ZFS Mirror |
-| `kagutsuchi-sama` | `10.0.0.3` | Compute Server | Xeon E5-2650 v2 / 16GB / GTX 980 Ti | 500GB SSD / 3TB HDD |
 | `sando-kun` | `10.0.0.2` | (Reserved) | - | - |
+| `kagutsuchi-sama` | `10.0.0.3` | Compute Server | Xeon E5-2650 v2 / 16GB / GTX 980 Ti | 500GB SSD / 3TB HDD |
+| `shosoin-tan` | `10.0.0.4` | ZFS / Home Server | i7 870 / 16GB / K2200 | 480GB SSD / ZFS Mirror |
+| **Management PC** | `10.0.0.100` | Admin / Client | - | - |
 
 ## Security
 
