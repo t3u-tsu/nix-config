@@ -3,7 +3,7 @@
 {
   services.minecraft-servers.servers.lobby = {
     enable = true;
-    package = pkgs.papermcServers.papermc-1_21_4; # バージョン指定
+    package = pkgs.paperServers.paper; # 常にその時点の最新安定版を指す属性
 
     jvmOpts = "-Xms2G -Xmx4G";
 
