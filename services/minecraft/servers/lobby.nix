@@ -22,6 +22,7 @@
         url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.2.1/ViaBackwards-5.2.1.jar";
         sha256 = "sha256-2wbj6CvMu8hnL260XLf8hqhr6GG/wxh+SU8uX5+x8NY=";
       };
+      "velocity-forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
     };
 
     files = {
@@ -30,14 +31,21 @@
           velocity = {
             enabled = true;
             online-mode = true;
-            secret = "@SECRET@"; # 後で置換されるか、直接指定
+            secret = "SECRET_HERE";
           };
         };
       };
     };
+  };
 
-    # paper-global.yml の secret 部分を symlink または設定で解決する
-    # nix-minecraft のモジュールによっては直接 secretFile を指定できる場合がある
-    # ここでは単純化のため、ファイルを直接配置する仕組みを検討
+  # nix-minecraft が生成するサービスを拡張
+  systemd.services.minecraft-server-lobby = {
+    preStart = ''
+      # sops の秘密鍵を読み込む
+      SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
+      # config/paper-global.yml の SECRET_HERE を実際の秘密鍵で置換
+      # files 属性によって生成されたファイルを直接書き換える
+      sed -i "s/secret: SECRET_HERE/secret: $SECRET/" config/paper-global.yml
+    '';
   };
 }
