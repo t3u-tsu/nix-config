@@ -29,8 +29,7 @@
           # torii-chan (Server)
           publicKey = "EuIuhxwOFi5pJeOmdLrrWzkTq4RN+kgyS9yU6mlxGjk=";
           allowedIPs = [ "10.0.0.0/24" ];
-          # Use LAN IP directly when in the same network
-          endpoint = "192.168.0.128:51820";
+          endpoint = "torii-chan.t3u.uk:51820";
           persistentKeepalive = 25;
         }
       ];
@@ -45,8 +44,7 @@
           # torii-chan (Server)
           publicKey = "uVfr6UKqxTgArzD2lr60wd1DJ9+7WVhxgPnVT4Dj/X8=";
           allowedIPs = [ "10.0.1.0/24" ];
-          # Use LAN IP directly
-          endpoint = "192.168.0.128:51821";
+          endpoint = "torii-chan.t3u.uk:51821";
           persistentKeepalive = 25;
         }
       ];

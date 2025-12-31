@@ -53,6 +53,12 @@ in
   networking.hostId = "c0ffee01";
   networking.hostName = "kagutsuchi-sama";
 
+  # Resolve torii-chan.t3u.uk to its LAN IP when in the same network
+  # This bypasses NAT loopback issues.
+  networking.hosts = {
+    "192.168.0.128" = [ "torii-chan.t3u.uk" ];
+  };
+
   # GTX 980 Ti (Maxwell) configuration
   services.xserver.videoDrivers = [ "nvidia" ];
 
