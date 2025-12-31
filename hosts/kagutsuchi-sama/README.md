@@ -39,7 +39,17 @@ Run these commands from the NixOS Installer environment:
    ```
 
 ## 🔐 Access
+- **Management IP:** `10.0.0.3` (WireGuard)
+- **SSH Restriction:** SSH is restricted to the WireGuard (`wg0`) interface ONLY.
 - **User:** `t3u` (with wheel/sudo privileges)
 - **Password:** Defined in `secrets.yaml` (managed via sops-nix).
 - **SSH Key:** Enabled for `t3u` and `root`.
+
+## ⚠️ Known Issue: NAT Loopback
+When this host is in the same LAN as the VPN server (`torii-chan`), VPN connection might fail due to the router's lack of NAT Loopback support for the domain `torii-chan.t3u.uk`.
+
+### Solution
+We have a local DNS override in `configuration.nix` under `networking.hosts` that points `torii-chan.t3u.uk` to `192.168.0.128`.
+
+**Important:** If you move this host to a different network, you MUST comment out the `networking.hosts` entry and run `nixos-rebuild switch`, otherwise it won't be able to find the VPN server from the outside.
 
