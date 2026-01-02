@@ -3,9 +3,8 @@
 {
   # WireGuard Server Configuration
   
-  # 1. Open Firewall
+  # 1. Open Firewall for WireGuard endpoints
   networking.firewall.allowedUDPPorts = [ 51820 51821 ];
-  networking.firewall.allowedTCPPorts = [ 25565 ]; # Minecraft
 
   # 2. Manage Private Keys via SOPS
   sops.secrets.torii_chan_wireguard_private_key = {
