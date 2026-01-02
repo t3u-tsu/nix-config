@@ -39,6 +39,7 @@ NixOS インストーラー環境から、外部マシン（BrokenPC）経由で
    ```
 
 ## 🔐 アクセス
+- **Update Producer:** ネットワーク全体の更新を主導する Producer。毎日 04:00 に `flake.lock` やプラグインを更新し、Git へのプッシュと Hub への通知を行います。
 - **管理用IP:** `10.0.0.3` (WireGuard)
 - **SSH アクセス制限:** セキュリティ強化のため、SSHアクセスは WireGuard (`wg0`) インターフェース経由のみに制限されています。
 - **ユーザー:** `t3u` (wheel/sudo 権限あり)

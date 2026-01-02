@@ -42,6 +42,7 @@
    *現在はHDDをルートとして、SDカードを/bootとして運用されています。*
 
 ## 🔐 サービスと秘密情報
+- **Update Hub:** ネットワーク全体の更新状態を管理する Coordinated Update Hub。10.0.1.1:8080 でステータスを提供します。
 - **WireGuard:** 管理用VPNサーバー (10.0.0.1)。
 - **SSH アクセス制限:** セキュリティ強化のため、SSHアクセスは WireGuard (`wg0`) インターフェース経由のみに制限されています。
 - **DDNS:** Cloudflare DDNS (favonia)。APIトークンが必要です。`torii-chan.t3u.uk` に加え、Minecraft用の `mc.t3u.uk` および `*.mc.t3u.uk` も管理しています。
