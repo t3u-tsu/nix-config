@@ -37,6 +37,16 @@ in {
       default = false;
       description = "Whether this host should update flake.lock and push changes to Git";
     };
+    onCalendar = mkOption {
+      type = types.str;
+      default = "*-*-* 04:00:00";
+      description = "Systemd OnCalendar expression for the update timer";
+    };
+    hubUrl = mkOption {
+      type = types.str;
+      default = "http://10.0.1.1:8080";
+      description = "URL of the update-hub on torii-chan";
+    };
     nvfetcher = mkOption {
       type = types.listOf (types.submodule {
         options = {
@@ -65,7 +75,7 @@ in {
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       
-      path = with pkgs; [ nix git openssh coreutils nvfetcher nixos-rebuild gnused ];
+      path = with pkgs; [ nix git openssh coreutils nvfetcher nixos-rebuild gnused curl ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -75,6 +85,8 @@ in {
       script = ''
         export NIX_CONFIG="extra-experimental-features = nix-command flakes"
         TOKEN=$(cat ${config.sops.secrets.github_token.path})
+        HUB="${cfg.hubUrl}"
+        HOSTNAME="${config.networking.hostName}"
         
         # リポジトリの準備
         if [ ! -d "${flakePath}/.git" ]; then
@@ -87,12 +99,14 @@ in {
 
         cd "${flakePath}"
 
-        # 念のため、最新の状態であることを確認 (他からのプッシュを取り込む)
+        # 現在のローカル状態
         git fetch origin main
-        git reset --hard origin/main
+        LOCAL_COMMIT=$(git rev-parse origin/main)
 
         if [ "${if cfg.pushChanges then "true" else "false"}" = "true" ]; then
-          # 更新処理 (Producer のみ)
+          # --- Producer Mode ---
+          echo "Producer mode: Updating and pushing changes..."
+          git reset --hard origin/main
           nix flake update
           
           # nvfetcher の実行
@@ -111,17 +125,43 @@ in {
             git -c user.name="${cfg.gitUserName}" -c user.email="${cfg.gitUserEmail}" commit -m "chore(auto): update system and plugins $(date +%F)"
             git push "https://x-access-token:$TOKEN@${cfg.remoteUrl}" main
           fi
-        fi
+          
+          NEW_COMMIT=$(git rev-parse HEAD)
+          # ハブに通知
+          curl -X POST -d "{\"commit\": \"$NEW_COMMIT\"}" "$HUB/producer/done"
+          
+          # 自分自身も更新
+          nixos-rebuild switch --flake .
+        else
+          # --- Consumer Mode ---
+          echo "Consumer mode: Checking hub for updates..."
+          HUB_COMMIT=$(curl -s "$HUB/latest-commit")
+          
+          if [ -z "$HUB_COMMIT" ]; then
+             echo "Hub has no commit info. Skipping update."
+             exit 0
+          fi
 
-        # 反映
-        nixos-rebuild switch --flake .
+          if [ "$LOCAL_COMMIT" = "$HUB_COMMIT" ]; then
+             echo "System is already up to date with hub ($HUB_COMMIT). Skipping."
+          else
+             echo "New update found: $HUB_COMMIT. Applying..."
+             git reset --hard "$HUB_COMMIT"
+             nixos-rebuild switch --flake .
+          fi
+
+          # ハブに結果を報告
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          TIMESTAMP=$(date -Iseconds)
+          curl -X POST -d "{\"host\": \"$HOSTNAME\", \"commit\": \"$CURRENT_COMMIT\", \"timestamp\": \"$TIMESTAMP\"}" "$HUB/consumer/reported"
+        fi
       '';
     };
 
     systemd.timers.nixos-auto-update = {
       description = "Timer for NixOS Auto Update";
       timerConfig = {
-        OnCalendar = "*-*-* 04:00:00";
+        OnCalendar = cfg.onCalendar;
         Persistent = true;
       };
       wantedBy = [ "timers.target" ];

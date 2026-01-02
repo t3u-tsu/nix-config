@@ -79,5 +79,11 @@ in
 
   nix.settings.trusted-users = [ "root" "t3u" ];
 
+  my.autoUpdate = {
+    enable = true;
+    user = username;
+    onCalendar = "*-*-* 05:00:00";
+  };
+
   system.stateVersion = "25.05";
 }

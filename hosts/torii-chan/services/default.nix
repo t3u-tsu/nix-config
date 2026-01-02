@@ -2,7 +2,8 @@
 
 {
   imports = [
-    ./ddns.nix
     ./wireguard.nix
+    ./ddns.nix
+    ./update-hub.nix
   ];
 }
