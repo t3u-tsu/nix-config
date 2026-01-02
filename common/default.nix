@@ -3,6 +3,7 @@
 {
   imports = [
     ./auto-update.nix
+    ./local-network.nix
   ];
 
   environment.systemPackages = with pkgs; [
