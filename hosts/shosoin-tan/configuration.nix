@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   username = "t3u";
@@ -38,7 +38,6 @@ in
   boot.loader.grub = {
     enable = true;
     efiSupport = false;
-    device = "/dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A";
   };
 
   # ZFS requires a unique hostId

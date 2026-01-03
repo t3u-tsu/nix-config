@@ -1,21 +1,45 @@
-# shosoin-tan (タワー型サーバー)
+# ホスト名: shosoin-tan (i7-870 タワーサーバー)
 
-ZFSストレージとNVIDIA Quadroを搭載した汎用サーバー。
+このホストは、Core i7-870 と ZFS Mirror 構成を備えた、データ保存と汎用サービスのためのタワー型サーバーです。
 
 ## ハードウェア仕様
-- **CPU**: Intel Core i7 870
-- **GPU**: NVIDIA Quadro K2200
-- **ストレージ**:
-  - 480GB SSD: ルート領域 (`/`)
-  - 1TB HDD x2: ZFSミラー (`tank-1tb`)
-  - 320GB HDD x2: ZFSミラー (`tank-320gb`)
-  - 2TB HDD: バックアップ用領域 (`ext4`)
+- **CPU:** Intel Core i7-870 (第一世代)
+- **GPU:** Quadro K2200 (Maxwell)
+- **RAM:** 16GB
+- **ストレージ:**
+  - 480GB SSD (OS / Boot)
+  - 1TB HDD x2 (ZFS Mirror: `tank-1tb`)
+  - 320GB HDD x2 (ZFS Mirror: `tank-320gb`)
 
-## 🔐 アクセス
-- **管理用IP:** `10.0.0.4` (WireGuard)
-- **SSH アクセス制限:** セキュリティ強化のため、SSHアクセスは WireGuard (`wg0`) インターフェース経由のみに制限されています。
+## 🚀 インストールガイド
 
-管理用PCからのアクセス：
+このホストは古いハードウェアのため、負荷軽減と互換性のために以下の特殊な手順でインストールを行いました。
+
+### Phase 1: ディスクの準備
+1. **Disko の実行:** 別の Linux マシンから以下の手順で実行。
+   ```bash
+   nix build .#nixosConfigurations.shosoin-tan.config.system.build.diskoScript
+   nix copy --to ssh://nixos@<IP> ./result
+   ssh -t nixos@<IP> "sudo ./result --mode destroy,format,mount"
+   ```
+
+### Phase 2: 秘密鍵の転送
 ```bash
-ssh t3u@10.0.0.4
+ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
+cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"
 ```
+
+### Phase 3: システムのビルドと転送（推奨）
+本体の CPU 負荷を抑えるため、ビルドホストで作成したイメージを転送します。
+1. **ビルド:** `nix build .#nixosConfigurations.shosoin-tan.config.system.build.toplevel`
+2. **転送:** `nix copy --to ssh://nixos@<IP> ./result`
+3. **インストール:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
+
+## 🔐 ネットワークとセキュリティ
+- **ブート方式:** Legacy BIOS (MBR)
+- **管理用IP:** `10.0.0.4` (WireGuard)
+- **SSH アクセス制限:** セキュリティ強化のため、SSHアクセスは WireGuard (`wg0`) インターフェース経由のみに制限。
+
+## ⚠️ 注意事項
+- **オーバークロック:** CPU のオーバークロックは Nix の高負荷ビルド時に不安定（Kernel Oops）を誘発するため、原則として定格運用を推奨。
+- **resolv.conf:** インストール直後に `resolv.conf` の署名不一致でネットワークサービスが落ちる場合は、`/etc/resolv.conf` を手動削除して再起動すること。
