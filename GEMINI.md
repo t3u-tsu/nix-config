@@ -50,6 +50,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 32. Legacy BIOS (GRUB) 対応: i7-870 環境での UEFI 非対応を解決するため、BIOS boot パーティション (EF02) の追加と Legacy GRUB 設定への移行を実施。
 33. リモートビルド・インストール確立: ターゲット機（shosoin-tan）の負荷軽減のため、ビルドホストで `nixos-system` を構築し `nix copy` で転送してから `nixos-install --system` を実行する高安定性インストール手順を確立。
 34. shosoin-tan セットアップ完了: CPU オーバークロック解除による安定化を経て、NixOS のインストールと WireGuard 接続に成功。
+35. shosoin-tan ネットワーク安定化: USB-LAN アダプタ環境での不安定さを解消するため、WireGuard MTU を 1380 に設定し、`localNetwork` モジュールによるエンドポイントのローカル解決を導入して起動時の接続を確実に安定させた。
 
 ### 次のステップ
 
