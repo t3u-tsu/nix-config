@@ -19,6 +19,10 @@
       url = "github:Infinidoge/nix-minecraft";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    minecraft-discord-bridge = {
+      url = "github:t3u-tsu/minecraft-discord-bridge";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, disko, sops-nix, nix-minecraft, ... }@inputs:

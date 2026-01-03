@@ -22,6 +22,11 @@ in
       enable-command-block = true;
       generate-structures = true;
       view-distance = 12;
+      
+      # RCON settings
+      "enable-rcon" = true;
+      "rcon.port" = 25575;
+      "rcon.password" = "placeholder"; # Overridden by bridge env var
     };
 
     files = {
