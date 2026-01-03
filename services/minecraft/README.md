@@ -5,6 +5,10 @@ This directory manages the Minecraft network consisting of a Velocity proxy and 
 ## Operational Status
 
 - **Current Host**: `shosoin-tan` (10.0.1.4)
+- **Data Directory**: `/srv/minecraft`
+- **Backup**: Every 2 hours using `restic`.
+    - Local: `/mnt/tank-1tb/backups/minecraft` (ZFS Mirror)
+    - Remote: `kagutsuchi-sama` (10.0.1.3) at `/mnt/data/backups/shosoin-tan`
 - **Update Producer**: `shosoin-tan` checks for core and plugin updates daily at 04:00 and updates the repository.
 
 ## Overview
