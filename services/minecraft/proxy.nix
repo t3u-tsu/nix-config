@@ -19,14 +19,13 @@ in
     # nix-minecraft は files 属性で設定ファイルを配置できる
     files = {
       "velocity.toml".value = {
-        config-version = "1.0";
+        config-version = "2.7";
         bind = "0.0.0.0:25565";
         motd = "Welcome to My NixOS Minecraft Network";
         show-max-players = 500;
         online-mode = true;
         force-key-authentication = true;
         player-info-forwarding-mode = "modern";
-        forwarding-secret-file = "forwarding.secret";
 
         servers = {
           lobby = "127.0.0.1:25566";
