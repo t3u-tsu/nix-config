@@ -8,9 +8,9 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 **torii-chan: Coordinated Update Hubとして稼働中。10.0.1.1:8080 (App) / 10.0.0.1:8080 (Mgmt) でステータスを提供。**
 
-**shosoin-tan: Minecraft サーバー兼 Coordinated Update Producerとして稼働中。毎日04:00にシステム・プラグインを更新しHubへ通知。**
+**shosoin-tan: Minecraft サーバー兼 Coordinated Update Producerとして稼働中。2時間おきの自動バックアップ（Restic）を運用開始。**
 
-**kagutsuchi-sama: 汎用計算サーバーとして稼働。マイクラ鯖の移行を完了。**
+**kagutsuchi-sama: 汎用計算サーバー。バックアップレシーバーとしても稼働。**
 
 **ビルド環境: Arch Linuxホストでaarch64エミュレーションビルドを確立。公式キャッシュの利用によりビルド時間が劇的に短縮。**
 
@@ -54,9 +54,14 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 36. タイムゾーンのJST統一: 全ホスト共通設定として `common/time.nix` を導入し、タイムゾーンを `Asia/Tokyo` (JST) に統一。あわせて `chrony` を有効化し、時刻同期の精度と安定性を向上させた。
 37. Minecraft サーバー移行: マイクラ関連サービス一式 (Velocity, Lobby, nitac23s) を `kagutsuchi-sama` から `shosoin-tan` へ移行。データの `rsync` 同期、`torii-chan` のポート転送先変更 (10.0.1.4)、および自動更新 Producer 権限の移譲を完了。
 38. Velocity 警告の解消: `config-version` を `2.7` に更新し、非推奨の `forwarding-secret-file` パラメータを削除することで、セキュリティ警告および設定バージョン警告を修正。
+39. マイクラバックアップシステムの構築: `restic` を導入し、`shosoin-tan` (/srv/minecraft) からローカルの ZFS Mirror および `kagutsuchi-sama` の HDD への 2重バックアップ（2時間おき）を自動化。SSH 設定の共通化により安定したリモート転送を実現。
 
 ### 運用・デプロイ上の知見 (Operational Notes)
 
+- **バックアップの確認**:
+  - `sudo systemctl status restic-backups-local-backup.service`
+  - `sudo systemctl status restic-backups-remote-backup.service`
+  - ログ確認: `sudo journalctl -u restic-backups-remote-backup.service -f`
 - **Minecraft コンソールへの接続**: 各サービスは `tmux` セッションで動作。
   - 接続: `sudo tmux -S /run/minecraft/<サービス名>.sock attach`
   - 離脱: `Ctrl+B` -> `D`
@@ -67,9 +72,10 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 ### 次のステップ
 
-1.  **共通設定の拡充**: シェルの設定 (zsh/fish) や alias など、全ホストで共通化したい設定を `common/` に追加していく。
-2.  **自動更新ログの通知**: 更新失敗時に Discord 等へ通知する仕組みの検討。
-3.  **sando-kun 実機インストール**: shosoin-tan で確立したリモートビルド手順を用いて、sando-kun の構築を行う。
+1.  **バックアップの整合性確認**: 初回バックアップ完了後、`restic check` を実行し、データの整合性と Kagutsuchi-sama 側のディスク使用量を確認する。
+2.  **共通設定の拡充**: シェルの設定 (zsh/fish) や alias など、全ホストで共通化したい設定を `common/` に追加していく。
+3.  **自動更新ログの通知**: 更新失敗時に Discord 等へ通知する仕組みの検討。
+4.  **sando-kun 実機インストール**: shosoin-tan で確立したリモートビルド手順を用いて、sando-kun の構築を行う。
 
 ### 運用ルール (開発ワークフロー)
 
