@@ -43,6 +43,7 @@ in
   # ZFS requires a unique hostId
   networking.hostId = "8425e349";
   networking.hostName = "shosoin-tan";
+  networking.useDHCP = true;
 
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
