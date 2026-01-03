@@ -39,6 +39,7 @@ Run these commands from the NixOS Installer environment:
    ```
 
 ## 🔐 Access
+- **Update Producer:** Central update manager for the fleet. Automatically updates `flake.lock` and plugins daily at 04:00, pushes to Git, and notifies the Hub.
 - **Management IP:** `10.0.0.3` (WireGuard)
 - **SSH Restriction:** SSH is restricted to the WireGuard (`wg0`) interface ONLY.
 - **User:** `t3u` (with wheel/sudo privileges)
