@@ -44,6 +44,18 @@ in
       description = "Path to SSH private key for remote backup";
     };
 
+    backupPrepareCommand = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Command to run before backup starts";
+    };
+
+    backupCleanupCommand = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Command to run after backup finishes";
+    };
+
     timerConfig = mkOption {
       type = types.attrs;
       default = {
@@ -61,7 +73,7 @@ in
     services.restic.backups = mkMerge [
       (mkIf (cfg.localRepo != null) {
         local-backup = {
-          inherit (cfg) paths exclude passwordFile timerConfig;
+          inherit (cfg) paths exclude passwordFile timerConfig backupPrepareCommand backupCleanupCommand;
           repository = cfg.localRepo;
           initialize = true;
           
@@ -75,7 +87,7 @@ in
 
       (mkIf (cfg.remoteRepo != null) {
         remote-backup = {
-          inherit (cfg) paths exclude passwordFile timerConfig;
+          inherit (cfg) paths exclude passwordFile timerConfig backupPrepareCommand backupCleanupCommand;
           repository = cfg.remoteRepo;
           initialize = true;
           

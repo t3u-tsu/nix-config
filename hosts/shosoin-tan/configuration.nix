@@ -52,6 +52,26 @@ in
     localRepo = "/mnt/tank-1tb/backups/minecraft";
     remoteRepo = "sftp:restic-shosoin@10.0.1.3:/mnt/data/backups/shosoin-tan";
     sshKeyFile = config.sops.secrets.restic_shosoin_ssh_key.path;
+
+    backupPrepareCommand = ''
+      # Disable auto-save and flush to disk for all servers
+      for server in lobby nitac23s; do
+        if [ -S /run/minecraft/$server.sock ]; then
+          ${pkgs.tmux}/bin/tmux -S /run/minecraft/$server.sock send-keys "save-off" ENTER
+          ${pkgs.tmux}/bin/tmux -S /run/minecraft/$server.sock send-keys "save-all flush" ENTER
+        fi
+      done
+      sleep 2
+    '';
+
+    backupCleanupCommand = ''
+      # Re-enable auto-save
+      for server in lobby nitac23s; do
+        if [ -S /run/minecraft/$server.sock ]; then
+          ${pkgs.tmux}/bin/tmux -S /run/minecraft/$server.sock send-keys "save-on" ENTER
+        fi
+      done
+    '';
   };
 
   # SSH configuration for restic backup
