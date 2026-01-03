@@ -5,6 +5,7 @@
     ./nix.nix
     ./auto-update.nix
     ./local-network.nix
+    ./time.nix
   ];
 
   environment.systemPackages = with pkgs; [
