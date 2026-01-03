@@ -9,6 +9,7 @@ in
     ./services
     ./production-security.nix
     ../../services/minecraft
+    ../../services/backup
     ../../common
   ];
 
