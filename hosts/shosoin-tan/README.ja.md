@@ -1,6 +1,6 @@
 # ホスト名: shosoin-tan (i7-870 タワーサーバー)
 
-このホストは、Core i7-870 と ZFS Mirror 構成を備えた、データ保存と汎用サービスのためのタワー型サーバーです。
+このホストは、Core i7-870 と ZFS Mirror 構成を備えた、Minecraft サーバー兼データ保存・汎用サービスのためのタワー型サーバーです。
 
 ## ハードウェア仕様
 - **CPU:** Intel Core i7-870 (第一世代)
@@ -37,10 +37,12 @@ cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix
 
 ## 🔐 ネットワークとセキュリティ
 - **ブート方式:** Legacy BIOS (MBR)
+- **Update Producer:** ネットワーク全体の更新を主導する Producer。毎日 04:00 に `flake.lock` やプラグインを更新し、Git へのプッシュと Hub への通知を行います。
 - **管理用IP:** `10.0.0.4` (WireGuard)
+- **アプリ用IP:** `10.0.1.4` (Minecraft 等)
 - **MTU設定:** USB-LAN 変換アダプタ使用時の安定性向上のため、WireGuard の MTU を `1380` に設定しています。
 - **SSH アクセス制限:** セキュリティ強化のため、SSHアクセスは WireGuard (`wg0`) インターフェース経由のみに制限。
 
 ## ⚠️ 注意事項
 - **オーバークロック:** CPU のオーバークロックは Nix の高負荷ビルド時に不安定（Kernel Oops）を誘発するため、原則として定格運用を推奨。
-- **resolv.conf:** インストール直後に `resolv.conf` の署名不一致でネットワークサービスが落ちる場合は、`/etc/resolv.conf` を手動削除して再起動すること。
+- **resolv.conf:** インストール直後に `resolv.conf` の署名不一致でネットワークサービスが落ちる場合は、`/etc/resolv.conf` 手動削除して再起動すること。

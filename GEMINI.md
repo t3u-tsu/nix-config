@@ -8,9 +8,9 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 
 **torii-chan: Coordinated Update Hubとして稼働中。10.0.1.1:8080 (App) / 10.0.0.1:8080 (Mgmt) でステータスを提供。**
 
-**kagutsuchi-sama: Coordinated Update Producerとして稼働中。毎日04:00にシステム・プラグインを更新しHubへ通知。**
+**shosoin-tan: Minecraft サーバー兼 Coordinated Update Producerとして稼働中。毎日04:00にシステム・プラグインを更新しHubへ通知。**
 
-**shosoin-tan: セットアップ完了。i7-870 / Quadro K2200 / ZFS Mirror 構成で WireGuard (10.0.0.4) 経由での稼働を確認。**
+**kagutsuchi-sama: 汎用計算サーバーとして稼働。マイクラ鯖の移行を完了。**
 
 **ビルド環境: Arch Linuxホストでaarch64エミュレーションビルドを確立。公式キャッシュの利用によりビルド時間が劇的に短縮。**
 
@@ -38,7 +38,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 20. Lobby サーバーの Void 化: 既存ワールドをリセットし、一切のブロックがない Void ワールドとして再構築。
 21. プラグイン自動更新の導入: `nvfetcher` を導入し、ViaVersion/ViaBackwards を常に最新の GitHub リリースから取得してビルドする仕組みを構築。
 22. サーバー警告の解消: `LD_LIBRARY_PATH` への `udev` 追加によるライブラリ不足警告の修正、および `paper-global.yml` の `config-version` 指定による警告の解消。
-23. 自動更新システムの構築: 毎日午前4時に `nix flake update`、`nvfetcher` 更新、Git コミット＆プッシュ、`nixos-rebuild switch` を自動実行する Systemd Timer を構築。
+23. 自動更新システムの構築: 毎日午前4時に `nix flake update`、`nvfetcher` 更新、Git コミット＆プッシュ、`nixos-rebuild switch` を自動実行する Systemd Timer を構築.
 24. 自動更新モジュールのリファクタリング: `config.users.users` によるパスの動的解決と、未踏環境での自動クローン（セルフヒーリング）機能を実装。
 25. Kagutsuchi-sama 障害復旧と接続性改善: 同じ LAN 内での NAT ループバック問題による VPN 不通を解消するため、`/etc/hosts` によるローカル解決を導入。救出用の一時的な LAN SSH 許可を経て、セキュアな元の状態へ復元。
 26. ネットワーク設定の共通化: NAT ループバック対策用のローカル DNS 解決を `common/local-network.nix` にモジュール化し、フラグ一つで有効化できるように改善。
@@ -52,6 +52,7 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 34. shosoin-tan セットアップ完了: CPU オーバークロック解除による安定化を経て、NixOS のインストールと WireGuard 接続に成功。
 35. shosoin-tan ネットワーク安定化: USB-LAN アダプタ環境での不安定さを解消するため、WireGuard MTU を 1380 に設定し、`localNetwork` モジュールによるエンドポイントのローカル解決を導入して起動時の接続を確実に安定させた。
 36. タイムゾーンのJST統一: 全ホスト共通設定として `common/time.nix` を導入し、タイムゾーンを `Asia/Tokyo` (JST) に統一。あわせて `chrony` を有効化し、時刻同期の精度と安定性を向上させた。
+37. Minecraft サーバー移行: マイクラ関連サービス一式 (Velocity, Lobby, nitac23s) を `kagutsuchi-sama` から `shosoin-tan` へ移行。データの `rsync` 同期、`torii-chan` のポート転送先変更 (10.0.1.4)、および自動更新 Producer 権限の移譲を完了。
 
 ### 次のステップ
 
