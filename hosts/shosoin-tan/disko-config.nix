@@ -63,33 +63,18 @@
           };
         };
       };
-      hdd320gb1 = {
-        type = "disk";
-        device = "/dev/disk/by-id/ata-TOSHIBA_MK3261GSYD_Z3R7P0NTT";
-        content = {
-          type = "gpt";
-          partitions = {
-            zfs = {
-              size = "100%";
-              content = {
-                type = "zfs";
-                pool = "tank-320gb";
-              };
-            };
-          };
-        };
-      };
-      hdd320gb2 = {
+      hdd320gb_ext4 = {
         type = "disk";
         device = "/dev/disk/by-id/ata-WDC_WD3200AAJS-98B4A0_WD-WCAT19003074";
         content = {
           type = "gpt";
           partitions = {
-            zfs = {
+            data = {
               size = "100%";
               content = {
-                type = "zfs";
-                pool = "tank-320gb";
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/mnt/data-320gb";
               };
             };
           };
@@ -101,11 +86,6 @@
         type = "zpool";
         mode = "mirror";
         mountpoint = "/mnt/tank-1tb";
-      };
-      tank-320gb = {
-        type = "zpool";
-        mode = "mirror";
-        mountpoint = "/mnt/tank-320gb";
       };
     };
   };

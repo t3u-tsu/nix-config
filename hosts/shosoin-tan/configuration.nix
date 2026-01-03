@@ -46,6 +46,7 @@ in
 
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
+  boot.zfs.extraPools = [ "tank-1tb" ];
 
   # Core i7 870 is x86_64
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
