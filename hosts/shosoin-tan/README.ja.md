@@ -38,6 +38,9 @@ cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix
 ## 🔐 ネットワークとセキュリティ
 - **ブート方式:** Legacy BIOS (MBR)
 - **Update Producer:** ネットワーク全体の更新を主導する Producer。毎日 04:00 に `flake.lock` やプラグインを更新し、Git へのプッシュと Hub への通知を行います。
+- **Minecraft データ:** `/srv/minecraft` に配置。
+- **バックアップ:** 2時間おきに `restic` で実行。
+  - ローカル (`/mnt/tank-1tb/backups/minecraft`) とリモート (`kagutsuchi-sama`) の2重構成。
 - **管理用IP:** `10.0.0.4` (WireGuard)
 - **アプリ用IP:** `10.0.1.4` (Minecraft 等)
 - **MTU設定:** USB-LAN 変換アダプタ使用時の安定性向上のため、WireGuard の MTU を `1380` に設定しています。

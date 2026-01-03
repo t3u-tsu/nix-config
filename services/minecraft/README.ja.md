@@ -5,6 +5,10 @@
 ## 運用状況
 
 - **現在のホスト**: `shosoin-tan` (10.0.1.4)
+- **データディレクトリ**: `/srv/minecraft`
+- **バックアップ**: 2時間おきに `restic` で実行。
+    - ローカル: `/mnt/tank-1tb/backups/minecraft` (ZFSミラー)
+    - リモート: `kagutsuchi-sama` (10.0.1.3) の `/mnt/data/backups/shosoin-tan`
 - **更新担当 (Producer)**: `shosoin-tan` が毎日 04:00 に本体とプラグインの更新をチェックし、リポジトリを更新します。
 
 ## 構成概要
