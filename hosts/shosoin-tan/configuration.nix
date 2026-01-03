@@ -45,6 +45,9 @@ in
   networking.hostName = "shosoin-tan";
   networking.useDHCP = true;
 
+  # Enable local network optimizations (NAT loopback bypass for torii-chan)
+  my.localNetwork.enable = true;
+
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
   boot.zfs.extraPools = [ "tank-1tb" ];
