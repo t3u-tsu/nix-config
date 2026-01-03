@@ -1,9 +1,9 @@
-{ disks ? [ "/dev/sda" "/dev/sdb" "/dev/sdc" "/dev/sdd" "/dev/sde" "/dev/sdf" ], ... }: {
+{ ... }: {
   disko.devices = {
     disk = {
       ssd = {
         type = "disk";
-        device = builtins.elemAt disks 0; # 480GB SSD
+        device = "/dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A";
         content = {
           type = "gpt";
           partitions = {
@@ -29,7 +29,7 @@
       };
       hdd1tb1 = {
         type = "disk";
-        device = builtins.elemAt disks 1;
+        device = "/dev/disk/by-id/ata-WDC_WD10EURS-630AB1_WD-WCAV5H788217";
         content = {
           type = "gpt";
           partitions = {
@@ -45,7 +45,7 @@
       };
       hdd1tb2 = {
         type = "disk";
-        device = builtins.elemAt disks 2;
+        device = "/dev/disk/by-id/ata-FSLC_MAL31000SA-T72_21B1L13JTQCF";
         content = {
           type = "gpt";
           partitions = {
@@ -61,7 +61,7 @@
       };
       hdd320gb1 = {
         type = "disk";
-        device = builtins.elemAt disks 3;
+        device = "/dev/disk/by-id/ata-TOSHIBA_MK3261GSYD_Z3R7P0NTT";
         content = {
           type = "gpt";
           partitions = {
@@ -77,7 +77,7 @@
       };
       hdd320gb2 = {
         type = "disk";
-        device = builtins.elemAt disks 4;
+        device = "/dev/disk/by-id/ata-WDC_WD3200AAJS-98B4A0_WD-WCAT19003074";
         content = {
           type = "gpt";
           partitions = {
@@ -86,23 +86,6 @@
               content = {
                 type = "zfs";
                 pool = "tank-320gb";
-              };
-            };
-          };
-        };
-      };
-      hdd2tb = {
-        type = "disk";
-        device = builtins.elemAt disks 5;
-        content = {
-          type = "gpt";
-          partitions = {
-            backup = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/mnt/backup";
               };
             };
           };
