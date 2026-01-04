@@ -49,6 +49,12 @@ in
     mode = "0400";
   };
 
+  sops.secrets.discord_admin_guild_id = {
+    owner = "minecraft";
+    group = "minecraft";
+    mode = "0400";
+  };
+
   # Bootloader configuration
   boot.loader.grub = {
     enable = true;
