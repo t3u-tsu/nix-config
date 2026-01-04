@@ -130,8 +130,8 @@ in {
             git push "https://x-access-token:$TOKEN@${cfg.remoteUrl}" main
           fi
           
+          # 最新のコミットハッシュを取得して Hub に通知 (自分が push したか、既に誰かが push していたかに関わらず)
           NEW_COMMIT=$(git rev-parse HEAD)
-          # ハブに最新コミットを通知
           curl -X POST -d "{\"commit\": \"$NEW_COMMIT\"}" "$HUB/producer/done"
           
           # 自分自身を更新（必要な場合のみ）
