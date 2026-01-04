@@ -34,7 +34,7 @@ in
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
-        ExecStart = "${bridgePkg}/bin/bridge -c ${configFile}";
+        ExecStart = "${bridgePkg}/bin/minecraft-discord-bridge -c ${configFile}";
         Restart = "always";
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
         StateDirectory = "minecraft-discord-bridge";
