@@ -55,16 +55,16 @@ Orange Pi Zero3 (`torii-chan`) 向けのNixOS設定を構築し、SD運用から
 37. Minecraft サーバー移行: マイクラ関連サービス一式 (Velocity, Lobby, nitac23s) を `kagutsuchi-sama` から `shosoin-tan` へ移行。データの `rsync` 同期、`torii-chan` のポート転送先変更 (10.0.1.4)、および自動更新 Producer 権限の移譲を完了。
 38. Velocity 警告の解消: `config-version` を `2.7` に更新し、非推奨の `forwarding-secret-file` パラメータを削除することで、セキュリティ警告および設定バージョン警告を修正。
 39. バックアップシステムの構築と共通化: `services/backup` を新設し、`restic` による 2重バックアップ（ローカル ZFS & リモート Kagutsuchi）をモジュール化。SSH 設定の共通化により、安全で保守性の高いバックアップ運用を実現。
+40. Minecraft Discord Bridge の導入: Go 製のマルチテナント型管理 Bot を開発・公開。Discord からのホワイトリスト管理機能、Unix ドメインソケットによるローカル管理、および `sops-nix` による機密情報の安全な自動注入を実現。
 
 ### 運用・デプロイ上の知見 (Operational Notes)
-
-- **バックアップの確認**:
-  - `sudo systemctl status restic-backups-local-backup.service`
-  - `sudo systemctl status restic-backups-remote-backup.service`
-  - ログ確認: `sudo journalctl -u restic-backups-remote-backup.service -f`
+...
 - **Minecraft コンソールへの接続**: 各サービスは `tmux` セッションで動作。
   - 接続: `sudo tmux -S /run/minecraft/<サービス名>.sock attach`
   - 離脱: `Ctrl+B` -> `D`
+- **Discord Bridge の操作**:
+  - ローカル操作: `echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+  - 招待トークン発行: `echo 'invite-create nitac23s' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
 - **非NixOS環境からのデプロイ**: `nixos-rebuild` がない場合、`nix run` 経由で実行。
   - 例: `nix run nixpkgs#nixos-rebuild -- switch --flake .#<ホスト> --target-host <ユーザー>@<IP> --use-remote-sudo --ask-sudo-password`
 - **Flake への反映**: Nix Flake は Git 管理下のファイルのみを認識するため、新規作成・変更したファイルは必ず `git add` すること。

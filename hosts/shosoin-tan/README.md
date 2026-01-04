@@ -39,6 +39,7 @@ To avoid CPU freezes on the target, build the image on a build host and transfer
 - **Boot Method:** Legacy BIOS (MBR)
 - **Update Producer:** Central update manager for the fleet. Automatically updates `flake.lock` and plugins daily at 04:00, pushes to Git, and notifies the Hub.
 - **Minecraft Data:** Located at `/srv/minecraft`.
+- **Minecraft Discord Bridge:** Discord management bot is active. Socket at `/run/minecraft-discord-bridge/bridge.sock`.
 - **Backup:** Runs every 2 hours via `restic`.
   - Dual setup: Local (`/mnt/tank-1tb/backups/minecraft`) and Remote (`kagutsuchi-sama`).
 - **Management IP:** `10.0.0.4` (WireGuard)

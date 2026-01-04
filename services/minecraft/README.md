@@ -25,6 +25,17 @@ This directory manages the Minecraft network consisting of a Velocity proxy and 
   - Port: `25567`
   - Main survival server.
 
+## External Integration (Discord Bridge)
+
+A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge), is integrated for whitelist management and more.
+
+- **Features**:
+  - `/whitelist <add|remove|list>` for player management.
+  - Multi-tenant support via invitation tokens for different Discord guilds.
+- **Local Management (on shosoin-tan)**:
+  - Check status: `echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+  - Issue token: `echo 'invite-create <server_name>' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+
 ## Plugin Management (nvfetcher)
 
 Plugins (ViaVersion, ViaBackwards) are managed in the `plugins/` directory using **nvfetcher**. This allows automatic fetching of latest hashes and declarative version management.

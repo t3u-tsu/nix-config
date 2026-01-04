@@ -39,6 +39,7 @@ cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix
 - **ブート方式:** Legacy BIOS (MBR)
 - **Update Producer:** ネットワーク全体の更新を主導する Producer。毎日 04:00 に `flake.lock` やプラグインを更新し、Git へのプッシュと Hub への通知を行います。
 - **Minecraft データ:** `/srv/minecraft` に配置。
+- **Minecraft Discord Bridge:** Discord からの管理用 Bot が稼働中。ソケットは `/run/minecraft-discord-bridge/bridge.sock`。
 - **バックアップ:** 2時間おきに `restic` で実行。
   - ローカル (`/mnt/tank-1tb/backups/minecraft`) とリモート (`kagutsuchi-sama`) の2重構成。
 - **管理用IP:** `10.0.0.4` (WireGuard)

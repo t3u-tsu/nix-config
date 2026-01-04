@@ -25,6 +25,17 @@
   - ポート: `25567`
   - メインサバイバルサーバー。
 
+## 外部連携 (Discord Bridge)
+
+Discord を介してホワイトリスト管理などを行うための [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge) が導入されています。
+
+- **機能**:
+  - `/whitelist <add|remove|list>` によるプレイヤー管理。
+  - 招待トークン方式によるマルチテナント（複数 Discord サーバー）対応。
+- **管理コマンド (shosoin-tan上)**:
+  - 状態確認: `echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+  - トークン発行: `echo 'invite-create <server_name>' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+
 ## プラグイン管理 (nvfetcher)
 
 プラグイン（ViaVersion, ViaBackwards）は `plugins/` ディレクトリで **nvfetcher** を使用して管理されています。これにより、最新のハッシュ値を自動取得し、宣言的にプラグインを最新に保つことができます。
