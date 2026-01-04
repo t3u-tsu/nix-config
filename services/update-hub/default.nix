@@ -23,25 +23,27 @@ let
 
     def notify_hosts(status):
         import urllib.request
-        for hostname, info in status.get("hosts", {}).items():
-            # アプリ間ネットワーク(wg1)のIPを推測または解決して通知
-            # 今回は簡易的に 10.0.1.x の形式を想定（後でより堅牢に可能）
-            # ホスト名から IP を解決するのが理想的
-            try:
-                # 10.0.1.1(torii), 10.0.1.3(kagutsuchi), 10.0.1.4(shosoin)
-                # ここでは hosts の情報に基づいて通知先を決定するロジックが必要
-                # 一旦、登録されている全ホストの 8081 ポートを叩く
-                ip = None
-                if hostname == "torii-chan": ip = "10.0.1.1"
-                elif hostname == "kagutsuchi-sama": ip = "10.0.1.3"
-                elif hostname == "shosoin-tan": ip = "10.0.1.4"
-                elif hostname == "sando-kun": ip = "10.0.1.2"
+        # wg1 ネットワーク内の固定マッピング（DNS解決が困難な場合のため）
+        IP_MAP = {
+            "torii-chan": "10.0.1.1",
+            "kagutsuchi-sama": "10.0.1.3",
+            "shosoin-tan": "10.0.1.4",
+            "sando-kun": "10.0.1.2",
+        }
+        
+        # ステータスに登録されている全ホストをループ
+        for hostname in status.get("hosts", {}).keys():
+            ip = IP_MAP.get(hostname)
+            if not ip:
+                continue
                 
-                if ip:
-                    url = f"http://{ip}:8081/trigger-update"
-                    print(f"Notifying {hostname} at {url}...")
-                    req = urllib.request.Request(url, method='POST')
-                    urllib.request.urlopen(req, timeout=2)
+            try:
+                url = f"http://{ip}:8081/trigger-update"
+                print(f"Notifying {hostname} at {url}...")
+                req = urllib.request.Request(url, method='POST')
+                # タイムアウトを短くし、各通知を独立させる
+                with urllib.request.urlopen(req, timeout=1) as f:
+                    pass
             except Exception as e:
                 print(f"Failed to notify {hostname}: {e}")
 

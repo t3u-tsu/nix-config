@@ -185,6 +185,15 @@ in {
 
         class TriggerHandler(BaseHTTPRequestHandler):
             def do_POST(self):
+                # 送信元チェック (Hub からのみ許可)
+                client_ip = self.client_address[0]
+                if client_ip != '10.0.1.1' and client_ip != '127.0.0.1':
+                    self.send_response(403)
+                    self.end_headers()
+                    self.wfile.write(b'Forbidden')
+                    print(f'Blocked update trigger request from {client_ip}')
+                    return
+
                 if self.path == '/trigger-update':
                     self.send_response(200)
                     self.end_headers()
