@@ -64,7 +64,7 @@ in
       mkdir -p config
       
       # Inject RCON password into server.properties
-      RCON_PASS=$(cat ${config.sops.secrets.minecraft_rcon_password.path})
+      RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
       sed -i "s/@RCON_PASSWORD@/$RCON_PASS/" server.properties
 
       SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
