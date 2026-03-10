@@ -70,7 +70,7 @@ if [ "$PUSH_CHANGES" = "true" ]; then
   curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$NEW_COMMIT\", \"host\": \"$HOSTNAME\"}" "$HUB_URL/producer/done"
   
   if [ "$CURRENT_HEAD" != "$NEW_COMMIT" ]; then
-    nixos-rebuild switch --flake . $EXTRA_REBUILD_ARGS
+    nixos-rebuild $EXTRA_REBUILD_ARGS switch --flake .
   fi
 else
   # --- Consumer Mode ---
@@ -89,7 +89,7 @@ else
      chown -R "$USERNAME:$GROUPNAME" "$FLAKE_PATH"
      
      # Use NIXOS_NO_CHECK=1 for auto-updates to prevent stopping on dbus/systemd inhibitors
-     if NIXOS_NO_CHECK=1 nixos-rebuild switch --flake . $EXTRA_REBUILD_ARGS; then
+     if NIXOS_NO_CHECK=1 nixos-rebuild $EXTRA_REBUILD_ARGS switch --flake .; then
          echo "Update successful."
      else
          echo "Update failed! Notifying hub of failure (TODO)."
