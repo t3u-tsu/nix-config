@@ -36,11 +36,11 @@
       GroupOrder = { "0" = "Default"; };
       "Groups/0" = {
         Name = "Default";
-        "Default Layout" = "jp";
+        "Default Layout" = "us"; # 物理キーボードに合わせて US 配列を指定
         DefaultIM = "mozc";
       };
       "Groups/0/Items/0" = {
-        Name = "keyboard-jp";
+        Name = "keyboard-us"; # 物理キーボードに合わせて US 配列を指定
       };
       "Groups/0/Items/1" = {
         Name = "mozc";
