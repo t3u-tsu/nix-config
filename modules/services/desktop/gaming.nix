@@ -1,19 +1,28 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
-{
-  # Steam configuration
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+with lib;
+let
+  cfg = config.my.services.desktop.gaming;
+in {
+  options.my.services.desktop.gaming = {
+    enable = mkEnableOption "System-wide gaming services (Steam, GameMode)" // { default = true; };
   };
 
-  # GameMode configuration
-  programs.gamemode.enable = true;
+  config = mkIf cfg.enable {
+    # Steam configuration
+    programs.steam = {
+      enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+    };
 
-  # Ensure user can use MangoHud and other performance tools
-  environment.systemPackages = with pkgs; [
-    mangohud
-    gperftools
-  ];
+    # GameMode configuration
+    programs.gamemode.enable = true;
+
+    # Move user-facing tools to Home-manager, 
+    # but keep performance-related libraries at the system level if needed.
+    environment.systemPackages = with pkgs; [
+      gperftools
+    ];
+  };
 }

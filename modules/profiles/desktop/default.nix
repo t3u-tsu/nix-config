@@ -37,6 +37,7 @@ with lib;
       niri.enable = true;
       greetd.enable = true;
       pipewire.enable = true;
+      gaming.enable = true;
     };
   };
 }

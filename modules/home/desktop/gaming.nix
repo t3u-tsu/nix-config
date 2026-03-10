@@ -11,6 +11,9 @@ in {
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       mangohud
+      protonup-qt
+      heroic
+      # Retroarch or other emulators can be added here
     ];
   };
 }
