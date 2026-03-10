@@ -2,6 +2,11 @@
 
 このリストは、NixOS 設定リポジトリのさらなる保守性・拡張性向上のための提案を優先度別にまとめたものです。
 
+- [ ] **Niri & Noctalia Shell 構成の整理**:
+  - `noctalia-shell` の内蔵機能を活用し、重複している外部ツール（`brightnessctl`, `playerctl` 等）を `home.packages` から削除。
+  - `noctalia-shell` の詳細なバー構成（時計、CPU/メモリ使用量等）を `noctalia.nix` に追加。
+  - Niri のキーバインドを `noctalia-shell ipc` 経由に完全に統一し、OSD 等の動作を安定させる。
+
 ---
 
 ### **完了済みタスク**
