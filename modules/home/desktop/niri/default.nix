@@ -38,8 +38,7 @@ in {
         # awww is the new swww from Codeberg
         { command = [ "${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/awww-daemon" ]; }
         
-        # Launch Fcitx5
-        { command = [ "fcitx5" "-d" "--replace" ]; }
+        # Fcitx5 is now started as a Home Manager service, so we don't need to spawn it here.
       ];
 
       binds = {
@@ -47,7 +46,7 @@ in {
         "Mod+Return".action.spawn = [ "alacritty" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
         "Mod+Space".action.spawn = [ "noctalia-shell" "ipc" "call" "launcher" "toggle" ];
-        "Mod+W".action.close-window = { }; # Omarchy style
+        "Mod+W".action.close-window = { };
         "Mod+F".action.maximize-column = { };
         "Mod+Shift+F".action.spawn = [ "nautilus" ];
         "Mod+V".action.toggle-window-floating = { };
@@ -91,18 +90,24 @@ in {
         "Mod+8".action.focus-workspace = 8;
         "Mod+9".action.focus-workspace = 9;
 
-        # --- System & Media ---
-        "Print".action.screenshot = { };
+        # --- System & Media (Powered by Noctalia Shell IPC) ---
+        "Print".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureOutput" ];
+        "Mod+Shift+S".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureArea" ];
         "Mod+Shift+E".action.spawn = [ "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ];
         "Mod+Escape".action.spawn = [ "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ];
         
-        # Audio & Brightness via Noctalia Shell IPC
+        # Audio & Brightness
         "XF86AudioRaiseVolume".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "increase" ];
         "XF86AudioLowerVolume".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "decrease" ];
         "XF86AudioMute".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "muteOutput" ];
         "XF86AudioMicMute".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "muteInput" ];
         "XF86MonBrightnessUp".action.spawn = [ "noctalia-shell" "ipc" "call" "brightness" "increase" ];
         "XF86MonBrightnessDown".action.spawn = [ "noctalia-shell" "ipc" "call" "brightness" "decrease" ];
+
+        # Media Controls
+        "XF86AudioPlay".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "toggle" ];
+        "XF86AudioNext".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "next" ];
+        "XF86AudioPrev".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "previous" ];
       };
 
       window-rules = [
@@ -116,12 +121,10 @@ in {
     home.packages = with pkgs; [
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default
       xwayland-satellite
-      brightnessctl
-      playerctl
       wl-clipboard
       cliphist
-      grim
-      slurp
+      # Redundant tools (brightnessctl, playerctl, grim, slurp) are removed
+      # because Noctalia Shell handles these functions via IPC.
     ];
   };
 }
