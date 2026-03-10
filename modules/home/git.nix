@@ -16,15 +16,6 @@
       # Commit Signing with GPG
       commit.gpgsign = true;
       gpg.format = "openpgp";
-      
-      # Delta for better diffs
-      core.pager = "delta";
-      interactive.diffFilter = "delta --color-only";
-      delta = {
-        navigate = true;
-        light = false;
-        line-numbers = true;
-      };
     };
   };
 
@@ -43,5 +34,10 @@
   programs.delta = {
     enable = true;
     enableGitIntegration = true;
+    options = {
+      navigate = true;
+      light = false;
+      line-numbers = true;
+    };
   };
 }
