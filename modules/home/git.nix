@@ -3,16 +3,14 @@
 {
   programs.git = {
     enable = true;
-    # Global User Identity
-    userName = "t3u-tsu";
-    userEmail = "t3u@t3u.uk";
-
+    
+    # New Home Manager 24.11+ syntax for Git
     settings = {
+      user.name = "t3u-tsu";
+      user.email = "t3u@t3u.uk";
       core.editor = "vim";
       init.defaultBranch = "main";
-    };
-
-    extraConfig = {
+      
       # Commit Signing with GPG
       commit.gpgsign = true;
       gpg.format = "openpgp";
@@ -27,7 +25,7 @@
   # GPG Agent for passphrase management
   services.gpg-agent = {
     enable = true;
-    pinentryPackage = pkgs.pinentry-qt; # Suitable for Wayland/Niri
+    pinentry.package = pkgs.pinentry-qt; # Corrected syntax
     enableZshIntegration = true;
   };
 
