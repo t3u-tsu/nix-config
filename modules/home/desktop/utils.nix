@@ -11,9 +11,6 @@ in {
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       bitwarden-desktop
-      vlc
-      spotify
-      mangohud
     ];
   };
 }

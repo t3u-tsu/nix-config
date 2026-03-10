@@ -7,6 +7,8 @@
     ./communication.nix
     ./creative.nix
     ./dev-tools
+    ./gaming.nix
+    ./media.nix
     ./utils.nix
     ./theme.nix
     ./xdg.nix

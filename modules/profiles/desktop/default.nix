@@ -20,6 +20,8 @@ with lib;
         browsers.enable = true;
         communication.enable = true;
         dev-tools.enable = true;
+        gaming.enable = true;
+        media.enable = true;
         utils.enable = true;
         creative.enable = true;
         terminal.alacritty.enable = true;
