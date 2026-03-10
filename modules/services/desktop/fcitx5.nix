@@ -16,6 +16,14 @@
     };
   };
 
+  # Wayland (Niri) 環境での互換性と安定性のため、
+  # 不要な環境変数が自動設定されないように明示的に空にする
+  environment.sessionVariables = {
+    GTK_IM_MODULE = "";
+    QT_IM_MODULE = "";
+    XMODIFIERS = "@im=fcitx";
+  };
+
   # ユーザーレベルの設定 (Home Manager)
   # 参照: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
   # これにより Mozc がデフォルトで有効化され、宣言的に管理される
