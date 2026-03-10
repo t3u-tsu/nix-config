@@ -2,14 +2,15 @@
 
 このリストは、NixOS 設定リポジトリのさらなる保守性・拡張性向上のための提案を優先度別にまとめたものです。
 
-- [ ] **Niri & Noctalia Shell 構成の整理**:
-  - `noctalia-shell` の内蔵機能を活用し、重複している外部ツール（`brightnessctl`, `playerctl` 等）を `home.packages` から削除。
-  - `noctalia-shell` の詳細なバー構成（時計、CPU/メモリ使用量等）を `noctalia.nix` に追加。
-  - Niri のキーバインドを `noctalia-shell ipc` 経由に完全に統一し、OSD 等の動作を安定させる。
-
 ---
 
 ### **完了済みタスク**
+- [x] **Niri & Noctalia Shell 構成の高度化 (feature/noctalia-ultimate-optimization)**:
+  - `noctalia-shell` の内蔵機能を活用し、重複している外部ツール（`brightnessctl`, `playerctl` 等）を排除。
+  - バー、ウィジェット、通知、OSD の詳細構成をドキュメントに基づき刷新。
+  - Niri のキーバインドを `noctalia-shell ipc` 経由に完全に統一。
+  - `spicetify-nix` による Spotify の Dracula テーマ適用。
+  - 日本語入力 (Fcitx5/Mozc) の Home-manager による安定管理と環境同期。
 - [x] **Sops 共通設定の整理**: `modules/core/sops.nix` への集約。
 - [x] **リポジトリ所有権の強制**: `update-hub` での `chown` 実施。
 - [x] **コマンドの即時実行環境 (nix-index / comma) の構築**: 全ホストへの導入完了。
@@ -29,6 +30,8 @@
 
 ### **進行中・今後のタスク**
 
+- [ ] **Noctalia 動的テーマ同期 (Matugen integration) の完遂**:
+  - Matugen テンプレートによる Zen Browser / Discord の配色同期が現在不完全なため、Home-manager 直轄での配色生成・同期へのリファクタリングを検討する。
 - [ ] **SOPS 機密情報の構造化と権限分離**:
   - 現在 `secrets/secrets.yaml` に集中している機密情報を、ホスト別・サービス別に分割し、各ホストの復号権限を最小化する。
 - [ ] **低リソース機向けの分散ビルド (Remote Build) 導入**:
@@ -47,3 +50,5 @@
   - パフォーマンスチューニング（GameMode プロファイルの微調整等）の継続。
 - [ ] **システムパッケージ層の整理**:
   - `modules/packages/` の構成をさらに見直し、ベースシステムとユーザー環境の境界を洗練させる。
+- [ ] **アプリケーション固有の高度な最適化**:
+  - Steam (Millennium) や Neovim (noctalia.nvim) の統合。

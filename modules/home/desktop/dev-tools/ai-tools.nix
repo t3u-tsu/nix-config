@@ -12,6 +12,8 @@ in {
     home.packages = with pkgs; [
       # Use unstable for gemini-cli to get latest features/fixes
       unstable.gemini-cli
+      # Agentic development platform
+      antigravity
     ];
   };
 }

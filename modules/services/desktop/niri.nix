@@ -19,15 +19,25 @@ in {
       package = pkgs.niri;
     };
 
-    # Necessary for screen sharing and other desktop features
+    # Necessary for screen sharing, screenshots and other desktop features
     xdg.portal = {
       enable = true;
-      extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
+      # Use the portals recommended for Niri
+      extraPortals = with pkgs; [ 
+        xdg-desktop-portal-gnome
+        xdg-desktop-portal-gtk
+      ];
       config.common.default = [ "gnome" "gtk" ];
+      # xdg-desktop-portal-gnome is the primary portal for Niri
+      # as it provides the settings daemon needed for many apps.
     };
 
+    # Core desktop services
     services.dbus.enable = true;
     services.upower.enable = true;
     services.power-profiles-daemon.enable = true;
+    
+    # Enable brightness and volume control via dbus/logind for non-root access
+    security.polkit.enable = true;
   };
 }

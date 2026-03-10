@@ -180,14 +180,36 @@ in {
           "network.cookie.cookieBehavior" = 0; # Allow all cookies
           "network.cookie.lifetimePolicy" = 0; # Keep until expired
           
-          # Performance
-          "gfx.webrender.all" = true;
-          "media.ffmpeg.vaapi.enabled" = true; # Hardware acceleration
+                    # Performance
+                    "gfx.webrender.all" = true;
+                    "media.ffmpeg.vaapi.enabled" = true; # Hardware acceleration
+                    
+                    # Smooth Scrolling
+                    "general.smoothScroll" = true;
+                  };
           
-          # Smooth Scrolling
-          "general.smoothScroll" = true;
-        };
-      };
-    };
-  };
-}
+                  # Noctalia Dynamic Theming Integration
+                  userChrome = ''
+                    /* Import Noctalia-generated colors */
+                    @import url("file:///home/${osConfig.my.user.name}/.cache/noctalia/colors.css");
+          
+                    :root {
+                      --zen-primary-color: var(--noctalia-primary) !important;
+                      --zen-secondary-color: var(--noctalia-secondary) !important;
+                    }
+          
+                    /* Match Zen UI with Noctalia colors */
+                    #zen-sidebar-content {
+                      background-color: var(--noctalia-surface) !important;
+                    }
+                    
+                    .tab-content[selected="true"] {
+                      background-color: var(--noctalia-primary-container) !important;
+                      color: var(--noctalia-on-primary-container) !important;
+                    }
+                  '';
+                };
+              };
+            };
+          }
+          
