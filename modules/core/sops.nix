@@ -15,7 +15,16 @@ in
     SOPS_AGE_KEY_FILE = "/var/lib/sops-nix/key.txt";
   };
 
-  # Common host secrets
-  sops.secrets."${hostKey}_t3u_password_hash".neededForUsers = true;
-  sops.secrets."${hostKey}_root_password_hash".neededForUsers = true;
-}
+    # Common host secrets
+    sops.secrets."${hostKey}_t3u_password_hash".neededForUsers = true;
+    sops.secrets."${hostKey}_root_password_hash".neededForUsers = true;
+  
+    # GPG Private Key (shared across hosts for the primary user)
+    sops.secrets.gpg_private_key = {
+      path = "/run/secrets/gpg_private_key";
+      owner = config.my.user.name;
+      group = "users";
+      mode = "0600";
+    };
+  }
+  

@@ -4,14 +4,15 @@
   programs.git = {
     enable = true;
     
-    # New Home Manager 24.11+ syntax for Git
+    # Git User Configuration
     settings = {
       user.name = "t3u-tsu";
       user.email = "t3u@t3u.uk";
+      user.signingkey = "9FC270ACC3631FB4";
       core.editor = "vim";
       init.defaultBranch = "main";
       
-      # Commit Signing with GPG
+      # Always sign commits with GPG
       commit.gpgsign = true;
       gpg.format = "openpgp";
     };
@@ -25,7 +26,7 @@
   # GPG Agent for passphrase management
   services.gpg-agent = {
     enable = true;
-    pinentry.package = pkgs.pinentry-qt; # Corrected syntax
+    pinentry.package = pkgs.pinentry-qt;
     enableZshIntegration = true;
   };
 
@@ -38,4 +39,12 @@
       line-numbers = true;
     };
   };
+
+  # Automatically import the GPG private key from SOPS if available
+  # Note: The secret should be placed at /run/secrets/gpg_private_key by SOPS
+  home.activation.importGpgKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -f /run/secrets/gpg_private_key ]; then
+      $DRY_RUN_CMD ${pkgs.gnupg}/bin/gpg --batch --import /run/secrets/gpg_private_key || true
+    fi
+  '';
 }
