@@ -21,24 +21,39 @@ in {
   config = mkIf cfg.enable {
     home.language.base = "ja_JP.UTF-8";
 
+    # Force unset IM modules in Wayland session to avoid warnings
+    # Use mkForce to override the default settings from Home Manager's i18n module
+    home.sessionVariables = {
+      GTK_IM_MODULE = mkForce "";
+      QT_IM_MODULE = mkForce "";
+    };
+
     # Fcitx5 ユーザープロファイル設定 (宣言的に Mozc を有効化)
     # 参照: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
-    # システム側の i18n.inputMethod と役割を分担し、こちらはプロファイルの生成のみを行う
+    # システム側の i18n.inputMethod は無効化し、こちらで一括管理する
     i18n.inputMethod = mkIf (cfg.inputMethod == "fcitx5") {
       enable = true;
       type = "fcitx5";
-      fcitx5.settings.inputMethod = {
-        GroupOrder = { "0" = "Default"; };
-        "Groups/0" = {
-          Name = "Default";
-          "Default Layout" = cfg.keyboardLayout;
-          DefaultIM = "mozc";
-        };
-        "Groups/0/Items/0" = {
-          Name = "keyboard-${cfg.keyboardLayout}";
-        };
-        "Groups/0/Items/1" = {
-          Name = "mozc";
+      fcitx5 = {
+        addons = with pkgs; [
+          fcitx5-mozc
+          kdePackages.fcitx5-qt
+          fcitx5-gtk
+          kdePackages.fcitx5-configtool
+        ];
+        settings.inputMethod = {
+          GroupOrder = { "0" = "Default"; };
+          "Groups/0" = {
+            Name = "Default";
+            "Default Layout" = cfg.keyboardLayout;
+            DefaultIM = "mozc";
+          };
+          "Groups/0/Items/0" = {
+            Name = "keyboard-${cfg.keyboardLayout}";
+          };
+          "Groups/0/Items/1" = {
+            Name = "mozc";
+          };
         };
       };
     };

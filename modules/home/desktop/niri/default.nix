@@ -32,8 +32,14 @@ in {
       };
 
       spawn-at-startup = [
+        # Environment Synchronization for systemd/dbus
+        { command = [ "dbus-update-activation-environment" "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "NIXOS_OZONE_WL" ]; }
+
         # awww is the new swww from Codeberg
         { command = [ "${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/awww-daemon" ]; }
+        
+        # Launch Fcitx5
+        { command = [ "fcitx5" "-d" "--replace" ]; }
       ];
 
       binds = {
