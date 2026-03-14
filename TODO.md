@@ -7,10 +7,12 @@
 ### **完了済みタスク**
 - [x] **Niri & Noctalia Shell 構成の高度化 (feature/noctalia-ultimate-optimization)**:
   - `noctalia-shell` の内蔵機能を活用し、重複している外部ツール（`brightnessctl`, `playerctl` 等）を排除。
-  - バー、ウィジェット、通知、OSD の詳細構成をドキュメントに基づき刷新。
-  - Niri のキーバインドを `noctalia-shell ipc` 経由に完全に統一。
+  - バー、ウィジェット、通知、OSD の詳細構成を刷新。
+  - Niri のキーバインドを `noctalia-shell ipc` 経由に統一。
   - `spicetify-nix` による Spotify の Dracula テーマ適用。
   - 日本語入力 (Fcitx5/Mozc) の Home-manager による安定管理と環境同期。
+  - ハードウェア開発ツール (KiCad, Picocom) の導入と dialout グループ権限設定。
+  - AI開発プラットフォーム (antigravity) の導入。
 - [x] **Sops 共通設定の整理**: `modules/core/sops.nix` への集約。
 - [x] **リポジトリ所有権の強制**: `update-hub` での `chown` 実施。
 - [x] **コマンドの即時実行環境 (nix-index / comma) の構築**: 全ホストへの導入完了。
@@ -30,25 +32,20 @@
 
 ### **進行中・今後のタスク**
 
-- [ ] **Noctalia 動的テーマ同期 (Matugen integration) の完遂**:
-  - Matugen テンプレートによる Zen Browser / Discord の配色同期が現在不完全なため、Home-manager 直轄での配色生成・同期へのリファクタリングを検討する。
+- [ ] **デスクトップ環境の継続的改善**:
+  - **Noctalia 動的テーマ同期 (Matugen integration) の完遂**: Matugen テンプレートによる Zen Browser / Discord の配色同期の安定化（HM直轄 Matugen の導入検討）。
+  - **バー・OSD の微調整**: ウィジェットのレイアウトや通知アニメーションの洗練。
+  - **Steam**: `Millennium` 導入による動的テーマ適用。
+  - **Neovim**: `noctalia.nvim` プラグインの導入検討と、配色テーマの連動。
 - [ ] **SOPS 機密情報の構造化と権限分離**:
   - 現在 `secrets/secrets.yaml` に集中している機密情報を、ホスト別・サービス別に分割し、各ホストの復号権限を最小化する。
 - [ ] **低リソース機向けの分散ビルド (Remote Build) 導入**:
   - `torii-chan` (RAM 1GB) 等でのビルド負荷を軽減するため、他の強力なマシンをビルドホストとして利用する設定を構築する。
 - [ ] **NVIDIA ドライバ設定の抽象化**:
   - `shosoin-tan`, `kagutsuchi-sama`, `BrokenPC` で重複している設定を `modules/hardware/nvidia.nix` 等に抽出し、構成をオプション化する。
-- [ ] **WireGuard 構成のモジュール化**:
-  - ホスト間で重複しているピア定義を中央管理し、自動生成・同期できる仕組みを作る。
-- [ ] **ZFS 設定の共通化**:
-  - 共通設定を `modules/core/zfs.nix` にまとめ、各ホストの設定を簡略化する。
 - [ ] **Update Hub のセキュリティ強化**:
   - サービスの実行ユーザーを非 root に変更し、権限を制限する。
 - [ ] **CI/CD の構築**:
   - GitHub Actions 等で `nix flake check` を自動実行し、品質を担保する。
-- [ ] **デスクトップ・ゲーミング最適化**:
-  - パフォーマンスチューニング（GameMode プロファイルの微調整等）の継続。
 - [ ] **システムパッケージ層の整理**:
   - `modules/packages/` の構成をさらに見直し、ベースシステムとユーザー環境の境界を洗練させる。
-- [ ] **アプリケーション固有の高度な最適化**:
-  - Steam (Millennium) や Neovim (noctalia.nvim) の統合。
