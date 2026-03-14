@@ -13,6 +13,7 @@ in {
     ./vscode.nix
     ./git-tools.nix
     ./ai-tools.nix
+    ./hardware.nix
   ];
 
   config = mkIf cfg.enable {
@@ -22,6 +23,7 @@ in {
       vscode.enable = mkDefault false; # Use Neovim by default
       git-tools.enable = mkDefault true;
       ai-tools.enable = mkDefault true;
+      hardware.enable = mkDefault true;
     };
   };
 }

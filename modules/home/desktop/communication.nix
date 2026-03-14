@@ -20,5 +20,10 @@ in {
     home.packages = 
       (optional cfg.discord.enable pkgs.discord) ++
       (optional cfg.vesktop.enable pkgs.vesktop);
+
+    # Vesktop (Vencord) will automatically pick up the theme generated 
+    # by Noctalia Shell templates in Step 7.
+    # No extra Nix code needed here as long as the file exists, 
+    # but we can add Vesktop-specific tweaks if needed.
   };
 }

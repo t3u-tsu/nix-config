@@ -13,6 +13,8 @@ in {
       dracula-theme
       dracula-icon-theme
       dracula-qt5-theme
+      libsForQt5.qtstyleplugin-kvantum
+      kdePackages.qtstyleplugin-kvantum
     ];
 
     # GTK Appearance (Dracula)
@@ -26,13 +28,18 @@ in {
         name = "Dracula";
         package = pkgs.dracula-icon-theme;
       };
+      cursorTheme = {
+        name = "Dracula-cursors";
+        package = pkgs.dracula-theme;
+        size = 24;
+      };
     };
 
-    # Qt Appearance Integration
+    # Qt Appearance Integration via Kvantum (Superior for Dracula/Noctalia)
     qt = {
       enable = true;
-      platformTheme.name = "gtk"; 
-      style.name = "adwaita-dark";
+      platformTheme.name = "kvantum"; 
+      style.name = "kvantum";
     };
 
     # Cursor Theme (Dracula)
@@ -47,6 +54,10 @@ in {
     home.sessionVariables = {
       XCURSOR_THEME = "Dracula-cursors";
       XCURSOR_SIZE = "24";
+      # Force apps to use Wayland
+      MOZ_ENABLE_WAYLAND = "1";
+      QT_QPA_PLATFORM = "wayland";
+      NIXOS_OZONE_WL = "1";
     };
   };
 }

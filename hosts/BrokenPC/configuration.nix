@@ -87,7 +87,7 @@
   users.users.${config.my.user.name} = {
     isNormalUser = true;
     description = config.my.user.name;
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" ];
+    extraGroups = [ "networkmanager" "wheel" "video" "audio" "dialout" ];
     shell = pkgs.zsh;
     hashedPasswordFile = config.sops.secrets.brokenpc_t3u_password_hash.path;
   };
