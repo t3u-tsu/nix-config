@@ -19,6 +19,9 @@ in {
       };
     };
 
+    # Prevent session termination during 'nixos-rebuild switch'
+    systemd.services.greetd.serviceConfig.X-RestartIfChanged = lib.mkForce false;
+
     # Unlock gnome-keyring on login
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;

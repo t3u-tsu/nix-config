@@ -42,6 +42,7 @@ in {
         USERNAME = cfg.user;
         GROUPNAME = targetUser.group;
         PUSH_CHANGES = if cfg.pushChanges then "true" else "false";
+        USE_BOOT = if cfg.useBoot then "true" else "false";
         GIT_USER_NAME = cfg.gitUserName;
         GIT_USER_EMAIL = cfg.gitUserEmail;
         NVFETCHER_DIRS = nvDirs;

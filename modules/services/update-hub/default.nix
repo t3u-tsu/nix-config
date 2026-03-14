@@ -47,6 +47,11 @@ in {
         default = "*-*-* 04:00:00";
         description = "Systemd OnCalendar expression for the update timer";
       };
+      useBoot = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether to use 'boot' instead of 'switch' for nixos-rebuild. Recommended for desktops.";
+      };
       extraRebuildArgs = mkOption {
         type = types.listOf types.str;
         default = [];

@@ -70,7 +70,9 @@ if [ "$PUSH_CHANGES" = "true" ]; then
   curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$NEW_COMMIT\", \"host\": \"$HOSTNAME\"}" "$HUB_URL/producer/done"
   
   if [ "$CURRENT_HEAD" != "$NEW_COMMIT" ]; then
-    nixos-rebuild $EXTRA_REBUILD_ARGS switch --flake .
+    ACTION="switch"
+    [ "$USE_BOOT" = "true" ] && ACTION="boot"
+    nixos-rebuild $EXTRA_REBUILD_ARGS $ACTION --flake .
   fi
 else
   # --- Consumer Mode ---
@@ -88,9 +90,12 @@ else
      git reset --hard "$HUB_COMMIT"
      chown -R "$USERNAME:$GROUPNAME" "$FLAKE_PATH"
      
+     ACTION="switch"
+     [ "$USE_BOOT" = "true" ] && ACTION="boot"
+
      # Use NIXOS_NO_CHECK=1 for auto-updates to prevent stopping on dbus/systemd inhibitors
-     if NIXOS_NO_CHECK=1 nixos-rebuild $EXTRA_REBUILD_ARGS switch --flake .; then
-         echo "Update successful."
+     if NIXOS_NO_CHECK=1 nixos-rebuild $EXTRA_REBUILD_ARGS $ACTION --flake .; then
+         echo "Update successful ($ACTION)."
      else
          echo "Update failed! Notifying hub of failure (TODO)."
          exit 1

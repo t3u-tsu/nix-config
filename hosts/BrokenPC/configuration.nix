@@ -114,7 +114,6 @@
   # Update Hub Client integration
   my.updateHub.client = {
     enable = true;
-    extraRebuildArgs = [ "--no-reexec" ];
   };
 
   # State version
