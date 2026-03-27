@@ -48,6 +48,16 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
 
 ## 🛠️ Operation & Troubleshooting
 
+### Remote Deployment Build Errors (seccomp / sandbox)
+Custom or legacy kernels (like those on Orange Pi) often lack support for modern Linux kernel security features (`user_namespaces`, `seccomp BPF`) required by the Nix daemon.
+As a result, regular remote deployments will silently freeze or crash with outputs like `error: unable to load seccomp BPF program`.
+To bypass this limitation and successfully evaluate and apply configurations directly natively on `torii-chan`, use the following syntax (run as a regular user since running `sudo nixos-rebuild` externally breaks SSH key agent forwarding):
+
+```bash
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+```
+*Note: While `nix.settings.sandbox = false;` is declared in `configuration.nix`, appending these explicit option flags during manual invocation guarantees evasion.*
+
 ### Unstable SSH Connection or Timeout
 Due to the resource constraints of the Orange Pi, key exchange may timeout. Use the `curve25519-sha256` algorithm explicitly or ensure it's enforced in the configuration.
 
