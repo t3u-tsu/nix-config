@@ -47,12 +47,12 @@ in {
         "text/plain" = "nvim.desktop"; 
         
         # Office Documents (LibreOffice)
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "libreoffice-calc.desktop";
-        "application/vnd.ms-excel" = "libreoffice-calc.desktop";
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "libreoffice-writer.desktop";
-        "application/vnd.ms-word" = "libreoffice-writer.desktop";
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "libreoffice-impress.desktop";
-        "application/vnd.ms-powerpoint" = "libreoffice-impress.desktop";
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "calc.desktop";
+        "application/vnd.ms-excel" = "calc.desktop";
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "writer.desktop";
+        "application/vnd.ms-word" = "writer.desktop";
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "impress.desktop";
+        "application/vnd.ms-powerpoint" = "impress.desktop";
       };
     };
 

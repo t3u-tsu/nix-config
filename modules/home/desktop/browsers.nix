@@ -145,6 +145,8 @@ in {
 
         settings = {
           # General UI/UX
+          "extensions.allowPrivateBrowsingByDefault" = true;
+          "extensions.enabledScopes" = 15;
           "extensions.autoDisableScopes" = 0;
           "browser.aboutConfig.showWarning" = false;
           "browser.shell.checkDefaultBrowser" = false;
