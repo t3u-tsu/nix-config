@@ -85,7 +85,4 @@ in
 
   # comin deployment service
   my.services.deployment.comin.enable = true;
-
-  # Central Prometheus/Grafana Monitoring Hub
-  my.services.monitoring.isServer = true;
 }
