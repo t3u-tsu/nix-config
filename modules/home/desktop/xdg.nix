@@ -45,6 +45,14 @@ in {
         "image/gif" = "org.gnome.Loupe.desktop";
         "image/svg+xml" = "zen-beta.desktop";
         "text/plain" = "nvim.desktop"; 
+        
+        # Office Documents (LibreOffice)
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "libreoffice-calc.desktop";
+        "application/vnd.ms-excel" = "libreoffice-calc.desktop";
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "libreoffice-writer.desktop";
+        "application/vnd.ms-word" = "libreoffice-writer.desktop";
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "libreoffice-impress.desktop";
+        "application/vnd.ms-powerpoint" = "libreoffice-impress.desktop";
       };
     };
 

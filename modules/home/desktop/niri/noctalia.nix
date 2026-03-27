@@ -66,6 +66,7 @@ in {
           fontFixed = "Noto Sans Mono CJK JP";
           radiusRatio = 1.0;
           animationSpeed = 1.0;
+          enableShadows = false;
         };
 
         # UI Components - Improved layout and visibility

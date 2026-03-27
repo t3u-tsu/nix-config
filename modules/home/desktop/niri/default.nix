@@ -30,7 +30,7 @@ in {
       };
 
       layout = {
-        gaps = 4;
+        gaps = 8;
         center-focused-column = "never";
         default-column-width = { proportion = 0.5; };
         
