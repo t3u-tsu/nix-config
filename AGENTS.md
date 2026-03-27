@@ -46,6 +46,7 @@
 
 ## 📋 最近の活動記録 (Activity Summary)
 
+- **2026-03-28 (Phase 8-8.5)**: WezTerm移行、Steam Millennium導入、Wayland UIの競合解決。Prometheus+Grafanaによる艦隊監視ダッシュボード基盤の構築とCI/CD導入。
 - **2026-03-28 (Phase 7)**: UI 移行 (Nautilus -> Thunar) と自動デプロイ基盤の刷新 (comin 導入)、CI/CD 準備。
 - **2026-03-28 (Phase 5-6)**: Noctalia UI 最適化、NVIDIA ドライバの抽象化、システムパッケージ再整理。
 - **2026-03-27**: Noctalia Shell 構成の高度化、Spotify テーマ適用。
@@ -57,7 +58,8 @@
 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
 ### 各セッションの詳細ログ（抜粋）
-- [2026-03-28: デスクトップ最適化 & インフラ刷新 Phase 7](./.agents/work-logs/2026-03-28-phase7-infrastructure.md) (*予定*)
+- [2026-03-28: デスクトップ最適化 & 監視基盤配備 Phase 8-8.5](./.agents/work-logs/2026-03-28-phase8-desktop-monitoring.md)
+- [2026-03-28: デスクトップ最適化 & インフラ刷新 Phase 7](./.agents/work-logs/2026-03-28-phase7-infrastructure.md)
 - [2026-03-28: デスクトップ最適化 Phase 2 & クリーンアップ](./.agents/work-logs/2026-03-28-desktop-fixes-v2.md)
 - [2026-03-27: デスクトップ最適化 Phase 1](./.agents/work-logs/2026-03-27-desktop-optimization.md)
 

@@ -28,6 +28,7 @@
 - **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep 等を全ホストで標準化。
 - **Desktop Environment**: Zen Browser (宣言的設定), Vesktop, Neovim, Alacritty による最強のデスクトップ体験。
 - **Smart Hardware Tools**: `my.hardware.pc-tools.enable = true` で物理サーバー用ツールをオプトイン。
+- **Fleet Monitoring Dashboard**: Prometheus と Grafana を統合し、全ホストから集約したメトリクスを `torii-chan` 上のダッシュボードで一元管理。
 - **sops-nix**: `age` を用いた機密情報の暗号化管理。
 - **Automated Backup**: Restic による自動バックアップ (shosoin-tan)。
 
