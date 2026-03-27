@@ -5,26 +5,11 @@ let
   cfg = config.my.home.desktop.niri;
 in {
   config = mkIf cfg.enable {
-    # Matugen: Automatic dynamic theming from wallpaper
-    # Since Home Manager doesn't have programs.matugen, we manage it manually
+    # Matugen: Dynamic theming infrastructure
+    # Note: Requires wallpaper to be set in ~/.config/niri/wallpaper
     home.packages = with pkgs; [ matugen ];
 
-    # Matugen configuration file
-    xdg.configFile."matugen/config.toml".text = ''
-      [watch]
-      enable = true
-      mode = "debounce"
-      debounce_ms = 500
-
-      [image]
-      path = "${config.home.homeDirectory}/.config/niri/wallpaper"
-
-      [colors]
-      mode = "auto"
-      scheme_kind = "dark"
-    '';
-
-    # Template definitions for Matugen
+    # Template definitions for Matugen (CSS generation for Noctalia/Vesktop)
     xdg.configFile."matugen/templates/noctalia-colors.css.template".text = ''
       :root {
         --noctalia-primary: {{colors.primary.default.hex}};
@@ -46,25 +31,8 @@ in {
       }
     '';
 
-    # Systemd service to run Matugen on Niri startup
-    systemd.user.services.matugen-watch = {
-      Unit = {
-        Description = "Matugen dynamic theming watcher";
-        After = [ "graphical-session-pre.target" ];
-        PartOf = [ "graphical-session.target" ];
-      };
-      Service = {
-        Type = "simple";
-        ExecStart = "${pkgs.matugen}/bin/matugen image '${config.home.homeDirectory}/.config/niri/wallpaper' -c '${config.home.homeDirectory}/.config/matugen/config.toml'";
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-      Install = {
-        WantedBy = [ "graphical-session.target" ];
-      };
-    };
-
-    # Create template and output directories
+    # Matugen can be run manually with: matugen image ~/.config/niri/wallpaper
+    # Output directories
     home.file.".config/matugen/templates/.keep".text = "";
     home.file.".cache/noctalia-generated/.keep".text = "";
   };
