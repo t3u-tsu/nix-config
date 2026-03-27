@@ -2,6 +2,8 @@
 
 ## 📋 最新セッション
 
+- **2026-03-28**: [デスクトップ最適化 Phase 2 & クリーンアップ](./.agents/work-logs/2026-03-28-desktop-fixes-v2.md)
+  - Noctalia 影無効化、Niri ギャップ調整、LibreOffice 導入、失敗設定の削除
 - **2026-03-27**: [デスクトップ最適化 Phase 1](./.agents/work-logs/2026-03-27-desktop-optimization.md)
   - Noctalia UI 改善、キーバインド統一、Vesktop 調整
 
