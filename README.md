@@ -12,6 +12,7 @@ The repository is divided into "Mechanisms (Modules)" and "Entities (Hosts)".
 ├── hosts/              # Host-specific configurations
 └── modules/            # Reusable modules
     ├── core/           # Base settings (Nix, Network, User, Sops)
+    ├── hardware/       # Hardware abstraction (NVIDIA, PCIe tools, etc.)
     ├── packages/       # System package groups (base, monitoring, etc.)
     ├── home/           # User environment via Home-manager (Shell, Desktop, SSH)
     ├── services/       # Various services (Minecraft, Update Hub, Desktop)
@@ -31,6 +32,7 @@ curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$(git rev-pa
 ## 🛠️ Key Features
 
 - **Modular Architecture**: Clear separation between system (NixOS) and user (Home-manager) layers.
+- **Unified Hardware Abstraction**: NVIDIA driver settings are centralized and architecture-aware (x86_64/AArch64).
 - **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep standardized across all hosts.
 - **Desktop Environment**: Powered by Zen Browser (declarative), Vesktop, Neovim, and Alacritty.
 - **Smart Hardware Tools**: Opt-in to physical server tools via `my.hardware.pc-tools.enable = true`.

@@ -32,25 +32,27 @@
   - LibreOffice の導入と Excel/Word 等のファイル関連付け。
   - Zen Browser の設定クリーンアップ。
 - [x] **AI ツールの導入**: `gemini-cli` (unstable) の追加。
+- [x] **NVIDIA ドライバ設定の抽象化 (feature/systematic-refinement)**:
+  - `shosoin-tan`, `kagutsuchi-sama`, `BrokenPC` で重複していた設定を `modules/hardware/nvidia.nix` に集約。
+  - PRIME（ハイブリッドGPU）構成のオプション化とアーキテクチャ対応 (x86_64/AArch64)。
+- [x] **システムパッケージ層の整理と堅牢化**:
+  - `modules/packages/` の再編により、ベースシステムとユーザー環境の境界を明確化。
+  - `minecraft` や `gaming` サービスのオプトイン方式への変更によるビルドの安定化。
+- [x] **デスクトップ環境の高度な同期 (Noctalia / Matugen / Neovim)**:
+  - Noctalia バーへの CPU/RAM 監視ウィジェットの追加。
+  - Matugen テンプレートによる Neovim 配色テーマの動的同期実装。
+- [x] **低リソース機向けデプロイプロセスの最適化**:
+  - `nixos-rebuild --build-host` を活用したリモートビルド・デプロイ手順の確立。
 
 ---
 
 ### **進行中・今後のタスク**
 
-- [ ] **デスクトップ環境の継続的改善**:
-  - **Noctalia 動的テーマ同期 (Matugen integration) の完遂**: Matugen テンプレートによる Zen Browser / Discord の配色同期の安定化（HM直轄 Matugen の導入検討）。
-  - **バー・OSD の微調整**: ウィジェットのレイアウトや通知アニメーションの洗練。
-  - **Steam**: `Millennium` 導入による動的テーマ適用。
-  - **Neovim**: `noctalia.nvim` プラグインの導入検討と、配色テーマの連動。
 - [ ] **SOPS 機密情報の構造化と権限分離**:
   - 現在 `secrets/secrets.yaml` に集中している機密情報を、ホスト別・サービス別に分割し、各ホストの復号権限を最小化する。
-- [ ] **低リソース機向けの分散ビルド (Remote Build) 導入**:
-  - `torii-chan` (RAM 1GB) 等でのビルド負荷を軽減するため、他の強力なマシンをビルドホストとして利用する設定を構築する。
-- [ ] **NVIDIA ドライバ設定の抽象化**:
-  - `shosoin-tan`, `kagutsuchi-sama`, `BrokenPC` で重複している設定を `modules/hardware/nvidia.nix` 等に抽出し、構成をオプション化する。
 - [ ] **Update Hub のセキュリティ強化**:
   - サービスの実行ユーザーを非 root に変更し、権限を制限する。
 - [ ] **CI/CD の構築**:
   - GitHub Actions 等で `nix flake check` を自動実行し、品質を担保する。
-- [ ] **システムパッケージ層の整理**:
-  - `modules/packages/` の構成をさらに見直し、ベースシステムとユーザー環境の境界を洗練させる。
+- [ ] **Steam**: `Millennium` 導入による動的テーマ適用。
+
