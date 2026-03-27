@@ -12,6 +12,10 @@ in
     ../../modules
   ];
 
+  # Disable Nix sandboxing for legacy kernels lacking namespace support
+  nix.settings.sandbox = false;
+
+
 
 
   boot.loader.generic-extlinux-compatible.enable = true;
