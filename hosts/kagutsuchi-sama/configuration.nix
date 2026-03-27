@@ -9,7 +9,8 @@
   ];
 
   my.hardware.pc-tools.enable = true;
-  my.updateHub.client.enable = true;
+  # comin deployment service
+  my.services.deployment.comin.enable = true;
 
   # Bootloader configuration (Using GRUB to match shosoin-tan)
   boot.loader.grub = {

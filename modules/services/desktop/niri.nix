@@ -36,7 +36,9 @@ in {
     services.dbus.enable = true;
     services.upower.enable = true;
     services.power-profiles-daemon.enable = true;
-    services.gvfs.enable = true; # Required for Nautilus features
+    services.gvfs.enable = true; # Required for file manager features (Trash, Mounts)
+    services.tumbler.enable = true; # Required for file manager thumbnails
+    programs.xfconf.enable = true; # Required for Thunar settings persistence
     
     # Enable brightness and volume control via dbus/logind for non-root access
     security.polkit.enable = true;

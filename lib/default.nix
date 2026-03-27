@@ -14,6 +14,7 @@
         nix-minecraft.nixosModules.minecraft-servers
         home-manager.nixosModules.home-manager
         inputs.nix-index-database.nixosModules.nix-index
+        inputs.comin.nixosModules.comin
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;

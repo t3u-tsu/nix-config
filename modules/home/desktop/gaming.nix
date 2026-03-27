@@ -13,7 +13,8 @@ in {
       mangohud
       protonup-qt
       heroic
-      # Retroarch or other emulators can be added here
+      steam-run # Necessary for Millennium and other third-party Steam tools
+      gamescope # For better Steam deck-like experience and scaling
     ];
   };
 }

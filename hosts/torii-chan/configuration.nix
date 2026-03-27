@@ -83,12 +83,6 @@ in
     "vm.swappiness" = 10; # Use swap only when necessary to protect storage
   };
 
-  my.updateHub = {
-    server.enable = true;
-    client = {
-      enable = true;
-      user = config.my.user.name;
-      onCalendar = "*-*-* 05:00:00";
-    };
-  };
+  # comin deployment service
+  my.services.deployment.comin.enable = true;
 }

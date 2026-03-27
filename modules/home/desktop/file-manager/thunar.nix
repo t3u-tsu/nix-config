@@ -1,0 +1,20 @@
+{ config, pkgs, lib, ... }:
+
+{
+  # Thunar configuration (Home-manager side)
+  # System-wide services are needed for full functionality (gvfs, tumbler, xfconf)
+  
+  home.packages = with pkgs; [
+    xfce.thunar
+    xfce.thunar-archive-plugin
+    xfce.thunar-volman
+  ];
+
+  # Thunar settings via xfconf if needed
+  # dconf.settings = { ... };
+
+  # File associations (Handled globally or per-app)
+  xdg.mimeApps.defaultApplications = {
+    "inode/directory" = "thunar.desktop";
+  };
+}

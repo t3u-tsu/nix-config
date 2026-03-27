@@ -82,10 +82,8 @@
   # Gaming services
   my.services.desktop.gaming.enable = true;
 
-  # Update Hub Client integration
-  my.updateHub.client = {
-    enable = true;
-  };
+  # comin deployment service
+  my.services.deployment.comin.enable = true;
 
   # State version
   system.stateVersion = "25.11";

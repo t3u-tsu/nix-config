@@ -7,5 +7,6 @@
     ./discord-bridge
     ./minecraft
     ./update-hub
+    ./deployment/comin.nix
   ];
 }

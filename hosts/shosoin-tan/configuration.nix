@@ -56,11 +56,8 @@
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
   my.hardware.nvidia.enable = true;
 
-  # Shosoin-tan is the Update Producer
-  my.updateHub.client = {
-    enable = true;
-    pushChanges = true;
-  };
+  # comin deployment service
+  my.services.deployment.comin.enable = true;
 
   system.stateVersion = "25.05";
 }

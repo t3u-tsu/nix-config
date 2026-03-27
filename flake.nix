@@ -52,6 +52,10 @@
       url = "github:dracula/alacritty";
       flake = false;
     };
+    comin = {
+      url = "github:nlewo/comin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, disko, sops-nix, nix-minecraft, ... }@inputs:
