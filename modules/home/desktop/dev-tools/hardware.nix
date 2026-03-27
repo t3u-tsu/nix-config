@@ -10,8 +10,8 @@ in {
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      kicad # Electronic Design Automation
-      picocom # Serial terminal for hardware debugging
+      kicad
+      picocom
     ];
   };
 }

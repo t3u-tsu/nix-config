@@ -36,6 +36,5 @@
     tree = "eza --tree";
     cat = "bat";
     grep = "rg";
-    gsts = ''for d in */; do [ -d "$d/.git" ] && (echo -e "\033[1;34m$(git -C "$d" rev-parse --show-toplevel)\033[0m" && git -C "$d" status && echo "---"); done'';
   };
 }
