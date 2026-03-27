@@ -46,7 +46,7 @@
 
 ## 📋 最近の活動記録 (Activity Summary)
 
-- **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、および `production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。
+- **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、`production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。およびプロジェクト全体を通した英語・日本語ドキュメントの全面同期（WezTerm移行の反映など）。
 - **2026-03-28 (Phase 8-8.5)**: WezTerm移行、Steam Millennium導入、Wayland UIの競合解決。Prometheus+Grafanaによる艦隊監視ダッシュボード基盤の構築とCI/CD導入。
 - **2026-03-28 (Phase 7)**: UI 移行 (Nautilus -> Thunar) と自動デプロイ基盤の刷新 (comin 導入)、CI/CD 準備。
 - **2026-03-28 (Phase 5-6)**: Noctalia UI 最適化、NVIDIA ドライバの抽象化、システムパッケージ再整理。
