@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./alacritty.nix
     ./browsers.nix
     ./communication.nix
     ./creative.nix

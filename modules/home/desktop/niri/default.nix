@@ -57,10 +57,10 @@ in {
 
       binds = {
         # --- Core Application Launchers (Primary) ---
-        "Mod+Return".action.spawn = [ "alacritty" ];
+        "Mod+Return".action.spawn = [ "wezterm" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
         "Mod+Shift+F".action.spawn = [ "thunar" ];
-        "Mod+Shift+E".action.spawn = [ "alacritty" "-e" "nvim" ];
+        "Mod+Shift+E".action.spawn = [ "wezterm" "-e" "nvim" ];
         "Mod+Shift+V".action.spawn = [ "vesktop" ];
          
         # --- Launcher (Space is universal "open something") ---
@@ -174,5 +174,11 @@ in {
       wl-clipboard
       cliphist
     ];
+
+    systemd.user.services.noctalia-shell = {
+      Service = {
+        ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
+      };
+    };
   };
 }

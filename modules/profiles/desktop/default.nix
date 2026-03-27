@@ -24,7 +24,6 @@ with lib;
         media.enable = true;
         utils.enable = true;
         creative.enable = true;
-        terminal.alacritty.enable = true;
         theme.enable = true;
         xdg.enable = true;
         locales.enable = true;

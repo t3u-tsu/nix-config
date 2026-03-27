@@ -4,7 +4,11 @@ with lib;
 let
   cfg = config.my.home.desktop.dev-tools;
 in {
-  config = mkIf cfg.enable {
+  options.my.home.desktop.dev-tools.wezterm = {
+    enable = mkEnableOption "WezTerm terminal emulator";
+  };
+
+  config = mkIf cfg.wezterm.enable {
     programs.wezterm = {
       enable = true;
       enableZshIntegration = true;
@@ -20,12 +24,6 @@ in {
         config.enable_wayland = true
         config.hide_tab_bar_if_only_one_tab = true
         config.window_background_opacity = 0.95
-        config.window_padding = {
-          left = "8pt",
-          right = "8pt",
-          top = "8pt",
-          bottom = "8pt",
-        }
 
         -- Dynamic color synchronization with Noctalia (Matugen)
         local matugen_colors_path = "${config.home.homeDirectory}/.cache/noctalia/wezterm-colors.lua"

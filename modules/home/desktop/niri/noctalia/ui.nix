@@ -17,7 +17,7 @@
       position = "top";
       floating = false;
       backgroundOpacity = 0.95;
-      height = 32;
+      height = 36;
       marginVertical = 0;
       marginHorizontal = 0;
       density = "compact";

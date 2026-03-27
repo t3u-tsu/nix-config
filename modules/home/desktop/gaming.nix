@@ -13,7 +13,7 @@ in {
       mangohud
       protonup-qt
       heroic
-      steam-run # Necessary for Millennium and other third-party Steam tools
+      steam-run # Necessary for other third-party Steam tools
       gamescope # For better Steam deck-like experience and scaling
     ];
   };

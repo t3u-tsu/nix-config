@@ -56,6 +56,10 @@
       url = "github:nlewo/comin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    millennium = {
+      url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, disko, sops-nix, nix-minecraft, ... }@inputs:
@@ -64,6 +68,7 @@
       overlays = [
         nix-minecraft.overlay
         inputs.niri.overlays.niri
+        inputs.millennium.overlays.default
         (final: prev: {
           # Access unstable packages via 'unstable' attribute
           unstable = import nixpkgs-unstable {

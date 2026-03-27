@@ -14,6 +14,7 @@ in {
     ./git-tools.nix
     ./ai-tools.nix
     ./hardware.nix
+    ./wezterm.nix
   ];
 
   config = mkIf cfg.enable {
@@ -24,6 +25,7 @@ in {
       git-tools.enable = mkDefault true;
       ai-tools.enable = mkDefault true;
       hardware.enable = mkDefault true;
+      wezterm.enable = mkDefault true;
     };
   };
 }
