@@ -5,7 +5,7 @@ This directory manages the Niri scrollable-tiling Wayland compositor and its eco
 ## 📂 Components
 
 - **`default.nix`**: Core Niri settings, including layout, window rules, and keybindings (Omarchy + Vim style).
-- **`noctalia.nix`**: Integration with `noctalia-shell` for status bars, launchers, notifications, and OSD.
+- **`noctalia/`**: Modularized configuration for `noctalia-shell` providing status bars, launchers, notifications, and OSD.
 - **`addons.nix`**: Companion tools like `cliphist` and `nautilus`.
 - **`power.nix`**: Power management and locking via Noctalia Shell IPC and `hypridle`.
 

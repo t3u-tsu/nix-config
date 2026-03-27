@@ -10,7 +10,7 @@ in {
   };
 
   imports = [
-    ./noctalia.nix
+    ./noctalia
     ./matugen.nix
     ./addons.nix
     ./power.nix
