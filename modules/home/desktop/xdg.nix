@@ -25,7 +25,7 @@ in {
       templates = "${config.home.homeDirectory}/Templates";
     };
 
-    # Default Browser (XDG)
+    # Default Browser and File Associations (XDG)
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
@@ -34,6 +34,17 @@ in {
         "x-scheme-handler/https" = "zen.desktop";
         "x-scheme-handler/about" = "zen.desktop";
         "x-scheme-handler/unknown" = "zen.desktop";
+        
+        # File Browser (Nautilus)
+        "inode/directory" = "org.gnome.Nautilus.desktop";
+        
+        # Common file types
+        "application/pdf" = "zen.desktop"; # Use Zen as PDF viewer if no dedicated app
+        "image/png" = "org.gnome.Loupe.desktop";
+        "image/jpeg" = "org.gnome.Loupe.desktop";
+        "image/gif" = "org.gnome.Loupe.desktop";
+        "image/svg+xml" = "zen.desktop";
+        "text/plain" = "nvim.desktop"; 
       };
     };
 

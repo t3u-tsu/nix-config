@@ -48,3 +48,4 @@ curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$(git rev-pa
 - **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定。
 - **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス。
 - **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計。
+- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia Shell 設定と日本語デスクトップ環境。

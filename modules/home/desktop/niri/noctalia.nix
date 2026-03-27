@@ -36,15 +36,17 @@ in {
       systemd.enable = true;
       
       settings = {
+        settingsVersion = 0;
+
         # Color Scheme & Generation
         colorSchemes = {
           darkMode = true;
           useWallpaperColors = true;
           predefinedScheme = "Dracula";
+          matugenSchemeType = "scheme-fruit-salad";
         };
 
         # Integrated Dynamic Theming Templates (Matugen)
-        # Ref: https://docs.noctalia.dev/theming/basic-app-theming/
         templates = {
           "zen-colors" = {
             source = "${config.home.homeDirectory}/.config/noctalia/templates/colors.css.template";
@@ -57,84 +59,78 @@ in {
           };
         };
 
+        # General UI Settings
+        general = {
+          language = "ja";
+          fontDefault = "Noto Sans CJK JP";
+          fontFixed = "Noto Sans Mono CJK JP";
+          radiusRatio = 1.0;
+          animationSpeed = 1.0;
+        };
+
         # UI Components - Improved layout and visibility
         bar = {
           position = "top";
-          floating = false;  # Fixed to top for stability
-          backgroundOpacity = 0.95;  # Increased opacity for readability
-          height = 32;  # Explicit height
-          margins = { top = 6; left = 12; right = 12; bottom = 0; };
-          fontSize = 12;  # Explicit font size
-          modules = {
-            left = [ "workspaces" "window-title" ];
-            center = [ "clock" ];
-            right = [ "network" "cpu" "memory" "volume" "brightness" "battery" "tray" ];
-          };
-        };
-
-        widgets = {
-          clock = {
-            format = "%Y/%m/%d (%a) %H:%M";
-            fontSize = 12;
-          };
-          workspaces = {
-            showIcons = true;
-            scrollAction = "focus";
-            spacing = 8;
-          };
-          volume = {
-            showPercentage = true;
-            useIcons = true;
-            iconSize = 16;
-          };
-          brightness = {
-            showPercentage = true;
-            useIcons = true;
-            iconSize = 16;
-          };
-          network = {
-            showLabel = true;
-            showSignal = true;
-          };
-          cpu = {
-            showLabel = true;
-            updateInterval = 1000;
-          };
-          memory = {
-            showLabel = true;
-            updateInterval = 1000;
+          floating = false;
+          backgroundOpacity = 0.95;
+          height = 32;
+          marginVertical = 4;
+          marginHorizontal = 8;
+          
+          widgets = {
+            left = [
+              { id = "Workspace"; labelMode = "name"; showApplications = true; }
+              { id = "Launcher"; icon = "noctalia"; }
+            ];
+            center = [
+              { id = "ActiveWindow"; maxWidth = 400; }
+            ];
+            right = [
+              { id = "Network"; displayMode = "alwaysShow"; }
+              { id = "Volume"; displayMode = "alwaysShow"; middleClickCommand = "pavucontrol"; }
+              { id = "Brightness"; displayMode = "onhover"; }
+              { id = "Battery"; displayMode = "onhover"; }
+              { id = "Clock"; formatHorizontal = "yyyy/MM/dd (EEE) HH:mm"; }
+              { id = "Tray"; drawerEnabled = true; }
+              { id = "NotificationHistory"; showUnreadBadge = true; }
+              { id = "ControlCenter"; icon = "noctalia"; }
+            ];
           };
         };
 
         # Improved OSD (On-Screen Display)
         osd = {
-          enable = true;
-          position = "bottom-center";
-          timeout = 2500;
-          fontSize = 14;
-          barHeight = 6;
-          spacing = 12;
+          enabled = true;
+          location = "bottom_center";
+          autoHideMs = 2500;
         };
 
         # Improved notifications
         notifications = {
-          enable = true;
-          position = "top-center";  # Changed from top-right for better visibility
-          maxVisible = 6;
-          margin = { top = 48; left = 16; right = 16; };
-          fontSize = 12;
-          timeout = 5000;  # Increased from 2000ms
-          spacing = 10;
+          enabled = true;
+          location = "top_center";
+          normalUrgencyDuration = 5;
+          criticalUrgencyDuration = 10;
         };
 
-        # Improved launcher
-        launcher = {
-          enable = true;
-          width = 900;  # Wider for better visibility
-          maxResults = 12;  # Increased from 8
-          fontSize = 14;
-          resultHeight = 42;  # Explicit height per result
-          spacing = 8;
+        # Launcher settings
+        appLauncher = {
+          position = "center";
+          viewMode = "list";
+          sortByMostUsed = true;
+          enableClipboardHistory = true;
+        };
+
+        # Session & Power Menu
+        sessionMenu = {
+          position = "center";
+          powerOptions = [
+            { action = "lock"; enabled = true; }
+            { action = "suspend"; enabled = true; }
+            { action = "reboot"; enabled = true; }
+            { action = "logout"; enabled = true; }
+            { action = "shutdown"; enabled = true; }
+          ];
         };
       };
     };

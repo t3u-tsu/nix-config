@@ -48,3 +48,4 @@ This configuration was built with inspiration and knowledge from the following a
 - **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Declarative Zen Browser configuration.
 - **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: Best practices for NixOS and Home-manager.
 - **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: Structured module design.
+- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: Specialized Noctalia Shell configuration and Japanese desktop environment layout.

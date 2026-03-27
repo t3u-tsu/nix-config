@@ -71,7 +71,7 @@ in {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/wappalyzer/latest.xpi";
             installation_mode = "force_installed";
           };
-          # YouTube NonStop
+          # YouTube NonStop (User requested to KEEP)
           "{0d7cafdd-501c-49ca-8ebb-e3341caaa55e}" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/youtube-nonstop/latest.xpi";
             installation_mode = "force_installed";
@@ -81,7 +81,7 @@ in {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/take-youtube-screenshots/latest.xpi";
             installation_mode = "force_installed";
           };
-          # LINE
+          # LINE (User requested to KEEP)
           "LINEPorted@FoxRefire" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/line-on-browser/latest.xpi";
             installation_mode = "force_installed";
