@@ -4,6 +4,11 @@
   programs.git = {
     enable = true;
     
+    # Authenticate via GitHub CLI
+    extraConfig = {
+      credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
+    };
+    
     # Git User Configuration
     settings = {
       user.name = "t3u-tsu";
