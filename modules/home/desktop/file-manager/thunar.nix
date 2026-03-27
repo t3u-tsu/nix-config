@@ -10,8 +10,12 @@
     xfce.thunar-volman
   ];
 
-  # Thunar settings via xfconf if needed
-  # dconf.settings = { ... };
+  # Thunar settings via xfconf
+  xfconf.settings = {
+    thunar = {
+      "misc-show-recent" = false;
+    };
+  };
 
   # File associations (Handled globally or per-app)
   xdg.mimeApps.defaultApplications = {

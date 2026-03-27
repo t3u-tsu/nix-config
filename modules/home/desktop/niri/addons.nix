@@ -10,7 +10,6 @@ in {
 
     # Additional GUI tools
     home.packages = with pkgs; [
-      nautilus
       loupe
       grim
       slurp

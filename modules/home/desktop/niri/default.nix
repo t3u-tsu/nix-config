@@ -59,7 +59,7 @@ in {
         # --- Core Application Launchers (Primary) ---
         "Mod+Return".action.spawn = [ "alacritty" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
-        "Mod+Shift+F".action.spawn = [ "nautilus" ];
+        "Mod+Shift+F".action.spawn = [ "thunar" ];
         "Mod+Shift+E".action.spawn = [ "alacritty" "-e" "nvim" ];
         "Mod+Shift+V".action.spawn = [ "vesktop" ];
          
