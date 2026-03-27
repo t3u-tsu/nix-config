@@ -130,7 +130,7 @@ in {
         # Improved launcher
         launcher = {
           enable = true;
-          width = 700;  # Increased from 600
+          width = 900;  # Wider for better visibility
           maxResults = 12;  # Increased from 8
           fontSize = 14;
           resultHeight = 42;  # Explicit height per result

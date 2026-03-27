@@ -55,7 +55,7 @@ in {
       };
       Service = {
         Type = "simple";
-        ExecStart = "${pkgs.matugen}/bin/matugen mocha -w '${config.home.homeDirectory}/.config/niri/wallpaper'";
+        ExecStart = "${pkgs.matugen}/bin/matugen image '${config.home.homeDirectory}/.config/niri/wallpaper' -c '${config.home.homeDirectory}/.config/matugen/config.toml'";
         Restart = "on-failure";
         RestartSec = 5;
       };
