@@ -57,12 +57,14 @@ in {
           };
         };
 
-        # UI Components
+        # UI Components - Improved layout and visibility
         bar = {
           position = "top";
-          floating = true;
-          backgroundOpacity = 0.8;
-          margins = { top = 8; left = 8; right = 8; };
+          floating = false;  # Fixed to top for stability
+          backgroundOpacity = 0.95;  # Increased opacity for readability
+          height = 32;  # Explicit height
+          margins = { top = 6; left = 12; right = 12; bottom = 0; };
+          fontSize = 12;  # Explicit font size
           modules = {
             left = [ "workspaces" "window-title" ];
             center = [ "clock" ];
@@ -71,15 +73,69 @@ in {
         };
 
         widgets = {
-          clock.format = "%Y/%m/%d (%a) %H:%M";
-          workspaces = { showIcons = true; scrollAction = "focus"; };
-          volume = { showPercentage = true; useIcons = true; };
-          brightness = { showPercentage = true; useIcons = true; };
+          clock = {
+            format = "%Y/%m/%d (%a) %H:%M";
+            fontSize = 12;
+          };
+          workspaces = {
+            showIcons = true;
+            scrollAction = "focus";
+            spacing = 8;
+          };
+          volume = {
+            showPercentage = true;
+            useIcons = true;
+            iconSize = 16;
+          };
+          brightness = {
+            showPercentage = true;
+            useIcons = true;
+            iconSize = 16;
+          };
+          network = {
+            showLabel = true;
+            showSignal = true;
+          };
+          cpu = {
+            showLabel = true;
+            updateInterval = 1000;
+          };
+          memory = {
+            showLabel = true;
+            updateInterval = 1000;
+          };
         };
 
-        osd = { enable = true; position = "bottom-center"; timeout = 2000; };
-        notifications = { enable = true; position = "top-right"; maxVisible = 5; margin = { top = 48; right = 16; }; };
-        launcher = { enable = true; width = 600; maxResults = 8; };
+        # Improved OSD (On-Screen Display)
+        osd = {
+          enable = true;
+          position = "bottom-center";
+          timeout = 2500;
+          fontSize = 14;
+          barHeight = 6;
+          spacing = 12;
+        };
+
+        # Improved notifications
+        notifications = {
+          enable = true;
+          position = "top-center";  # Changed from top-right for better visibility
+          maxVisible = 6;
+          margin = { top = 48; left = 16; right = 16; };
+          fontSize = 12;
+          timeout = 5000;  # Increased from 2000ms
+          spacing = 10;
+        };
+
+        # Improved launcher
+        launcher = {
+          enable = true;
+          width = 700;  # Increased from 600
+          maxResults = 12;  # Increased from 8
+          fontSize = 14;
+          resultHeight = 42;  # Explicit height per result
+          spacing = 8;
+        };
       };
     };
   };

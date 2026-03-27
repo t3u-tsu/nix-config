@@ -10,6 +10,7 @@ in {
 
   imports = [
     ./noctalia.nix
+    ./matugen.nix
     ./addons.nix
     ./power.nix
   ];
@@ -55,17 +56,21 @@ in {
       ];
 
       binds = {
-        # --- Core Application Launchers ---
+        # --- Core Application Launchers (Primary) ---
         "Mod+Return".action.spawn = [ "alacritty" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
-        "Mod+Space".action.spawn = [ "noctalia-shell" "ipc" "call" "launcher" "toggle" ];
         "Mod+Shift+F".action.spawn = [ "nautilus" ];
-
-        # --- Window/Column Management (Omarchy Inspired) ---
-        "Mod+W".action.close-window = { };
-        "Mod+F".action.maximize-column = { };
-        "Mod+V".action.toggle-window-floating = { };
-        "Mod+Shift+Space".action.toggle-column-tabbed-display = { };
+        "Mod+Shift+E".action.spawn = [ "alacritty" "-e" "nvim" ];
+        "Mod+Shift+V".action.spawn = [ "vesktop" ];
+         
+        # --- Launcher (Space is universal "open something") ---
+        "Mod+Space".action.spawn = [ "noctalia-shell" "ipc" "call" "launcher" "toggle" ];
+         
+        # --- Window/Column Management (Clean & Explicit) ---
+        "Mod+W".action.close-window = { };                           # Close Window
+        "Mod+M".action.maximize-column = { };                        # Maximize Column
+        "Mod+Shift+Space".action.toggle-column-tabbed-display = { }; # Tabbed Display
+        "Mod+V".action.toggle-window-floating = { };                 # Toggle Floating
         
         # Column Resizing
         "Mod+R".action.switch-preset-column-width = { };
@@ -113,12 +118,11 @@ in {
         "Mod+9".action.focus-workspace = 9;
 
         # --- System Controls via Noctalia Shell IPC ---
-        # Screen Capture (No grim/slurp needed, Noctalia Shell handles it)
+        # Screen Capture
         "Print".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureOutput" ];
-        "Mod+Shift+S".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureArea" ];
+        "Mod+Print".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureArea" ];
         
         # Session & Power Menu
-        "Mod+Shift+E".action.spawn = [ "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ];
         "Mod+Escape".action.spawn = [ "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ];
         
         # Volume & Brightness (Synchronized with Noctalia OSD)
@@ -133,19 +137,32 @@ in {
         "XF86AudioPlay".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "toggle" ];
         "XF86AudioNext".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "next" ];
         "XF86AudioPrev".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "previous" ];
-        
-        # Exit & Lock
+         
+        # Exit Niri
         "Mod+Shift+Q".action.quit = { };
       };
 
       window-rules = [
+        # Floating windows
         {
           matches = [{ app-id = "org.keepassxc.KeePassXC"; }];
           open-floating = true;
+          geometry = { width = 800; height = 600; };
         }
+        # Vesktop: wider column for chat/VC layout
         {
           matches = [{ app-id = "Vesktop"; }];
-          default-column-width = { proportion = 0.8; };
+          default-column-width = { proportion = 0.75; };
+        }
+        # Zen Browser: full-width for web browsing comfort
+        {
+          matches = [{ app-id = "zen-beta"; }];
+          default-column-width = { proportion = 1.0; };
+        }
+        # Bitwarden: floating password manager
+        {
+          matches = [{ app-id = "Bitwarden"; }];
+          open-floating = true;
         }
       ];
     };
