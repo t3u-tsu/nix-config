@@ -26,6 +26,11 @@
     - Omarchy + Vim スタイルのハイブリッドキーバインド実装。
 - [x] **システム全体のテーマ統一 (Dracula Theme)**: Alacritty, GTK, Qt を含めた配色統一。
 - [x] **リポジトリ全体のドキュメント整備**: 各モジュールへの README.md / README.ja.md 完備。
+- [x] **デスクトップ環境の最適化 (feature/optimize-ui-and-office)**:
+  - Noctalia バーの影を無効化し、UI の隙間を解消。
+  - スクショキー (PrintScreen) の動作修正（Niri ネイティブ機能。
+  - LibreOffice の導入と Excel/Word 等のファイル関連付け。
+  - Zen Browser の設定クリーンアップ。
 - [x] **AI ツールの導入**: `gemini-cli` (unstable) の追加。
 
 ---
