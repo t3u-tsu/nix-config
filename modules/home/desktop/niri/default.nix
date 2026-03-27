@@ -118,10 +118,11 @@ in {
         "Mod+8".action.focus-workspace = 8;
         "Mod+9".action.focus-workspace = 9;
 
-        # --- System Controls via Noctalia Shell IPC ---
-        # Screen Capture
-        "Print".action.spawn = noctalia "plugin:screenshot takeScreenshot output";
-        "Mod+Print".action.spawn = noctalia "plugin:screenshot takeScreenshot region";
+        # --- System Controls ---
+        # Screen Capture (Using Niri native for reliability)
+        "Print".action.screenshot-screen = { };
+        "Mod+Print".action.screenshot-window = { };
+        "Ctrl+Print".action.screenshot = { };
         
         # Session & Power Menu
         "Mod+Escape".action.spawn = noctalia "sessionMenu toggle";

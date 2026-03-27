@@ -12,6 +12,8 @@ in {
     home.packages = with pkgs; [
       nautilus
       loupe
+      grim
+      slurp
       adwaita-icon-theme
       hyprpolkitagent
     ];
