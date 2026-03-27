@@ -1,1 +1,6 @@
 result
+
+# Temporary reports (use .agents/work-logs/ instead)
+*_REPORT.md
+.agents/*.tmp
+!.agents/work-logs/
