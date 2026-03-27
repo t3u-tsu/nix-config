@@ -49,9 +49,8 @@
   programs.noctalia-shell.settings = {
     colorSchemes = {
       darkMode = true;
-      useWallpaperColors = true;
+      useWallpaperColors = false;
       predefinedScheme = "Dracula";
-      matugenSchemeType = "scheme-expressive";
     };
 
     templates = {
