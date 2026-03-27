@@ -68,6 +68,7 @@
 ## 💡 便利なコマンド集
 
 - **デプロイ**: `sudo nixos-rebuild switch --flake .#BrokenPC`
+- **torii-chan デプロイ (手動/SBC用)**: `nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false`
 - **秘密情報編集**: `sops secrets/secrets.yaml`
 - **IPC 操作 (Noctalia)**: `noctalia-shell ipc call <target> <function>`
 - **ビルド完了通知**: `curl -X POST ...` (詳細は `AGENTS.history.md` 参照)

@@ -55,6 +55,16 @@ ssh t3u@10.0.0.1
 
 ## 🛠️ 運用・トラブルシューティング
 
+### リモートデプロイ時のビルドエラー (seccomp / sandbox)
+Orange Pi などのカスタマイズ済み（またはレガシー）カーネルは、Nix デーモンが要求する特定の Linux カーネルセキュリティ機能 (`user_namespaces`, `seccomp BPF`) をサポートしていないことがあります。
+このため、通常のリモートデプロイを実行すると `error: unable to load seccomp BPF program` などの出力でビルドが強制終了、あるいはサイレントにフリーズします。
+この制限を回避し、リモート先（torii-chan自身）で設定評価・適用を完遂するには、以下のオプション構文を使用してください（※ `sudo nixos-rebuild` として実行すると SSH 鍵転送に失敗するため、一般ユーザーから実行します）：
+
+```bash
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+```
+※ `configuration.nix` 内にも `nix.settings.sandbox = false;` 等を記述していますが、手動稼働時はオプションフラグの付与が最も確実です。
+
 ### SSH 接続が不安定またはタイムアウトする場合
 Orange Pi のリソース制限により、鍵交換でタイムアウトすることがあります。接続時は `KexAlgorithms` を明示的に指定するか、設定で `curve25519-sha256` が強制されていることを確認してください。
 
