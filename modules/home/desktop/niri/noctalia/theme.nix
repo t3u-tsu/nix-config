@@ -49,7 +49,8 @@
   programs.noctalia-shell.settings = {
     colorSchemes = {
       darkMode = true;
-      useWallpaperColors = false;
+      syncGsettings = true;
+      useWallpaperColors = true;
       predefinedScheme = "Dracula";
     };
 

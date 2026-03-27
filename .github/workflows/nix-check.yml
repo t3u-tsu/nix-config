@@ -1,0 +1,28 @@
+name: Nix Flake Check
+
+on:
+  push:
+    branches: [ "main", "feature/*", "refactor/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Magic Nix Cache
+        uses: cachix/cachix-action@v15
+        with:
+          name: niri # Speeds up Niri caching
+          skipPush: true
+
+      - name: Check Nix Flake
+        run: nix flake check --show-trace --accept-flake-config
