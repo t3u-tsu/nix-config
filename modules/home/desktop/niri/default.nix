@@ -147,7 +147,6 @@ in {
         {
           matches = [{ app-id = "org.keepassxc.KeePassXC"; }];
           open-floating = true;
-          geometry = { width = 800; height = 600; };
         }
         # Vesktop: wider column for chat/VC layout
         {
