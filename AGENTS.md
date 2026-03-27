@@ -46,7 +46,8 @@
 
 ## 📋 最近の活動記録 (Activity Summary)
 
-- **2026-03-28**: Noctalia UI 最適化、スクショ修正、および LibreOffice の導入。
+- **2026-03-28 (Phase 7)**: UI 移行 (Nautilus -> Thunar) と自動デプロイ基盤の刷新 (comin 導入)、CI/CD 準備。
+- **2026-03-28 (Phase 5-6)**: Noctalia UI 最適化、NVIDIA ドライバの抽象化、システムパッケージ再整理。
 - **2026-03-27**: Noctalia Shell 構成の高度化、Spotify テーマ適用。
 - **2026-03-10**: Niri への完全移行実施、greetd 導入。
 
@@ -56,6 +57,7 @@
 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
 ### 各セッションの詳細ログ（抜粋）
+- [2026-03-28: デスクトップ最適化 & インフラ刷新 Phase 7](./.agents/work-logs/2026-03-28-phase7-infrastructure.md) (*予定*)
 - [2026-03-28: デスクトップ最適化 Phase 2 & クリーンアップ](./.agents/work-logs/2026-03-28-desktop-fixes-v2.md)
 - [2026-03-27: デスクトップ最適化 Phase 1](./.agents/work-logs/2026-03-27-desktop-optimization.md)
 

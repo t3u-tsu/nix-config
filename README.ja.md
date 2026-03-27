@@ -20,13 +20,7 @@
 
 ## 🚀 デプロイと反映
 
-通常、変更は GitHub へ Push することで **Update Hub** を介して全ホストに自動反映されます。
-
-### 全ホストへの即時反映
-GitHub へ Push した後、Hub (`torii-chan`) へ通知することで、全ホストの更新を即座にトリガーできます。
-```bash
-curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$(git rev-parse HEAD)\", \"host\": \"$(hostname)\"}" http://10.0.0.1:8080/producer/done
-```
+`main` ブランチに Push された変更は、**comin** によって5分おきに全ホストへ自動的に Pull され、反映されます。手動のトリガーや中央サーバーへの通知は不要です。
 
 ## 🛠️ 主な機能
 

@@ -21,13 +21,7 @@ The repository is divided into "Mechanisms (Modules)" and "Entities (Hosts)".
 
 ## 🚀 Deployment and Updates
 
-Normally, changes are automatically reflected across all hosts via **Update Hub** after pushing to GitHub.
-
-### Immediate Reflect (Global)
-After pushing to GitHub, you can trigger updates on all hosts by notifying the Hub:
-```bash
-curl -X POST -H "Content-Type: application/json" -d "{\"commit\": \"$(git rev-parse HEAD)\", \"host\": \"$(hostname)\"}" http://10.0.0.1:8080/producer/done
-```
+Changes pushed to the `main` branch are automatically pulled and applied across all hosts via **comin** every 5 minutes. No manual trigger or central server is required.
 
 ## 🛠️ Key Features
 

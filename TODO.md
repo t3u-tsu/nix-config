@@ -43,16 +43,18 @@
   - Matugen テンプレートによる Neovim 配色テーマの動的同期実装。
 - [x] **低リソース機向けデプロイプロセスの最適化**:
   - `nixos-rebuild --build-host` を活用したリモートビルド・デプロイ手順の確立。
-
+- [x] **ファイルマネージャーの実用性向上 (Phase 7)**:
+  - Nautilus から Thunar への完全移行と Recent Files の無効化。
+  - `gvfs`, `tumbler` によるゴミ箱・マウント・サムネイル機能の統合。
+- [x] **デプロイ基盤の刷新と CI/CD (Phase 7)**:
+  - セキュリティと運用の容易さを考慮し、自作 Update Hub を廃止し `comin` による Git-pull 型デプロイへ移行。
+  - GitHub Actions を用いた `nix flake check` の自動化準備。
 ---
 
 ### **進行中・今後のタスク**
 
 - [ ] **SOPS 機密情報の構造化と権限分離**:
   - 現在 `secrets/secrets.yaml` に集中している機密情報を、ホスト別・サービス別に分割し、各ホストの復号権限を最小化する。
-- [ ] **Update Hub のセキュリティ強化**:
-  - サービスの実行ユーザーを非 root に変更し、権限を制限する。
-- [ ] **CI/CD の構築**:
-  - GitHub Actions 等で `nix flake check` を自動実行し、品質を担保する。
+- [ ] **艦隊ダッシュボードの作成**:
+  - `comin` には管理 UI がないため、全ホストのバージョンやデプロイ状況を一覧できる Noctalia ウィジェットや軽量 Web アプリを構築する。
 - [ ] **Steam**: `Millennium` 導入による動的テーマ適用。
-
