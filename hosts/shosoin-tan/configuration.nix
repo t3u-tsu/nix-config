@@ -12,6 +12,7 @@
   ];
 
   my.hardware.pc-tools.enable = true;
+  my.services.minecraft.enable = true;
 
   # GT 210 / GT 710 configuration
 
@@ -53,16 +54,7 @@
 
   # Core i7 870 is x86_64
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
-  services.xserver.videoDrivers = [ "nvidia" ];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    open = false; # Maxwell is not supported by the 'open' kernel module
-    nvidiaSettings = true;
-    # Quadro K2200 is well-supported by the 'stable' or 'production' branch
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
+  my.hardware.nvidia.enable = true;
 
   # Shosoin-tan is the Update Producer
   my.updateHub.client = {

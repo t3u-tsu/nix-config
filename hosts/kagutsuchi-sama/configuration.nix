@@ -27,15 +27,7 @@
   # my.localNetwork.enable = true;
 
   # GTX 980 Ti (Maxwell) configuration
-  services.xserver.videoDrivers = [ "nvidia" ];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    open = false; # Maxwell is not supported by the 'open' kernel module
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
+  my.hardware.nvidia.enable = true;
 
   system.stateVersion = "25.05";
 }

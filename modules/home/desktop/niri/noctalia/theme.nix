@@ -23,6 +23,16 @@
     }
   '';
 
+  xdg.configFile."noctalia/templates/neovim.lua.template".text = ''
+    return {
+      primary = "{{colors.primary.default.hex}}",
+      secondary = "{{colors.secondary.default.hex}}",
+      surface = "{{colors.surface.default.hex}}",
+      on_surface = "{{colors.on_surface.default.hex}}",
+      error = "{{colors.error.default.hex}}",
+    }
+  '';
+
   programs.noctalia-shell.settings = {
     colorSchemes = {
       darkMode = true;
@@ -40,6 +50,11 @@
       "discord-theme" = {
         source = "${config.home.homeDirectory}/.config/noctalia/templates/discord.css.template";
         target = "${config.home.homeDirectory}/.config/vesktop/themes/noctalia.css";
+      };
+
+      "neovim-colors" = {
+        source = "${config.home.homeDirectory}/.config/noctalia/templates/neovim.lua.template";
+        target = "${config.home.homeDirectory}/.cache/noctalia/neovim-colors.lua";
       };
     };
   };

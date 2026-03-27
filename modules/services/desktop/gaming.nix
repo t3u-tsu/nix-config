@@ -5,7 +5,7 @@ let
   cfg = config.my.services.desktop.gaming;
 in {
   options.my.services.desktop.gaming = {
-    enable = mkEnableOption "System-wide gaming services (Steam, GameMode)" // { default = true; };
+    enable = mkEnableOption "System-wide gaming services (Steam, GameMode)";
   };
 
   config = mkIf cfg.enable {

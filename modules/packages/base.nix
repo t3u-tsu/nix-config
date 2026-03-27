@@ -6,10 +6,12 @@ let
 in {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
+      curl
       file
       git
       tmux
       vim
+      wget
       which
     ];
     

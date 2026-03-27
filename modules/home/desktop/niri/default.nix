@@ -11,7 +11,6 @@ in {
 
   imports = [
     ./noctalia
-    ./matugen.nix
     ./addons.nix
     ./power.nix
   ];

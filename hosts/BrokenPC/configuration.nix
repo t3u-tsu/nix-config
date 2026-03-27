@@ -28,48 +28,16 @@
     enable32Bit = true;
   };
 
-  # CRITICAL: Prevent Nouveau and force amdgpu
-  boot.blacklistedKernelModules = [ "nouveau" ];
-  boot.kernelParams = [ 
-    "nouveau.modeset=0" 
-    "amdgpu.modeset=1"
-    "nvidia-drm.modeset=1"
-    "modprobe.blacklist=nouveau"
-    "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-  ];
-
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
   # GPU Configuration (Super-Conservative NVIDIA + AMD Hybrid)
-  services.xserver.videoDrivers = [ "amdgpu" "nvidia" ];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false; 
-    powerManagement.finegrained = false;
-
-    open = false; 
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-
+  services.xserver.videoDrivers = [ "amdgpu" ]; # "nvidia" is added by the module
+  my.hardware.nvidia = {
+    enable = true;
     prime = {
-      offload = {
-        enable = true;
-        enableOffloadCmd = true;
-      };
-      # Bus IDs for HP Victus 16
+      enable = true;
       nvidiaBusId = "PCI:1:0:0";
       amdgpuBusId = "PCI:7:0:0";
     };
-  };
-
-  # Specialisation: No-NVIDIA Mode (Safety/Power Save)
-  specialisation."No-NVIDIA".configuration = {
-    system.nixos.tags = [ "no-nvidia" ];
-    services.xserver.videoDrivers = lib.mkForce [ "amdgpu" ];
-    hardware.nvidia.prime.offload.enable = lib.mkForce false;
-    hardware.nvidia.modesetting.enable = lib.mkForce false;
-    boot.blacklistedKernelModules = [ "nouveau" "nvidia" "nvidia_modeset" "nvidia_uvm" "nvidia_drm" ];
+    specialisation.noNvidia = true;
   };
 
   # Hostname
@@ -110,6 +78,9 @@
 
   # Local network tools
   my.hardware.pc-tools.enable = true;
+
+  # Gaming services
+  my.services.desktop.gaming.enable = true;
 
   # Update Hub Client integration
   my.updateHub.client = {

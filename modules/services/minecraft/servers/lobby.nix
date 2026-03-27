@@ -1,102 +1,106 @@
 { config, pkgs, lib, ... }:
 
+with lib;
 let
+  cfg = config.my.services.minecraft;
   # 自動生成されたプラグイン情報を読み込む
   plugins = pkgs.callPackage ../plugins/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
 in
 {
-  services.minecraft-servers.servers.lobby = {
-    enable = true;
-    package = pkgs.paperServers.paper; # 常にその時点の最新安定版を指す属性
+  config = mkIf cfg.enable {
+    services.minecraft-servers.servers.lobby = {
+      enable = true;
+      package = pkgs.paperServers.paper; # 常にその時点の最新安定版を指す属性
 
-    jvmOpts = "-Xms512M -Xmx1G";
+      jvmOpts = "-Xms512M -Xmx1G";
 
-    serverProperties = {
-      server-port = 25566;
-      max-players = 30;
-      online-mode = false; # Velocity が認証を行うため false
-      white-list = false;
-      gamemode = "adventure";
-      force-gamemode = true;
-      difficulty = "peaceful";
-      level-type = "flat";
-      level-seed = "";
-      # スーパーフラットのカスタマイズ（空気のみ、バイオームは the_void）
-      generator-settings = "{\"layers\": [{\"block\": \"minecraft:air\", \"height\": 1}], \"biome\": \"minecraft:the_void\"}";
-      generate-structures = false; # 構造物を生成しない
-      spawn-monsters = false;
-      spawn-animals = false;
-      spawn-npcs = false;
-      allow-flight = true;
-    };
+      serverProperties = {
+        server-port = 25566;
+        max-players = 30;
+        online-mode = false; # Velocity が認証を行うため false
+        white-list = false;
+        gamemode = "adventure";
+        force-gamemode = true;
+        difficulty = "peaceful";
+        level-type = "flat";
+        level-seed = "";
+        # スーパーフラットのカスタマイズ（空気のみ、バイオームは the_void）
+        generator-settings = "{\"layers\": [{\"block\": \"minecraft:air\", \"height\": 1}], \"biome\": \"minecraft:the_void\"}";
+        generate-structures = false; # 構造物を生成しない
+        spawn-monsters = false;
+        spawn-animals = false;
+        spawn-npcs = false;
+        allow-flight = true;
+      };
 
-    symlinks = {
-      "plugins/ViaVersion.jar" = plugins.viaversion.src;
-      "plugins/ViaBackwards.jar" = plugins.viabackwards.src;
-      "plugins/GSit.jar" = plugins.gsit.src;
-      "plugins/LunaChat.jar" = plugins.lunachat.src;
-      "velocity-forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
-    };
+      symlinks = {
+        "plugins/ViaVersion.jar" = plugins.viaversion.src;
+        "plugins/ViaBackwards.jar" = plugins.viabackwards.src;
+        "plugins/GSit.jar" = plugins.gsit.src;
+        "plugins/LunaChat.jar" = plugins.lunachat.src;
+        "velocity-forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
+      };
 
-    files = {
-      # 共通設定から LunaChat の設定を引用
-      "plugins/LunaChat/config.yml".value = lunachat.config.lunaChatConfig;
-      "config/paper-world-defaults.yml".value = {
-        entities = {
-          spawning = {
-            spawn-limits = {
-              monsters = 0;
-              animals = 0;
-              water-animals = 0;
-              water-ambient = 0;
-              water-underground-creature = 0;
-              axolotls = 0;
-              ambient = 0;
+      files = {
+        # 共通設定から LunaChat の設定を引用
+        "plugins/LunaChat/config.yml".value = lunachat.config.lunaChatConfig;
+        "config/paper-world-defaults.yml".value = {
+          entities = {
+            spawning = {
+              spawn-limits = {
+                monsters = 0;
+                animals = 0;
+                water-animals = 0;
+                water-ambient = 0;
+                water-underground-creature = 0;
+                axolotls = 0;
+                ambient = 0;
+              };
             };
           };
         };
       };
     };
-  };
 
-  # nix-minecraft が生成するサービスを拡張
-  systemd.services.minecraft-server-lobby = {
-    # Fix udev warning
-    environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
+    # nix-minecraft が生成するサービスを拡張
+    systemd.services.minecraft-server-lobby = {
+      # Fix udev warning
+      environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
 
-    preStart = ''
-      # ワールドおよびプレイヤーデータリセットのチェック
-      if [ -f ".reset_world" ]; then
-        echo "Resetting world and player data as requested..."
-        rm -rf world*
-        rm -f usercache.json
-        rm .reset_world
-      fi
+      preStart = ''
+        # ワールドおよびプレイヤーデータリセットのチェック
+        if [ -f ".reset_world" ]; then
+          echo "Resetting world and player data as requested..."
+          rm -rf world*
+          rm -f usercache.json
+          rm .reset_world
+        fi
 
-      # ディレクトリの準備
-      mkdir -p config
-      
-      # sops の秘密鍵を読み込む
-      SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
-      
-      # 設定ファイルが Nix Store へのリンクなどの場合、書き換えられないため
-      # 一旦削除または退避して、実ファイルとして配置・置換する
-      if [ -L "config/paper-global.yml" ]; then
-        rm "config/paper-global.yml"
-      fi
+        # ディレクトリの準備
+        mkdir -p config
+        
+        # sops の秘密鍵を読み込む
+        SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
+        
+        # 設定ファイルが Nix Store へのリンクなどの場合、書き換えられないため
+        # 一旦削除または退避して、実ファイルとして配置・置換する
+        if [ -L "config/paper-global.yml" ]; then
+          rm "config/paper-global.yml"
+        fi
 
-      cat <<EOF > config/paper-global.yml
-# Fix global config version warning
-config-version: 31
-proxies:
-  velocity:
-    enabled: true
-    online-mode: true
-    secret: $SECRET
-EOF
-      chown minecraft:minecraft config/paper-global.yml
-      chmod 600 config/paper-global.yml
-    '';
+        cat <<EOF > config/paper-global.yml
+  # Fix global config version warning
+  config-version: 31
+  proxies:
+    velocity:
+      enabled: true
+      online-mode: true
+      secret: $SECRET
+  EOF
+        chown minecraft:minecraft config/paper-global.yml
+        chmod 600 config/paper-global.yml
+      '';
+    };
   };
 }

@@ -15,13 +15,14 @@ in {
       hwinfo
       hwloc
       lm_sensors
+      lsof
+      pciutils
       procs
       bottom
+      usbutils
     ] ++ lib.optionals hwCfg.enable [
       nvme-cli
-      pciutils
       smartmontools
-      usbutils
     ];
   };
 }

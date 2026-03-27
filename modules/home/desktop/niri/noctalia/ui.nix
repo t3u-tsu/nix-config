@@ -36,6 +36,7 @@
           { id = "Volume"; displayMode = "alwaysShow"; middleClickCommand = "pavucontrol"; }
           { id = "Brightness"; displayMode = "onhover"; }
           { id = "Battery"; displayMode = "onhover"; }
+          { id = "Usage"; icon = "cpu"; showCpu = true; showRam = true; showStorage = false; }
           { id = "Clock"; formatHorizontal = "yyyy/MM/dd (EEE) HH:mm"; }
           { id = "Tray"; drawerEnabled = true; }
           { id = "NotificationHistory"; showUnreadBadge = true; }

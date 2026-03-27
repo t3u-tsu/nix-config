@@ -13,7 +13,21 @@ in {
       enable = true;
       viAlias = true;
       vimAlias = true;
-      # Base configuration can be added here
+      
+      extraConfig = ''
+        lua << EOF
+        local colors_file = os.getenv("HOME") .. "/.cache/noctalia/neovim-colors.lua"
+        local f = io.open(colors_file, "r")
+        if f then
+          f:close()
+          local colors = dofile(colors_file)
+          -- Simple color application (mocking noctalia.nvim behavior)
+          vim.api.nvim_set_hl(0, "Normal", { fg = colors.on_surface, bg = colors.surface })
+          vim.api.nvim_set_hl(0, "Identifier", { fg = colors.primary })
+          vim.api.nvim_set_hl(0, "Function", { fg = colors.secondary })
+        end
+        EOF
+      '';
     };
   };
 }
