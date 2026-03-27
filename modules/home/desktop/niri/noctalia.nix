@@ -74,8 +74,10 @@ in {
           floating = false;
           backgroundOpacity = 0.95;
           height = 32;
-          marginVertical = 4;
-          marginHorizontal = 8;
+          marginVertical = 0;
+          marginHorizontal = 0;
+          density = "compact";
+          showCapsule = false;
           
           widgets = {
             left = [

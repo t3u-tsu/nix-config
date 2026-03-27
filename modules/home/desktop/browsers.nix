@@ -139,6 +139,9 @@ in {
 
         settings = {
           # General UI/UX
+          "extensions.uBlock0@raymondhill.net.allowPrivateBrowsing" = true;
+          "extensions.{b9db16a4-6edc-47ec-a1f4-b86292ed211d}.allowPrivateBrowsing" = true;
+          "extensions.{446900e4-71c2-419f-a6a7-df9c091e268b}.allowPrivateBrowsing" = true;
           "extensions.autoDisableScopes" = 0;
           "browser.aboutConfig.showWarning" = false;
           "browser.shell.checkDefaultBrowser" = false;

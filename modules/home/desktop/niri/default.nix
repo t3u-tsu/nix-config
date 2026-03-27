@@ -3,6 +3,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.niri;
+  noctalia = cmd: [ "noctalia-shell" "ipc" "call" ] ++ (lib.splitString " " cmd);
 in {
   options.my.home.desktop.niri = {
     enable = mkEnableOption "Niri Home Manager configuration";
@@ -29,7 +30,7 @@ in {
       };
 
       layout = {
-        gaps = 8;
+        gaps = 4;
         center-focused-column = "never";
         default-column-width = { proportion = 0.5; };
         
@@ -119,24 +120,24 @@ in {
 
         # --- System Controls via Noctalia Shell IPC ---
         # Screen Capture
-        "Print".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureOutput" ];
-        "Mod+Print".action.spawn = [ "noctalia-shell" "ipc" "call" "screenshot" "captureArea" ];
+        "Print".action.spawn = noctalia "plugin:screenshot takeScreenshot output";
+        "Mod+Print".action.spawn = noctalia "plugin:screenshot takeScreenshot region";
         
         # Session & Power Menu
-        "Mod+Escape".action.spawn = [ "noctalia-shell" "ipc" "call" "sessionMenu" "toggle" ];
+        "Mod+Escape".action.spawn = noctalia "sessionMenu toggle";
         
         # Volume & Brightness (Synchronized with Noctalia OSD)
-        "XF86AudioRaiseVolume".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "increase" ];
-        "XF86AudioLowerVolume".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "decrease" ];
-        "XF86AudioMute".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "muteOutput" ];
-        "XF86AudioMicMute".action.spawn = [ "noctalia-shell" "ipc" "call" "volume" "muteInput" ];
-        "XF86MonBrightnessUp".action.spawn = [ "noctalia-shell" "ipc" "call" "brightness" "increase" ];
-        "XF86MonBrightnessDown".action.spawn = [ "noctalia-shell" "ipc" "call" "brightness" "decrease" ];
+        "XF86AudioRaiseVolume".action.spawn = noctalia "volume increase";
+        "XF86AudioLowerVolume".action.spawn = noctalia "volume decrease";
+        "XF86AudioMute".action.spawn = noctalia "volume muteOutput";
+        "XF86AudioMicMute".action.spawn = noctalia "volume muteInput";
+        "XF86MonBrightnessUp".action.spawn = noctalia "brightness increase";
+        "XF86MonBrightnessDown".action.spawn = noctalia "brightness decrease";
 
         # Media Playback Controls
-        "XF86AudioPlay".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "toggle" ];
-        "XF86AudioNext".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "next" ];
-        "XF86AudioPrev".action.spawn = [ "noctalia-shell" "ipc" "call" "media" "previous" ];
+        "XF86AudioPlay".action.spawn = noctalia "media toggle";
+        "XF86AudioNext".action.spawn = noctalia "media next";
+        "XF86AudioPrev".action.spawn = noctalia "media previous";
          
         # Exit Niri
         "Mod+Shift+Q".action.quit = { };
