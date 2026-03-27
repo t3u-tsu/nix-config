@@ -29,21 +29,21 @@ in {
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
-        "text/html" = "zen.desktop";
-        "x-scheme-handler/http" = "zen.desktop";
-        "x-scheme-handler/https" = "zen.desktop";
-        "x-scheme-handler/about" = "zen.desktop";
-        "x-scheme-handler/unknown" = "zen.desktop";
+        "text/html" = "zen-beta.desktop";
+        "x-scheme-handler/http" = "zen-beta.desktop";
+        "x-scheme-handler/https" = "zen-beta.desktop";
+        "x-scheme-handler/about" = "zen-beta.desktop";
+        "x-scheme-handler/unknown" = "zen-beta.desktop";
         
         # File Browser (Nautilus)
         "inode/directory" = "org.gnome.Nautilus.desktop";
         
         # Common file types
-        "application/pdf" = "zen.desktop"; # Use Zen as PDF viewer if no dedicated app
+        "application/pdf" = "zen-beta.desktop"; # Use Zen as PDF viewer if no dedicated app
         "image/png" = "org.gnome.Loupe.desktop";
         "image/jpeg" = "org.gnome.Loupe.desktop";
         "image/gif" = "org.gnome.Loupe.desktop";
-        "image/svg+xml" = "zen.desktop";
+        "image/svg+xml" = "zen-beta.desktop";
         "text/plain" = "nvim.desktop"; 
       };
     };
