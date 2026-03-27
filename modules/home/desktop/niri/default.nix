@@ -148,10 +148,10 @@ in {
           matches = [{ app-id = "org.keepassxc.KeePassXC"; }];
           open-floating = true;
         }
-        # Vesktop: wider column for chat/VC layout
+        # Vesktop: full-width (same as Zen for consistency)
         {
           matches = [{ app-id = "Vesktop"; }];
-          default-column-width = { proportion = 0.75; };
+          default-column-width = { proportion = 1.0; };
         }
         # Zen Browser: full-width for web browsing comfort
         {
