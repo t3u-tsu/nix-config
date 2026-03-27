@@ -12,8 +12,11 @@ in
     ../../modules
   ];
 
-  # Disable Nix sandboxing for legacy kernels lacking namespace support
-  nix.settings.sandbox = false;
+  # Disable Nix sandboxing and seccomp filtering for legacy kernels lacking namespace/BPF support
+  nix.settings = {
+    sandbox = false;
+    filter-syscalls = false;
+  };
 
 
 
