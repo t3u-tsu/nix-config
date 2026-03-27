@@ -33,12 +33,6 @@ in {
         DontCheckDefaultBrowser = true;
         DisplayBookmarksToolbar = "never"; # or "always"
         
-        Preferences = {
-          "extensions.uBlock0@raymondhill.net.allowPrivateBrowsing" = true;
-          "extensions.{446900e4-71c2-419f-a6a7-df9c091e268b}.allowPrivateBrowsing" = true;
-          "extensions.{b9db16a4-6edc-47ec-a1f4-b86292ed211d}.allowPrivateBrowsing" = true;
-        };
-        
         # Declarative Extensions via Policy (Reliable way)
         ExtensionSettings = {
           "*".installation_mode = "allowed"; # Allow manual installs too
@@ -145,8 +139,6 @@ in {
 
         settings = {
           # General UI/UX
-          "extensions.allowPrivateBrowsingByDefault" = true;
-          "extensions.enabledScopes" = 15;
           "extensions.autoDisableScopes" = 0;
           "browser.aboutConfig.showWarning" = false;
           "browser.shell.checkDefaultBrowser" = false;
