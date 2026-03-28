@@ -1,7 +1,9 @@
 keys:
   - &shared_key age1rcwjh7jwm48qjv0rg6q2wza3a5sn4u4fgvxawjlj5jl4vylla4vq6d4adu
+  - &user_t3u  age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy
 creation_rules:
   - path_regex: secrets/secrets.yaml$
     key_groups:
     - age:
       - *shared_key
+      - *user_t3u

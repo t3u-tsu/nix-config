@@ -19,14 +19,19 @@ in {
         enabledCollectors = [ "systemd" ];
       };
       
-      # Open firewall port for local network scraping
-      networking.firewall.allowedTCPPorts = [ 9100 ];
+      # Open firewall port for local network scraping only on WireGuard
+      networking.firewall.interfaces.wg0.allowedTCPPorts = [ 9100 ];
     })
 
     # 2. Central Server configuration (Prometheus & Grafana)
     # Deployed ONLY on the designated monitoring hub (e.g., torii-chan)
     (mkIf (cfg.enable && cfg.isServer) {
-      networking.firewall.allowedTCPPorts = [ 3000 9090 ];
+      # Restricted access via WireGuard Management Interface
+      networking.firewall.interfaces.wg0.allowedTCPPorts = [ 3000 9090 ];
+
+      sops.secrets.grafana_admin_password = {
+        owner = "grafana";
+      };
 
       services.prometheus = {
         enable = true;
@@ -35,8 +40,14 @@ in {
           {
             job_name = "nixos_fleet";
             static_configs = [{
-              # The endpoints to scrape metrics from. 
-              targets = [ "127.0.0.1:9100" ]; 
+              # Fleet-wide targets via WireGuard Management Network
+              targets = [ 
+                "10.0.0.1:9100"   # torii-chan
+                "10.0.0.2:9100"   # sando-kun
+                "10.0.0.3:9100"   # kagutsuchi-sama
+                "10.0.0.4:9100"   # shosoin-tan
+                "10.0.0.100:9100" # BrokenPC (Management)
+              ]; 
             }];
           }
         ];
@@ -46,9 +57,12 @@ in {
       services.grafana = {
         enable = true;
         settings = {
+          security = {
+            admin_password = "$__file{${config.sops.secrets.grafana_admin_password.path}}";
+          };
           server = {
             http_port = 3000;
-            http_addr = "0.0.0.0"; # Bind to all interfaces to allow local network access
+            http_addr = "0.0.0.0"; # Bind to all interfaces but controlled by firewall
           };
         };
       };

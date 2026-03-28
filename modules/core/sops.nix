@@ -13,6 +13,7 @@ in
 
   environment.variables = {
     SOPS_AGE_KEY_FILE = "/var/lib/sops-nix/key.txt";
+    SOPS_AGE_SSH_PRIVATE_KEY_FILE = "/home/${config.my.user.name}/.ssh/id_ed25519";
   };
 
     # Common host secrets

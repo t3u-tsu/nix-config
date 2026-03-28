@@ -13,8 +13,8 @@
   # interface of minecraft proxy (velocity)
   networking.firewall.allowedTCPPorts = lib.mkForce [ 25565 ];
 
-  # Open port 22 (SSH) and Monitoring Dashboard (3000, 9090, 9100) ONLY on WireGuard management interface
-  networking.firewall.interfaces.wg0.allowedTCPPorts = [ 22 3000 9090 9100 ];
+  # Open port 22 (SSH) ONLY on WireGuard management interface
+  networking.firewall.interfaces.wg0.allowedTCPPorts = [ 22 ];
 
   # Allow all application traffic on wg1
   networking.firewall.interfaces.wg1.allowedTCPPortRanges = [ { from = 0; to = 65535; } ];
