@@ -14,7 +14,7 @@
     ├── core/           # 基盤設定 (Nix, Network, User, Sops)
     ├── packages/       # システムパッケージ群 (base, monitoring, etc.)
     ├── home/           # Home-manager によるユーザー環境 (Shell, Desktop, SSH)
-    ├── services/       # 各種サービス (Minecraft, Update Hub, Desktop)
+    ├── services/       # 各種サービス (Minecraft, Desktop)
     └── profiles/       # 役割ごとのプロファイル (Desktop, Tower Server)
 ```
 

@@ -9,7 +9,7 @@ This directory manages the Minecraft network consisting of a Velocity proxy and 
 - **Backup**: Every 2 hours using `restic`.
     - Local: `/mnt/tank-1tb/backups/minecraft` (ZFS Mirror)
     - Remote: `kagutsuchi-sama` (10.0.1.3) at `/mnt/data/backups/shosoin-tan`
-- **Update Producer**: `shosoin-tan` checks for core and plugin updates daily at 04:00 and updates the repository.
+- **Update Workflow**: GitHub Actions automatically checks for core and plugin updates daily at 04:00 (JST) and pushes changes to the repository.
 
 ## Overview
 
@@ -40,8 +40,7 @@ A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu
 
 Plugins (ViaVersion, ViaBackwards) are managed in the `plugins/` directory using **nvfetcher**. This allows automatic fetching of latest hashes and declarative version management.
 
-- **Automated Update**:
-  If `my.updateHub.client.enable = true` is set on the host, `nvfetcher` runs automatically every day at 4 AM, and updated plugin information is pushed to the repository.
+- **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:
   ```bash
   (cd services/minecraft/plugins && nvfetcher -c nvfetcher.toml)

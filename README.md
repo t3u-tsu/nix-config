@@ -15,7 +15,7 @@ The repository is divided into "Mechanisms (Modules)" and "Entities (Hosts)".
     ├── hardware/       # Hardware abstraction (NVIDIA, PCIe tools, etc.)
     ├── packages/       # System package groups (base, monitoring, etc.)
     ├── home/           # User environment via Home-manager (Shell, Desktop, SSH)
-    ├── services/       # Various services (Minecraft, Update Hub, Desktop)
+    ├── services/       # Various services (Minecraft, Desktop)
     └── profiles/       # Role-based profiles (Desktop, Tower Server)
 ```
 

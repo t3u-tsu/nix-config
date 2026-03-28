@@ -7,6 +7,7 @@ This module uses `comin`, a community-standard deployment tool, to manage the au
 Previously, we used a centralized Update Hub server running on `torii-chan` to instruct clients to update. In Phase 7, we migrated to a **Pull-based (Decentralized)** architecture.
 
 - **No Central Server Needed**: Each node (host) independently keeps its own configuration up-to-date.
+- **CI/CD Integration**: Works in tandem with GitHub Actions to automate version bumps and external asset updates (nvfetcher).
 - **Improved Security**: The risk of remote command execution is eliminated, enabling safer provisioning.
 - **Stability**: Utilizing a mature community tool reduces maintenance costs.
 

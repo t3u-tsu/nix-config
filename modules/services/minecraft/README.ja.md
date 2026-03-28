@@ -9,7 +9,7 @@
 - **バックアップ**: 2時間おきに `restic` で実行。
     - ローカル: `/mnt/tank-1tb/backups/minecraft` (ZFSミラー)
     - リモート: `kagutsuchi-sama` (10.0.1.3) の `/mnt/data/backups/shosoin-tan`
-- **更新担当 (Producer)**: `shosoin-tan` が毎日 04:00 に本体とプラグインの更新をチェックし、リポジトリを更新します。
+- **更新ワークフロー**: GitHub Actions が毎日 04:00 (JST) に本体とプラグインの更新をチェックし、リポジトリを自動更新します。
 
 ## 構成概要
 
@@ -40,8 +40,7 @@ Discord を介してホワイトリスト管理などを行うための [minecra
 
 プラグイン（ViaVersion, ViaBackwards）は `plugins/` ディレクトリで **nvfetcher** を使用して管理されています。これにより、最新のハッシュ値を自動取得し、宣言的にプラグインを最新に保つことができます。
 
-- **自動更新**:
-  ホスト側で `my.updateHub.client.enable = true` が設定されていれば、毎日午前4時に自動的に `nvfetcher` が実行され、最新のプラグイン情報がリポジトリにプッシュされます。
+- **自動更新**: GitHub Actions (`auto-update.yml`) によって管理されています。定期的に `nvfetcher` を実行し、新しいプラグインのバージョンをリポジトリにコミットします。
 - **手動更新**:
   ```bash
   (cd services/minecraft/plugins && nvfetcher -c nvfetcher.toml)
