@@ -48,6 +48,7 @@
 ## 📋 最近の活動記録 (Activity Summary)
 
 - **2026-03-29 (SOPS Decryption Fix)**: `.sops.yaml` への鍵追加に伴う手動復号不全の問題を解消。`ssh-to-age` をパッケージに追加し、`sops-nix` の SSH 鍵統合を修正するとともに、ユーザ用 `sops` エイリアスを導入。
+- **2026-03-29 (SOPS & CI Fix)**: SOPSの復号問題解消に加え、`git.nix` のビルド警告解消、および GitHub Actions (`auto-update.yml`) の 403 権限エラーを修正。
 - **2026-03-28 (Phase 9 CI/CD integration)**: 旧 `update-hub` を完全に廃止し、`GitHub Actions` による自動更新 (`nvfetcher`) と `comin` による自動デプロイを統合。タワーサーバーの記述ミスを修正し、監視基盤との整合性を確保。
 - **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、`production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。およびプロジェクト全体を通した英語・日本語ドキュメントの全面同期（WezTerm移行の反映など）。
 - **2026-03-28 (Phase 8-8.5)**: WezTerm移行、Steam Millennium導入、Wayland UIの競合解決。Prometheus+Grafanaによる艦隊監視ダッシュボード基盤の構築とCI/CD導入。
