@@ -47,6 +47,7 @@
 
 ## 📋 最近の活動記録 (Activity Summary)
 
+- **2026-03-28 (Phase 9 CI/CD integration)**: 旧 `update-hub` を完全に廃止し、`GitHub Actions` による自動更新 (`nvfetcher`) と `comin` による自動デプロイを統合。タワーサーバーの記述ミスを修正し、監視基盤との整合性を確保。
 - **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、`production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。およびプロジェクト全体を通した英語・日本語ドキュメントの全面同期（WezTerm移行の反映など）。
 - **2026-03-28 (Phase 8-8.5)**: WezTerm移行、Steam Millennium導入、Wayland UIの競合解決。Prometheus+Grafanaによる艦隊監視ダッシュボード基盤の構築とCI/CD導入。
 - **2026-03-28 (Phase 7)**: UI 移行 (Nautilus -> Thunar) と自動デプロイ基盤の刷新 (comin 導入)、CI/CD 準備。
@@ -60,6 +61,7 @@
 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
 ### 各セッションの詳細ログ（抜粋）
+- [2026-03-28: CI/CD 統合 & 監視基盤最適化 Phase 9](./.agents/work-logs/2026-03-28-ci-cd-optimization.md)
 - [2026-03-28: torii-chan デプロイ障害とファイアウォール競合の解決](./.agents/work-logs/2026-03-28-torii-chan-deployment-fixes.md)
 - [2026-03-28: デスクトップ最適化 & 監視基盤配備 Phase 8-8.5](./.agents/work-logs/2026-03-28-phase8-desktop-monitoring.md)
 - [2026-03-28: デスクトップ最適化 & インフラ刷新 Phase 7](./.agents/work-logs/2026-03-28-phase7-infrastructure.md)

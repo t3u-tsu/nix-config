@@ -1,0 +1,35 @@
+name: Scheduled Auto Update
+
+on:
+  schedule:
+    - cron: '0 19 * * *' # 04:00 JST
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use a PAT if available to trigger other workflows on push
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run nvfetcher (Minecraft Plugins)
+        run: |
+          nix shell nixpkgs#nvfetcher --command bash -c "cd modules/services/minecraft/plugins && nvfetcher -c nvfetcher.toml"
+
+      - name: Nix Flake Update
+        run: nix flake update
+
+      - name: Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(auto): update system and plugins"
+          commit_user_name: "t3u-daemon"
+          commit_user_email: "t3u+daemon@t3u.uk"
+          branch: main

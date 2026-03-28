@@ -1,4 +1,4 @@
-{ ... }: {
+{ config, lib, ... }: {
   imports = [
     ./auto-update.nix
     ./boot.nix

@@ -6,7 +6,6 @@
     ./desktop
     ./discord-bridge
     ./minecraft
-    ./update-hub
     ./monitoring
     ./deployment/comin.nix
   ];

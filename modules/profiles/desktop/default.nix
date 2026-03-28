@@ -40,9 +40,5 @@ with lib;
     };
 
     my.services.monitoring.enable = true;
-
-    # Auto-update strategy for desktops: build and set as boot default, 
-    # but don't switch immediately to avoid session restarts.
-    my.updateHub.client.useBoot = mkDefault true;
   };
 }
