@@ -9,6 +9,7 @@ in {
       age
       gnupg
       sops
+      ssh-to-age
     ];
   };
 }

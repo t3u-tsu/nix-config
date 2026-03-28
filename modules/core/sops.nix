@@ -8,12 +8,11 @@ in
   sops.defaultSopsFile = ../../secrets/secrets.yaml;
   sops.defaultSopsFormat = "yaml";
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";
-  sops.age.sshKeyPaths = [ ];
+  sops.age.sshKeyPaths = [ "/home/\${config.my.user.name}/.ssh/id_ed25519" ];
   sops.age.generateKey = false;
 
   environment.variables = {
     SOPS_AGE_KEY_FILE = "/var/lib/sops-nix/key.txt";
-    SOPS_AGE_SSH_PRIVATE_KEY_FILE = "/home/${config.my.user.name}/.ssh/id_ed25519";
   };
 
     # Common host secrets
