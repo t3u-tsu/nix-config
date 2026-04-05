@@ -8,7 +8,7 @@ in
   sops.defaultSopsFile = ../../secrets/secrets.yaml;
   sops.defaultSopsFormat = "yaml";
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";
-  sops.age.sshKeyPaths = [ "/home/\${config.my.user.name}/.ssh/id_ed25519" ];
+  sops.age.sshKeyPaths = [ "/home/${config.my.user.name}/.ssh/id_ed25519" ];
   sops.age.generateKey = false;
 
   environment.variables = {
