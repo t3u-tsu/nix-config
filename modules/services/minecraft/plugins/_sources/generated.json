@@ -8,11 +8,11 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-NQc0XjbTslVJMlS5EkJ3t08IR5DbZ27ofU7V1GhW3ok=",
+            "sha256": "sha256-wbs7yksOvt9k6BlouA8LZuX/LPn4m3KDkJ/6I7TrmyY=",
             "type": "url",
-            "url": "https://github.com/Gecolay/GSit/releases/download/3.3.0/GSit-3.3.0.jar"
+            "url": "https://github.com/Gecolay/GSit/releases/download/3.3.1/GSit-3.3.1.jar"
         },
-        "version": "3.3.0"
+        "version": "3.3.1"
     },
     "lunachat": {
         "cargoLock": null,
