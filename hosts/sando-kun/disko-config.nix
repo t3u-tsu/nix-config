@@ -37,39 +37,17 @@
         content = {
           type = "gpt";
           partitions = {
-            zfs = {
+            storage = {
               size = "100%";
               content = {
-                type = "zfs";
-                pool = "tank-80gb";
+                type = "filesystem";
+				format = "ext4";
+				mountpoint = "/mnt/scratch";
+				mountOptions = [ "nofail" ];
               };
             };
           };
         };
-      };
-      data2 = {
-        type = "disk";
-        device = "/dev/disk/by-id/ata-WDC_WD800JD-19MSA1_WD-WMAM9R024946";
-        content = {
-          type = "gpt";
-          partitions = {
-            zfs = {
-              size = "100%";
-              content = {
-                type = "zfs";
-                pool = "tank-80gb";
-              };
-            };
-          };
-        };
-      };
-    };
-    zpool = {
-      tank-80gb = {
-        type = "zpool";
-        mode = "mirror";
-        mountpoint = "/mnt/tank-80gb";
-        mountOptions = [ "nofail" ];
       };
     };
   };

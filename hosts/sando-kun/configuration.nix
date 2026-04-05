@@ -30,10 +30,5 @@
   # Enable local network optimizations (Disabled as default since machines moved LANs)
   # my.localNetwork.enable = true;
 
-  # ZFS Support
-  boot.supportedFilesystems = [ "zfs" ];
-  boot.zfs.forceImportRoot = false;
-  boot.zfs.extraPools = [ "tank-80gb" ];
-
   system.stateVersion = "25.05";
 }

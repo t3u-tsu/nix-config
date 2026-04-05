@@ -6,12 +6,7 @@
 
 ## 🚀 プロジェクト概要
 
-本リポジトリは、**Niri + Noctalia Shell** を中核とした、宣言的で高度にカスタマイズされたデスクトップ環境の構築を目指しています。
-
-- **OS**: NixOS (Unstable)
-- **WM**: Niri (Scrollable-Tiling)
-- **Shell**: Noctalia Shell (Custom Quickshell)
-- **Theme**: Dracula / Catppuccin (Managed via Matugen)
+本リポジトリは、宣言的で高度にカスタマイズされたデスクトップ環境及びサーバー群の構築を目指しています。
 
 ---
 

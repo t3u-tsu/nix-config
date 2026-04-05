@@ -8,7 +8,7 @@ This host is a general-purpose tower server equipped with an Intel Core i7-860 a
 - **RAM:** 8GB
 - **Storage:**
   - 250GB HDD (OS / Boot)
-  - 80GB HDD x2 (ZFS Mirror: `tank-80gb`)
+  - 80GB HDD (`scratch`)
 
 ## 🚀 Installation Guide
 

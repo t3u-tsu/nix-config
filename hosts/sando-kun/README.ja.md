@@ -8,7 +8,7 @@
 - **RAM:** 8GB
 - **ストレージ:**
   - 250GB HDD (OS / Boot)
-  - 80GB HDD x2 (ZFS Mirror: `tank-80gb`)
+  - 80GB HDD (`scratch`)
 
 ## 🚀 インストールガイド
 
