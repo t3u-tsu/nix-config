@@ -9,7 +9,6 @@ This host is a high-power tower server used for heavy workloads and compute task
 - **Storage:**
   - 500GB SSD (Root/Boot)
   - 3TB HDD (Data)
-  - 160GB HDD (Scratch)
 
 ## 🚀 Installation Guide
 

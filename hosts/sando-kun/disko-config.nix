@@ -41,9 +41,9 @@
               size = "100%";
               content = {
                 type = "filesystem";
-				format = "ext4";
-				mountpoint = "/mnt/scratch";
-				mountOptions = [ "nofail" ];
+                format = "ext4";
+                mountpoint = "/mnt/scratch";
+                mountOptions = [ "nofail" ];
               };
             };
           };
