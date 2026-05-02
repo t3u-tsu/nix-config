@@ -19,7 +19,7 @@ in
       mangohud
       protonup-qt
       heroic
-      prism-launcher
+      prismlauncher
       steam-run
       gamescope
     ];
