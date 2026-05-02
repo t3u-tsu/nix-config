@@ -1,8 +1,14 @@
-{ config, lib, inputs, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 let
   cfg = config.my.home.desktop.niri;
-in {
+in
+{
   imports = [
     inputs.noctalia-shell.homeModules.default
     ./theme.nix

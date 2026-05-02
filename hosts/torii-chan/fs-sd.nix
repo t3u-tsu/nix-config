@@ -1,9 +1,14 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   # File systems configuration for SD Card operation
   # Based on the default partition layout of the SD image
-  
+
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";
@@ -15,6 +20,9 @@
     device = "/dev/disk/by-label/FIRMWARE";
     fsType = "vfat";
     # Matches the default fstab generated on the SD image
-    options = [ "nofail" "noauto" ];
+    options = [
+      "nofail"
+      "noauto"
+    ];
   };
 }

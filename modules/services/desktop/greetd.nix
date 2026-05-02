@@ -1,9 +1,15 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.services.desktop.greetd;
-in {
+in
+{
   options.my.services.desktop.greetd = {
     enable = mkEnableOption "greetd with tuigreet";
   };

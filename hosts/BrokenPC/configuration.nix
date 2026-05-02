@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [
@@ -8,13 +14,19 @@
     ../../modules/profiles/desktop
   ];
 
-
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # Hardware settings (AMD CPU + HP Victus specifics)
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "usb_storage" "usbhid" "sd_mod" "sdhci_pci" "amdgpu" ];
+  boot.initrd.availableKernelModules = [
+    "nvme"
+    "xhci_pci"
+    "usb_storage"
+    "usbhid"
+    "sd_mod"
+    "sdhci_pci"
+    "amdgpu"
+  ];
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
@@ -55,7 +67,13 @@
   users.users.${config.my.user.name} = {
     isNormalUser = true;
     description = config.my.user.name;
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" "dialout" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "video"
+      "audio"
+      "dialout"
+    ];
     shell = pkgs.zsh;
     hashedPasswordFile = config.sops.secrets.brokenpc_t3u_password_hash.path;
   };

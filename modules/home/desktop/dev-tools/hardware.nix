@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.hardware;
-in {
+in
+{
   options.my.home.desktop.dev-tools.hardware = {
     enable = mkEnableOption "Hardware development tools (KiCad, Picocom, etc.)";
   };

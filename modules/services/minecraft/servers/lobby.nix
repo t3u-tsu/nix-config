@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
@@ -69,37 +74,37 @@ in
       environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
 
       preStart = ''
-        # ワールドおよびプレイヤーデータリセットのチェック
-        if [ -f ".reset_world" ]; then
-          echo "Resetting world and player data as requested..."
-          rm -rf world*
-          rm -f usercache.json
-          rm .reset_world
-        fi
+              # ワールドおよびプレイヤーデータリセットのチェック
+              if [ -f ".reset_world" ]; then
+                echo "Resetting world and player data as requested..."
+                rm -rf world*
+                rm -f usercache.json
+                rm .reset_world
+              fi
 
-        # ディレクトリの準備
-        mkdir -p config
-        
-        # sops の秘密鍵を読み込む
-        SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
-        
-        # 設定ファイルが Nix Store へのリンクなどの場合、書き換えられないため
-        # 一旦削除または退避して、実ファイルとして配置・置換する
-        if [ -L "config/paper-global.yml" ]; then
-          rm "config/paper-global.yml"
-        fi
+              # ディレクトリの準備
+              mkdir -p config
+              
+              # sops の秘密鍵を読み込む
+              SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
+              
+              # 設定ファイルが Nix Store へのリンクなどの場合、書き換えられないため
+              # 一旦削除または退避して、実ファイルとして配置・置換する
+              if [ -L "config/paper-global.yml" ]; then
+                rm "config/paper-global.yml"
+              fi
 
-        cat <<EOF > config/paper-global.yml
-  # Fix global config version warning
-  config-version: 31
-  proxies:
-    velocity:
-      enabled: true
-      online-mode: true
-      secret: $SECRET
-  EOF
-        chown minecraft:minecraft config/paper-global.yml
-        chmod 600 config/paper-global.yml
+              cat <<EOF > config/paper-global.yml
+        # Fix global config version warning
+        config-version: 31
+        proxies:
+          velocity:
+            enabled: true
+            online-mode: true
+            secret: $SECRET
+        EOF
+              chown minecraft:minecraft config/paper-global.yml
+              chmod 600 config/paper-global.yml
       '';
     };
   };

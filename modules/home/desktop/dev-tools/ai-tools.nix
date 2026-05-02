@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
-in {
+in
+{
   options.my.home.desktop.dev-tools.ai-tools = {
     enable = mkEnableOption "AI development tools";
   };

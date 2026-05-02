@@ -1,10 +1,24 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.niri;
-  noctalia = cmd: [ "noctalia-shell" "ipc" "call" ] ++ (lib.splitString " " cmd);
-in {
+  noctalia =
+    cmd:
+    [
+      "noctalia-shell"
+      "ipc"
+      "call"
+    ]
+    ++ (lib.splitString " " cmd);
+in
+{
   options.my.home.desktop.niri = {
     enable = mkEnableOption "Niri Home Manager configuration";
   };
@@ -31,8 +45,10 @@ in {
       layout = {
         gaps = 8;
         center-focused-column = "never";
-        default-column-width = { proportion = 0.5; };
-        
+        default-column-width = {
+          proportion = 0.5;
+        };
+
         # Border configuration (to be consistent with Dracula/Noctalia)
         focus-ring = {
           enable = true;
@@ -46,11 +62,22 @@ in {
       # Essential startup sequence for Wayland environment synchronization
       spawn-at-startup = [
         # Sync environments for dbus and systemd users (Crucial for Noctalia & Portal)
-        { command = [ "dbus-update-activation-environment" "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "NIXOS_OZONE_WL" ]; }
+        {
+          command = [
+            "dbus-update-activation-environment"
+            "--systemd"
+            "DISPLAY"
+            "WAYLAND_DISPLAY"
+            "XDG_CURRENT_DESKTOP"
+            "NIXOS_OZONE_WL"
+          ];
+        }
 
         # Wallpaper daemon (Aww)
-        { command = [ "${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/awww-daemon" ]; }
-        
+        {
+          command = [ "${inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/awww-daemon" ];
+        }
+
         # Launch Noctalia Shell (Started via systemd, but we can also spawn it here for robustness)
         { command = [ "noctalia-shell" ]; }
       ];
@@ -60,18 +87,28 @@ in {
         "Mod+Return".action.spawn = [ "wezterm" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
         "Mod+Shift+F".action.spawn = [ "thunar" ];
-        "Mod+Shift+E".action.spawn = [ "wezterm" "-e" "nvim" ];
+        "Mod+Shift+E".action.spawn = [
+          "wezterm"
+          "-e"
+          "nvim"
+        ];
         "Mod+Shift+V".action.spawn = [ "vesktop" ];
-         
+
         # --- Launcher (Space is universal "open something") ---
-        "Mod+Space".action.spawn = [ "noctalia-shell" "ipc" "call" "launcher" "toggle" ];
-         
+        "Mod+Space".action.spawn = [
+          "noctalia-shell"
+          "ipc"
+          "call"
+          "launcher"
+          "toggle"
+        ];
+
         # --- Window/Column Management (Clean & Explicit) ---
-        "Mod+W".action.close-window = { };                           # Close Window
-        "Mod+M".action.maximize-column = { };                        # Maximize Column
+        "Mod+W".action.close-window = { }; # Close Window
+        "Mod+M".action.maximize-column = { }; # Maximize Column
         "Mod+Shift+Space".action.toggle-column-tabbed-display = { }; # Tabbed Display
-        "Mod+V".action.toggle-window-floating = { };                 # Toggle Floating
-        
+        "Mod+V".action.toggle-window-floating = { }; # Toggle Floating
+
         # Column Resizing
         "Mod+R".action.switch-preset-column-width = { };
         "Mod+Shift+R".action.reset-window-height = { };
@@ -105,7 +142,7 @@ in {
         "Mod+Page_Down".action.focus-workspace-down = { };
         "Mod+Shift+Page_Up".action.move-column-to-workspace-up = { };
         "Mod+Shift+Page_Down".action.move-column-to-workspace-down = { };
-        
+
         # Numeric Workspace Access (Mod + 1-9)
         "Mod+1".action.focus-workspace = 1;
         "Mod+2".action.focus-workspace = 2;
@@ -122,10 +159,10 @@ in {
         "Print".action.screenshot-screen = { };
         "Mod+Print".action.screenshot-window = { };
         "Ctrl+Print".action.screenshot = { };
-        
+
         # Session & Power Menu
         "Mod+Escape".action.spawn = noctalia "sessionMenu toggle";
-        
+
         # Volume & Brightness (Synchronized with Noctalia OSD)
         "XF86AudioRaiseVolume".action.spawn = noctalia "volume increase";
         "XF86AudioLowerVolume".action.spawn = noctalia "volume decrease";
@@ -138,7 +175,7 @@ in {
         "XF86AudioPlay".action.spawn = noctalia "media toggle";
         "XF86AudioNext".action.spawn = noctalia "media next";
         "XF86AudioPrev".action.spawn = noctalia "media previous";
-         
+
         # Exit Niri
         "Mod+Shift+Q".action.quit = { };
       };
@@ -146,22 +183,26 @@ in {
       window-rules = [
         # Floating windows
         {
-          matches = [{ app-id = "org.keepassxc.KeePassXC"; }];
+          matches = [ { app-id = "org.keepassxc.KeePassXC"; } ];
           open-floating = true;
         }
         # Vesktop: full-width (same as Zen for consistency)
         {
-          matches = [{ app-id = "Vesktop"; }];
-          default-column-width = { proportion = 1.0; };
+          matches = [ { app-id = "Vesktop"; } ];
+          default-column-width = {
+            proportion = 1.0;
+          };
         }
         # Zen Browser: full-width for web browsing comfort
         {
-          matches = [{ app-id = "zen-beta"; }];
-          default-column-width = { proportion = 1.0; };
+          matches = [ { app-id = "zen-beta"; } ];
+          default-column-width = {
+            proportion = 1.0;
+          };
         }
         # Bitwarden: floating password manager
         {
-          matches = [{ app-id = "Bitwarden"; }];
+          matches = [ { app-id = "Bitwarden"; } ];
           open-floating = true;
         }
       ];

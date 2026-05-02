@@ -22,25 +22,66 @@
       marginHorizontal = 0;
       density = "compact";
       showCapsule = false;
-      
+
       widgets = {
         left = [
-          { id = "Workspace"; labelMode = "name"; showApplications = true; }
-          { id = "Launcher"; icon = "noctalia"; }
+          {
+            id = "Workspace";
+            labelMode = "name";
+            showApplications = true;
+          }
+          {
+            id = "Launcher";
+            icon = "noctalia";
+          }
         ];
         center = [
-          { id = "ActiveWindow"; maxWidth = 400; }
+          {
+            id = "ActiveWindow";
+            maxWidth = 400;
+          }
         ];
         right = [
-          { id = "Network"; displayMode = "alwaysShow"; }
-          { id = "Volume"; displayMode = "alwaysShow"; middleClickCommand = "pavucontrol"; }
-          { id = "Brightness"; displayMode = "onhover"; }
-          { id = "Battery"; displayMode = "onhover"; }
-          { id = "Usage"; icon = "cpu"; showCpu = true; showRam = true; showStorage = false; }
-          { id = "Clock"; formatHorizontal = "yyyy/MM/dd (EEE) HH:mm"; }
-          { id = "Tray"; drawerEnabled = true; }
-          { id = "NotificationHistory"; showUnreadBadge = true; }
-          { id = "ControlCenter"; icon = "noctalia"; }
+          {
+            id = "Network";
+            displayMode = "alwaysShow";
+          }
+          {
+            id = "Volume";
+            displayMode = "alwaysShow";
+            middleClickCommand = "pavucontrol";
+          }
+          {
+            id = "Brightness";
+            displayMode = "onhover";
+          }
+          {
+            id = "Battery";
+            displayMode = "onhover";
+          }
+          {
+            id = "Usage";
+            icon = "cpu";
+            showCpu = true;
+            showRam = true;
+            showStorage = false;
+          }
+          {
+            id = "Clock";
+            formatHorizontal = "yyyy/MM/dd (EEE) HH:mm";
+          }
+          {
+            id = "Tray";
+            drawerEnabled = true;
+          }
+          {
+            id = "NotificationHistory";
+            showUnreadBadge = true;
+          }
+          {
+            id = "ControlCenter";
+            icon = "noctalia";
+          }
         ];
       };
     };
@@ -69,11 +110,26 @@
     sessionMenu = {
       position = "center";
       powerOptions = [
-        { action = "lock"; enabled = true; }
-        { action = "suspend"; enabled = true; }
-        { action = "reboot"; enabled = true; }
-        { action = "logout"; enabled = true; }
-        { action = "shutdown"; enabled = true; }
+        {
+          action = "lock";
+          enabled = true;
+        }
+        {
+          action = "suspend";
+          enabled = true;
+        }
+        {
+          action = "reboot";
+          enabled = true;
+        }
+        {
+          action = "logout";
+          enabled = true;
+        }
+        {
+          action = "shutdown";
+          enabled = true;
+        }
       ];
     };
   };

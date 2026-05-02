@@ -3,7 +3,8 @@
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools;
-in {
+in
+{
   options.my.home.desktop.dev-tools = {
     enable = mkEnableOption "Development tools category";
   };

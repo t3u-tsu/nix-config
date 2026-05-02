@@ -1,4 +1,5 @@
-{ ... }: {
+{ ... }:
+{
   disko.devices = {
     disk = {
       ssd = {
@@ -39,7 +40,7 @@
                 type = "filesystem";
                 format = "ext4";
                 mountpoint = "/mnt/data";
-		mountOptions = [ "nofail" ];
+                mountOptions = [ "nofail" ];
               };
             };
           };

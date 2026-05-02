@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 with lib;
 
@@ -6,13 +12,13 @@ let
   cfg = config.services.minecraft-discord-bridge;
   format = pkgs.formats.toml { };
   configFile = format.generate "bridge-config.toml" cfg.settings;
-  
+
   bridgePkg = inputs.minecraft-discord-bridge.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   options.services.minecraft-discord-bridge = {
     enable = mkEnableOption "Minecraft Discord Bridge";
-    
+
     settings = mkOption {
       type = format.type;
       default = { };

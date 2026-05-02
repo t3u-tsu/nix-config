@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.utils;
-in {
+in
+{
   options.my.home.desktop.utils = {
     enable = mkEnableOption "Desktop utility tools";
   };

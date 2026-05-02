@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [
@@ -13,7 +19,7 @@
   config = lib.mkIf config.my.services.minecraft.enable {
     services.minecraft-servers = {
       enable = true;
-      eula = true; # 同意
+      eula = true;
     };
 
   };

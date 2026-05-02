@@ -1,10 +1,17 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.media;
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-in {
+in
+{
   options.my.home.desktop.media = {
     enable = mkEnableOption "Media players and entertainment tools";
   };

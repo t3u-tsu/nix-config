@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.creative;
-in {
+in
+{
   options.my.home.desktop.creative = {
     enable = mkEnableOption "Creative tools";
   };

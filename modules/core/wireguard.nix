@@ -6,19 +6,22 @@ let
   escape = s: lib.replaceStrings [ "+" "/" "=" ] [ "\\x2b" "-" "\\x3d" ] s;
 
   # networking.wireguard.interfaces からすべてのピアサービスを抽出して設定を生成
-  peerServices = lib.foldl' (acc: ifaceName:
+  peerServices = lib.foldl' (
+    acc: ifaceName:
     let
       iface = config.networking.wireguard.interfaces.${ifaceName};
-      services = lib.listToAttrs (map (peer: {
-        name = "wireguard-${ifaceName}-peer-${escape peer.publicKey}";
-        value = {
-          serviceConfig = {
-            Restart = "on-failure";
-            RestartSec = "5s";
+      services = lib.listToAttrs (
+        map (peer: {
+          name = "wireguard-${ifaceName}-peer-${escape peer.publicKey}";
+          value = {
+            serviceConfig = {
+              Restart = "on-failure";
+              RestartSec = "5s";
+            };
+            unitConfig.StartLimitIntervalSec = 0;
           };
-          unitConfig.StartLimitIntervalSec = 0;
-        };
-      }) iface.peers);
+        }) iface.peers
+      );
     in
     acc // services
   ) { } (builtins.attrNames config.networking.wireguard.interfaces);

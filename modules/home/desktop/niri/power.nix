@@ -1,9 +1,15 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.niri;
-in {
+in
+{
   config = mkIf cfg.enable {
     services.hypridle = {
       enable = true;

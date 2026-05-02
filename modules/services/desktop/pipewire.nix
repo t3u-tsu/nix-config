@@ -3,7 +3,8 @@
 with lib;
 let
   cfg = config.my.services.desktop.pipewire;
-in {
+in
+{
   options.my.services.desktop.pipewire = {
     enable = mkEnableOption "PipeWire audio base";
   };

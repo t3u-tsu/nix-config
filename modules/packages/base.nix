@@ -1,9 +1,15 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.packages.core;
-in {
+in
+{
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       curl
@@ -14,7 +20,7 @@ in {
       wget
       which
     ];
-    
+
     # Zsh configuration via NixOS (System-wide)
     programs.zsh.enable = true;
     users.defaultUserShell = pkgs.zsh;

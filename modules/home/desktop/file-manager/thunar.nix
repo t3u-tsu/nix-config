@@ -1,9 +1,14 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # Thunar configuration (Home-manager side)
   # System-wide services are needed for full functionality (gvfs, tumbler, xfconf)
-  
+
   home.packages = with pkgs; [
     xfce.thunar
     xfce.thunar-archive-plugin

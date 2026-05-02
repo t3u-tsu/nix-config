@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.neovim;
-in {
+in
+{
   options.my.home.desktop.dev-tools.neovim = {
     enable = mkEnableOption "Neovim text editor";
   };
@@ -13,7 +19,7 @@ in {
       enable = true;
       viAlias = true;
       vimAlias = true;
-      
+
       extraConfig = ''
         lua << EOF
         local colors_file = os.getenv("HOME") .. "/.cache/noctalia/neovim-colors.lua"

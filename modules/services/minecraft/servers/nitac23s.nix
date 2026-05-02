@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
@@ -6,7 +11,7 @@ let
   # 自動生成されたプラグイン情報を読み込む
   plugins = pkgs.callPackage ../plugins/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
-  
+
   # server.properties のベース設定 (パスワード抜き)
   serverProperties = {
     server-port = 25567;
@@ -22,8 +27,10 @@ let
     enable-rcon = true;
     "rcon.port" = 25575;
   };
-  
-  staticProps = lib.generators.toKeyValue { mkKeyValue = lib.generators.mkKeyValueDefault { } "="; } serverProperties;
+
+  staticProps = lib.generators.toKeyValue {
+    mkKeyValue = lib.generators.mkKeyValueDefault { } "=";
+  } serverProperties;
 in
 {
   config = mkIf cfg.enable {
@@ -34,7 +41,7 @@ in
       jvmOpts = "-Xms4G -Xmx8G";
 
       # We manage server.properties manually in preStart
-      serverProperties = {};
+      serverProperties = { };
 
       symlinks = {
         "plugins/ViaVersion.jar" = plugins.viaversion.src;
@@ -54,35 +61,35 @@ in
       environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
 
       preStart = lib.mkAfter ''
-        # 1. RCON Password 取得
-        RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
+              # 1. RCON Password 取得
+              RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
 
-        # 2. server.properties を新規作成 (上書き)
-        # 既存のリンクがある場合は削除
-        if [ -L server.properties ]; then rm server.properties; fi
-        
-        cat <<EOF > server.properties
-  ${staticProps}
-  rcon.password=$RCON_PASS
-  EOF
-        chown minecraft:minecraft server.properties
-        chmod 600 server.properties
+              # 2. server.properties を新規作成 (上書き)
+              # 既存のリンクがある場合は削除
+              if [ -L server.properties ]; then rm server.properties; fi
+              
+              cat <<EOF > server.properties
+        ${staticProps}
+        rcon.password=$RCON_PASS
+        EOF
+              chown minecraft:minecraft server.properties
+              chmod 600 server.properties
 
-        # 3. paper-global.yml の生成
-        mkdir -p config
-        SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
-        if [ -L "config/paper-global.yml" ]; then rm "config/paper-global.yml"; fi
-        
-        cat <<EOF > config/paper-global.yml
-  config-version: 31
-  proxies:
-    velocity:
-      enabled: true
-      online-mode: true
-      secret: $SECRET
-  EOF
-        chown minecraft:minecraft config/paper-global.yml
-        chmod 600 config/paper-global.yml
+              # 3. paper-global.yml の生成
+              mkdir -p config
+              SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
+              if [ -L "config/paper-global.yml" ]; then rm "config/paper-global.yml"; fi
+              
+              cat <<EOF > config/paper-global.yml
+        config-version: 31
+        proxies:
+          velocity:
+            enabled: true
+            online-mode: true
+            secret: $SECRET
+        EOF
+              chown minecraft:minecraft config/paper-global.yml
+              chmod 600 config/paper-global.yml
       '';
     };
   };

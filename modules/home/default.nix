@@ -3,7 +3,7 @@
 {
   home-manager.users.${config.my.user.name} = {
     home.stateVersion = config.system.stateVersion;
-    
+
     imports = [
       ./shell.nix
       ./starship.nix

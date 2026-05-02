@@ -1,9 +1,15 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.packages.network-tools;
-in {
+in
+{
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       bandwhich
@@ -17,6 +23,7 @@ in {
       tcpdump
       wget
       xh
+      iftop
     ];
   };
 }

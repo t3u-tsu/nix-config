@@ -1,9 +1,13 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.services.minecraft;
-  # Domain to server mapping
   serverMapping = {
     "mc.t3u.uk" = "lobby";
     "nitac23s.mc.t3u.uk" = "nitac23s";
@@ -15,11 +19,8 @@ in
       enable = true;
       package = pkgs.velocity-server;
 
-      # Velocity は JVM 上で動くため、メモリ設定など
       jvmOpts = "-Xms512M -Xmx512M";
 
-      # Velocity の設定ファイル (velocity.toml) の内容を宣言的に記述
-      # nix-minecraft は files 属性で設定ファイルを配置できる
       files = {
         "velocity.toml".value = {
           config-version = "2.7";
@@ -41,8 +42,6 @@ in
         };
       };
 
-      # 秘密鍵 (forwarding.secret) を symlink する設定
-      # 実際には sops などで管理するか、初回起動時に生成させる
       symlinks = {
         "forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
       };

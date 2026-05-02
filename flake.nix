@@ -62,7 +62,17 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, disko, sops-nix, nix-minecraft, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      disko,
+      sops-nix,
+      nix-minecraft,
+      ...
+    }@inputs:
     let
       # Overlays for cross-compilation, Minecraft, and Unstable packages
       overlays = [
@@ -75,7 +85,7 @@
             inherit (prev.stdenv.hostPlatform) system;
             config.allowUnfree = true;
           };
-          
+
           ubootOrangePiZero3 = prev.buildUBoot {
             version = "2024.01";
             defconfig = "orangepi_zero3_defconfig";
@@ -92,7 +102,15 @@
         })
       ];
       lib = import ./lib {
-        inherit nixpkgs inputs home-manager disko sops-nix nix-minecraft overlays;
+        inherit
+          nixpkgs
+          inputs
+          home-manager
+          disko
+          sops-nix
+          nix-minecraft
+          overlays
+          ;
       };
     in
     {
@@ -107,9 +125,12 @@
           extraModules = [
             ./hosts/torii-chan/sd-image-installer.nix
             # Add U-Boot package via Overlays if necessary
-            ({ config, pkgs, ... }: {
-               nixpkgs.overlays = overlays;
-            })
+            (
+              { config, pkgs, ... }:
+              {
+                nixpkgs.overlays = overlays;
+              }
+            )
           ];
         };
 
@@ -119,8 +140,8 @@
           username = "t3u";
           system = "aarch64-linux";
           extraModules = [
-             ./hosts/torii-chan/fs-hdd.nix
-             ./hosts/torii-chan/production-security.nix
+            ./hosts/torii-chan/fs-hdd.nix
+            ./hosts/torii-chan/production-security.nix
           ];
         };
 
@@ -130,8 +151,8 @@
           username = "t3u";
           system = "aarch64-linux";
           extraModules = [
-             ./hosts/torii-chan/fs-sd.nix
-             ./hosts/torii-chan/production-security.nix
+            ./hosts/torii-chan/fs-sd.nix
+            ./hosts/torii-chan/production-security.nix
           ];
         };
 

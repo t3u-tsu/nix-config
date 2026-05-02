@@ -59,7 +59,7 @@
         source = "${config.home.homeDirectory}/.config/noctalia/templates/colors.css.template";
         target = "${config.home.homeDirectory}/.cache/noctalia/colors.css";
       };
-      
+
       "discord-theme" = {
         source = "${config.home.homeDirectory}/.config/noctalia/templates/discord.css.template";
         target = "${config.home.homeDirectory}/.config/vesktop/themes/noctalia.css";

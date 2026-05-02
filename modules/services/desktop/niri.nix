@@ -1,12 +1,19 @@
-{ pkgs, inputs, config, lib, ... }:
+{
+  pkgs,
+  inputs,
+  config,
+  lib,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.services.desktop.niri;
-in {
+in
+{
   # Import the niri-flake NixOS module at the top level
-  imports = [ 
-    inputs.niri.nixosModules.niri 
+  imports = [
+    inputs.niri.nixosModules.niri
   ];
 
   options.my.services.desktop.niri = {
@@ -23,11 +30,14 @@ in {
     xdg.portal = {
       enable = true;
       # Use the portals recommended for Niri
-      extraPortals = with pkgs; [ 
+      extraPortals = with pkgs; [
         xdg-desktop-portal-gnome
         xdg-desktop-portal-gtk
       ];
-      config.common.default = [ "gnome" "gtk" ];
+      config.common.default = [
+        "gnome"
+        "gtk"
+      ];
       # xdg-desktop-portal-gnome is the primary portal for Niri
       # as it provides the settings daemon needed for many apps.
     };
@@ -39,7 +49,7 @@ in {
     services.gvfs.enable = true; # Required for file manager features (Trash, Mounts)
     services.tumbler.enable = true; # Required for file manager thumbnails
     programs.xfconf.enable = true; # Required for Thunar settings persistence
-    
+
     # Enable brightness and volume control via dbus/logind for non-root access
     security.polkit.enable = true;
   };

@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.vscode;
-in {
+in
+{
   options.my.home.desktop.dev-tools.vscode = {
     enable = mkEnableOption "Visual Studio Code editor";
   };

@@ -4,7 +4,8 @@ with lib;
 
 let
   cfg = config.my.packages;
-in {
+in
+{
   options.my.packages = {
     core.enable = mkOption {
       type = types.bool;

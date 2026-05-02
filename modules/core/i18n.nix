@@ -3,9 +3,12 @@
 with lib;
 let
   cfg = config.my.core.i18n;
-in {
+in
+{
   options.my.core.i18n = {
-    enable = mkEnableOption "System-wide i18n and locale settings" // { default = true; };
+    enable = mkEnableOption "System-wide i18n and locale settings" // {
+      default = true;
+    };
     defaultLocale = mkOption {
       type = types.str;
       default = "ja_JP.UTF-8";
@@ -13,7 +16,10 @@ in {
     };
     supportedLocales = mkOption {
       type = types.listOf types.str;
-      default = [ "ja_JP.UTF-8/UTF-8" "en_US.UTF-8/UTF-8" ];
+      default = [
+        "ja_JP.UTF-8/UTF-8"
+        "en_US.UTF-8/UTF-8"
+      ];
       description = "List of locales to generate";
     };
     consoleKeyMap = mkOption {

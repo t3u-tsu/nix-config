@@ -1,10 +1,22 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
-    trusted-users = [ "root" "@wheel" config.my.user.name ];
-    
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+    trusted-users = [
+      "root"
+      "@wheel"
+      config.my.user.name
+    ];
+
     extra-substituters = [
       "https://nix-community.cachix.org"
       "https://hyprland.cachix.org"

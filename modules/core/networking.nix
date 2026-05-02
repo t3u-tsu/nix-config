@@ -4,7 +4,8 @@ with lib;
 
 let
   cfg = config.my.localNetwork;
-in {
+in
+{
   options.my.localNetwork = {
     enable = mkEnableOption "Enable local network optimizations (e.g. DNS overrides for NAT loopback)";
 

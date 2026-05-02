@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools;
-in {
+in
+{
   options.my.home.desktop.dev-tools.wezterm = {
     enable = mkEnableOption "WezTerm terminal emulator";
   };
@@ -19,7 +25,7 @@ in {
         -- Font settings
         config.font = wezterm.font("Noto Sans Mono CJK JP")
         config.font_size = 12.0
-        
+
         -- Window settings
         config.enable_wayland = true
         config.hide_tab_bar_if_only_one_tab = true

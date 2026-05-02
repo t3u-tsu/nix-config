@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.git-tools;
-in {
+in
+{
   options.my.home.desktop.dev-tools.git-tools = {
     enable = mkEnableOption "Modern Git and GitHub CLI tools";
   };

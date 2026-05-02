@@ -1,4 +1,8 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 
 {
   programs.zsh = {
@@ -12,7 +16,12 @@
     };
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "sudo" "docker" "direnv" ];
+      plugins = [
+        "git"
+        "sudo"
+        "docker"
+        "direnv"
+      ];
       theme = ""; # Starship handles the prompt
     };
   };

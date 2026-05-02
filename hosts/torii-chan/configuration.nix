@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 let
   username = "t3u";
@@ -18,9 +24,6 @@ in
     filter-syscalls = false;
   };
 
-
-
-
   boot.loader.generic-extlinux-compatible.enable = true;
   boot.loader.grub.enable = false;
 
@@ -30,15 +33,20 @@ in
 
   networking.interfaces.end0 = {
     useDHCP = false;
-    ipv4.addresses = [{
-      address = "192.168.0.128";
-      prefixLength = 24;
-    }];
+    ipv4.addresses = [
+      {
+        address = "192.168.0.128";
+        prefixLength = 24;
+      }
+    ];
     macAddress = "36:43:64:11:45:14";
   };
 
   networking.defaultGateway = "192.168.0.1";
-  networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
+  networking.nameservers = [
+    "1.1.1.1"
+    "8.8.8.8"
+  ];
 
   users.mutableUsers = false;
 
@@ -81,10 +89,12 @@ in
   system.stateVersion = "25.05";
 
   # Swap configuration for stable builds on low-RAM device
-  swapDevices = [ {
-    device = "/var/lib/swapfile";
-    size = 4096; # 4GB
-  } ];
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 4096; # 4GB
+    }
+  ];
 
   boot.kernel.sysctl = {
     "vm.swappiness" = 10; # Use swap only when necessary to protect storage

@@ -1,9 +1,15 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.services.deployment.comin;
-in {
+in
+{
   options.my.services.deployment.comin = {
     enable = mkEnableOption "comin deployment service";
     repo = mkOption {

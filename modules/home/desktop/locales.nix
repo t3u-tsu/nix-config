@@ -1,13 +1,22 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.locales;
-in {
+in
+{
   options.my.home.desktop.locales = {
     enable = mkEnableOption "User-specific locale and input method settings";
     inputMethod = mkOption {
-      type = types.enum [ "fcitx5" "none" ];
+      type = types.enum [
+        "fcitx5"
+        "none"
+      ];
       default = "fcitx5";
       description = "User-specific input method";
     };
@@ -42,7 +51,9 @@ in {
           kdePackages.fcitx5-configtool
         ];
         settings.inputMethod = {
-          GroupOrder = { "0" = "Default"; };
+          GroupOrder = {
+            "0" = "Default";
+          };
           "Groups/0" = {
             Name = "Default";
             "Default Layout" = cfg.keyboardLayout;

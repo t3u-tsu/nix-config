@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.services.monitoring;
-in {
+in
+{
   options.my.services.monitoring = {
     enable = mkEnableOption "Enable Prometheus Node Exporter agent";
     isServer = mkEnableOption "Enable central Prometheus and Grafana dashboard server";
@@ -18,7 +24,7 @@ in {
         port = 9100;
         enabledCollectors = [ "systemd" ];
       };
-      
+
       # Open firewall port for local network scraping only on WireGuard
       networking.firewall.interfaces.wg0.allowedTCPPorts = [ 9100 ];
     })
@@ -27,7 +33,10 @@ in {
     # Deployed ONLY on the designated monitoring hub (e.g., torii-chan)
     (mkIf (cfg.enable && cfg.isServer) {
       # Restricted access via WireGuard Management Interface
-      networking.firewall.interfaces.wg0.allowedTCPPorts = [ 3000 9090 ];
+      networking.firewall.interfaces.wg0.allowedTCPPorts = [
+        3000
+        9090
+      ];
 
       sops.secrets.grafana_admin_password = {
         owner = "grafana";
@@ -39,16 +48,18 @@ in {
         scrapeConfigs = [
           {
             job_name = "nixos_fleet";
-            static_configs = [{
-              # Fleet-wide targets via WireGuard Management Network
-              targets = [ 
-                "10.0.0.1:9100"   # torii-chan
-                "10.0.0.2:9100"   # sando-kun
-                "10.0.0.3:9100"   # kagutsuchi-sama
-                "10.0.0.4:9100"   # shosoin-tan
-                "10.0.0.100:9100" # BrokenPC (Management)
-              ]; 
-            }];
+            static_configs = [
+              {
+                # Fleet-wide targets via WireGuard Management Network
+                targets = [
+                  "10.0.0.1:9100" # torii-chan
+                  "10.0.0.2:9100" # sando-kun
+                  "10.0.0.3:9100" # kagutsuchi-sama
+                  "10.0.0.4:9100" # shosoin-tan
+                  "10.0.0.100:9100" # BrokenPC (Management)
+                ];
+              }
+            ];
           }
         ];
       };

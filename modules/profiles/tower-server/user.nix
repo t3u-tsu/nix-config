@@ -9,7 +9,11 @@ in
 
   users.users.${username} = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "video" "render" ];
+    extraGroups = [
+      "wheel"
+      "video"
+      "render"
+    ];
     hashedPasswordFile = config.sops.secrets."${hostKey}_t3u_password_hash".path;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"

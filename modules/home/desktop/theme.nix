@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 let
   cfg = config.my.home.desktop.theme;
-in {
+in
+{
   options.my.home.desktop.theme = {
     enable = mkEnableOption "System-wide Dracula Theme and Desktop Appearance";
   };
@@ -38,7 +44,7 @@ in {
     # Qt Appearance Integration via Kvantum (Superior for Dracula/Noctalia)
     qt = {
       enable = true;
-      platformTheme.name = "kvantum"; 
+      platformTheme.name = "kvantum";
       style.name = "kvantum";
     };
 
