@@ -2,9 +2,9 @@
 
 このリポジトリは、NixOSのマルチホスト構成を Flakes と **Modular Architecture** を用いて管理しています。
 
-## 📂 ディレクトリ構造
+## ディレクトリ構造
 
-リポジトリは「仕組み（Modules）」と「実体（Hosts）」に分かれています。
+リポジトリはModulesとHostsに分かれています。
 
 ```text
 .
@@ -18,11 +18,11 @@
     └── profiles/       # 役割ごとのプロファイル (Desktop, Tower Server)
 ```
 
-## 🚀 デプロイと反映
+## デプロイ
 
 `main` ブランチに Push された変更は、**comin** によって5分おきに全ホストへ自動的に Pull され、反映されます。手動のトリガーや中央サーバーへの通知は不要です。
 
-## 🛠️ 主な機能
+## 主な機能
 
 - **Modular Architecture**: システム層 (NixOS) とユーザー層 (Home-manager) を明確に分離。
 - **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep 等を全ホストで標準化。
@@ -32,9 +32,9 @@
 - **sops-nix**: `age` を用いた機密情報の暗号化管理。
 - **Automated Backup**: Restic による自動バックアップ (shosoin-tan)。
 
-詳細は [GEMINI.md](GEMINI.md) または各モジュールの `README.md` を参照してください。
+詳細は各モジュールの `README.md` を参照してください。
 
-## 📚 参考文献 (References)
+## 参考文献 (References)
 
 本構成の構築にあたり、多くの知見を以下のリポジトリから参考にさせていただきました：
 

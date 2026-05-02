@@ -2,9 +2,9 @@
 
 This repository manages multiple NixOS configurations using Flakes and a **Modular Architecture**.
 
-## 📂 Directory Structure
+## Directory Structure
 
-The repository is divided into "Mechanisms (Modules)" and "Entities (Hosts)".
+The repository is divided into Modules and Hosts.
 
 ```text
 .
@@ -19,11 +19,11 @@ The repository is divided into "Mechanisms (Modules)" and "Entities (Hosts)".
     └── profiles/       # Role-based profiles (Desktop, Tower Server)
 ```
 
-## 🚀 Deployment and Updates
+## Deployment and Updates
 
 Changes pushed to the `main` branch are automatically pulled and applied across all hosts via **comin** every 5 minutes. No manual trigger or central server is required.
 
-## 🛠️ Key Features
+## Key Features
 
 - **Modular Architecture**: Clear separation between system (NixOS) and user (Home-manager) layers.
 - **Unified Hardware Abstraction**: NVIDIA driver settings are centralized and architecture-aware (x86_64/AArch64).
@@ -34,9 +34,9 @@ Changes pushed to the `main` branch are automatically pulled and applied across 
 - **sops-nix**: Secret encryption via `age`.
 - **Automated Backup**: Restic backups managed on shosoin-tan.
 
-For more details, see [GEMINI.md](GEMINI.md) or specific `README.md` files in subdirectories.
+For more details, see specific `README.md` files in subdirectories.
 
-## 📚 References
+## References
 
 This configuration was built with inspiration and knowledge from the following amazing repositories:
 
