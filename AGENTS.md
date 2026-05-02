@@ -42,6 +42,7 @@
 
 ## 📋 最近の活動記録 (Activity Summary)
 
+- **2026-05-02 (Hardware Fixes)**: BrokenPC (Ryzen 6800H + RTX 3050 Ti) の音声乱れ、タッチパッド反応消失、NVIDIA GPUクラッシュ問題に対し、カーネルパラメータ (`iommu=pt`, `amd_iommu=on`) を追加。NVIDIA設定モジュールをリファクタリングし、PRIME Offload を無効化して Sync モードへと変更。
 - **2026-03-29 (SOPS & CI Fix)**: SOPSの復号問題解消に加え、`git.nix` のビルド警告解消、および GitHub Actions (`auto-update.yml`) の 403 権限エラーを修正。SSH 鍵の age 統合とユーザ用エイリアスも導入済み。
 - **2026-03-28 (Phase 9 CI/CD integration)**: 旧 `update-hub` を完全に廃止し、`GitHub Actions` による自動更新 (`nvfetcher`) と `comin` による自動デプロイを統合。タワーサーバーの記述ミスを修正し、監視基盤との整合性を確保。
 - **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、`production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。およびプロジェクト全体を通した英語・日本語ドキュメントの全面同期（WezTerm移行の反映など）。
@@ -57,6 +58,7 @@
 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
 ### 各セッションの詳細ログ（抜粋）
+- [2026-05-02: BrokenPC IOMMU・NVIDIA設定の最適化](./.agents/work-logs/2026-05-02-brokenpc-iommu-nvidia.md)
 - [2026-03-29: SOPS 権限・復号問題の解決](./.agents/work-logs/2026-03-29-sops-decryption-fix.md)
 - [2026-03-28: CI/CD 統合 & 監視基盤最適化 Phase 9](./.agents/work-logs/2026-03-28-ci-cd-optimization.md)
 - [2026-03-28: torii-chan デプロイ障害とファイアウォール競合の解決](./.agents/work-logs/2026-03-28-torii-chan-deployment-fixes.md)

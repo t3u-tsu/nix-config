@@ -29,6 +29,10 @@
   ];
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-amd" ];
+  boot.kernelParams = [
+    "amd_iommu=on"
+    "iommu=pt"
+  ];
   boot.extraModulePackages = [ ];
 
   # Firmware management (Crucial for Wi-Fi, BT, and GPU)
@@ -46,6 +50,8 @@
     enable = true;
     prime = {
       enable = true;
+      offload.enable = false;
+      sync.enable = true;
       nvidiaBusId = "PCI:1:0:0";
       amdgpuBusId = "PCI:7:0:0";
     };

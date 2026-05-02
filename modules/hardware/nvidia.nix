@@ -12,6 +12,12 @@ in {
     };
     prime = {
       enable = mkEnableOption "NVIDIA PRIME support (Hybrid graphics)";
+      offload = {
+        enable = mkOption { type = types.bool; default = true; description = "Enable PRIME offload mode"; };
+      };
+      sync = {
+        enable = mkOption { type = types.bool; default = false; description = "Enable PRIME sync mode"; };
+      };
       nvidiaBusId = mkOption { type = types.str; default = ""; };
       amdgpuBusId = mkOption { type = types.str; default = ""; };
       intelBusId = mkOption { type = types.str; default = ""; };
@@ -49,8 +55,11 @@ in {
 
       prime = mkIf cfg.prime.enable {
         offload = {
-          enable = true;
-          enableOffloadCmd = true;
+          enable = cfg.prime.offload.enable;
+          enableOffloadCmd = cfg.prime.offload.enable;
+        };
+        sync = {
+          enable = cfg.prime.sync.enable;
         };
         nvidiaBusId = cfg.prime.nvidiaBusId;
         amdgpuBusId = cfg.prime.amdgpuBusId;
