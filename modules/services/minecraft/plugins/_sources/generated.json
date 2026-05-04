@@ -38,11 +38,11 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-vgIAWVSoOIWbMsq5xYe0PSw3L7rudTxGHWPe3e5iH5Q=",
+            "sha256": "sha256-Z2vaA9jX4lL4tw/9DiiCUuMXsBUZA1HEuauKuN44jWg=",
             "type": "url",
-            "url": "https://github.com/ViaVersion/ViaBackwards/releases/download/5.9.0/ViaBackwards-5.9.0.jar"
+            "url": "https://github.com/ViaVersion/ViaBackwards/releases/download/5.9.1/ViaBackwards-5.9.1.jar"
         },
-        "version": "5.9.0"
+        "version": "5.9.1"
     },
     "viaversion": {
         "cargoLock": null,
@@ -53,10 +53,10 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-MidRdoskjwx7tc7mOl5FovE/GNDtYnS5PNOvmXRMeok=",
+            "sha256": "sha256-EqqD5grwnoP9vV9VGUDfS13LnEgcuS95vYKGGkwztd8=",
             "type": "url",
-            "url": "https://github.com/ViaVersion/ViaVersion/releases/download/5.9.0/ViaVersion-5.9.0.jar"
+            "url": "https://github.com/ViaVersion/ViaVersion/releases/download/5.9.1/ViaVersion-5.9.1.jar"
         },
-        "version": "5.9.0"
+        "version": "5.9.1"
     }
 }
