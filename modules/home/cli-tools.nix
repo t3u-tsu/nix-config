@@ -34,7 +34,6 @@
     ll = "eza -l";
     la = "eza -a";
     tree = "eza --tree";
-    grep = "rg";
     sops = "SOPS_AGE_KEY=\$(ssh-to-age -private-key -i ~/.ssh/id_ed25519) sops";
   };
 }
