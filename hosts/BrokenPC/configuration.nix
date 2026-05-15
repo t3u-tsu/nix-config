@@ -102,6 +102,11 @@
   # Local network tools
   my.hardware.pc-tools.enable = true;
 
+  # Audio power saving fixes for AMD/NVIDIA
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel power_save=0 power_save_controller=N
+  '';
+
   # Gaming services
   my.services.desktop.gaming.enable = true;
 
