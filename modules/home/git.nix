@@ -24,28 +24,17 @@
     enable = true;
   };
 
-  # GPG Agent for passphrase management
-  services.gpg-agent = {
-    enable = true;
-    pinentry.package = pkgs.pinentry-qt;
-    enableZshIntegration = true;
-  };
-
-  programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
-    options = {
-      navigate = true;
-      light = false;
-      line-numbers = true;
-    };
+  # SOPS secret for GPG private key
+  # This will only be decrypted if the user has the required age key
+  sops.secrets.gpg_private_key = {
+    sopsFile = ../../secrets/services/signing.yaml;
   };
 
   # Automatically import the GPG private key from SOPS if available
-  # Note: The secret should be placed at /run/secrets/gpg_private_key by SOPS
   home.activation.importGpgKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -f /run/secrets/gpg_private_key ]; then
-      $DRY_RUN_CMD ${pkgs.gnupg}/bin/gpg --batch --import /run/secrets/gpg_private_key || true
+    GPG_KEY_PATH="${config.sops.secrets.gpg_private_key.path}"
+    if [ -f "$GPG_KEY_PATH" ]; then
+      $DRY_RUN_CMD ${pkgs.gnupg}/bin/gpg --batch --import "$GPG_KEY_PATH" || true
     fi
   '';
 }

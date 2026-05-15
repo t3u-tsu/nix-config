@@ -39,6 +39,5 @@ with lib;
       gaming.enable = true;
     };
 
-    my.services.monitoring.enable = true;
   };
 }

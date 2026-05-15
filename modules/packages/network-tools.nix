@@ -24,6 +24,7 @@ in
       wget
       xh
       iftop
+      fast-cli
     ];
   };
 }

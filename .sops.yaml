@@ -1,9 +1,59 @@
 keys:
-  - &shared_key age1rcwjh7jwm48qjv0rg6q2wza3a5sn4u4fgvxawjlj5jl4vylla4vq6d4adu
+  # Master key (Keep the private key offline/in password manager)
+  - &master_key age1_MASTER_KEY_PLACEHOLDER
+  # User key (Your daily machine)
   - &user_t3u  age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy
+
+  # Host keys (Public keys converted from SSH host keys via ssh-to-age)
+  # Update these with: ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
+  - &torii_chan      age1_TORII_CHAN_PLACEHOLDER
+  - &shosoin_tan     age1_SHOSOIN_TAN_PLACEHOLDER
+  - &kagutsuchi_sama age1_KAGUTSUCHI_SAMA_PLACEHOLDER
+  - &sando_kun       age1_SANDO_KUN_PLACEHOLDER
+  - &brokenpc        age1_BROKENPC_PLACEHOLDER
+
 creation_rules:
-  - path_regex: secrets/secrets.yaml$
+  # 1. Host-specific secrets: [Master, Target Host]
+  # (User key is EXCLUDED for maximum security)
+  - path_regex: secrets/hosts/torii-chan\.yaml$
     key_groups:
-    - age:
-      - *shared_key
-      - *user_t3u
+      - age: [*master_key, *torii_chan]
+  - path_regex: secrets/hosts/shosoin-tan\.yaml$
+    key_groups:
+      - age: [*master_key, *shosoin_tan]
+  - path_regex: secrets/hosts/kagutsuchi-sama\.yaml$
+    key_groups:
+      - age: [*master_key, *kagutsuchi_sama]
+  - path_regex: secrets/hosts/sando-kun\.yaml$
+    key_groups:
+      - age: [*master_key, *sando_kun]
+  - path_regex: secrets/hosts/BrokenPC\.yaml$
+    key_groups:
+      - age: [*master_key, *brokenpc]
+
+  # 2. Service-specific secrets: [Master, User, Relevant Hosts]
+  - path_regex: secrets/services/minecraft\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u, *shosoin_tan]
+  - path_regex: secrets/services/backup\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u, *shosoin_tan]
+  - path_regex: secrets/services/wireguard\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc]
+  - path_regex: secrets/services/ddns\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u, *torii_chan]
+  - path_regex: secrets/services/signing\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u] # For GPG signing, only user needs it
+
+  # 3. Common secrets: [Master, User, All Hosts]
+  - path_regex: secrets/common\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc]
+
+  # Legacy rule for transition
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - age: [age1rcwjh7jwm48qjv0rg6q2wza3a5sn4u4fgvxawjlj5jl4vylla4vq6d4adu, *user_t3u]

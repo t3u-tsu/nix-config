@@ -23,6 +23,7 @@
           home-manager.sharedModules = [
             inputs.nix-index-database.homeModules.nix-index
             inputs.zen-browser.homeModules.default
+            sops-nix.homeManagerModules.sops
           ];
           nixpkgs.overlays = overlays;
         }
