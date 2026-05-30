@@ -20,8 +20,6 @@
   my.hardware.pc-tools.enable = true;
   my.services.minecraft.enable = true;
 
-  # GT 210 / GT 710 configuration
-
   sops.secrets.minecraft_forwarding_secret = {
     owner = "minecraft";
     group = "minecraft";
@@ -64,6 +62,6 @@
 
   # comin deployment service
   my.services.deployment.comin.enable = true;
-
-  system.stateVersion = "25.05";
+  
+  system.stateVersion = "26.05";
 }

@@ -6,8 +6,4 @@
     ./ssh.nix
     ./user.nix
   ];
-
-  config = {
-    my.services.monitoring.enable = lib.mkDefault true;
-  };
 }

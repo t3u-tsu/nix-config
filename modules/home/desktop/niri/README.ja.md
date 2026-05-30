@@ -11,7 +11,7 @@
 
 ## ⌨️ 主要キーバインド
 
-- `Mod + Return`: ターミナル (Alacritty)
+- `Mod + Return`: ターミナル
 - `Mod + Shift + B`: ブラウザ (Zen Browser)
 - `Mod + Space`: ランチャー (Noctalia)
 - `Mod + W`: ウィンドウを閉じる

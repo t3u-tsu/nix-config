@@ -26,7 +26,6 @@ in
         lsof
         pciutils
         procs
-        bottom
         usbutils
       ]
       ++ lib.optionals hwCfg.enable [
