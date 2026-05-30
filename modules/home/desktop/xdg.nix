@@ -66,15 +66,5 @@ in
         in
         mimeMap;
     };
-
-    # Default Terminal Environment Variable
-    home.sessionVariables.TERMINAL = "alacritty";
-
-    # KDE Default Terminal Configuration (Fallback)
-    home.file.".config/kdeglobals".text = ''
-      [General]
-      TerminalApplication=alacritty
-      TerminalService=Alacritty.desktop
-    '';
   };
 }
