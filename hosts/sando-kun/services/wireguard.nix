@@ -2,10 +2,20 @@
 
 {
   # WireGuard Client Configuration for sando-kun
-  
+
   # Allow application traffic on wg1
-  networking.firewall.interfaces.wg1.allowedTCPPortRanges = [ { from = 0; to = 65535; } ];
-  networking.firewall.interfaces.wg1.allowedUDPPortRanges = [ { from = 0; to = 65535; } ];
+  networking.firewall.interfaces.wg1.allowedTCPPortRanges = [
+    {
+      from = 0;
+      to = 65535;
+    }
+  ];
+  networking.firewall.interfaces.wg1.allowedUDPPortRanges = [
+    {
+      from = 0;
+      to = 65535;
+    }
+  ];
 
   sops.secrets.sando_kun_wireguard_private_key = {
     owner = "root";

@@ -2,10 +2,20 @@
 
 {
   # WireGuard Client Configuration for kagutsuchi-sama
-  
+
   # Allow application traffic on wg1
-  networking.firewall.interfaces.wg1.allowedTCPPortRanges = [ { from = 0; to = 65535; } ];
-  networking.firewall.interfaces.wg1.allowedUDPPortRanges = [ { from = 0; to = 65535; } ];
+  networking.firewall.interfaces.wg1.allowedTCPPortRanges = [
+    {
+      from = 0;
+      to = 65535;
+    }
+  ];
+  networking.firewall.interfaces.wg1.allowedUDPPortRanges = [
+    {
+      from = 0;
+      to = 65535;
+    }
+  ];
 
   sops.secrets.kagutsuchi_sama_wireguard_private_key = {
     owner = "root";

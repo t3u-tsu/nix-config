@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # Cloudflare Dynamic DNS (Go implementation: favonia/cloudflare-ddns)
@@ -18,7 +23,7 @@
     enable = true;
     # Path to the file containing CLOUDFLARE_API_TOKEN=...
     credentialsFile = config.sops.secrets.cloudflare_api_env.path;
-    
+
     # Increase timeout for more reliability on slow networks or DNS
     detectionTimeout = "15s";
 

@@ -17,7 +17,7 @@ in
       nix-index
       nix-output-monitor
       nix-tree
-      nixfmt-rfc-style
+      nixfmt
     ];
   };
 }

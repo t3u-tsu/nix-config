@@ -113,6 +113,6 @@
 
   # comin deployment service
   my.services.deployment.comin.enable = true;
-  
+
   system.stateVersion = "26.05";
 }

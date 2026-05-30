@@ -1,10 +1,18 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # WireGuard Server Configuration
-  
+
   # 1. Open Firewall for WireGuard endpoints
-  networking.firewall.allowedUDPPorts = [ 51820 51821 ];
+  networking.firewall.allowedUDPPorts = [
+    51820
+    51821
+  ];
 
   # 2. Manage Private Keys via SOPS
   sops.secrets.torii_chan_wireguard_private_key = {
@@ -27,7 +35,10 @@
   networking.nat = {
     enable = true;
     externalInterface = "end0"; # WAN interface
-    internalInterfaces = [ "wg0" "wg1" ];
+    internalInterfaces = [
+      "wg0"
+      "wg1"
+    ];
     forwardPorts = [
       {
         proto = "tcp";
@@ -51,7 +62,7 @@
 
       # The port that WireGuard listens to.
       listenPort = 51820;
-      
+
       # Optimized MTU for stability over Rakuten Mobile (MTU 1340) with margin
       mtu = 1300;
 
