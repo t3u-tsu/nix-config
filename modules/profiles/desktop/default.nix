@@ -20,6 +20,7 @@ with lib;
         communication.enable = true;
         dev-tools.enable = true;
         gaming.enable = true;
+        gpg-signing.enable = true;
         media.enable = true;
         utils.enable = true;
         creative.enable = true;
