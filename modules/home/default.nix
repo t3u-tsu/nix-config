@@ -19,6 +19,8 @@
 
     # SOPS configuration for Home-manager
     sops = {
+      # 宣言的に ~/.config/sops/age/keys.txt に age 秘密鍵を自動生成・配置
+      age.keyFile = "/home/${config.my.user.name}/.config/sops/age/keys.txt";
       age.sshKeyPaths = [ "/home/${config.my.user.name}/.ssh/id_ed25519" ];
       age.generateKey = false;
     };
