@@ -29,6 +29,9 @@ in
       age.generateKey = false;
     };
 
+    # Ghostty terminfo を日常用ホームディレクトリに配置し、SSH 接続時の端末定義エラーを解消
+    home.file.".terminfo/x/xterm-ghostty".source = "${pkgs.ghostty.terminfo}/share/terminfo/x/xterm-ghostty";
+
     # アクティベーション時に日常用 SSH 鍵から age 秘密鍵を安全に変換・出力する設定
     home.activation.generateAgeKey = config.lib.dag.entryBetween [ "writeBoundary" ] [ "setupSecrets" ] ''
       if [ ! -f "/home/${username}/.config/sops/age/keys.txt" ]; then
