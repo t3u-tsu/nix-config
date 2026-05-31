@@ -15,6 +15,7 @@ in
       curl
       file
       git
+      ghostty.terminfo
       tmux
       vim
       wget
