@@ -16,13 +16,11 @@
 
   # 2. Manage Private Keys via SOPS
   sops.secrets.torii_chan_wireguard_private_key = {
-    sopsFile = ../../../secrets/services/wireguard.yaml;
     owner = "root";
     mode = "0400";
     restartUnits = [ "wireguard-wg0.service" ];
   };
   sops.secrets.torii_chan_wireguard_app_private_key = {
-    sopsFile = ../../../secrets/services/wireguard.yaml;
     owner = "root";
     mode = "0400";
     restartUnits = [ "wireguard-wg1.service" ];

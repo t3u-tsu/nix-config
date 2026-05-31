@@ -38,9 +38,6 @@ creation_rules:
   - path_regex: secrets/services/backup\.yaml$
     key_groups:
       - age: [*master_key, *user_t3u, *shosoin_tan]
-  - path_regex: secrets/services/wireguard\.yaml$
-    key_groups:
-      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc]
   - path_regex: secrets/services/ddns\.yaml$
     key_groups:
       - age: [*master_key, *user_t3u, *torii_chan]
