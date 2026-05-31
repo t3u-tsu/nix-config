@@ -26,7 +26,7 @@
         HostName = "10.0.0.100";
         User = osConfig.my.user.name;
       };
-      "10.0.0.*" = {
+      "torii-chan sando-kun kagutsuchi-sama shosoin-tan BrokenPC 10.0.0.*" = {
         IdentityFile = "~/.ssh/id_ed25519";
         ServerAliveInterval = 60;
         SetEnv = {
