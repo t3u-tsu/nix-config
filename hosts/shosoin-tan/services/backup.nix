@@ -1,8 +1,12 @@
 { config, pkgs, ... }:
 
 {
-  sops.secrets.restic_password = { };
-  sops.secrets.restic_shosoin_ssh_key = { };
+  sops.secrets.restic_password = {
+    sopsFile = ../../../secrets/services/backup.yaml;
+  };
+  sops.secrets.restic_shosoin_ssh_key = {
+    sopsFile = ../../../secrets/services/backup.yaml;
+  };
 
   my.backup = {
     enable = true;

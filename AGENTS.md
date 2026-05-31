@@ -70,7 +70,8 @@
 ---
 
 ## 📜 過去の履歴とログ
-詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
+- [2026-06-01: SOPS 最小権限パーミッション移行の完了と検証](./.agents/work-logs/2026-06-01-sops-permissions-refactoring-completed.md)
+- 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
 
 ---

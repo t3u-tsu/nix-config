@@ -1,16 +1,16 @@
 keys:
   # Master key (Keep the private key offline/in password manager)
-  - &master_key age1_MASTER_KEY_PLACEHOLDER
+  - &master_key age1r93dvhlat70mc292gnfy8zswnq4a99hk0q3zmc9rm5n9p4jcjy0s4aclwl
   # User key (Your daily machine)
   - &user_t3u  age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy
 
   # Host keys (Public keys converted from SSH host keys via ssh-to-age)
   # Update these with: ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
-  - &torii_chan      age1_TORII_CHAN_PLACEHOLDER
-  - &shosoin_tan     age1_SHOSOIN_TAN_PLACEHOLDER
-  - &kagutsuchi_sama age1_KAGUTSUCHI_SAMA_PLACEHOLDER
-  - &sando_kun       age1_SANDO_KUN_PLACEHOLDER
-  - &brokenpc        age1_BROKENPC_PLACEHOLDER
+  - &torii_chan      age1w8fxejc76h7jzpekecf34l2n964n2552ldxzgzmhfdam0u58meesuaqhf2
+  - &shosoin_tan     age16qpt6hr079pmj5dsgq5xm20x9kwamu90c2l8nkgwf8mtrhwauapqf93muk
+  - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
+  - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
+  - &brokenpc        age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk
 
 creation_rules:
   # 1. Host-specific secrets: [Master, Target Host]

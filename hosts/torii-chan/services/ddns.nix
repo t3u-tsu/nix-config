@@ -13,6 +13,7 @@
   # Note: The content of this secret must be in environment file format:
   # CLOUDFLARE_API_TOKEN=your_token_here
   sops.secrets.cloudflare_api_env = {
+    sopsFile = ../../../secrets/services/ddns.yaml;
     # Service user needs to read this
     owner = "root";
     # Restart the service automatically when the secret changes

@@ -21,6 +21,7 @@
   };
 
   sops.secrets.discord_bridge_env = {
+    sopsFile = ../../../secrets/services/minecraft.yaml;
     owner = "minecraft";
   };
 

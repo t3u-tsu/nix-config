@@ -16,5 +16,11 @@
     # Command-not-found & comma (,) integration
     programs.nix-index.enable = true;
     programs.nix-index-database.comma.enable = true;
+
+    # SOPS configuration for Home-manager
+    sops = {
+      age.sshKeyPaths = [ "/home/${config.my.user.name}/.ssh/id_ed25519" ];
+      age.generateKey = false;
+    };
   };
 }
