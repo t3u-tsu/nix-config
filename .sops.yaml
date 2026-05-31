@@ -1,6 +1,6 @@
 keys:
   # Master key (Keep the private key offline/in password manager)
-  - &master_key age1r93dvhlat70mc292gnfy8zswnq4a99hk0q3zmc9rm5n9p4jcjy0s4aclwl
+  - &master_key age1gaalvy9u4634cu6hwnupvk35wu7pxg67xmgvl0zv66jprj4xy5xqgyw3nw
   # User key (Your daily machine)
   - &user_t3u  age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy
 
