@@ -18,6 +18,7 @@ in
       nix-output-monitor
       nix-tree
       nixfmt
+      statix
     ];
   };
 }
