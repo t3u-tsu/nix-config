@@ -37,5 +37,5 @@ jobs:
         with:
           commit_message: "chore(auto): update system and plugins"
           commit_user_name: "t3u-daemon"
-          commit_user_email: "t3u+daemon@t3u.uk"
+          commit_user_email: "daemon@t3u.uk"
           branch: main

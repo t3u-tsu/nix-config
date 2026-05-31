@@ -15,7 +15,7 @@
 ### 1. 作業の基本ルール
 - **ブランチ戦略**: 直接 `main` にコミットせず、`feature/<name>` または `refactor/<name>` ブランチを作成してください。
 - **対応言語**: ユーザーへの報告、相談はすべて **日本語** で行います。
-- **バイリンガル対応 (Bilingual Sync)**: プロジェクト内のドキュメント（ルートおよび各ホストの `README.md` と `README.ja.md` 等）は、必ず**英語と日本語の両方を同時に同期して更新**してください。
+- **バイリンガル対応 (Bilingual Sync)**: プロジェクト内のドキュメント（ルートおよび各ディレクトリの `README.md` と `README.ja.md` 等）は、必ず**英語と日本語の両方を同時に同期して更新**してください。
 - **ドキュメント優先**: 変更の際は `TODO.md` や `README.md` との整合性を常に確認してください。
 
 ### 2. 変更・適用手順
@@ -40,32 +40,9 @@
 
 ---
 
-## 📋 最近の活動記録 (Activity Summary)
-
-- **2026-05-02 (Hardware Fixes)**: BrokenPC (Ryzen 6800H + RTX 3050 Ti) の音声乱れ、タッチパッド反応消失、NVIDIA GPUクラッシュ問題に対し、カーネルパラメータ (`iommu=pt`, `amd_iommu=on`) を追加。NVIDIA設定モジュールをリファクタリングし、PRIME Offload を無効化して Sync モードへと変更。
-- **2026-03-29 (SOPS & CI Fix)**: SOPSの復号問題解消に加え、`git.nix` のビルド警告解消、および GitHub Actions (`auto-update.yml`) の 403 権限エラーを修正。SSH 鍵の age 統合とユーザ用エイリアスも導入済み。
-- **2026-03-28 (Phase 9 CI/CD integration)**: 旧 `update-hub` を完全に廃止し、`GitHub Actions` による自動更新 (`nvfetcher`) と `comin` による自動デプロイを統合。タワーサーバーの記述ミスを修正し、監視基盤との整合性を確保。
-- **2026-03-28 (Phase 8.5 Deploy Fixes)**: `torii-chan` 実機環境での Nix サンドボックス非互換エラーの回避、`production-security.nix` の `lib.mkForce` ファイアウォール競合の解決。およびプロジェクト全体を通した英語・日本語ドキュメントの全面同期（WezTerm移行の反映など）。
-- **2026-03-28 (Phase 8-8.5)**: WezTerm移行、Steam Millennium導入、Wayland UIの競合解決。Prometheus+Grafanaによる艦隊監視ダッシュボード基盤の構築とCI/CD導入。
-- **2026-03-28 (Phase 7)**: UI 移行 (Nautilus -> Thunar) と自動デプロイ基盤の刷新 (comin 導入)、CI/CD 準備。
-- **2026-03-28 (Phase 5-6)**: Noctalia UI 最適化、NVIDIA ドライバの抽象化、システムパッケージ再整理。
-- **2026-03-27**: Noctalia Shell 構成の高度化、Spotify テーマ適用。
-- **2026-03-10**: Niri への完全移行実施、greetd 導入。
-
----
-
 ## 📜 過去の履歴とログ
 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。
 
-### 各セッションの詳細ログ（抜粋）
-- [2026-05-02: BrokenPC IOMMU・NVIDIA設定の最適化](./.agents/work-logs/2026-05-02-brokenpc-iommu-nvidia.md)
-- [2026-03-29: SOPS 権限・復号問題の解決](./.agents/work-logs/2026-03-29-sops-decryption-fix.md)
-- [2026-03-28: CI/CD 統合 & 監視基盤最適化 Phase 9](./.agents/work-logs/2026-03-28-ci-cd-optimization.md)
-- [2026-03-28: torii-chan デプロイ障害とファイアウォール競合の解決](./.agents/work-logs/2026-03-28-torii-chan-deployment-fixes.md)
-- [2026-03-28: デスクトップ最適化 & 監視基盤配備 Phase 8-8.5](./.agents/work-logs/2026-03-28-phase8-desktop-monitoring.md)
-- [2026-03-28: デスクトップ最適化 & インフラ刷新 Phase 7](./.agents/work-logs/2026-03-28-phase7-infrastructure.md)
-- [2026-03-28: デスクトップ最適化 Phase 2 & クリーンアップ](./.agents/work-logs/2026-03-28-desktop-fixes-v2.md)
-- [2026-03-27: デスクトップ最適化 Phase 1](./.agents/work-logs/2026-03-27-desktop-optimization.md)
 
 ---
 

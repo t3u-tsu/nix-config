@@ -32,6 +32,7 @@
   boot.kernelParams = [
     "amd_iommu=on"
     "iommu=pt"
+    "i8042.nopnp"
   ];
   boot.extraModulePackages = [ ];
 
@@ -108,6 +109,5 @@
   # comin deployment service
   my.services.deployment.comin.enable = true;
 
-  # State version
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 }

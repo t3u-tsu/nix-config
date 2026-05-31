@@ -29,7 +29,7 @@ in
 
     programs.zen-browser = mkIf cfg.zen.enable {
       enable = true;
-      nativeMessagingHosts = [ pkgs.bitwarden-desktop ];
+      # nativeMessagingHosts = [ pkgs.bitwarden-desktop ];
 
       policies = {
         DisableTelemetry = true;
@@ -79,7 +79,7 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/wappalyzer/latest.xpi";
             installation_mode = "force_installed";
           };
-          # YouTube NonStop (User requested to KEEP)
+          # YouTube NonStop
           "{0d7cafdd-501c-49ca-8ebb-e3341caaa55e}" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/youtube-nonstop/latest.xpi";
             installation_mode = "force_installed";
@@ -89,7 +89,7 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/take-youtube-screenshots/latest.xpi";
             installation_mode = "force_installed";
           };
-          # LINE (User requested to KEEP)
+          # LINE
           "LINEPorted@FoxRefire" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/line-on-browser/latest.xpi";
             installation_mode = "force_installed";

@@ -1,7 +1,12 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
-  users.groups.restic-shosoin = {};
+  users.groups.restic-shosoin = { };
 
   users.users.restic-shosoin = {
     isNormalUser = true;

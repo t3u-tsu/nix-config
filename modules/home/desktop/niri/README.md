@@ -11,7 +11,7 @@ This directory manages the Niri scrollable-tiling Wayland compositor and its eco
 
 ## ⌨️ Keybindings Highlights
 
-- `Mod + Return`: Terminal (Alacritty)
+- `Mod + Return`: Terminal
 - `Mod + Shift + B`: Browser (Zen)
 - `Mod + Space`: Launcher (Noctalia)
 - `Mod + W`: Close window

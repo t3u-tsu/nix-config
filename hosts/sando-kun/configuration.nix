@@ -35,5 +35,5 @@
   # Enable local network optimizations (Disabled as default since machines moved LANs)
   # my.localNetwork.enable = true;
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "26.05";
 }

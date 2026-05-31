@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -8,16 +13,16 @@ in
 {
   options.my.backup = {
     enable = mkEnableOption "restic backup configuration";
-    
+
     paths = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       description = "List of paths to backup";
     };
 
     exclude = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       description = "List of patterns to exclude";
     };
 
@@ -73,10 +78,17 @@ in
     services.restic.backups = mkMerge [
       (mkIf (cfg.localRepo != null) {
         local-backup = {
-          inherit (cfg) paths exclude passwordFile timerConfig backupPrepareCommand backupCleanupCommand;
+          inherit (cfg)
+            paths
+            exclude
+            passwordFile
+            timerConfig
+            backupPrepareCommand
+            backupCleanupCommand
+            ;
           repository = cfg.localRepo;
           initialize = true;
-          
+
           pruneOpts = [
             "--keep-daily 7"
             "--keep-weekly 4"
@@ -87,10 +99,17 @@ in
 
       (mkIf (cfg.remoteRepo != null) {
         remote-backup = {
-          inherit (cfg) paths exclude passwordFile timerConfig backupPrepareCommand backupCleanupCommand;
+          inherit (cfg)
+            paths
+            exclude
+            passwordFile
+            timerConfig
+            backupPrepareCommand
+            backupCleanupCommand
+            ;
           repository = cfg.remoteRepo;
           initialize = true;
-          
+
           pruneOpts = [
             "--keep-daily 7"
             "--keep-weekly 4"

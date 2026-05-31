@@ -1,7 +1,23 @@
-{ nixpkgs, inputs, home-manager, disko, sops-nix, nix-minecraft, overlays }:
+{
+  nixpkgs,
+  inputs,
+  home-manager,
+  disko,
+  sops-nix,
+  nix-minecraft,
+  overlays,
+}:
 
 {
-  mkSystem = { name, system, username ? "t3u", targetSystem ? null, disks ? [], extraModules ? [] }:
+  mkSystem =
+    {
+      name,
+      system,
+      username ? "t3u",
+      targetSystem ? null,
+      disks ? [ ],
+      extraModules ? [ ],
+    }:
     nixpkgs.lib.nixosSystem {
       inherit system;
 
@@ -27,14 +43,20 @@
           ];
           nixpkgs.overlays = overlays;
         }
-        (if targetSystem != null then {
-          nixpkgs.crossSystem = {
-            system = targetSystem;
-          };
-        } else {})
+        (
+          if targetSystem != null then
+            {
+              nixpkgs.crossSystem = {
+                system = targetSystem;
+              };
+            }
+          else
+            { }
+        )
 
         ../hosts/${name}/configuration.nix
-      ] ++ extraModules;
+      ]
+      ++ extraModules;
     };
 
   # Auto-update helpers

@@ -38,6 +38,5 @@ with lib;
       pipewire.enable = true;
       gaming.enable = true;
     };
-
   };
 }

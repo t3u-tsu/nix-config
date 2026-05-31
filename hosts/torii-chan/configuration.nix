@@ -86,8 +86,6 @@ in
     };
   };
 
-  system.stateVersion = "25.05";
-
   # Swap configuration for stable builds on low-RAM device
   swapDevices = [
     {
@@ -102,4 +100,6 @@ in
 
   # comin deployment service
   my.services.deployment.comin.enable = true;
+
+  system.stateVersion = "26.05";
 }

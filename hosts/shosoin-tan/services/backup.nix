@@ -1,12 +1,12 @@
 { config, pkgs, ... }:
 
 {
-  sops.secrets.restic_password = {};
-  sops.secrets.restic_shosoin_ssh_key = {};
+  sops.secrets.restic_password = { };
+  sops.secrets.restic_shosoin_ssh_key = { };
 
   my.backup = {
     enable = true;
-    paths = [ 
+    paths = [
       "/srv/minecraft"
       "/var/lib/minecraft-discord-bridge"
     ];

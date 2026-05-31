@@ -9,8 +9,8 @@
       ./starship.nix
       ./atuin.nix
       ./git.nix
-      ./ssh.nix
       ./cli-tools.nix
+      ./ssh.nix
     ];
 
     # Command-not-found & comma (,) integration

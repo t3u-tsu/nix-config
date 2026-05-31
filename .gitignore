@@ -1,4 +1,7 @@
 result
+result-*
+
+.direnv
 
 # Temporary reports (use .agents/work-logs/ instead)
 *_REPORT.md
