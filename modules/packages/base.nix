@@ -11,6 +11,8 @@ let
 in
 {
   config = mkIf cfg.enable {
+    environment.enableAllTerminfo = true;
+
     environment.systemPackages = with pkgs; [
       curl
       file
