@@ -26,7 +26,7 @@
 
 - **Modular Architecture**: システム層 (NixOS) とユーザー層 (Home-manager) を明確に分離。
 - **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep 等を全ホストで標準化。
-- **Desktop Environment**: Zen Browser (宣言的設定), Vesktop, Neovim, WezTerm による最強のデスクトップ体験。
+- **Desktop Environment**: Zen Browser (宣言的設定), Vesktop, Neovim, Ghostty による最強のデスクトップ体験。
 - **Smart Hardware Tools**: `my.hardware.pc-tools.enable = true` で物理サーバー用ツールをオプトイン。
 - **Fleet Monitoring Dashboard**: Prometheus と Grafana を統合し、全ホストから集約したメトリクスを `torii-chan` 上のダッシュボードで一元管理。
 - **sops-nix**: `age` を用いた機密情報の暗号化管理。

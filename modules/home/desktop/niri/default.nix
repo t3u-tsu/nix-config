@@ -84,11 +84,11 @@ in
 
       binds = {
         # --- Core Application Launchers (Primary) ---
-        "Mod+Return".action.spawn = [ "wezterm" ];
+        "Mod+Return".action.spawn = [ "ghostty" ];
         "Mod+Shift+B".action.spawn = [ "zen-beta" ];
         "Mod+Shift+F".action.spawn = [ "thunar" ];
         "Mod+Shift+E".action.spawn = [
-          "wezterm"
+          "ghostty"
           "-e"
           "nvim"
         ];
