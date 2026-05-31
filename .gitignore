@@ -7,3 +7,4 @@ result-*
 *_REPORT.md
 .agents/*.tmp
 !.agents/work-logs/
+.antigravitycli

@@ -2,12 +2,14 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
+  agn-pkgs = inputs.antigravity-nix.packages.${pkgs.system};
 in
 {
   options.my.home.desktop.dev-tools.ai-tools = {
@@ -15,10 +17,19 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      unstable.gemini-cli
-      unstable.antigravity
-      unstable.github-copilot-cli
+    home.packages = [
+      pkgs.unstable.github-copilot-cli
+
+      (agn-pkgs.default.override {
+        useFHS = false;
+        useSystemChromeProfile = false;
+      })
+
+      (agn-pkgs.google-antigravity-ide.override {
+        useFHS = false;
+      })
+
+      agn-pkgs.google-antigravity-cli
     ];
   };
 }

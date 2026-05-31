@@ -33,17 +33,14 @@
     }
   '';
 
-  xdg.configFile."noctalia/templates/wezterm.lua.template".text = ''
-    return {
-      foreground = "{{colors.on_surface.dark.hex}}",
-      background = "{{colors.surface.dark.hex}}",
-      cursor_bg = "{{colors.primary.dark.hex}}",
-      cursor_border = "{{colors.primary.dark.hex}}",
-      cursor_fg = "{{colors.on_primary.dark.hex}}",
-      selection_bg = "{{colors.secondary_container.dark.hex}}",
-      selection_fg = "{{colors.on_secondary_container.dark.hex}}",
-      -- WezTerm uses an array for ansi/brights if needed, or defaults base colors
-    }
+
+  xdg.configFile."noctalia/templates/ghostty.template".text = ''
+    foreground = {{colors.on_surface.dark.hex}}
+    background = {{colors.surface.dark.hex}}
+    cursor-color = {{colors.primary.dark.hex}}
+    cursor-text = {{colors.on_primary.dark.hex}}
+    selection-background = {{colors.secondary_container.dark.hex}}
+    selection-foreground = {{colors.on_secondary_container.dark.hex}}
   '';
 
   programs.noctalia-shell.settings = {
@@ -70,9 +67,9 @@
         target = "${config.home.homeDirectory}/.cache/noctalia/neovim-colors.lua";
       };
 
-      "wezterm-colors" = {
-        source = "${config.home.homeDirectory}/.config/noctalia/templates/wezterm.lua.template";
-        target = "${config.home.homeDirectory}/.cache/noctalia/wezterm-colors.lua";
+      "ghostty-colors" = {
+        source = "${config.home.homeDirectory}/.config/noctalia/templates/ghostty.template";
+        target = "${config.home.homeDirectory}/.cache/noctalia/ghostty-colors";
       };
     };
   };

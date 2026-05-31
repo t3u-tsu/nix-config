@@ -28,7 +28,7 @@ Changes pushed to the `main` branch are automatically pulled and applied across 
 - **Modular Architecture**: Clear separation between system (NixOS) and user (Home-manager) layers.
 - **Unified Hardware Abstraction**: NVIDIA driver settings are centralized and architecture-aware (x86_64/AArch64).
 - **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep standardized across all hosts.
-- **Desktop Environment**: Powered by Zen Browser (declarative), Vesktop, Neovim, and WezTerm.
+- **Desktop Environment**: Powered by Zen Browser (declarative), Vesktop, Neovim, and Ghostty.
 - **Smart Hardware Tools**: Opt-in to physical server tools via `my.hardware.pc-tools.enable = true`.
 - **Fleet Monitoring Dashboard**: Global metrics aggregated from all hosts via Prometheus and visualized centrally on `torii-chan` using Grafana.
 - **sops-nix**: Secret encryption via `age`.

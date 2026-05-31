@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -52,6 +56,10 @@
       url = "github:nlewo/comin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -70,6 +78,9 @@
       overlays = [
         nix-minecraft.overlay
         inputs.niri.overlays.niri
+        (final: prev: {
+          ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
+        })
         (final: prev: {
           # Access unstable packages via 'unstable' attribute
           unstable = import nixpkgs-unstable {
