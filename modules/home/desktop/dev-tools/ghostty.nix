@@ -33,5 +33,6 @@ in
         config-file = "?${config.home.homeDirectory}/.cache/noctalia/ghostty-colors";
       };
     };
+    home.file.".terminfo/x/xterm-ghostty".source = "${pkgs.ghostty.terminfo}/share/terminfo/x/xterm-ghostty";
   };
 }
