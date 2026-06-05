@@ -509,7 +509,8 @@
     "noctalia-shell": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-unstable"
+          "niri",
+          "nixpkgs"
         ],
         "noctalia-qs": "noctalia-qs"
       },

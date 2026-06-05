@@ -26,8 +26,29 @@
 3.  **検証**:
     - `nix flake check`
     - `sudo nixos-rebuild dry-activate --flake .#BrokenPC`
-4.  **適用**: `sudo nixos-rebuild switch --flake .#BrokenPC`
+4.  **適用**: `sudo nixos-rebuild switch --flake .#BrokenPC` （適用前にユーザー承認を得ること）
 5.  **記録**: `.agents/work-logs/` に作業ログを作成し、`AGENTS.md` の履歴を更新。
+6.  **コミットとプッシュ**:
+    ```bash
+    git add .
+    git commit -m "feat: topic description"
+    git push origin feature/topic-name
+    ```
+7.  **PRの作成とマージ (GitHub CLI `gh` の使用)**:
+    - ユーザー承認のうえ、以下のコマンドで PR を作成・マージします。
+    - **PR作成**:
+      ```bash
+      gh pr create --title "feat: topic description" --body "Detailed description of changes"
+      ```
+    - **PRマージ＆リモートブランチ削除**:
+      ```bash
+      gh pr merge --merge --delete-branch
+      ```
+    - **ローカル main の同期**:
+      ```bash
+      git checkout main
+      git pull origin main
+      ```
 
 ---
 
@@ -71,6 +92,7 @@
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-05: Noctalia Shell の follows 先最適化による不整合リスク回避](./.agents/work-logs/2026-06-05-optimize-noctalia-follows.md)
 - [2026-06-05: XDG Mime Apps の調整と Thunar / アーカイブ展開機能の不具合修正](./.agents/work-logs/2026-06-05-fix-xdg-mime-apps-thunar.md)
 - [2026-06-01: デスクトップ専用モジュールへの GPG 署名・Ghostty terminfo の移行とサーバー側復号エラーの解消](./.agents/work-logs/2026-06-01-sops-desktop-only-gpg-and-ghostty-terminfo-fix.md)
 - [2026-06-01: SOPS 最小権限パーミッション移行の完了と検証](./.agents/work-logs/2026-06-01-sops-permissions-refactoring-completed.md)
@@ -86,6 +108,8 @@
 - **秘密情報編集**: `sops secrets/secrets.yaml`
 - **IPC 操作 (Noctalia)**: `noctalia-shell ipc call <target> <function>`
 - **ビルド完了通知**: `curl -X POST ...` (詳細は `AGENTS.history.md` 参照)
+- **PR作成 (GitHub CLI)**: `gh pr create --title "タイトル" --body "説明文"`
+- **PRマージ (GitHub CLI)**: `gh pr merge --merge --delete-branch`
 
 ---
 
