@@ -40,7 +40,7 @@
     };
     noctalia-shell = {
       url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "niri/nixpkgs";
     };
     awww = {
       url = "git+https://codeberg.org/LGFae/awww";

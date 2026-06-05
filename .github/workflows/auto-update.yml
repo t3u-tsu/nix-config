@@ -36,6 +36,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(auto): update system and plugins"
-          commit_user_name: "t3u-daemon"
-          commit_user_email: "daemon@t3u.uk"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
           branch: main
