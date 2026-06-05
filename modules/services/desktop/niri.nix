@@ -50,6 +50,14 @@ in
     services.tumbler.enable = true; # Required for file manager thumbnails
     programs.xfconf.enable = true; # Required for Thunar settings persistence
 
+    programs.thunar = {
+      enable = true;
+      plugins = with pkgs; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
+
     # Enable brightness and volume control via dbus/logind for non-root access
     security.polkit.enable = true;
   };

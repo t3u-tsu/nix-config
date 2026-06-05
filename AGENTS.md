@@ -71,6 +71,7 @@
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-05: XDG Mime Apps の調整と Thunar / アーカイブ展開機能の不具合修正](./.agents/work-logs/2026-06-05-fix-xdg-mime-apps-thunar.md)
 - [2026-06-01: デスクトップ専用モジュールへの GPG 署名・Ghostty terminfo の移行とサーバー側復号エラーの解消](./.agents/work-logs/2026-06-01-sops-desktop-only-gpg-and-ghostty-terminfo-fix.md)
 - [2026-06-01: SOPS 最小権限パーミッション移行の完了と検証](./.agents/work-logs/2026-06-01-sops-permissions-refactoring-completed.md)
 - 詳細は [作業ログのディレクトリ](./.agents/work-logs/) を参照してください。

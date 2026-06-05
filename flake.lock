@@ -4,7 +4,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ]
       },
       "locked": {
@@ -25,7 +25,7 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "rust-overlay": "rust-overlay"
       },
@@ -189,9 +189,7 @@
       "inputs": {
         "flake-compat": "flake-compat_3",
         "home-manager": "home-manager",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_2",
         "systems": "systems_2",
         "zig": "zig",
         "zon2nix": "zon2nix"
@@ -298,19 +296,17 @@
       "inputs": {
         "niri-stable": "niri-stable",
         "niri-unstable": "niri-unstable",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_3",
         "nixpkgs-stable": "nixpkgs-stable",
         "xwayland-satellite-stable": "xwayland-satellite-stable",
         "xwayland-satellite-unstable": "xwayland-satellite-unstable"
       },
       "locked": {
-        "lastModified": 1780348240,
-        "narHash": "sha256-V4QJAR5+AHUV31KOwrUVE8efOC9bkhLHbvkXT05I0mY=",
+        "lastModified": 1780639821,
+        "narHash": "sha256-SOTuKPQ9HptaWKnd6pbiSOC3YyY2tXwCJ5sQwKUDldU=",
         "owner": "sodiboo",
         "repo": "niri-flake",
-        "rev": "134a4f01eff9291806eab0e8d9fe31bbda7587f3",
+        "rev": "f92324f4e97776e141dc8a8ce4debc6c91b64038",
         "type": "github"
       },
       "original": {
@@ -339,11 +335,11 @@
     "niri-unstable": {
       "flake": false,
       "locked": {
-        "lastModified": 1780056110,
-        "narHash": "sha256-t7lKVshV/srD0G06j4r5P5qj9zaDeZ9JYFCxHDGROZU=",
+        "lastModified": 1780637332,
+        "narHash": "sha256-FeKyLRxLZu2EUnhifijZPDZRl0sVnPVHMtizAINNiN4=",
         "owner": "YaLTeR",
         "repo": "niri",
-        "rev": "f9f43d826ab4014a7c302be28d7da33e12f5be37",
+        "rev": "f717ae030fe56fc52522ebef69f17f3f09064ac4",
         "type": "github"
       },
       "original": {
@@ -444,6 +440,35 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1770537093,
+        "narHash": "sha256-XV30uo8tXuxdzuV8l3sojmlPRLd/8tpMsOp4lNzLGUo=",
+        "rev": "fef9403a3e4d31b0a23f0bacebbec52c248fbb51",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.05pre942631.fef9403a3e4d/nixexprs.tar.xz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1780243769,
+        "narHash": "sha256-x5UQuRsH3MqI0U9afaXSNqzTPSeZlRLvFAav2Ux1pNw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "331800de5053fcebacf6813adb5db9c9dca22a0c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_4": {
+      "locked": {
         "lastModified": 1780453794,
         "narHash": "sha256-bXMRa9VTsHSPXL4Cw8R6JJLQeY3Y/IP4+YJCYVmQ7FY=",
         "owner": "NixOS",
@@ -484,16 +509,16 @@
     "noctalia-shell": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "noctalia-qs": "noctalia-qs"
       },
       "locked": {
-        "lastModified": 1780371321,
-        "narHash": "sha256-WCaU6npdMdjZSZHe3XATNDFijmzRnsV8V+iR80e5deg=",
+        "lastModified": 1780673010,
+        "narHash": "sha256-h7Q8F019PwjIqm5lH0kJRQ/58UiELG+XwZ2B62K3PKA=",
         "owner": "noctalia-dev",
         "repo": "noctalia-shell",
-        "rev": "3aab45a2f34fd47666b05892b95054952e788de1",
+        "rev": "2461f871a602f9a5688b5b01dc19c6309dd0d519",
         "type": "github"
       },
       "original": {
@@ -514,7 +539,7 @@
         "niri": "niri",
         "nix-index-database": "nix-index-database",
         "nix-minecraft": "nix-minecraft",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs_4",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "noctalia-shell": "noctalia-shell",
         "sops-nix": "sops-nix",
@@ -566,7 +591,7 @@
     "spicetify-nix": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "systems": "systems_6"
       },
@@ -752,7 +777,7 @@
       "inputs": {
         "home-manager": "home-manager_3",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ]
       },
       "locked": {

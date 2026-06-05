@@ -13,6 +13,9 @@
   # Disable SD image compression for faster build times and immediate flashing.
   sdImage.compressImage = false;
 
+  # Silence ZFS evaluation warning for the installer image
+  boot.zfs.forceImportRoot = false;
+
   # Write U-Boot to the image for Orange Pi Zero3
   # Assumes ubootOrangePiZero3 is provided via Overlays in flake.nix
   sdImage.postBuildCommands = ''

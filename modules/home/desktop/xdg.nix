@@ -44,8 +44,8 @@ in
             "x-scheme-handler/about" = "zen-beta.desktop";
             "x-scheme-handler/unknown" = "zen-beta.desktop";
 
-            # File Browser (Nautilus)
-            "inode/directory" = "org.gnome.Nautilus.desktop";
+            # File Browser (Thunar)
+            "inode/directory" = "thunar.desktop";
 
             # Common file types
             "application/pdf" = "zen-beta.desktop";
