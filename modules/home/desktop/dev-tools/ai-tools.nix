@@ -9,7 +9,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
-  agn-pkgs = inputs.antigravity-nix.packages.${pkgs.system};
+  agn-pkgs = inputs.antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system};
 in
 {
   options.my.home.desktop.dev-tools.ai-tools = {

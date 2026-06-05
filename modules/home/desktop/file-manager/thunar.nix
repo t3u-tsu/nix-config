@@ -10,9 +10,10 @@
   # System-wide services are needed for full functionality (gvfs, tumbler, xfconf)
 
   home.packages = with pkgs; [
-    thunar
-    thunar-archive-plugin
-    thunar-volman
+    file-roller # GUI Archive Manager required by thunar-archive-plugin
+    unzip
+    zip
+    p7zip
   ];
 
   # Thunar settings via xfconf
