@@ -56,6 +56,7 @@ in
     services.gvfs.enable = true; # Required for file manager features (Trash, Mounts)
     services.tumbler.enable = true; # Required for file manager thumbnails
     programs.xfconf.enable = true; # Required for Thunar settings persistence
+    programs.dconf.enable = true; # Required for gsettings/dconf integration
 
     programs.thunar = {
       enable = true;

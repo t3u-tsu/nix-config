@@ -98,6 +98,7 @@
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-06: VLC 動画再生サイズ不具合の修正、Vesktop 設定の整理、および Thunar 最近使用したファイルの非表示化](./.agents/work-logs/2026-06-06-desktop-rules-vlc-vesktop.md)
 - [2026-06-06: XDG Desktop Portal の設定調整によるファイル選択ダイアログ不具合の修正](./.agents/work-logs/2026-06-06-fix-portal-file-chooser.md)
 - [2026-06-05: Noctalia Shell の follows 先最適化による不整合リスク回避](./.agents/work-logs/2026-06-05-optimize-noctalia-follows.md)
 - [2026-06-05: XDG Mime Apps の調整と Thunar / アーカイブ展開機能の不具合修正](./.agents/work-logs/2026-06-05-fix-xdg-mime-apps-thunar.md)

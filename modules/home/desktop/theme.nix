@@ -39,6 +39,24 @@ in
         package = pkgs.dracula-theme;
         size = 24;
       };
+      gtk3.extraConfig = {
+        gtk-recent-files-enabled = 0;
+        gtk-recent-files-limit = 0;
+        gtk-recent-files-max-age = 0;
+      };
+      gtk4.extraConfig = {
+        gtk-recent-files-enabled = 0;
+        gtk-recent-files-limit = 0;
+        gtk-recent-files-max-age = 0;
+      };
+    };
+
+    # Disable recent files in GNOME/GTK GSettings
+    dconf.settings = {
+      "org/gnome/desktop/privacy" = {
+        remember-recent-files = false;
+        recent-files-max-age = 0;
+      };
     };
 
     # Qt Appearance Integration via Kvantum (Superior for Dracula/Noctalia)
