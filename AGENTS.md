@@ -89,9 +89,16 @@
 - **テーマカラー動的同期エラーの回避**:
   Noctalia などの外部ツールが動的に生成するテーマカラーファイルを `config-file` で読み込む場合、ファイルがまだ存在しないタイミングでの起動エラー（`FileNotFound`）を防ぐため、パスの先頭にプレフィックス **`?`** を付与してください（例: `config-file = "?/path/to/ghostty-colors"`）。これにより、ファイル未生成時もサイレントに無視してフォールバック起動させることができます。
 
+### 4. GNOME環境外における XDG Desktop Portal の挙動とファイル選択の罠
+- **GNOMEポータルの不作動問題**:
+  Niri などの非GNOMEコンпозиター環境で `xdg-desktop-portal-gnome` を最優先ポータルとして使用すると、ファイル選択ダイアログ (`org.freedesktop.impl.portal.FileChooser`) 等が動作しません。これは、GNOME ポータルが GNOME Shell の D-Bus インターフェースや GNOME セッションに強く依存しているためです。
+- **回避策（明示的なGTKポータル指定）**:
+  ポータル設定 (`xdg.portal.config`) にて、`FileChooser` および `AppChooser` に対応するポータルとして `gtk` (`xdg-desktop-portal-gtk`) を明示的に優先指定することで、非GNOME環境でも正常に GTK ベースのファイル選択ダイアログが起動するようになります。
+
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-06: XDG Desktop Portal の設定調整によるファイル選択ダイアログ不具合の修正](./.agents/work-logs/2026-06-06-fix-portal-file-chooser.md)
 - [2026-06-05: Noctalia Shell の follows 先最適化による不整合リスク回避](./.agents/work-logs/2026-06-05-optimize-noctalia-follows.md)
 - [2026-06-05: XDG Mime Apps の調整と Thunar / アーカイブ展開機能の不具合修正](./.agents/work-logs/2026-06-05-fix-xdg-mime-apps-thunar.md)
 - [2026-06-01: デスクトップ専用モジュールへの GPG 署名・Ghostty terminfo の移行とサーバー側復号エラーの解消](./.agents/work-logs/2026-06-01-sops-desktop-only-gpg-and-ghostty-terminfo-fix.md)
