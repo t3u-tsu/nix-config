@@ -4,7 +4,7 @@
 
 ## 📂 モジュール構成
 
-- **`neovim.nix`**: Neovim のコア設定とエイリアス (`vi`, `vim`)。
+- **`neovim.nix`**: Neovim のコア設定とエイリアス (`vi`, `vim`)、およびファイルマネージャ用のカスタムデスクトップエントリ (`nvim-ghostty`)。
 - **`git-tools.nix`**: `lazygit` などのモダンな Git TUI ツール。
 - **`ai-tools.nix`**: `gemini-cli` などの AI 支援開発ツール。
 - **`vscode.nix`**: 拡張機能を宣言的に管理する Visual Studio Code のオプション設定。

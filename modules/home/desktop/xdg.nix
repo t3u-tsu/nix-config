@@ -53,7 +53,21 @@ in
             "image/jpeg" = "org.gnome.Loupe.desktop";
             "image/gif" = "org.gnome.Loupe.desktop";
             "image/svg+xml" = "zen-beta.desktop";
-            "text/plain" = "nvim.desktop";
+            "text/plain" = "nvim-ghostty.desktop";
+            "text/markdown" = "nvim-ghostty.desktop";
+            "text/x-shellscript" = "nvim-ghostty.desktop";
+            "text/x-python" = "nvim-ghostty.desktop";
+            "text/x-go" = "nvim-ghostty.desktop";
+            "text/x-rust" = "nvim-ghostty.desktop";
+            "text/x-c" = "nvim-ghostty.desktop";
+            "text/x-c++" = "nvim-ghostty.desktop";
+            "application/json" = "nvim-ghostty.desktop";
+            "application/javascript" = "nvim-ghostty.desktop";
+            "application/xml" = "nvim-ghostty.desktop";
+            "text/css" = "nvim-ghostty.desktop";
+            "text/x-yaml" = "nvim-ghostty.desktop";
+            "text/x-toml" = "nvim-ghostty.desktop";
+            "text/x-nix" = "nvim-ghostty.desktop";
 
             # Office Documents (LibreOffice)
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "calc.desktop";
