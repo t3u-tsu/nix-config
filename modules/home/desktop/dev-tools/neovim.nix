@@ -35,5 +35,42 @@ in
         EOF
       '';
     };
+
+    xdg.desktopEntries.nvim-ghostty = {
+      name = "Neovim (Ghostty)";
+      genericName = "Text Editor";
+      comment = "Edit text files in Neovim inside Ghostty";
+      exec = "ghostty -e nvim %F";
+      icon = "nvim";
+      terminal = false;
+      categories = [ "Utility" "TextEditor" "Development" ];
+      mimeType = [
+        "text/plain"
+        "text/markdown"
+        "text/x-shellscript"
+        "text/x-python"
+        "text/x-go"
+        "text/x-rust"
+        "text/x-c"
+        "text/x-c++"
+        "application/json"
+        "application/javascript"
+        "application/xml"
+        "text/css"
+        "text/x-yaml"
+        "text/x-toml"
+        "text/x-nix"
+        "text/x-lua"
+        "text/x-log"
+        "text/x-ini"
+        "text/x-properties"
+        "text/x-makefile"
+        "text/x-dockerfile"
+        "text/x-sql"
+        "text/x-typescript"
+        "text/x-ruby"
+        "text/x-perl"
+      ];
+    };
   };
 }

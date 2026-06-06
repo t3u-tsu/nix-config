@@ -53,11 +53,36 @@ in
             "image/jpeg" = "org.gnome.Loupe.desktop";
             "image/gif" = "org.gnome.Loupe.desktop";
             "image/svg+xml" = "zen-beta.desktop";
-            "text/plain" = "nvim.desktop";
+            "text/plain" = "nvim-ghostty.desktop";
+            "text/markdown" = "nvim-ghostty.desktop";
+            "text/x-shellscript" = "nvim-ghostty.desktop";
+            "text/x-python" = "nvim-ghostty.desktop";
+            "text/x-go" = "nvim-ghostty.desktop";
+            "text/x-rust" = "nvim-ghostty.desktop";
+            "text/x-c" = "nvim-ghostty.desktop";
+            "text/x-c++" = "nvim-ghostty.desktop";
+            "application/json" = "nvim-ghostty.desktop";
+            "application/javascript" = "nvim-ghostty.desktop";
+            "application/xml" = "nvim-ghostty.desktop";
+            "text/css" = "nvim-ghostty.desktop";
+            "text/x-yaml" = "nvim-ghostty.desktop";
+            "text/x-toml" = "nvim-ghostty.desktop";
+            "text/x-nix" = "nvim-ghostty.desktop";
+            "text/x-lua" = "nvim-ghostty.desktop";
+            "text/x-log" = "nvim-ghostty.desktop";
+            "text/x-ini" = "nvim-ghostty.desktop";
+            "text/x-properties" = "nvim-ghostty.desktop";
+            "text/x-makefile" = "nvim-ghostty.desktop";
+            "text/x-dockerfile" = "nvim-ghostty.desktop";
+            "text/x-sql" = "nvim-ghostty.desktop";
+            "text/x-typescript" = "nvim-ghostty.desktop";
+            "text/x-ruby" = "nvim-ghostty.desktop";
+            "text/x-perl" = "nvim-ghostty.desktop";
 
             # Office Documents (LibreOffice)
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "calc.desktop";
             "application/vnd.ms-excel" = "calc.desktop";
+            "text/csv" = "calc.desktop";
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "writer.desktop";
             "application/vnd.ms-word" = "writer.desktop";
             "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "impress.desktop";
