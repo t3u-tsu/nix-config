@@ -34,10 +34,17 @@ in
         xdg-desktop-portal-gnome
         xdg-desktop-portal-gtk
       ];
-      config.common.default = [
-        "gnome"
-        "gtk"
-      ];
+      config = {
+        common = {
+          default = [
+            "gnome"
+            "gtk"
+          ];
+          # xdg-desktop-portal-gnome's file chooser does not work outside GNOME Shell
+          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+          "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
+        };
+      };
       # xdg-desktop-portal-gnome is the primary portal for Niri
       # as it provides the settings daemon needed for many apps.
     };
