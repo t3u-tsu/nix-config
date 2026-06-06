@@ -68,10 +68,21 @@ in
             "text/x-yaml" = "nvim-ghostty.desktop";
             "text/x-toml" = "nvim-ghostty.desktop";
             "text/x-nix" = "nvim-ghostty.desktop";
+            "text/x-lua" = "nvim-ghostty.desktop";
+            "text/x-log" = "nvim-ghostty.desktop";
+            "text/x-ini" = "nvim-ghostty.desktop";
+            "text/x-properties" = "nvim-ghostty.desktop";
+            "text/x-makefile" = "nvim-ghostty.desktop";
+            "text/x-dockerfile" = "nvim-ghostty.desktop";
+            "text/x-sql" = "nvim-ghostty.desktop";
+            "text/x-typescript" = "nvim-ghostty.desktop";
+            "text/x-ruby" = "nvim-ghostty.desktop";
+            "text/x-perl" = "nvim-ghostty.desktop";
 
             # Office Documents (LibreOffice)
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "calc.desktop";
             "application/vnd.ms-excel" = "calc.desktop";
+            "text/csv" = "calc.desktop";
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "writer.desktop";
             "application/vnd.ms-word" = "writer.desktop";
             "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "impress.desktop";

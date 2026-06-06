@@ -5,7 +5,7 @@
 
 ## 概要
 
-ファイルマネージャ（Thunar等）でテキストファイルをクリックした際に、デフォルトで Neovim（nvim）が Ghostty ターミナル内で起動して開かれるように設定しました。
+ファイルマネージャ（Thunar等）でテキストファイルをクリックした際に、デフォルトで Neovim（nvim）が Ghostty ターミナル内で起動して開かれるように設定しました。また、CSVファイルに関しては LibreOffice Calc で開くように設定しました。
 
 ## 課題と原因
 
@@ -22,7 +22,8 @@
 - これにより、`Terminal=false` としながらも Ghostty ターミナルを明示的に起動して Neovim を開くことができます。
 
 ### 2. XDG MIME アソシエーションの更新 (`modules/home/desktop/xdg.nix`)
-- `text/plain` 以外の一般的なテキスト/コードファイル（Markdown、Shell、Python、Go、Rust、C、C++、JSON、JavaScript、XML、CSS、YAML、TOML、Nix）の MIME タイプに対し、デフォルトアプリケーションとして `nvim-ghostty.desktop` を紐付けました。
+- `text/plain` 以外の一般的なテキスト/コードファイル（Markdown、Shell、Python、Go、Rust、C、C++、JSON、JavaScript、XML、CSS、YAML、TOML、Nix、Lua、Log、INI、Properties、Makefile、Dockerfile、SQL、TypeScript、Ruby、Perl）の MIME タイプに対し、デフォルトアプリケーションとして `nvim-ghostty.desktop` を紐付けました。
+- 一方、`text/csv` (CSVファイル) に関しては、ユーザーの好みに従い、表計算ソフトである `calc.desktop` (LibreOffice Calc) に関連付けました。
 
 ### 3. ドキュメントの更新
 - `modules/home/desktop/dev-tools/README.md` および `README.ja.md` に、新しく追加した `nvim-ghostty` デスクトップエントリについての説明を追記しました。
@@ -37,3 +38,4 @@
    `sudo nixos-rebuild switch --flake .#BrokenPC`
 4. 動作確認:
    - ファイルマネージャ（Thunar）から各種テキストファイル（`.txt`、`.md`、`.json`、`.nix` 等）をダブルクリックした際、Ghostty ターミナル内で Neovim が起動してファイルが開くことを確認する。
+   - `.csv` ファイルをクリックした際に、LibreOffice Calc が起動することを確認する。

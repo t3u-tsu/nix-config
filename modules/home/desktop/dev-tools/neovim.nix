@@ -60,6 +60,16 @@ in
         "text/x-yaml"
         "text/x-toml"
         "text/x-nix"
+        "text/x-lua"
+        "text/x-log"
+        "text/x-ini"
+        "text/x-properties"
+        "text/x-makefile"
+        "text/x-dockerfile"
+        "text/x-sql"
+        "text/x-typescript"
+        "text/x-ruby"
+        "text/x-perl"
       ];
     };
   };
