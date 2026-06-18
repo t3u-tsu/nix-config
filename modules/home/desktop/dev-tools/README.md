@@ -8,4 +8,5 @@ This directory contains user-specific development environment configurations.
 - **`git-tools.nix`**: Modern Git TUI tools like `lazygit`.
 - **`ai-tools.nix`**: AI-assisted development tools (e.g., `gemini-cli`).
 - **`vscode.nix`**: Optional Visual Studio Code configuration with declarative extensions.
+- **`unity.nix`**: Unity Hub for game development.
 - **`default.nix`**: Index module to manage the enablement of development tool categories.
