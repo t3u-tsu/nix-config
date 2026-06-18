@@ -15,6 +15,7 @@ in
     ./ai-tools.nix
     ./hardware.nix
     ./ghostty.nix
+    ./unity.nix
   ];
 
   config = mkIf cfg.enable {
@@ -25,6 +26,7 @@ in
       ai-tools.enable = mkDefault true;
       hardware.enable = mkDefault true;
       ghostty.enable = mkDefault true;
+      unity.enable = mkDefault true;
     };
   };
 }
