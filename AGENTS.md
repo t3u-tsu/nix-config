@@ -98,6 +98,7 @@
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-18: Noctalia v5 移行に伴うオプション・バイナリ名の修正](./.agents/work-logs/2026-06-18-fix-noctalia-v5.md)
 - [2026-06-18: desktopプロファイルへ Unity Hub の追加](./.agents/work-logs/2026-06-18-add-unityhub.md)
 - [2026-06-06: ファイルマネージャからテキストファイルを開く際のデフォルトエディタを Neovim に設定](./.agents/work-logs/2026-06-06-fix-default-text-editor-nvim.md)
 - [2026-06-06: VLC 動画再生サイズ不具合の修正、Vesktop 設定の整理、および Thunar 最近使用したファイルの非表示化](./.agents/work-logs/2026-06-06-desktop-rules-vlc-vesktop.md)
