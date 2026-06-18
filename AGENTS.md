@@ -98,6 +98,7 @@
 ---
 
 ## 📜 過去の履歴とログ
+- [2026-06-18: Unity Hub ダウンロードエラー回避のためのプリフェッチ処理](./.agents/work-logs/2026-06-18-prefetch-unityhub.md)
 - [2026-06-18: WCH-LinkEファームウェア書き込み用 udev ルールの追加](./.agents/work-logs/2026-06-18-add-udev-rules.md)
 - [2026-06-18: Noctalia v5 移行に伴うオプション・バイナリ名の修正](./.agents/work-logs/2026-06-18-fix-noctalia-v5.md)
 - [2026-06-18: desktopプロファイルへ Unity Hub の追加](./.agents/work-logs/2026-06-18-add-unityhub.md)
