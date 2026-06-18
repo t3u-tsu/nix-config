@@ -38,5 +38,14 @@ with lib;
       pipewire.enable = true;
       gaming.enable = true;
     };
+
+    # Udev rules for WCH-LinkE (ch32fun) programming/debugging
+    services.udev.extraRules = lib.mkIf config.home-manager.users.${config.my.user.name}.my.home.desktop.dev-tools.hardware.enable ''
+      # WCH-LinkE in RISC-V mode
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="8010", GROUP="dialout", MODE="0660"
+
+      # WCH-LinkE in ARM mode
+      SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="8012", GROUP="dialout", MODE="0660"
+    '';
   };
 }
