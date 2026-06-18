@@ -12,7 +12,7 @@ let
   noctalia =
     cmd:
     [
-      "noctalia-shell"
+      "noctalia"
       "ipc"
       "call"
     ]
@@ -79,7 +79,7 @@ in
         }
 
         # Launch Noctalia Shell (Started via systemd, but we can also spawn it here for robustness)
-        { command = [ "noctalia-shell" ]; }
+        { command = [ "noctalia" ]; }
       ];
 
       binds = {
@@ -96,7 +96,7 @@ in
 
         # --- Launcher (Space is universal "open something") ---
         "Mod+Space".action.spawn = [
-          "noctalia-shell"
+          "noctalia"
           "ipc"
           "call"
           "launcher"
@@ -209,7 +209,7 @@ in
       cliphist
     ];
 
-    systemd.user.services.noctalia-shell = {
+    systemd.user.services.noctalia = {
       Service = {
         ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       };

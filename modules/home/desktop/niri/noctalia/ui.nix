@@ -1,7 +1,7 @@
 { ... }:
 
 {
-  programs.noctalia-shell.settings = {
+  programs.noctalia.settings = {
     # General UI Settings
     general = {
       language = "ja";

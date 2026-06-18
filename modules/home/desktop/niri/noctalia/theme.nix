@@ -43,7 +43,7 @@
     selection-foreground = {{colors.on_secondary_container.dark.hex}}
   '';
 
-  programs.noctalia-shell.settings = {
+  programs.noctalia.settings = {
     colorSchemes = {
       darkMode = true;
       syncGsettings = true;
