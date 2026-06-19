@@ -8,10 +8,10 @@
 {
   gsit = {
     pname = "gsit";
-    version = "3.5.0";
+    version = "3.5.1";
     src = fetchurl {
-      url = "https://github.com/Gecolay/GSit/releases/download/3.5.0/GSit-3.5.0.jar";
-      sha256 = "sha256-yzuTW0nQynnucF+5Dn9sMoMyQ6K4g3G3vTtMu4Ia3EA=";
+      url = "https://github.com/Gecolay/GSit/releases/download/3.5.1/GSit-3.5.1.jar";
+      sha256 = "sha256-o2wDt366JzemoEeWo4B1jTCSeBoxHV0vU+ARH9tREUE=";
     };
   };
   lunachat = {
@@ -24,18 +24,18 @@
   };
   viabackwards = {
     pname = "viabackwards";
-    version = "5.9.1";
+    version = "5.10.0";
     src = fetchurl {
-      url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.9.1/ViaBackwards-5.9.1.jar";
-      sha256 = "sha256-Z2vaA9jX4lL4tw/9DiiCUuMXsBUZA1HEuauKuN44jWg=";
+      url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.10.0/ViaBackwards-5.10.0.jar";
+      sha256 = "sha256-EHprzgixZhOCuFkN98CrcUvFlnqTwbui1xUxRIaJzoI=";
     };
   };
   viaversion = {
     pname = "viaversion";
-    version = "5.9.1";
+    version = "5.10.0";
     src = fetchurl {
-      url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.9.1/ViaVersion-5.9.1.jar";
-      sha256 = "sha256-EqqD5grwnoP9vV9VGUDfS13LnEgcuS95vYKGGkwztd8=";
+      url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.10.0/ViaVersion-5.10.0.jar";
+      sha256 = "sha256-qxN7YoKXIcjO08VU7ekEpsAvbRljwzsy19QyuyVge2A=";
     };
   };
 }
