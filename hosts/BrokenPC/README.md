@@ -8,7 +8,9 @@ NixOS desktop machine with a hybrid GPU configuration. This host is a "Victus by
   - NVIDIA GeForce RTX 3050 Ti Mobile (Discrete)
   - AMD Radeon 680M (Integrated)
 - **RAM**: 16GB DDR5
-- **Storage**: 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`)
+- **Storage**:
+  - 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`) for OS/Boot
+  - 1TB NVMe SSD (`nvme-FIKWOT_FN500_1TB_AA000000000000000188`) mapped to `/data`
 
 ## Installation Guide (Clean Install)
 

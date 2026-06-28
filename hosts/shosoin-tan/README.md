@@ -9,7 +9,7 @@ This host is a tower server equipped with an Intel Core i7-870 and a ZFS Mirror 
 - **Storage:**
   - 480GB SSD (OS / Boot)
   - 1TB HDD x2 (ZFS Mirror: `tank-1tb`)
-  - 320GB HDD x2 (ZFS Mirror: `tank-320gb`)
+  - 320GB HDD (ext4, mounted to `/mnt/data-320gb`)
 
 ## Installation Guide
 
@@ -37,7 +37,7 @@ To avoid CPU freezes on the target, build the image on a build host and transfer
 
 ## Network and Security
 - **Boot Method:** Legacy BIOS (MBR)
-- **Update Producer:** Central update manager for the fleet. Automatically updates `flake.lock` and plugins daily at 04:00, pushes to Git, and notifies the Hub.
+- **Automated Update:** Configuration locking and plugins are automatically updated daily at 04:00 JST via GitHub Actions, which commits changes back to the repository.
 - **Minecraft Data:** Located at `/srv/minecraft`.
 - **Minecraft Discord Bridge:** Discord management bot is active. Socket at `/run/minecraft-discord-bridge/bridge.sock`.
 - **Backup:** Runs every 2 hours via `restic`.
