@@ -1,6 +1,6 @@
 # Hostname: sando-kun (i7-860 Tower Server)
 
-This host is a general-purpose tower server equipped with an Intel Core i7-860 and a ZFS Mirror configuration (80GB HDD x2). it follows the standard configuration established by `shosoin-tan` and `kagutsuchi-sama`.
+This host is a general-purpose tower server equipped with an Intel Core i7-860 and an 80GB HDD configuration. It follows the standard configuration established by `shosoin-tan` and `kagutsuchi-sama`.
 
 ## Hardware Specifications
 - **CPU:** Intel Core i7-860 (1st Generation)
@@ -10,7 +10,7 @@ This host is a general-purpose tower server equipped with an Intel Core i7-860 a
   - 250GB HDD (OS / Boot)
   - 80GB HDD (`scratch`)
 
-## 🚀 Installation Guide
+## Installation Guide
 
 Since this host uses older hardware, we use the following high-reliability installation procedure (similar to `shosoin-tan`) to minimize CPU load and ensure compatibility.
 
@@ -34,14 +34,13 @@ To reduce CPU load on the target, we transfer the pre-built image from the build
 2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
 3. **Install:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
 
-## 🔐 Network and Security
+## Network and Security
 - **Boot Method:** Legacy BIOS (MBR)
-- **Update Consumer:** Receives update notifications from `shosoin-tan` and applies them automatically.
-- **ZFS:** `/mnt/tank-80gb` is mounted automatically.
+- **Automated Update:** Periodically pulls configuration updates from the latest `main` branch via the `comin` deployment service.
+- **Data Storage:** `/mnt/scratch` is mounted automatically.
 - **Management IP:** `10.0.0.2` (WireGuard)
 - **Application IP:** `10.0.1.2`
 - **SSH Access Restriction:** For enhanced security, SSH access is limited to the WireGuard (`wg0`) interface.
 
-## ⚠️ Notes
+## Notes
 - **GPU:** The GeForce 8400 GS is extremely old and modern NVIDIA drivers will not work. It runs on the open-source `nouveau` driver or standard kernel drivers.
-- **ZFS Import:** If the pool is not found on the first boot, try a forced import: `sudo zpool import -f tank-80gb`.

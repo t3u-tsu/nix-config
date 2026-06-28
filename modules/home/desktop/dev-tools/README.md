@@ -2,7 +2,7 @@
 
 This directory contains user-specific development environment configurations.
 
-## 📂 Modules
+## Modules
 
 - **`neovim.nix`**: Core Neovim configuration, including aliases (`vi`, `vim`) and a custom desktop entry (`nvim-ghostty`) for file managers.
 - **`git-tools.nix`**: Modern Git TUI tools like `lazygit`.

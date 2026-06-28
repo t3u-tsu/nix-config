@@ -1,48 +1,58 @@
-# My NixOS Fleet
+# nix-config
 
-This repository manages multiple NixOS configurations using Flakes and a **Modular Architecture**.
+[![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
+![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
+[![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
+
+[日本語](README.ja.md)
+
+Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ## Directory Structure
 
-The repository is divided into Modules and Hosts.
-
 ```text
 .
-├── flake.nix           # Entry point for the configuration
-├── hosts/              # Host-specific configurations
-└── modules/            # Reusable modules
-    ├── core/           # Base settings (Nix, Network, User, Sops)
-    ├── hardware/       # Hardware abstraction (NVIDIA, PCIe tools, etc.)
-    ├── packages/       # System package groups (base, monitoring, etc.)
-    ├── home/           # User environment via Home-manager (Shell, Desktop, SSH)
-    ├── services/       # Various services (Minecraft, Desktop)
-    └── profiles/       # Role-based profiles (Desktop, Tower Server)
+├── flake.nix        # System entrypoint
+├── hosts/           # Host-specific configurations (BrokenPC, torii-chan, etc.)
+└── modules/         # Reusable modules
+    ├── core/        # Base system configuration (Nix, networking, SOPS)
+    ├── hardware/    # Hardware-specific modules (NVIDIA, etc.)
+    ├── home/        # User environment (Home Manager)
+    ├── packages/    # System package groups
+    ├── profiles/    # Role-based host profiles
+    └── services/    # Specialized services (Backup, Minecraft, etc.)
 ```
 
-## Deployment and Updates
+## Quick Start
 
-Changes pushed to the `main` branch are automatically pulled and applied across all hosts via **comin** every 5 minutes. No manual trigger or central server is required.
+To apply configurations to the local machine:
 
-## Key Features
+```bash
+sudo nixos-rebuild switch --flake .#<hostname>
+```
 
-- **Modular Architecture**: Clear separation between system (NixOS) and user (Home-manager) layers.
-- **Unified Hardware Abstraction**: NVIDIA driver settings are centralized and architecture-aware (x86_64/AArch64).
-- **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep standardized across all hosts.
-- **Desktop Environment**: Powered by Zen Browser (declarative), Vesktop, Neovim, and Ghostty.
-- **Smart Hardware Tools**: Opt-in to physical server tools via `my.hardware.pc-tools.enable = true`.
-- **Fleet Monitoring Dashboard**: Global metrics aggregated from all hosts via Prometheus and visualized centrally on `torii-chan` using Grafana.
-- **sops-nix**: Secret encryption via `age`.
-- **Automated Backup**: Restic backups managed on shosoin-tan.
+For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 
-For more details, see specific `README.md` files in subdirectories.
+```bash
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+```
+
+For more specific deployment details, check the respective README.md files in hosts/ and modules/.
+
+## CI/CD and Automation
+
+This repository uses GitHub Actions for continuous integration and automated updates:
+
+- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feature/*`/`refactor/*` and on pull requests to ensure that configuration evaluation is clean.
+- **Scheduled Auto Update** (`auto-update.yml`): Runs daily at 04:00 JST. It automatically runs `nvfetcher` to fetch the latest Minecraft plugins and updates `flake.lock` to bump system packages, committing changes directly back to `main`.
 
 ## References
 
-This configuration was built with inspiration and knowledge from the following amazing repositories:
+This configuration was built with inspiration and knowledge from the following repositories:
 
 - **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: Overall modular architecture and Niri setup.
-- **[omarchy-nix](https://github.com/henrysipp/omarchy-nix)**: Intuitive keybindings (Omarchy style).
 - **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Declarative Zen Browser configuration.
 - **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: Best practices for NixOS and Home-manager.
 - **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: Structured module design.
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: Specialized Noctalia Shell configuration and Japanese desktop environment layout.
+- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: Specialized Noctalia configuration and Japanese desktop environment layout.

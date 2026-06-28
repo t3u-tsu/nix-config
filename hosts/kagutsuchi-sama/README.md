@@ -10,7 +10,7 @@ This host is a high-power tower server used for heavy workloads and compute task
   - 500GB SSD (Root/Boot)
   - 3TB HDD (Data)
 
-## 🚀 Installation Guide
+## Installation Guide
 
 Run these commands from the NixOS Installer environment:
 
@@ -37,17 +37,17 @@ Run these commands from the NixOS Installer environment:
    ssh root@<ip> "reboot"
    ```
 
-## 🔐 Access
+## Access
 - **Management IP:** `10.0.0.3` (WireGuard)
 - **SSH Restriction:** SSH is restricted to the WireGuard (`wg0`) interface ONLY.
 - **User:** `t3u` (with wheel/sudo privileges)
 - **Password:** Defined in `secrets.yaml` (managed via sops-nix).
 - **SSH Key:** Enabled for `t3u` and `root`.
 
-## ⚠️ Known Issue: NAT Loopback
+## Known Issue: NAT Loopback
 When this host is in the same LAN as the VPN server (`torii-chan`), VPN connection might fail due to the router's lack of NAT Loopback support for the domain `torii-chan.t3u.uk`.
 
 ### Solution
-Set `my.localNetwork.enable = true;` in `configuration.nix`. This automatically resolves `torii-chan.t3u.uk` to the local IP `192.168.0.128`.
+Set `my.localNetwork.enable = true;` in `configuration.nix` (it is currently commented out by default). This automatically resolves `torii-chan.t3u.uk` to the local IP `192.168.0.128`.
 
-**Important:** If you move this host to a different network, you MUST set `my.localNetwork.enable = false;` and run `nixos-rebuild switch`, otherwise it won't be able to find the VPN server from the outside.
+**Important:** If this host is moved to an external network outside the local VPN LAN, ensure that `my.localNetwork.enable = false;` (or keep it commented out) so that the host resolves the VPN server from the outside.

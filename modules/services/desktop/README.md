@@ -2,7 +2,7 @@
 
 This directory manages system-wide services and hardware integration for the desktop environment.
 
-## 📂 Services
+## Services
 
 - **`niri.nix`**: System-level Niri compositor setup and XDG Desktop Portals.
 - **`greetd.nix`**: Login management using `greetd` and the `tuigreet` TUI greeter.

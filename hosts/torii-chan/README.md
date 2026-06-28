@@ -13,7 +13,7 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
 
 ---
 
-## 🚀 Setup Guide
+## Setup Guide
 
 ### Phase 1: Build & Flash SD Image
 1. **Build the SD Image:**
@@ -32,7 +32,7 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
    nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd-live --target-host root@192.168.0.128
    ```
 
-### Phase 3: Migrate to HDD (Completed ✅)
+### Phase 3: Migrate to HDD (Completed)
 1. **Prepare HDD:** Format with label `NIXOS_HDD`.
 2. **Copy Data:** Rsync `/` to the HDD partition.
 3. **Switch Config:**
@@ -40,13 +40,12 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
    nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo
    ```   *System now boots from HDD with /boot on SD card.*
 
-## 🔐 Services and Secrets
-- **Update Hub:** Coordinated Update Hub managing the fleet update status. Provides status at 10.0.1.1:8080.
+## Services and Secrets
 - **WireGuard:** VPN Server (10.0.0.1).
 - **DDNS:** Cloudflare DDNS (favonia). Requires API Token. Manages `torii-chan.t3u.uk` and Minecraft domains `mc.t3u.uk`, `*.mc.t3u.uk`.
 - **Secrets:** Managed via `sops-nix`. Edit with `sops secrets/secrets.yaml`.
 
-## 🛠️ Operation & Troubleshooting
+## Operation & Troubleshooting
 
 ### Remote Deployment Build Errors (seccomp / sandbox)
 Custom or legacy kernels (like those on Orange Pi) often lack support for modern Linux kernel security features (`user_namespaces`, `seccomp BPF`) required by the Nix daemon.
@@ -79,14 +78,3 @@ To avoid UAS (USB Attached SCSI) compatibility issues with the JMicron JMS583 br
 ### Firewall Log Suppression
 Since this node is exposed to the internet, `logRefusedConnections = false` is set to suppress noisy kernel logs from blocked scan attempts.
 
-### Auto-Update (Update Hub) Sync Failure
-If the commit notified by the Hub is not found locally, sync the repository manually:
-```bash
-cd ~/nix-config
-git fetch --all
-git reset --hard origin/main
-```
-After syncing, trigger the update manually via the webhook port:
-```bash
-curl -X POST http://127.0.0.1:8081/trigger-update
-```

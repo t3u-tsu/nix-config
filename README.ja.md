@@ -1,46 +1,58 @@
-# NixOS 構成管理リポジトリ
+# nix-config
 
-このリポジトリは、NixOSのマルチホスト構成を Flakes と **Modular Architecture** を用いて管理しています。
+[![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
+![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
+[![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
+
+[English](README.md)
+
+Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
 
 ## ディレクトリ構造
 
-リポジトリはModulesとHostsに分かれています。
-
 ```text
 .
-├── flake.nix           # 構成のエントリポイント
-├── hosts/              # ホスト固有の設定 (torii-chan, shosoin-tan, etc.)
-└── modules/            # 再利用可能なモジュール集
-    ├── core/           # 基盤設定 (Nix, Network, User, Sops)
-    ├── packages/       # システムパッケージ群 (base, monitoring, etc.)
-    ├── home/           # Home-manager によるユーザー環境 (Shell, Desktop, SSH)
-    ├── services/       # 各種サービス (Minecraft, Desktop)
-    └── profiles/       # 役割ごとのプロファイル (Desktop, Tower Server)
+├── flake.nix        # システム全体のエントリポイント
+├── hosts/           # ホスト固有の設定 (BrokenPC, torii-chan, etc.)
+└── modules/         # 再利用可能なモジュール集
+    ├── core/        # 基本システム設定 (Nix, ネットワーク, SOPS)
+    ├── hardware/    # ハードウェア固有設定 (NVIDIA, udev 等)
+    ├── home/        # ユーザー環境設定 (Home Manager)
+    ├── packages/    # システムパッケージグループの定義
+    ├── profiles/    # 役割別のホストプロファイル
+    └── services/    # 特殊なサービス設定 (バックアップ, Minecraft 等)
 ```
 
-## デプロイ
+## クイックスタート
 
-`main` ブランチに Push された変更は、**comin** によって5分おきに全ホストへ自動的に Pull され、反映されます。手動のトリガーや中央サーバーへの通知は不要です。
+ローカルマシンの設定を適用する場合：
 
-## 主な機能
+```bash
+sudo nixos-rebuild switch --flake .#<hostname>
+```
 
-- **Modular Architecture**: システム層 (NixOS) とユーザー層 (Home-manager) を明確に分離。
-- **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep 等を全ホストで標準化。
-- **Desktop Environment**: Zen Browser (宣言的設定), Vesktop, Neovim, Ghostty による最強のデスクトップ体験。
-- **Smart Hardware Tools**: `my.hardware.pc-tools.enable = true` で物理サーバー用ツールをオプトイン。
-- **Fleet Monitoring Dashboard**: Prometheus と Grafana を統合し、全ホストから集約したメトリクスを `torii-chan` 上のダッシュボードで一元管理。
-- **sops-nix**: `age` を用いた機密情報の暗号化管理。
-- **Automated Backup**: Restic による自動バックアップ (shosoin-tan)。
+リモートマシン（例: Orange Pi Zero 3 の `torii-chan`）へデプロイする場合：
 
-詳細は各モジュールの `README.md` を参照してください。
+```bash
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+```
 
-## 参考文献 (References)
+より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください．
 
-本構成の構築にあたり、多くの知見を以下のリポジトリから参考にさせていただきました：
+## CI/CD と自動化
 
-- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成。
-- **[omarchy-nix](https://github.com/henrysipp/omarchy-nix)**: 快適なキーバインド（Omarchy スタイル）の設計。
-- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定。
-- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス。
-- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計。
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia Shell 設定と日本語デスクトップ環境。
+GitHub Actions を利用して，構成の継続的インテグレーションと自動更新を行っています．
+
+- **Nix Flake Check** (`nix-check.yml`): `main` や `feature/*`, `refactor/*` ブランチへのプッシュ，およびプルリクエスト時に自動で `nix flake check` を実行し，設定にエラーがないか検証します．
+- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に実行されます．`nvfetcher` による Minecraft プラグインの最新化と，`nix flake update` による `flake.lock` の更新を自動で行い，結果を `main` へコミットします．
+
+## 参考文献
+
+本構成の構築にあたり，多くの知見を以下のリポジトリから参考にさせていただきました．
+
+- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成．
+- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定．
+- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス．
+- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計．
+- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia 設定と日本語デスクトップ環境．
