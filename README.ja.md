@@ -5,6 +5,8 @@
 ![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
 [![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
 
+[English](README.md)
+
 Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
 
 ## ディレクトリ構造
