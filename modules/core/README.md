@@ -10,4 +10,5 @@ The foundational infrastructure of the system configuration.
 - **`wireguard.nix`**: Common retry logic and automation for WireGuard interfaces.
 - **`sops.nix`**: Master SOPS configuration for secret management.
 - **`time.nix`**: Timezone and clock settings.
+- **`i18n.nix`**: Internationalization and locales configuration.
 - **`default.nix`**: Common imports for all hosts.
