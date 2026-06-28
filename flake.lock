@@ -43,6 +43,27 @@
         "url": "https://codeberg.org/LGFae/awww"
       }
     },
+    "codewhale": {
+      "inputs": {
+        "fenix": "fenix",
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782629098,
+        "narHash": "sha256-K49QCbRlAdwMV1ZLQiL/534n8iYvig/0ibC1VsXofmw=",
+        "owner": "Hmbown",
+        "repo": "CodeWhale",
+        "rev": "c2f66a86cfa4d74489c5e02fbd13fedb2ea01926",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Hmbown",
+        "repo": "CodeWhale",
+        "type": "github"
+      }
+    },
     "comin": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -82,6 +103,28 @@
       "original": {
         "owner": "nix-community",
         "repo": "disko",
+        "type": "github"
+      }
+    },
+    "fenix": {
+      "inputs": {
+        "nixpkgs": [
+          "codewhale",
+          "nixpkgs"
+        ],
+        "rust-analyzer-src": "rust-analyzer-src"
+      },
+      "locked": {
+        "lastModified": 1777884425,
+        "narHash": "sha256-MzIEqXcx2EzJXOqrGETHFlzx6aGP2NhLVLxrM+ej41s=",
+        "owner": "nix-community",
+        "repo": "fenix",
+        "rev": "18454832b8f5d6cb33910382defc793dd78306f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "fenix",
         "type": "github"
       }
     },
@@ -508,6 +551,7 @@
       "inputs": {
         "antigravity-nix": "antigravity-nix",
         "awww": "awww",
+        "codewhale": "codewhale",
         "comin": "comin",
         "disko": "disko",
         "ghostty": "ghostty",
@@ -522,6 +566,23 @@
         "sops-nix": "sops-nix",
         "spicetify-nix": "spicetify-nix",
         "zen-browser": "zen-browser"
+      }
+    },
+    "rust-analyzer-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777843182,
+        "narHash": "sha256-AO068PumYkLmubBSjlEQKAsnhVdF1Es7NC25X3KmuOw=",
+        "owner": "rust-lang",
+        "repo": "rust-analyzer",
+        "rev": "f04c37286472e3687a2d32d3d1fad2772de515a1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rust-lang",
+        "ref": "nightly",
+        "repo": "rust-analyzer",
+        "type": "github"
       }
     },
     "rust-overlay": {

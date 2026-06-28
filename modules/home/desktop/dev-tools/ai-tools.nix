@@ -30,6 +30,10 @@ in
       })
 
       agn-pkgs.google-antigravity-cli
+
+      (inputs.codewhale.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
+        doCheck = false;
+      }))
     ];
   };
 }

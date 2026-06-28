@@ -19,7 +19,6 @@
       plugins = [
         "git"
         "sudo"
-        "docker"
         "direnv"
       ];
       theme = ""; # Starship handles the prompt
