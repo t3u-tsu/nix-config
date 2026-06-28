@@ -10,7 +10,7 @@ NixOS desktop machine with a hybrid GPU configuration. This host is a "Victus by
 - **RAM**: 16GB DDR5
 - **Storage**: 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`)
 
-## 🚀 Installation Guide (Clean Install)
+## Installation Guide (Clean Install)
 
 ### Phase 1: Disk Preparation
 1. **Boot from NixOS Installer USB.**

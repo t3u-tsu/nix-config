@@ -1,8 +1,8 @@
-# NixOS Fleet 構成管理
+# nix-config
 
-Flakes を用いて、個人用のデスクトップおよびサーバー群の NixOS 設定を宣言的に一元管理するリポジトリです。
+Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
 
-## 📂 ディレクトリ構造
+## ディレクトリ構造
 
 ```text
 .
@@ -17,7 +17,7 @@ Flakes を用いて、個人用のデスクトップおよびサーバー群の 
     └── services/    # 特殊なサービス設定 (バックアップ, Minecraft 等)
 ```
 
-## 🚀 クイックスタート
+## クイックスタート
 
 ローカルマシンの設定を適用する場合：
 
@@ -31,4 +31,14 @@ sudo nixos-rebuild switch --flake .#<hostname>
 nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
 ```
 
-より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください。
+より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください．
+
+## 参考文献
+
+本構成の構築にあたり，多くの知見を以下のリポジトリから参考にさせていただきました．
+
+- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成．
+- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定．
+- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス．
+- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計．
+- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia 設定と日本語デスクトップ環境．

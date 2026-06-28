@@ -13,7 +13,7 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
 
 ---
 
-## 🚀 Setup Guide
+## Setup Guide
 
 ### Phase 1: Build & Flash SD Image
 1. **Build the SD Image:**
@@ -40,13 +40,13 @@ This directory contains the NixOS configuration for `torii-chan`, an Orange Pi Z
    nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo
    ```   *System now boots from HDD with /boot on SD card.*
 
-## 🔐 Services and Secrets
+## Services and Secrets
 - **Update Hub:** Coordinated Update Hub managing the fleet update status. Provides status at 10.0.1.1:8080.
 - **WireGuard:** VPN Server (10.0.0.1).
 - **DDNS:** Cloudflare DDNS (favonia). Requires API Token. Manages `torii-chan.t3u.uk` and Minecraft domains `mc.t3u.uk`, `*.mc.t3u.uk`.
 - **Secrets:** Managed via `sops-nix`. Edit with `sops secrets/secrets.yaml`.
 
-## 🛠️ Operation & Troubleshooting
+## Operation & Troubleshooting
 
 ### Remote Deployment Build Errors (seccomp / sandbox)
 Custom or legacy kernels (like those on Orange Pi) often lack support for modern Linux kernel security features (`user_namespaces`, `seccomp BPF`) required by the Nix daemon.

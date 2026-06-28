@@ -2,14 +2,14 @@
 
 This directory manages the Niri scrollable-tiling Wayland compositor and its ecosystem, now fully unified with Noctalia Shell.
 
-## 📂 Components
+## Components
 
 - **`default.nix`**: Core Niri settings, including layout, window rules, and keybindings (Omarchy + Vim style).
 - **`noctalia/`**: Modularized configuration for `noctalia` providing status bars, launchers, notifications, and OSD.
 - **`addons.nix`**: Companion tools like `cliphist` and desktop utilities.
 - **`power.nix`**: Power management and locking via Noctalia IPC and `hypridle`.
 
-## ⌨️ Keybindings Highlights
+## Keybindings Highlights
 
 - `Mod + Return`: Terminal
 - `Mod + Shift + B`: Browser (Zen)

@@ -4,13 +4,13 @@
 
 ---
 
-## 🚀 プロジェクト概要
+## プロジェクト概要
 
 本リポジトリは、宣言的で高度にカスタマイズされたデスクトップ環境及びサーバー群の構築を目指しています。
 
 ---
 
-## 🛠️ 開発ワークフロー
+## 開発ワークフロー
 
 ### 1. 作業の基本ルール
 - **ブランチ戦略**: 直接 `main` にコミットせず、`feature/<name>` または `refactor/<name>` ブランチを作成してください。
@@ -52,7 +52,7 @@
 
 ---
 
-## 📖 構成ディレクトリ構造
+## 構成ディレクトリ構造
 
 - `modules/core/`: システム基盤（Network, Sops, Nix）
 - `modules/home/`: ユーザー環境（Home-manager）
@@ -63,7 +63,7 @@
 
 ---
 
-## 🧠 ナレッジ＆開発ベストプラクティス（Cachix & Flakes 最適化）
+## ナレッジ＆開発ベストプラクティス（Cachix & Flakes 最適化）
 
 今後の追加開発や設定最適化において、開発エージェントが従うべき重要な知見およびベストプラクティスです。
 
@@ -99,7 +99,7 @@
 
 
 
-## 💡 便利なコマンド集
+## 便利なコマンド集
 
 - **デプロイ**: `sudo nixos-rebuild switch --flake .#BrokenPC`
 - **torii-chan デプロイ (手動/SBC用)**: `nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false`

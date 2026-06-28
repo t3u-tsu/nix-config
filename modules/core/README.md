@@ -2,7 +2,7 @@
 
 The foundational infrastructure of the system configuration.
 
-## 📂 Modules
+## Modules
 
 - **`user.nix`**: Abstracted primary user definition (`my.user.name`).
 - **`nix.nix`**: Nix settings, experimental features, garbage collection, and binary caches (substituters).

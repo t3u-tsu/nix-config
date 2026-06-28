@@ -2,7 +2,7 @@
 
 Pre-defined groups of system-level packages that can be enabled or disabled via options.
 
-## 📂 Categories
+## Categories
 
 - **`base.nix`**: Core essentials (git, vim, etc.) required for basic system administration.
 - **`monitoring.nix`**: System monitoring tools (btop, fastfetch, etc.) and hardware-specific tools.

@@ -11,7 +11,7 @@ This host is a tower server equipped with an Intel Core i7-870 and a ZFS Mirror 
   - 1TB HDD x2 (ZFS Mirror: `tank-1tb`)
   - 320GB HDD x2 (ZFS Mirror: `tank-320gb`)
 
-## 🚀 Installation Guide
+## Installation Guide
 
 Due to older hardware and high build loads, this host uses a specific remote-build installation procedure for stability.
 
@@ -35,7 +35,7 @@ To avoid CPU freezes on the target, build the image on a build host and transfer
 2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
 3. **Install:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
 
-## 🔐 Network and Security
+## Network and Security
 - **Boot Method:** Legacy BIOS (MBR)
 - **Update Producer:** Central update manager for the fleet. Automatically updates `flake.lock` and plugins daily at 04:00, pushes to Git, and notifies the Hub.
 - **Minecraft Data:** Located at `/srv/minecraft`.
@@ -47,6 +47,6 @@ To avoid CPU freezes on the target, build the image on a build host and transfer
 - **MTU Setting:** WireGuard MTU is set to `1380` to ensure stability when using USB-LAN adapters.
 - **SSH Access Control:** Limited to the WireGuard (`wg0`) interface ONLY for enhanced security.
 
-## ⚠️ Notes
+## Notes
 - **Overclocking:** CPU overclocking can cause instability (Kernel Oops) during heavy Nix builds. Running at stock speeds is highly recommended.
 - **resolv.conf:** If networking services fail due to signature mismatch after installation, manually delete `/etc/resolv.conf` and restart.
