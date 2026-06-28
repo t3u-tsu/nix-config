@@ -49,7 +49,7 @@
   '';
 
   # https://devenv.sh/git-hooks/
-  git-hooks.hooks.nixfmt-rfc-style.enable = true;
+  git-hooks.hooks.nixfmt.enable = true;
   git-hooks.hooks.statix.enable = true;
 
   # See full reference at https://devenv.sh/reference/options/
