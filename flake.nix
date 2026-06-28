@@ -7,6 +7,10 @@
     ghostty = {
       url = "github:ghostty-org/ghostty";
     };
+    codewhale = {
+      url = "github:Hmbown/CodeWhale";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
