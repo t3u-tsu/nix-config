@@ -1,5 +1,10 @@
 # nix-config
 
+[![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
+![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
+[![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
+
 Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
 
 ## ディレクトリ構造
@@ -32,6 +37,13 @@ nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remot
 ```
 
 より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください．
+
+## CI/CD と自動化
+
+GitHub Actions を利用して，構成の継続的インテグレーションと自動更新を行っています．
+
+- **Nix Flake Check** (`nix-check.yml`): `main` や `feature/*`, `refactor/*` ブランチへのプッシュ，およびプルリクエスト時に自動で `nix flake check` を実行し，設定にエラーがないか検証します．
+- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に実行されます．`nvfetcher` による Minecraft プラグインの最新化と，`nix flake update` による `flake.lock` の更新を自動で行い，結果を `main` へコミットします．
 
 ## 参考文献
 

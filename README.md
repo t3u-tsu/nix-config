@@ -1,5 +1,10 @@
 # nix-config
 
+[![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
+![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
+[![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
+
 Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ## Directory Structure
@@ -32,6 +37,13 @@ nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remot
 ```
 
 For more specific deployment details, check the respective README.md files in hosts/ and modules/.
+
+## CI/CD and Automation
+
+This repository uses GitHub Actions for continuous integration and automated updates:
+
+- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feature/*`/`refactor/*` and on pull requests to ensure that configuration evaluation is clean.
+- **Scheduled Auto Update** (`auto-update.yml`): Runs daily at 04:00 JST. It automatically runs `nvfetcher` to fetch the latest Minecraft plugins and updates `flake.lock` to bump system packages, committing changes directly back to `main`.
 
 ## References
 
