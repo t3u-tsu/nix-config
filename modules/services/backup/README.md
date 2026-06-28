@@ -19,23 +19,7 @@ This directory manages the global backup configuration using Restic.
 - `/srv/minecraft`: All Minecraft world data.
 - `/var/lib/minecraft-discord-bridge`: Discord Bridge database (bridge.db).
 
-## Restoration Procedure
-
-1.  Identify the Snapshot ID:
-    ```bash
-    sudo restic -r /mnt/tank-1tb/backups/minecraft snapshots
-    ```
-2.  Mount the backup to browse files (recommended):
-    ```bash
-    mkdir /tmp/restore-view
-    sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
-    ```
-3.  Restore specific files:
-    ```bash
-    sudo restic -r <repo_path> restore <ID> --target / --include "/var/lib/minecraft-discord-bridge/bridge.db"
-    ```
-
-
+## Operational Commands
 
 ### Check Status
 ```bash
@@ -60,11 +44,19 @@ sudo restic -r sftp:restic-shosoin@10.0.1.3:/mnt/data/backups/shosoin-tan snapsh
 
 ## Restoration Procedure
 
-1.  Identify the Snapshot ID using the list command above.
-2.  Run the restore command:
-    ```bash
-    sudo restic -r <repo_path> restore <ID> --target /path/to/restore
-    ```
+1. **Mount the backup to browse files (recommended):**
+   ```bash
+   mkdir /tmp/restore-view
+   sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
+   ```
+2. **Or restore specific files directly:**
+   ```bash
+   sudo restic -r <repo_path> restore <ID> --target / --include "/var/lib/minecraft-discord-bridge/bridge.db"
+   ```
+3. **Restore to custom target:**
+   ```bash
+   sudo restic -r <repo_path> restore <ID> --target /path/to/restore
+   ```
 
 ## Notes
 - Remote connections require `programs.ssh.extraConfig` to specify the identity file.

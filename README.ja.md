@@ -1,46 +1,34 @@
-# NixOS 構成管理リポジトリ
+# NixOS Fleet 構成管理
 
-このリポジトリは、NixOSのマルチホスト構成を Flakes と **Modular Architecture** を用いて管理しています。
+Flakes を用いて、個人用のデスクトップおよびサーバー群の NixOS 設定を宣言的に一元管理するリポジトリです。
 
-## ディレクトリ構造
-
-リポジトリはModulesとHostsに分かれています。
+## 📂 ディレクトリ構造
 
 ```text
 .
-├── flake.nix           # 構成のエントリポイント
-├── hosts/              # ホスト固有の設定 (torii-chan, shosoin-tan, etc.)
-└── modules/            # 再利用可能なモジュール集
-    ├── core/           # 基盤設定 (Nix, Network, User, Sops)
-    ├── packages/       # システムパッケージ群 (base, monitoring, etc.)
-    ├── home/           # Home-manager によるユーザー環境 (Shell, Desktop, SSH)
-    ├── services/       # 各種サービス (Minecraft, Desktop)
-    └── profiles/       # 役割ごとのプロファイル (Desktop, Tower Server)
+├── flake.nix        # システム全体のエントリポイント
+├── hosts/           # ホスト固有の設定 (BrokenPC, torii-chan, etc.)
+└── modules/         # 再利用可能なモジュール集
+    ├── core/        # 基本システム設定 (Nix, ネットワーク, SOPS)
+    ├── hardware/    # ハードウェア固有設定 (NVIDIA, udev 等)
+    ├── home/        # ユーザー環境設定 (Home Manager)
+    ├── packages/    # システムパッケージグループの定義
+    ├── profiles/    # 役割別のホストプロファイル
+    └── services/    # 特殊なサービス設定 (バックアップ, Minecraft 等)
 ```
 
-## デプロイ
+## 🚀 クイックスタート
 
-`main` ブランチに Push された変更は、**comin** によって5分おきに全ホストへ自動的に Pull され、反映されます。手動のトリガーや中央サーバーへの通知は不要です。
+ローカルマシンの設定を適用する場合：
 
-## 主な機能
+```bash
+sudo nixos-rebuild switch --flake .#<hostname>
+```
 
-- **Modular Architecture**: システム層 (NixOS) とユーザー層 (Home-manager) を明確に分離。
-- **Modern CLI Tools**: Starship, Atuin, Zellij, Yazi, fzf, ripgrep 等を全ホストで標準化。
-- **Desktop Environment**: Zen Browser (宣言的設定), Vesktop, Neovim, Ghostty による最強のデスクトップ体験。
-- **Smart Hardware Tools**: `my.hardware.pc-tools.enable = true` で物理サーバー用ツールをオプトイン。
-- **Fleet Monitoring Dashboard**: Prometheus と Grafana を統合し、全ホストから集約したメトリクスを `torii-chan` 上のダッシュボードで一元管理。
-- **sops-nix**: `age` を用いた機密情報の暗号化管理。
-- **Automated Backup**: Restic による自動バックアップ (shosoin-tan)。
+リモートマシン（例: Orange Pi Zero 3 の `torii-chan`）へデプロイする場合：
 
-詳細は各モジュールの `README.md` を参照してください。
+```bash
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+```
 
-## 参考文献 (References)
-
-本構成の構築にあたり、多くの知見を以下のリポジトリから参考にさせていただきました：
-
-- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成。
-- **[omarchy-nix](https://github.com/henrysipp/omarchy-nix)**: 快適なキーバインド（Omarchy スタイル）の設計。
-- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定。
-- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス。
-- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計。
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia Shell 設定と日本語デスクトップ環境。
+より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください。
