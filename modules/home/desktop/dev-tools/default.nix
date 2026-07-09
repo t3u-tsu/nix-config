@@ -15,7 +15,7 @@ in
     ./ai-tools.nix
     ./hardware.nix
     ./ghostty.nix
-    ./unity.nix
+    ./unity
   ];
 
   config = mkIf cfg.enable {
