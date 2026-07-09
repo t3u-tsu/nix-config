@@ -88,7 +88,9 @@
               ffadoSupport = false;
               ffado = null;
               libcamera = prev.pkgsi686Linux.libcamera.overrideAttrs (old: {
-                meta = (old.meta or {}) // { platforms = []; };
+                meta = (old.meta or { }) // {
+                  platforms = [ ];
+                };
               });
               rocSupport = false;
               roc-toolkit = null;
