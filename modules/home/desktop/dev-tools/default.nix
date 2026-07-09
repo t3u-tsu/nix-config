@@ -27,6 +27,7 @@ in
       hardware.enable = mkDefault true;
       ghostty.enable = mkDefault true;
       unity.enable = mkDefault true;
+      unity.useDistrobox = mkDefault true;
     };
   };
 }

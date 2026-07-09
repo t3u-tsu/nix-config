@@ -44,7 +44,6 @@
     };
     noctalia-shell = {
       url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "niri/nixpkgs";
     };
     awww = {
       url = "git+https://codeberg.org/LGFae/awww";
@@ -82,6 +81,19 @@
         inputs.niri.overlays.niri
         (final: prev: {
           ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
+        })
+        (final: prev: {
+          pkgsi686Linux = prev.pkgsi686Linux // {
+            pipewire = prev.pkgsi686Linux.pipewire.override {
+              ffadoSupport = false;
+              ffado = null;
+              libcamera = prev.pkgsi686Linux.libcamera.overrideAttrs (old: {
+                meta = (old.meta or {}) // { platforms = []; };
+              });
+              rocSupport = false;
+              roc-toolkit = null;
+            };
+          };
         })
         (final: prev: {
           # Access unstable packages via 'unstable' attribute

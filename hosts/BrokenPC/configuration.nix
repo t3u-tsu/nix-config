@@ -100,6 +100,9 @@
     mode = "0600";
   };
 
+  # Distrobox container environment
+  my.core.distrobox.enable = true;
+
   # Local network tools
   my.hardware.pc-tools.enable = true;
 
