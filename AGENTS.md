@@ -54,10 +54,13 @@
 
 ## 構成ディレクトリ構造
 
-- `modules/core/`: システム基盤（Network, Sops, Nix）
-- `modules/home/`: ユーザー環境（Home-manager）
-    - `desktop/`: GUI アプリ、WM (Niri/Noctalia)
-    - `shell/`: Zsh, Starship, CLI ツール
+- `nixos/base/`: システム基盤（Network, Sops, Nix）
+- `nixos/environment/`: システムパッケージ
+- `nixos/hardware/`: ハードウェア固有設定
+- `nixos/profiles/`: 役割別プロファイル
+- `nixos/services/`: システムサービス
+- `home/base/`: ユーザーシェル環境（Zsh, Starship, CLI ツール）
+- `home/desktop/`: GUI アプリ、WM (Niri/Noctalia)
 - `hosts/`: マシン固有の定義
 - `secrets/`: SOPS による機密情報管理
 
@@ -75,7 +78,7 @@
 
 ### 2. Cachix バイナリキャッシュの優先度（Priority）設計
 - **クエリ評価順序の最適化**:
-  `modules/core/nix.nix` の `extra-substituters` に登録するキャッシュ URL には、`?priority=` パラメータを明示的に付与して評価の優先順位を制御します。
+  `nixos/base/nix.nix` の `extra-substituters` に登録するキャッシュ URL には、`?priority=` パラメータを明示的に付与して評価の優先順位を制御します。
   - **専門枠 (priority=30)**: `ghostty`, `niri` など（公式の `40` より先にヒットさせたいもの）
   - **コミュニティ枠 (priority=41)**: `nix-community` （公式の直後）
   - **特定専門枠 (priority=45)**: `cuda-maintainers`, `nix-gaming`

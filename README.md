@@ -13,15 +13,27 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ```text
 .
-├── flake.nix        # System entrypoint
-├── hosts/           # Host-specific configurations (BrokenPC, torii-chan, etc.)
-└── modules/         # Reusable modules
-    ├── core/        # Base system configuration (Nix, networking, SOPS)
-    ├── hardware/    # Hardware-specific modules (NVIDIA, etc.)
-    ├── home/        # User environment (Home Manager)
-    ├── packages/    # System package groups
-    ├── profiles/    # Role-based host profiles
-    └── services/    # Specialized services (Backup, Minecraft, etc.)
+├── flake.nix            # flake-parts entrypoint
+├── flake/               # flake-parts modules
+│   ├── overlays.nix     # Nixpkgs overlays
+│   └── hosts.nix        # nixosConfigurations
+├── nixos/               # NixOS system modules
+│   ├── base/            # OS foundation (users, Nix, networking, SOPS, WireGuard)
+│   ├── environment/     # System packages
+│   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
+│   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc)
+│   └── services/        # System services (backup, Minecraft, deployment, etc.)
+├── home/                # Home Manager modules
+│   ├── base/            # Shell, CLI tools, Git, SSH, Starship, Atuin
+│   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
+├── hosts/               # Host-specific configurations
+│   ├── BrokenPC/        # Desktop PC (NixOS)
+│   ├── torii-chan/      # Orange Pi Zero 3 SBC (NixOS, aarch64)
+│   ├── shosoin-tan/     # Tower server (NixOS)
+│   ├── kagutsuchi-sama/ # Tower server (NixOS)
+│   └── sando-kun/       # Tower server (NixOS)
+├── lib/                 # Helper functions (mkSystem)
+└── secrets/             # SOPS-encrypted secrets
 ```
 
 ## Quick Start

@@ -1,49 +1,45 @@
 {
-  description = "My NixOS configuration";
+  description = "My NixOS configuration fleet";
 
   inputs = {
+    # === Framework ===
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
+    # === Nixpkgs ===
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ghostty = {
-      url = "github:ghostty-org/ghostty";
-    };
-    codewhale = {
-      url = "github:Hmbown/CodeWhale";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
+
+    # === System Modules ===
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    disko = {
-      url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-minecraft = {
-      url = "github:Infinidoge/nix-minecraft";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    minecraft-discord-bridge = {
-      url = "github:t3u-tsu/minecraft-discord-bridge";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    comin = {
+      url = "github:nlewo/comin";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # === Desktop Environment ===
     niri = {
       url = "github:sodiboo/niri-flake";
     };
     noctalia-shell = {
       url = "github:noctalia-dev/noctalia-shell";
+    };
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+    };
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     awww = {
       url = "git+https://codeberg.org/LGFae/awww";
@@ -53,154 +49,45 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    comin = {
-      url = "github:nlewo/comin";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     antigravity-nix = {
       url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
+    # === Services ===
+    nix-minecraft = {
+      url = "github:Infinidoge/nix-minecraft";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    minecraft-discord-bridge = {
+      url = "github:t3u-tsu/minecraft-discord-bridge";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # === Developer Tools ===
+    codewhale = {
+      url = "github:Hmbown/CodeWhale";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-unstable,
-      home-manager,
-      disko,
-      sops-nix,
-      nix-minecraft,
-      ...
-    }@inputs:
-    let
-      # Overlays for cross-compilation, Minecraft, and Unstable packages
-      overlays = [
-        nix-minecraft.overlay
-        inputs.niri.overlays.niri
-        (final: prev: {
-          ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
-        })
-        (final: prev: {
-          pkgsi686Linux = prev.pkgsi686Linux // {
-            pipewire = prev.pkgsi686Linux.pipewire.override {
-              ffadoSupport = false;
-              ffado = null;
-              libcamera = prev.pkgsi686Linux.libcamera.overrideAttrs (old: {
-                meta = (old.meta or { }) // {
-                  platforms = [ ];
-                };
-              });
-              rocSupport = false;
-              roc-toolkit = null;
-            };
-          };
-        })
-        (final: prev: {
-          # Access unstable packages via 'unstable' attribute
-          unstable = import nixpkgs-unstable {
-            inherit (prev.stdenv.hostPlatform) system;
-            config.allowUnfree = true;
-          };
-
-          ubootOrangePiZero3 = prev.buildUBoot {
-            version = "2024.01";
-            defconfig = "orangepi_zero3_defconfig";
-            extraMeta.platforms = [ "aarch64-linux" ];
-            BL31 = "${prev.armTrustedFirmwareAllwinnerH616}/bl31.bin";
-            filesToInstall = [ "u-boot-sunxi-with-spl.bin" ];
-            src = prev.fetchFromGitHub {
-              owner = "u-boot";
-              repo = "u-boot";
-              rev = "v2024.01"; # New version with H618 support
-              sha256 = "sha256-0Da7Czy9cpQ+D5EICc3/QSZhAdCBsmeMvBgykYhAQFw="; # Placeholder hash
-            };
-          };
-        })
+    { flake-parts, ... }@inputs:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        ./flake/overlays.nix
+        ./flake/hosts.nix
       ];
-      lib = import ./lib {
-        inherit
-          nixpkgs
-          inputs
-          home-manager
-          disko
-          sops-nix
-          nix-minecraft
-          overlays
-          ;
-      };
-    in
-    {
-      inherit lib;
-      nixosConfigurations = {
-        # 1. For SD card creation (No Disko, uses standard modules)
-        "torii-chan-sd" = lib.mkSystem {
-          name = "torii-chan"; # Same hostname
-          username = "t3u";
-          system = "x86_64-linux";
-          targetSystem = "aarch64-linux";
-          extraModules = [
-            ./hosts/torii-chan/sd-image-installer.nix
-            # Add U-Boot package via Overlays if necessary
-            (
-              { config, pkgs, ... }:
-              {
-                nixpkgs.overlays = overlays;
-              }
-            )
-          ];
-        };
 
-        # 2. For Production / HDD operation
-        "torii-chan" = lib.mkSystem {
-          name = "torii-chan";
-          username = "t3u";
-          system = "aarch64-linux";
-          extraModules = [
-            ./hosts/torii-chan/fs-hdd.nix
-            ./hosts/torii-chan/production-security.nix
-          ];
-        };
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
-        # 3. For continuous development on SD card (No HDD)
-        "torii-chan-sd-live" = lib.mkSystem {
-          name = "torii-chan";
-          username = "t3u";
-          system = "aarch64-linux";
-          extraModules = [
-            ./hosts/torii-chan/fs-sd.nix
-            ./hosts/torii-chan/production-security.nix
-          ];
+      perSystem =
+        { pkgs, ... }:
+        {
+          formatter = pkgs.nixfmt-rfc-style;
         };
-
-        # 4. Tower Server (shosoin-tan)
-        "shosoin-tan" = lib.mkSystem {
-          name = "shosoin-tan";
-          username = "t3u";
-          system = "x86_64-linux";
-        };
-
-        # 5. Tower Server (kagutsuchi-sama)
-        "kagutsuchi-sama" = lib.mkSystem {
-          name = "kagutsuchi-sama";
-          username = "t3u";
-          system = "x86_64-linux";
-        };
-
-        # 6. Tower Server (sando-kun)
-        "sando-kun" = lib.mkSystem {
-          name = "sando-kun";
-          username = "t3u";
-          system = "x86_64-linux";
-        };
-
-        # 7. Desktop PC (BrokenPC)
-        "BrokenPC" = lib.mkSystem {
-          name = "BrokenPC";
-          username = "t3u";
-          system = "x86_64-linux";
-        };
-      };
     };
 }
