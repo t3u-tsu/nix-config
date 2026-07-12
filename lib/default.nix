@@ -40,7 +40,7 @@
               inputs.nix-index-database.homeModules.nix-index
               inputs.zen-browser.homeModules.default
               sops-nix.homeManagerModules.sops
-              inputs.noctalia-shell.homeModules.default
+              inputs.noctalia.homeModules.default
             ];
           };
           nixpkgs.overlays = overlays;

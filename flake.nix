@@ -31,8 +31,8 @@
     niri = {
       url = "github:sodiboo/niri-flake";
     };
-    noctalia-shell = {
-      url = "github:noctalia-dev/noctalia-shell";
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/cachix";
     };
     ghostty = {
       url = "github:ghostty-org/ghostty";
