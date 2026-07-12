@@ -35,6 +35,9 @@ in
     home.sessionVariables = {
       GTK_IM_MODULE = mkForce "";
       QT_IM_MODULE = mkForce "";
+      XMODIFIERS = mkForce "@im=fcitx";
+      SDL_IM_MODULE = mkForce "fcitx";
+      GLFW_IM_MODULE = mkForce "ibus";
     };
 
     # Fcitx5 ユーザープロファイル設定 (宣言的に Mozc を有効化)

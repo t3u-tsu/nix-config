@@ -1,7 +1,7 @@
 # flake/overlays.nix - Nixpkgs overlays used across all nixosConfigurations
-{ inputs, ... }:
+{ inputs, lib, ... }:
 {
-  flake.nixosOverlays = [
+  flake.overlays.default = lib.composeManyExtensions [
     # Minecraft server overlay
     inputs.nix-minecraft.overlay
 

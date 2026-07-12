@@ -18,23 +18,27 @@
   nixpkgs.config.allowUnfree = true;
 
   # Hardware settings (AMD CPU + HP Victus specifics)
-  boot.initrd.availableKernelModules = [
-    "nvme"
-    "xhci_pci"
-    "usb_storage"
-    "usbhid"
-    "sd_mod"
-    "sdhci_pci"
-    "amdgpu"
-  ];
-  boot.initrd.kernelModules = [ "amdgpu" ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.kernelParams = [
-    "amd_iommu=on"
-    "iommu=pt"
-    "i8042.nopnp"
-  ];
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd.availableKernelModules = [
+      "nvme"
+      "xhci_pci"
+      "usb_storage"
+      "usbhid"
+      "sd_mod"
+      "sdhci_pci"
+      "amdgpu"
+    ];
+    initrd.kernelModules = [ "amdgpu" ];
+    kernelModules = [ "kvm-amd" ];
+    kernelParams = [
+      "amd_iommu=on"
+      "iommu=pt"
+      "i8042.nopnp"
+    ];
+    extraModulePackages = [ ];
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = true;
+  };
 
   # Firmware management (Crucial for Wi-Fi, BT, and GPU)
   hardware.enableRedistributableFirmware = true;
@@ -47,23 +51,24 @@
 
   # GPU Configuration (Super-Conservative NVIDIA + AMD Hybrid)
   services.xserver.videoDrivers = [ "amdgpu" ]; # "nvidia" is added by the module
-  my.hardware.nvidia = {
-    enable = true;
-    prime = {
+  my = {
+    hardware.nvidia = {
       enable = true;
-      offload.enable = false;
-      sync.enable = true;
-      nvidiaBusId = "PCI:1:0:0";
-      amdgpuBusId = "PCI:7:0:0";
+      prime = {
+        enable = true;
+        offload.enable = false;
+        sync.enable = true;
+        nvidiaBusId = "PCI:1:0:0";
+        amdgpuBusId = "PCI:7:0:0";
+      };
     };
+    hardware.pc-tools.enable = true;
+    core.distrobox.enable = true;
+    services.desktop.gaming.enable = true;
   };
 
   # Hostname
   networking.hostName = "BrokenPC";
-
-  # Bootloader configuration
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
   # Basic networking
   networking.networkmanager.enable = true;
@@ -99,15 +104,6 @@
     group = "users";
     mode = "0600";
   };
-
-  # Distrobox container environment
-  my.core.distrobox.enable = true;
-
-  # Local network tools
-  my.hardware.pc-tools.enable = true;
-
-  # Gaming services
-  my.services.desktop.gaming.enable = true;
 
   system.stateVersion = "26.05";
 }

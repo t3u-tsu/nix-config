@@ -5,7 +5,7 @@
   home-manager,
   sops-nix,
   nix-minecraft,
-  overlays,
+  overlays ? [ ],
 }:
 
 {
@@ -31,16 +31,18 @@
         inputs.nix-index-database.nixosModules.nix-index
         inputs.comin.nixosModules.comin
         {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "backup";
-          home-manager.extraSpecialArgs = { inherit inputs; };
-          home-manager.sharedModules = [
-            inputs.nix-index-database.homeModules.nix-index
-            inputs.zen-browser.homeModules.default
-            sops-nix.homeManagerModules.sops
-            inputs.noctalia-shell.homeModules.default
-          ];
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            backupFileExtension = "backup";
+            extraSpecialArgs = { inherit inputs; };
+            sharedModules = [
+              inputs.nix-index-database.homeModules.nix-index
+              inputs.zen-browser.homeModules.default
+              sops-nix.homeManagerModules.sops
+              inputs.noctalia-shell.homeModules.default
+            ];
+          };
           nixpkgs.overlays = overlays;
         }
         (

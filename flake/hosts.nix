@@ -15,7 +15,7 @@ let
       nix-minecraft
       ;
     inherit inputs;
-    overlays = config.flake.nixosOverlays or [ ];
+    overlays = lib.attrValues (config.flake.overlays or { });
   };
 in
 {
