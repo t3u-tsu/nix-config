@@ -30,6 +30,7 @@
         home-manager.nixosModules.home-manager
         inputs.nix-index-database.nixosModules.nix-index
         inputs.comin.nixosModules.comin
+        inputs.noctalia-greeter.nixosModules.default
         {
           home-manager = {
             useGlobalPkgs = true;
