@@ -17,47 +17,54 @@
     ../../nixos
   ];
 
-  my.hardware.pc-tools.enable = true;
-  my.services.minecraft.enable = true;
-
-  sops.secrets.minecraft_forwarding_secret = {
-    sopsFile = ../../secrets/services/minecraft.yaml;
-    owner = "minecraft";
-    group = "minecraft";
-    mode = "0400";
+  my = {
+    hardware.pc-tools.enable = true;
+    services.minecraft.enable = true;
   };
 
-  sops.secrets.nitac23s_rcon_password = {
-    sopsFile = ../../secrets/services/minecraft.yaml;
-    owner = "minecraft";
-    group = "minecraft";
-    mode = "0400";
-  };
+  sops.secrets = {
+    minecraft_forwarding_secret = {
+      sopsFile = ../../secrets/services/minecraft.yaml;
+      owner = "minecraft";
+      group = "minecraft";
+      mode = "0400";
+    };
 
-  sops.secrets.discord_admin_guild_id = {
-    sopsFile = ../../secrets/services/minecraft.yaml;
-    owner = "minecraft";
-    group = "minecraft";
-    mode = "0400";
+    nitac23s_rcon_password = {
+      sopsFile = ../../secrets/services/minecraft.yaml;
+      owner = "minecraft";
+      group = "minecraft";
+      mode = "0400";
+    };
+
+    discord_admin_guild_id = {
+      sopsFile = ../../secrets/services/minecraft.yaml;
+      owner = "minecraft";
+      group = "minecraft";
+      mode = "0400";
+    };
   };
 
   # Bootloader configuration
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = false;
-    device = "/dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A";
+  boot = {
+    loader.grub = {
+      enable = true;
+      efiSupport = false;
+      device = "/dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A";
+    };
+    supportedFilesystems = [ "zfs" ];
+    zfs.forceImportRoot = false;
   };
 
   # ZFS requires a unique hostId
-  networking.hostId = "8425e349";
-  networking.hostName = "shosoin-tan";
-  networking.useDHCP = true;
+  networking = {
+    hostId = "8425e349";
+    hostName = "shosoin-tan";
+    useDHCP = true;
+  };
 
   # Enable local network optimizations (NAT loopback bypass for torii-chan)
   # my.localNetwork.enable = true;
-
-  boot.supportedFilesystems = [ "zfs" ];
-  boot.zfs.forceImportRoot = false;
 
   # Core i7 870 is x86_64
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers

@@ -1,15 +1,14 @@
 {
-  config,
   pkgs,
   lib,
   inputs,
   ...
-}:
+}@moduleArgs:
 
 with lib;
 
 let
-  cfg = config.services.minecraft-discord-bridge;
+  cfg = moduleArgs.config.services.minecraft-discord-bridge;
   format = pkgs.formats.toml { };
   configFile = format.generate "bridge-config.toml" cfg.settings;
 

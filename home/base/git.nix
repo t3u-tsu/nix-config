@@ -1,26 +1,30 @@
 { config, pkgs, ... }:
 
 {
-  programs.git = {
-    enable = true;
+  programs = {
+    git = {
+      enable = true;
 
-    # Git User Configuration
-    settings = {
-      credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
-      user.name = "t3u-tsu";
-      user.email = "t3u@t3u.uk";
-      user.signingkey = "9FC270ACC3631FB4";
-      core.editor = "vim";
-      init.defaultBranch = "main";
+      # Git User Configuration
+      settings = {
+        credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
+        user = {
+          name = "t3u-tsu";
+          email = "t3u@t3u.uk";
+          signingkey = "9FC270ACC3631FB4";
+        };
+        core.editor = "vim";
+        init.defaultBranch = "main";
 
-      # Always sign commits with GPG
-      commit.gpgsign = true;
-      gpg.format = "openpgp";
+        # Always sign commits with GPG
+        commit.gpgsign = true;
+        gpg.format = "openpgp";
+      };
     };
-  };
 
-  # GPG Configuration
-  programs.gpg = {
-    enable = true;
+    # GPG Configuration
+    gpg = {
+      enable = true;
+    };
   };
 }
