@@ -36,36 +36,35 @@ in
 
     # Set default application handlers via handlr
     home.activation.setDefaultHandlers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      DRY_RUN=${if config.home.enableDryRun or false then "echo" else ""}
       HANDLR="${pkgs.handlr-regex}/bin/handlr"
 
       # Browser (Zen)
-      $DRY_RUN $HANDLR set text/html zen-beta.desktop
-      $DRY_RUN $HANDLR set x-scheme-handler/http zen-beta.desktop
-      $DRY_RUN $HANDLR set x-scheme-handler/https zen-beta.desktop
-      $DRY_RUN $HANDLR set x-scheme-handler/about zen-beta.desktop
-      $DRY_RUN $HANDLR set x-scheme-handler/unknown zen-beta.desktop
+      run $HANDLR set text/html zen-beta.desktop
+      run $HANDLR set x-scheme-handler/http zen-beta.desktop
+      run $HANDLR set x-scheme-handler/https zen-beta.desktop
+      run $HANDLR set x-scheme-handler/about zen-beta.desktop
+      run $HANDLR set x-scheme-handler/unknown zen-beta.desktop
 
       # File manager
-      $DRY_RUN $HANDLR set inode/directory thunar.desktop
+      run $HANDLR set inode/directory thunar.desktop
 
       # PDF → Browser
-      $DRY_RUN $HANDLR set application/pdf zen-beta.desktop
+      run $HANDLR set application/pdf zen-beta.desktop
 
       # Text files → Neovim (wildcard covers all text/*)
-      $DRY_RUN $HANDLR set 'text/*' nvim-ghostty.desktop
+      run $HANDLR set 'text/*' nvim-ghostty.desktop
 
       # Images → Loupe (wildcard covers all image/*)
-      $DRY_RUN $HANDLR set 'image/*' org.gnome.Loupe.desktop
+      run $HANDLR set 'image/*' org.gnome.Loupe.desktop
 
       # Office documents → LibreOffice
-      $DRY_RUN $HANDLR set application/vnd.openxmlformats-officedocument.spreadsheetml.sheet calc.desktop
-      $DRY_RUN $HANDLR set application/vnd.ms-excel calc.desktop
-      $DRY_RUN $HANDLR set text/csv calc.desktop
-      $DRY_RUN $HANDLR set application/vnd.openxmlformats-officedocument.wordprocessingml.document writer.desktop
-      $DRY_RUN $HANDLR set application/vnd.ms-word writer.desktop
-      $DRY_RUN $HANDLR set application/vnd.openxmlformats-officedocument.presentationml.presentation impress.desktop
-      $DRY_RUN $HANDLR set application/vnd.ms-powerpoint impress.desktop
+      run $HANDLR set application/vnd.openxmlformats-officedocument.spreadsheetml.sheet calc.desktop
+      run $HANDLR set application/vnd.ms-excel calc.desktop
+      run $HANDLR set text/csv calc.desktop
+      run $HANDLR set application/vnd.openxmlformats-officedocument.wordprocessingml.document writer.desktop
+      run $HANDLR set application/vnd.ms-word writer.desktop
+      run $HANDLR set application/vnd.openxmlformats-officedocument.presentationml.presentation impress.desktop
+      run $HANDLR set application/vnd.ms-powerpoint impress.desktop
     '';
   };
 }

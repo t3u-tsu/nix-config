@@ -23,8 +23,4 @@
     };
   };
 
-  # File associations (Handled globally or per-app)
-  xdg.mimeApps.defaultApplications = {
-    "inode/directory" = "thunar.desktop";
-  };
 }

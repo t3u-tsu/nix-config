@@ -5,6 +5,7 @@ with lib;
 {
   imports = [
     ../../services/desktop
+    ../../services/desktop/fonts.nix
   ];
 
   config = {

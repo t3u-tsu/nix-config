@@ -10,9 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos/services/minecraft
-    ../../nixos/services/backup
-    ../../nixos/services/discord-bridge
     ../../nixos/profiles/tower-server
     ../../nixos
   ];
