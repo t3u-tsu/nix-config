@@ -20,7 +20,7 @@ in
       enableZshIntegration = true;
       settings = {
         # Font settings
-        font-family = "Noto Sans Mono CJK JP";
+        font-family = "JetBrainsMono Nerd Font";
         font-size = 12;
 
         # Window settings
