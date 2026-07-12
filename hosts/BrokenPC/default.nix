@@ -67,35 +67,33 @@
     services.desktop.gaming.enable = true;
   };
 
-  # Hostname
-  networking.hostName = "BrokenPC";
+  networking = {
+    hostName = "BrokenPC";
+    networkmanager.enable = true;
+  };
 
-  # Basic networking
-  networking.networkmanager.enable = true;
-
-  # User account
-  users.mutableUsers = false;
-  users.users.${config.my.user.name} = {
-    isNormalUser = true;
-    description = config.my.user.name;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "video"
-      "audio"
-      "dialout"
-    ];
-    shell = pkgs.zsh;
-    hashedPasswordFile = config.sops.secrets.brokenpc_t3u_password_hash.path;
+  users = {
+    mutableUsers = false;
+    users.${config.my.user.name} = {
+      isNormalUser = true;
+      description = config.my.user.name;
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "video"
+        "audio"
+        "dialout"
+      ];
+      shell = pkgs.zsh;
+      hashedPasswordFile = config.sops.secrets.brokenpc_t3u_password_hash.path;
+    };
+    users.root.hashedPasswordFile = config.sops.secrets.brokenpc_root_password_hash.path;
   };
 
   # Ensure /data exists and is owned by the user
   systemd.tmpfiles.rules = [
     "d /data 0755 ${config.my.user.name} users -"
   ];
-
-  # Root account password
-  users.users.root.hashedPasswordFile = config.sops.secrets.brokenpc_root_password_hash.path;
 
   # SSH Key for the user (Managed by SOPS)
   sops.secrets.brokenpc_ssh_private_key = {

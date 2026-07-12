@@ -6,7 +6,17 @@ let
 in
 {
   home-manager.users.${username} = { config, pkgs, ... }: {
-    home.stateVersion = systemStateVersion;
+    home = {
+      stateVersion = systemStateVersion;
+
+      # アクティベーション時に日常用 SSH 鍵から age 秘密鍵を安全に変換・出力する設定
+      activation.generateAgeKey = config.lib.dag.entryBetween [ "writeBoundary" ] [ "setupSecrets" ] ''
+        if [ ! -f "/home/${username}/.config/sops/age/keys.txt" ]; then
+          $DRY_RUN_CMD mkdir -p "/home/${username}/.config/sops/age"
+          $DRY_RUN_CMD ${pkgs.ssh-to-age}/bin/ssh-to-age -private-key -i "/home/${username}/.ssh/id_ed25519" > "/home/${username}/.config/sops/age/keys.txt" || true
+        fi
+      '';
+    };
 
     imports = [
       ./base/shell.nix
@@ -18,8 +28,10 @@ in
     ];
 
     # Command-not-found & comma (,) integration
-    programs.nix-index.enable = true;
-    programs.nix-index-database.comma.enable = true;
+    programs = {
+      nix-index.enable = true;
+      nix-index-database.comma.enable = true;
+    };
 
     # SOPS configuration for Home-manager
     sops = {
@@ -28,15 +40,5 @@ in
       age.sshKeyPaths = [ "/home/${username}/.ssh/id_ed25519" ];
       age.generateKey = false;
     };
-
-    # アクティベーション時に日常用 SSH 鍵から age 秘密鍵を安全に変換・出力する設定
-    home.activation.generateAgeKey =
-      config.lib.dag.entryBetween [ "writeBoundary" ] [ "setupSecrets" ]
-        ''
-          if [ ! -f "/home/${username}/.config/sops/age/keys.txt" ]; then
-            $DRY_RUN_CMD mkdir -p "/home/${username}/.config/sops/age"
-            $DRY_RUN_CMD ${pkgs.ssh-to-age}/bin/ssh-to-age -private-key -i "/home/${username}/.ssh/id_ed25519" > "/home/${username}/.config/sops/age/keys.txt" || true
-          fi
-        '';
   };
 }

@@ -25,9 +25,11 @@
   };
 
   # Networking
-  networking.hostId = "5a4d0001";
-  networking.hostName = "sando-kun";
-  networking.useDHCP = true;
+  networking = {
+    hostId = "5a4d0001";
+    hostName = "sando-kun";
+    useDHCP = true;
+  };
 
   # Enable local network optimizations (Disabled as default since machines moved LANs)
   # my.localNetwork.enable = true;

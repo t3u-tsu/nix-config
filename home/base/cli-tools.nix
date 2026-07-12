@@ -1,41 +1,44 @@
-{ pkgs, ... }:
+_:
 
 {
-  programs.bat.enable = true;
-  programs.eza.enable = true;
-  programs.fzf.enable = true;
-  programs.zoxide = {
-    enable = true;
-    options = [ "--cmd cd" ];
-  };
-  programs.fd.enable = true;
-  programs.ripgrep.enable = true;
-  programs.yazi = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-  programs.tealdeer = {
-    enable = true;
-    settings.updates.auto_update = true;
-  };
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
-  programs.zellij = {
-    enable = true;
-    enableZshIntegration = false;
-  };
-
-  home.sessionVariables = {
-    EDITOR = "nvim";
-    VISUAL = "nvim";
+  programs = {
+    bat.enable = true;
+    eza.enable = true;
+    fzf.enable = true;
+    zoxide = {
+      enable = true;
+      options = [ "--cmd cd" ];
+    };
+    fd.enable = true;
+    ripgrep.enable = true;
+    yazi = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+    tealdeer = {
+      enable = true;
+      settings.updates.auto_update = true;
+    };
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+    zellij = {
+      enable = true;
+      enableZshIntegration = false;
+    };
   };
 
-  home.shellAliases = {
-    ls = "eza";
-    ll = "eza -l";
-    la = "eza -a";
-    tree = "eza --tree";
+  home = {
+    sessionVariables = {
+      EDITOR = "nvim";
+      VISUAL = "nvim";
+    };
+    shellAliases = {
+      ls = "eza";
+      ll = "eza -l";
+      la = "eza -a";
+      tree = "eza --tree";
+    };
   };
 }

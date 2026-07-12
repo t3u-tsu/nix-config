@@ -21,9 +21,22 @@ in
   };
 
   config = mkIf cfg.enable {
-    programs.niri = {
-      enable = true;
-      package = pkgs.niri;
+    programs = {
+      niri = {
+        enable = true;
+        package = pkgs.niri;
+      };
+
+      xfconf.enable = true; # Required for Thunar settings persistence
+      dconf.enable = true; # Required for gsettings/dconf integration
+
+      thunar = {
+        enable = true;
+        plugins = with pkgs; [
+          thunar-archive-plugin
+          thunar-volman
+        ];
+      };
     };
 
     # Necessary for screen sharing, screenshots and other desktop features
@@ -50,20 +63,12 @@ in
     };
 
     # Core desktop services
-    services.dbus.enable = true;
-    services.upower.enable = true;
-    services.power-profiles-daemon.enable = true;
-    services.gvfs.enable = true; # Required for file manager features (Trash, Mounts)
-    services.tumbler.enable = true; # Required for file manager thumbnails
-    programs.xfconf.enable = true; # Required for Thunar settings persistence
-    programs.dconf.enable = true; # Required for gsettings/dconf integration
-
-    programs.thunar = {
-      enable = true;
-      plugins = with pkgs; [
-        thunar-archive-plugin
-        thunar-volman
-      ];
+    services = {
+      dbus.enable = true;
+      upower.enable = true;
+      power-profiles-daemon.enable = true;
+      gvfs.enable = true; # Required for file manager features (Trash, Mounts)
+      tumbler.enable = true; # Required for file manager thumbnails
     };
 
     # Enable brightness and volume control via dbus/logind for non-root access

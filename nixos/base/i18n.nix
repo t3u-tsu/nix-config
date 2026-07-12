@@ -1,8 +1,8 @@
-{ config, lib, ... }:
+{ lib, ... }@moduleArgs:
 
 with lib;
 let
-  cfg = config.my.core.i18n;
+  cfg = moduleArgs.config.my.core.i18n;
 in
 {
   options.my.core.i18n = {
