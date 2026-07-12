@@ -19,7 +19,7 @@ in
     enable = mkEnableOption "Minecraft Discord Bridge";
 
     settings = mkOption {
-      type = format.type;
+      inherit (format) type;
       default = { };
       description = "Configuration for the bridge (TOML format)";
     };

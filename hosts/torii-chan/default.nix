@@ -16,13 +16,8 @@ in
   imports = [
     ./services
     ../../nixos
+    ../../nixos/profiles/sbc
   ];
-
-  # Disable Nix sandboxing and seccomp filtering for legacy kernels lacking namespace/BPF support
-  nix.settings = {
-    sandbox = false;
-    filter-syscalls = false;
-  };
 
   boot.loader = {
     generic-extlinux-compatible.enable = true;
@@ -88,18 +83,6 @@ in
       PermitRootLogin = "no";
       PasswordAuthentication = false;
     };
-  };
-
-  # Swap configuration for stable builds on low-RAM device
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 4096; # 4GB
-    }
-  ];
-
-  boot.kernel.sysctl = {
-    "vm.swappiness" = 10; # Use swap only when necessary to protect storage
   };
 
   system.stateVersion = "26.05";

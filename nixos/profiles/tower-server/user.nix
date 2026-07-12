@@ -1,8 +1,8 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 let
   username = config.my.user.name;
-  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] config.networking.hostName;
+  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
 in
 {
   users = {

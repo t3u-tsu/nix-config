@@ -31,8 +31,7 @@ in
 
   config = mkIf cfg.enable {
     i18n = {
-      defaultLocale = cfg.defaultLocale;
-      supportedLocales = cfg.supportedLocales;
+      inherit (cfg) defaultLocale supportedLocales;
     };
 
     console.keyMap = cfg.consoleKeyMap;
