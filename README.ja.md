@@ -13,15 +13,27 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 ```text
 .
-├── flake.nix        # システム全体のエントリポイント
-├── hosts/           # ホスト固有の設定 (BrokenPC, torii-chan, etc.)
-└── modules/         # 再利用可能なモジュール集
-    ├── core/        # 基本システム設定 (Nix, ネットワーク, SOPS)
-    ├── hardware/    # ハードウェア固有設定 (NVIDIA, udev 等)
-    ├── home/        # ユーザー環境設定 (Home Manager)
-    ├── packages/    # システムパッケージグループの定義
-    ├── profiles/    # 役割別のホストプロファイル
-    └── services/    # 特殊なサービス設定 (バックアップ, Minecraft 等)
+├── flake.nix            # flake-parts エントリポイント
+├── flake/               # flake-parts モジュール
+│   ├── overlays.nix     # Nixpkgs オーバーレイ
+│   └── hosts.nix        # nixosConfigurations 定義
+├── nixos/               # NixOS システムモジュール
+│   ├── base/            # OS 基盤 (ユーザー, Nix, ネットワーク, SOPS, WireGuard)
+│   ├── environment/     # システムパッケージ
+│   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
+│   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc)
+│   └── services/        # システムサービス (バックアップ, Minecraft, デプロイ等)
+├── home/                # Home Manager モジュール
+│   ├── base/            # シェル, CLI, Git, SSH, Starship, Atuin
+│   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
+├── hosts/               # ホスト固有設定
+│   ├── BrokenPC/        # デスクトップPC (NixOS)
+│   ├── torii-chan/      # Orange Pi Zero 3 SBC (NixOS, aarch64)
+│   ├── shosoin-tan/     # タワーサーバー (NixOS)
+│   ├── kagutsuchi-sama/ # タワーサーバー (NixOS)
+│   └── sando-kun/       # タワーサーバー (NixOS)
+├── lib/                 # ヘルパー関数 (mkSystem)
+└── secrets/             # SOPS 暗号化シークレット
 ```
 
 ## クイックスタート

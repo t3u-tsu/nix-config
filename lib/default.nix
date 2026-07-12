@@ -1,8 +1,8 @@
+# lib/default.nix - System builder and helper functions
 {
   nixpkgs,
   inputs,
   home-manager,
-  disko,
   sops-nix,
   nix-minecraft,
   overlays,
@@ -14,8 +14,8 @@
       name,
       system,
       username ? "t3u",
+      profile ? "tower-server",
       targetSystem ? null,
-      disks ? [ ],
       extraModules ? [ ],
     }:
     nixpkgs.lib.nixosSystem {
@@ -25,7 +25,6 @@
 
       modules = [
         { my.user.name = username; }
-        disko.nixosModules.disko
         sops-nix.nixosModules.sops
         nix-minecraft.nixosModules.minecraft-servers
         home-manager.nixosModules.home-manager
@@ -40,6 +39,7 @@
             inputs.nix-index-database.homeModules.nix-index
             inputs.zen-browser.homeModules.default
             sops-nix.homeManagerModules.sops
+            inputs.noctalia-shell.homeModules.default
           ];
           nixpkgs.overlays = overlays;
         }
@@ -54,16 +54,8 @@
             { }
         )
 
-        ../hosts/${name}/configuration.nix
+        ../hosts/${name}/default.nix
       ]
       ++ extraModules;
     };
-
-  # Auto-update helpers
-  autoUpdate = {
-    mkNvfetcherTask = dir: {
-      enable = true;
-      inherit dir;
-    };
-  };
 }
