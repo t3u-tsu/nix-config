@@ -21,23 +21,25 @@
   };
 
   # --- USB HDD Boot Support ---
-  boot.initrd.availableKernelModules = [
-    "usb_storage"
-    "sd_mod"
-    "xhci_pci"
-    "ehci_pci"
-    "usbcore"
-    "sunxi_mmc"
-    "phy_sun4i_usb"
-  ];
+  boot = {
+    initrd.availableKernelModules = [
+      "usb_storage"
+      "sd_mod"
+      "xhci_pci"
+      "ehci_pci"
+      "usbcore"
+      "sunxi_mmc"
+      "phy_sun4i_usb"
+    ];
 
-  # Give USB devices more time to spin up and be detected (Kernel level)
-  # Also disable UAS for the JMicron JMS583 bridge (152d:0583) to avoid stability issues
-  boot.kernelParams = [
-    "rootdelay=10"
-    "usb-storage.quirks=152d:0583:u"
-  ];
+    # Give USB devices more time to spin up and be detected (Kernel level)
+    # Also disable UAS for the JMicron JMS583 bridge (152d:0583) to avoid stability issues
+    kernelParams = [
+      "rootdelay=10"
+      "usb-storage.quirks=152d:0583:u"
+    ];
 
-  # Use systemd in initrd for more robust device discovery and mounting
-  boot.initrd.systemd.enable = true;
+    # Use systemd in initrd for more robust device discovery and mounting
+    initrd.systemd.enable = true;
+  };
 }

@@ -216,7 +216,7 @@ in
         # Noctalia Dynamic Theming Integration
         userChrome = ''
           /* Import Noctalia-generated colors */
-          @import url("file:///home/${osConfig.my.user.name}/.cache/noctalia/colors.css");
+          @import url("file://${config.home.homeDirectory}/.cache/noctalia/colors.css");
 
           :root {
             --zen-primary-color: var(--noctalia-primary) !important;
