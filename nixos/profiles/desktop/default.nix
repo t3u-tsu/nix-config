@@ -9,6 +9,10 @@ with lib;
   ];
 
   config = {
+    nixpkgs.config.permittedInsecurePackages = [
+      "ventoy-1.1.12"
+    ];
+
     my = {
       # Comin automatic deployment (default: enabled)
       services.deployment.comin.enable = lib.mkDefault true;
