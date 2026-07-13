@@ -8,10 +8,10 @@
 with lib;
 
 let
-  cfg = config.my.core.distrobox;
+  cfg = config.my.virtualisation.distrobox;
 in
 {
-  options.my.core.distrobox = {
+  options.my.virtualisation.distrobox = {
     enable = mkEnableOption "Distrobox container environment with Podman";
   };
 

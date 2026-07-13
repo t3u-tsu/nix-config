@@ -8,6 +8,5 @@
     ./networking.nix
     ./wireguard.nix
     ./sops.nix
-    ./distrobox.nix
   ];
 }

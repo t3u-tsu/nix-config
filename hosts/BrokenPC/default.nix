@@ -68,7 +68,8 @@
       };
     };
     hardware.pc-tools.enable = true;
-    core.distrobox.enable = true;
+    virtualisation.distrobox.enable = true;
+    virtualisation.microvm.enable = true;
     services.desktop.gaming.enable = true;
   };
 
