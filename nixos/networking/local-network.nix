@@ -3,10 +3,10 @@
 with lib;
 
 let
-  cfg = config.my.localNetwork;
+  cfg = config.my.networking.local-network;
 in
 {
-  options.my.localNetwork = {
+  options.my.networking.local-network = {
     enable = mkEnableOption "Enable local network optimizations (e.g. DNS overrides for NAT loopback)";
 
     toriiChanIp = mkOption {

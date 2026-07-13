@@ -27,7 +27,7 @@
   networking.hostName = "kagutsuchi-sama";
 
   # Enable local network optimizations (NAT loopback bypass for torii-chan)
-  # my.localNetwork.enable = true;
+  # my.networking.local-network.enable = true;
 
   # GTX 980 Ti (Maxwell) configuration
   my.hardware.nvidia.enable = true;

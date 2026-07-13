@@ -53,7 +53,6 @@
     zfs.forceImportRoot = false;
   };
 
-  # ZFS requires a unique hostId
   networking = {
     hostId = "8425e349";
     hostName = "shosoin-tan";
@@ -61,7 +60,7 @@
   };
 
   # Enable local network optimizations (NAT loopback bypass for torii-chan)
-  # my.localNetwork.enable = true;
+  # my.networking.local-network.enable = true;
 
   # Core i7 870 is x86_64
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
