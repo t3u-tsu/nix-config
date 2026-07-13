@@ -32,6 +32,9 @@ jobs:
       - name: Nix Flake Update
         run: nix flake update
 
+      - name: Validate Changes
+        run: nix flake check --show-trace --accept-flake-config --all-systems
+
       - name: Commit and Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
