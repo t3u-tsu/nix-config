@@ -19,12 +19,20 @@ in
   config = mkIf cfg.enable {
     programs.niri.settings = {
       input = {
-        keyboard.repeat-delay = 250;
-        keyboard.repeat-rate = 30;
+        keyboard = {
+          xkb = {
+            layout = "us";
+            options = "ctrl:nocaps";
+          };
+          repeat-delay = 300;
+          repeat-rate = 40;
+        };
         touchpad = {
           tap = true;
           dwt = true;
           natural-scroll = true;
+          click-method = "clickfinger";
+          scroll-method = "two-finger";
         };
       };
 
@@ -256,9 +264,15 @@ in
         "Mod+Shift+V".action.switch-focus-between-floating-and-tiling = { };
 
         # Screenshots
-        "Print".action.screenshot = { };
-        "Alt+Print".action.screenshot-window = { };
-        "Ctrl+Print".action.screenshot-screen = { };
+        "Print".action.screenshot = {
+          show-pointer = false;
+        };
+        "Alt+Print".action.screenshot-window = {
+          show-pointer = false;
+        };
+        "Ctrl+Print".action.screenshot-screen = {
+          show-pointer = false;
+        };
       };
     };
 
