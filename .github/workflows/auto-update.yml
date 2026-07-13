@@ -27,7 +27,7 @@ jobs:
 
       - name: Run nvfetcher (Minecraft Plugins)
         run: |
-          nix shell nixpkgs#nvfetcher --command bash -c "cd modules/services/minecraft/plugins && nvfetcher -c nvfetcher.toml"
+          nix shell nixpkgs#nvfetcher --command bash -c "cd nixos/services/minecraft/plugins && nvfetcher -c nvfetcher.toml"
 
       - name: Nix Flake Update
         run: nix flake update

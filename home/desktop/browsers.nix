@@ -94,6 +94,11 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/line-on-browser/latest.xpi";
             installation_mode = "force_installed";
           };
+          # Volume Control
+          "{57e8684d-5ae8-47d6-93c9-f870ef0e40a3}" = {
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/volume-control-boost-volume/latest.xpi";
+            installation_mode = "force_installed";
+          };
         };
       };
 
