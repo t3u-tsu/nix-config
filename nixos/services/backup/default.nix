@@ -8,10 +8,10 @@
 with lib;
 
 let
-  cfg = config.my.backup;
+  cfg = config.my.services.backup;
 in
 {
-  options.my.backup = {
+  options.my.services.backup = {
     enable = mkEnableOption "restic backup configuration";
 
     paths = mkOption {

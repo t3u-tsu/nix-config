@@ -8,7 +8,7 @@
     sopsFile = ../../../secrets/services/backup.yaml;
   };
 
-  my.backup = {
+  my.services.backup = {
     enable = true;
     paths = [
       "/srv/minecraft"

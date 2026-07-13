@@ -3,6 +3,7 @@
 {
   imports = [
     ./nvidia.nix
-    ./wch-linke.nix
+    ./dev-tools/wch-linke.nix
+    ./pc-tools.nix
   ];
 }
