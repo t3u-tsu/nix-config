@@ -36,7 +36,12 @@
       "i8042.nopnp"
     ];
     extraModulePackages = [ ];
-    loader.systemd-boot.enable = true;
+    loader.grub = {
+      enable = true;
+      efiSupport = true;
+      device = "nodev";
+      useOSProber = true;
+    };
     loader.efi.canTouchEfiVariables = true;
   };
 
