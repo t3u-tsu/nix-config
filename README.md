@@ -1,6 +1,7 @@
 # nix-config
 
 [![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+[![Scheduled Auto Update](https://github.com/t3u-tsu/nix-config/actions/workflows/auto-update.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/auto-update.yml)
 ![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
 ![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
 [![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
@@ -18,7 +19,10 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── overlays.nix     # Nixpkgs overlays
 │   └── hosts.nix        # nixosConfigurations
 ├── nixos/               # NixOS system modules
-│   ├── base/            # OS foundation (users, Nix, networking, SOPS, WireGuard)
+│   ├── base/            # OS foundation (users, Nix, time)
+│   ├── core/            # OS core settings (i18n)
+│   ├── security/        # Security and secrets (SOPS)
+│   ├── networking/      # Network settings (hosts, WireGuard)
 │   ├── environment/     # System packages
 │   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
 │   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc)

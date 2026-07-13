@@ -1,6 +1,7 @@
 # nix-config
 
 [![Nix Flake Check](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/nix-check.yml)
+[![Scheduled Auto Update](https://github.com/t3u-tsu/nix-config/actions/workflows/auto-update.yml/badge.svg)](https://github.com/t3u-tsu/nix-config/actions/workflows/auto-update.yml)
 ![NixOS](https://img.shields.io/badge/NixOS-26.05-blue.svg?logo=NixOS&logoColor=white)
 ![Nix Flakes](https://img.shields.io/badge/Nix%20Flakes-Enabled-blueviolet.svg?logo=NixOS&logoColor=white)
 [![License](https://img.shields.io/github/license/t3u-tsu/nix-config)](https://github.com/t3u-tsu/nix-config/blob/main/LICENSE)
@@ -18,7 +19,10 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── overlays.nix     # Nixpkgs オーバーレイ
 │   └── hosts.nix        # nixosConfigurations 定義
 ├── nixos/               # NixOS システムモジュール
-│   ├── base/            # OS 基盤 (ユーザー, Nix, ネットワーク, SOPS, WireGuard)
+│   ├── base/            # OS 基盤 (ユーザー, Nix, 時間同期)
+│   ├── core/            # OS 核心設定 (i18n)
+│   ├── security/        # セキュリティと秘密情報 (SOPS)
+│   ├── networking/      # ネットワーク設定 (hosts, WireGuard)
 │   ├── environment/     # システムパッケージ
 │   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
 │   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc)
