@@ -19,12 +19,12 @@ in
     };
 
     imports = [
-      ./base/shell.nix
-      ./base/starship.nix
-      ./base/atuin.nix
-      ./base/git.nix
-      ./base/cli-tools.nix
-      ./base/ssh.nix
+      ./shell/shell.nix
+      ./shell/starship.nix
+      ./shell/atuin.nix
+      ./programs/git.nix
+      ./programs/cli-tools.nix
+      ./programs/ssh.nix
     ];
 
     # Command-not-found & comma (,) integration

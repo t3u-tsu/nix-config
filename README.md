@@ -28,7 +28,8 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc)
 │   └── services/        # System services (backup, Minecraft, deployment, etc.)
 ├── home/                # Home Manager modules
-│   ├── base/            # Shell, CLI tools, Git, SSH, Starship, Atuin
+│   ├── shell/           # Shell configuration (Zsh, Starship, Atuin)
+│   ├── programs/        # Workstation tools (CLI tools, Git, SSH)
 │   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
 ├── hosts/               # Host-specific configurations
 │   ├── BrokenPC/        # Desktop PC (NixOS)
