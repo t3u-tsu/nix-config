@@ -25,4 +25,4 @@ jobs:
           skipPush: true
 
       - name: Check Nix Flake
-        run: nix flake check --show-trace --accept-flake-config
+        run: nix flake check --show-trace --accept-flake-config --all-systems
