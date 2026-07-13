@@ -39,12 +39,6 @@ in
     };
   };
 
-  options.my.hardware.pc-tools.enable = mkOption {
-    type = types.bool;
-    default = false;
-    description = "Enable hardware-specific tools for physical PCs/Servers (smartmontools, nvme-cli, etc.)";
-  };
-
   imports = [
     ./base.nix
     ./monitoring.nix
