@@ -5,6 +5,7 @@
     ./environment
     ./hardware
     ./services
+    ./virtualisation
     ../home
   ];
 }
