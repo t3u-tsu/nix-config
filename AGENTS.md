@@ -54,12 +54,16 @@
 
 ## 構成ディレクトリ構造
 
-- `nixos/base/`: システム基盤（Network, Sops, Nix）
+- `nixos/base/`: システム共通インフラ基盤（User, Nix, Time）
+- `nixos/core/`: OS核心動作環境（i18n）
+- `nixos/security/`: セキュリティ・機密管理（SOPS）
+- `nixos/networking/`: ネットワーク・VPN（WireGuard, Hosts）
 - `nixos/environment/`: システムパッケージ
 - `nixos/hardware/`: ハードウェア固有設定
 - `nixos/profiles/`: 役割別プロファイル
 - `nixos/services/`: システムサービス
-- `home/base/`: ユーザーシェル環境（Zsh, Starship, CLI ツール）
+- `home/shell/`: ユーザーシェル環境（Zsh, Starship, Atuin）
+- `home/programs/`: 共通ワークステーションツール（CLIツール, Git, SSH）
 - `home/desktop/`: GUI アプリ、WM (Niri/Noctalia)
 - `hosts/`: マシン固有の定義
 - `secrets/`: SOPS による機密情報管理

@@ -28,7 +28,8 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc)
 │   └── services/        # システムサービス (バックアップ, Minecraft, デプロイ等)
 ├── home/                # Home Manager モジュール
-│   ├── base/            # シェル, CLI, Git, SSH, Starship, Atuin
+│   ├── shell/           # シェル環境 (Zsh, Starship, Atuin)
+│   ├── programs/        # 共通ツール (CLI, Git, SSH)
 │   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
 ├── hosts/               # ホスト固有設定
 │   ├── BrokenPC/        # デスクトップPC (NixOS)
