@@ -67,6 +67,8 @@
 - `home/desktop/`: GUI アプリ、WM (Niri/Noctalia)
 - `hosts/`: マシン固有の定義
 - `secrets/`: SOPS による機密情報管理
+- `docs/`: 設計計画書やシステムアーキテクチャのドキュメント管理用
+
 
 ---
 
