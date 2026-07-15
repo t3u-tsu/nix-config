@@ -44,7 +44,7 @@ in
       xdg.desktopEntries.unityhub = {
         name = "Unity Hub";
         genericName = "Unity Hub Launcher";
-        exec = "unityhub %U";
+        exec = "systemd-run --user --collect -- ${config.home.profileDirectory}/bin/unityhub %U";
         icon = "unityhub";
         mimeType = [ "x-scheme-handler/unityhub" ];
         categories = [ "Development" ];
@@ -53,7 +53,18 @@ in
 
       # Self-healing wrapper script
       home.packages = with pkgs; [
-        (writeShellScriptBin "unityhub" (builtins.readFile ./launcher.sh))
+        (writeShellScriptBin "unityhub" (
+          builtins.replaceStrings
+            [
+              ''DISTROBOX=$(command -v distrobox || fail "distrobox: command not found")''
+              ''PODMAN=$(command -v podman     || fail "podman: command not found")''
+            ]
+            [
+              ''DISTROBOX="${pkgs.distrobox}/bin/distrobox"''
+              ''PODMAN="${pkgs.podman}/bin/podman"''
+            ]
+            (builtins.readFile ./launcher.sh)
+        ))
       ];
     })
   ]);

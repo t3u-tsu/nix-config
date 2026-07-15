@@ -74,4 +74,4 @@ fi
 
 # ── Phase 3: Launch Unity Hub ─────────────────────────────────────
 
-exec "$DISTROBOX" enter "$CONTAINER_NAME" -- env GIO_EXTRA_MODULES= unityhub "$@"
+exec env -u GIO_EXTRA_MODULES "$DISTROBOX" enter -T "$CONTAINER_NAME" -- unityhub "$@"
