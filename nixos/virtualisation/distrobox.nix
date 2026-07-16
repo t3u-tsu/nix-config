@@ -25,6 +25,9 @@ in
     # Distrobox CLI
     environment.systemPackages = [ pkgs.distrobox ];
 
+    # Enable Flatpak to provide Flatpak portal interface for host-spawn (required by xdg-open in container)
+    services.flatpak.enable = true;
+
     # Expose Nix store and profiles to containers by default
     environment.etc."distrobox/distrobox.conf".text = ''
       container_additional_volumes="/nix/store:/nix/store:ro /etc/profiles/per-user:/etc/profiles/per-user:ro /etc/static/profiles/per-user:/etc/static/profiles/per-user:ro"

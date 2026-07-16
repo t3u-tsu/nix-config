@@ -72,6 +72,21 @@ if ! "$DISTROBOX" list 2>/dev/null | awk -F'|' -v name="$CONTAINER_NAME" 'NR>1 {
     echo ""
 fi
 
+# Ensure container's xdg-open redirects to host (distrobox-host-exec)
+"$PODMAN" exec -u root "$CONTAINER_NAME" sh -c "
+    if [ -f /usr/bin/xdg-open ] && [ ! -L /usr/bin/xdg-open ]; then
+        rm -f /usr/bin/xdg-open
+        ln -sf /usr/bin/distrobox-host-exec /usr/bin/xdg-open
+    fi
+" >/dev/null 2>&1 || true
+
 # ── Phase 3: Launch Unity Hub ─────────────────────────────────────
 
-exec "$DISTROBOX" enter "$CONTAINER_NAME" -- env GIO_EXTRA_MODULES= unityhub "$@"
+exec env \
+    -u GIO_EXTRA_MODULES \
+    -u SSL_CERT_FILE \
+    -u NIX_SSL_CERT_FILE \
+    -u CURL_CA_BUNDLE \
+    -u SSL_CERT_DIR \
+    -u NIX_SSL_CERT_DIR \
+    "$DISTROBOX" enter -T "$CONTAINER_NAME" -- unityhub "$@"
