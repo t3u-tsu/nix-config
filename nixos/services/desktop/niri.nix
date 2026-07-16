@@ -49,9 +49,9 @@ in
       ];
       config = {
         common = {
-          default = [
-            "gnome"
+          default = mkForce [
             "gtk"
+            "gnome"
           ];
           # xdg-desktop-portal-gnome's file chooser does not work outside GNOME Shell
           "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
