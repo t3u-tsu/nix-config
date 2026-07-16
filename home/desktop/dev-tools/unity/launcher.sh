@@ -82,4 +82,12 @@ fi
 
 # ── Phase 3: Launch Unity Hub ─────────────────────────────────────
 
-exec env -u GIO_EXTRA_MODULES -u SSL_CERT_FILE -u NIX_SSL_CERT_FILE -u CURL_CA_BUNDLE -u SSL_CERT_DIR -u NIX_SSL_CERT_DIR DOTNET_SYSTEM_NET_SOCKETS_THREADPOOL_USEPORT=0 "$DISTROBOX" enter -T "$CONTAINER_NAME" -- unityhub "$@"
+exec env \
+    -u GIO_EXTRA_MODULES \
+    -u SSL_CERT_FILE \
+    -u NIX_SSL_CERT_FILE \
+    -u CURL_CA_BUNDLE \
+    -u SSL_CERT_DIR \
+    -u NIX_SSL_CERT_DIR \
+    DOTNET_SYSTEM_NET_SOCKETS_THREADPOOL_USEPORT=0 \
+    "$DISTROBOX" enter -T "$CONTAINER_NAME" -- unityhub "$@"
