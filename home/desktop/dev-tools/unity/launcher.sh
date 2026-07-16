@@ -89,5 +89,4 @@ exec env \
     -u CURL_CA_BUNDLE \
     -u SSL_CERT_DIR \
     -u NIX_SSL_CERT_DIR \
-    DOTNET_SYSTEM_NET_SOCKETS_THREADPOOL_USEPORT=0 \
     "$DISTROBOX" enter -T "$CONTAINER_NAME" -- unityhub "$@"
