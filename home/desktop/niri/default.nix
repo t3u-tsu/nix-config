@@ -298,6 +298,7 @@ in
       inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.default
       xwayland-satellite
       wl-clipboard
+      wl-mirror
       cliphist
       loupe
       grim
