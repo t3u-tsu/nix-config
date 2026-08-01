@@ -25,8 +25,8 @@ in
 
         # Window settings
         background-opacity = 0.95;
-        window-padding-x = 12;
-        window-padding-y = 12;
+        window-padding-x = 3;
+        window-padding-y = 3;
         window-decoration = false;
 
         # Dynamic color synchronization with Noctalia (Matugen)
