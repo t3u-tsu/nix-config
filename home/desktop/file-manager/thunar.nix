@@ -23,4 +23,11 @@
     };
   };
 
+  # XFCE preferred-application helpers. `TerminalEmulator` is what
+  # `exo-open --launch TerminalEmulator` (Thunar's "Open Terminal Here"
+  # custom action) uses, and resolves ghostty as the terminal.
+  home.file.".config/xfce4/helpers.rc".text = ''
+    [Default]
+    TerminalEmulator=ghostty
+  '';
 }

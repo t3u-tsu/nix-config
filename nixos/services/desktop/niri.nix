@@ -39,6 +39,10 @@ in
       };
     };
 
+    # xfce4-exo provides `exo-open`, used by the Thunar "Open Terminal Here"
+    # custom action (exo-open --working-directory %f --launch TerminalEmulator)
+    environment.systemPackages = [ pkgs.xfce4-exo ];
+
     # Necessary for screen sharing, screenshots and other desktop features
     xdg.portal = {
       enable = true;
