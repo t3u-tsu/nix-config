@@ -13,7 +13,8 @@
 ## 開発ワークフロー
 
 ### 1. 作業の基本ルール
-- **ブランチ戦略**: 直接 `main` にコミットせず、**作業を開始する前（いかなるファイル編集前）に必ず** `feature/<name>` または `refactor/<name>` ブランチを作成・切り替えてください。`main` 上でファイルを編集してからブランチを切る行為は禁止します。
+- **ブランチ戦略**: 直接 `main` にコミットせず、**作業を開始する前（いかなるファイル編集前）に必ず** ブランチを作成・切り替えてください。`main` 上でファイルを編集してからブランチを切る行為は禁止します。
+- **ブランチ命名規約**: Conventional Commits の型に揃え、`feat/<名前>`・`fix/<名前>`・`refactor/<名前>`・`docs/<名前>`・`chore/<名前>` のいずれかを使用します（必要ならばこの5種を超えてもよい）。`.github/workflows/nix-check.yml` の push 対象と `devenv.nix` の `git-hooks`（convco による Conventional Commits 検証）と整合するよう、新たな型を追加する場合は**三方同時に更新**してください。
 - **対応言語**: ユーザーへの報告、相談はすべて **日本語** で行います。
 - **バイリンガル対応 (Bilingual Sync)**: プロジェクトルートの `README.md` および `README.ja.md` は、必ず英語と日本語の両方を同時に同期して更新してください。サブディレクトリの `README.md` は英語のみで管理し、日英の重複管理は行いません。
 - **ドキュメント優先**: 変更の際は `TODO.md` や `README.md` との整合性を確認してください。
@@ -21,7 +22,7 @@
 - **ユーザー承認の義務化**: `main` へのマージ、リモートの `main` へのプッシュ、および `nixos-rebuild switch` の適用を行う際は、必ず実行前にユーザーへ明示的に確認し、承認を得てから進めてください。
 
 ### 2. 変更・適用手順
-1.  **ブランチ作成（実装より前に必ず実行）**: `git checkout -b feature/topic-name`
+1.  **ブランチ作成（実装より前に必ず実行）**: `git checkout -b feat/topic-name`
 2.  **実装**: 必要な Nix ファイルを編集。
 3.  **検証**:
     - `nix flake check`
@@ -31,14 +32,20 @@
     ```bash
     git add .
     git commit -m "feat: topic description"
-    git push origin feature/topic-name
+    git push origin feat/topic-name
     ```
 6.  **PRの作成とマージ (GitHub CLI `gh` の使用)**:
     - ユーザー承認のうえ、以下のコマンドで PR を作成・マージします。
     - **PR作成**:
+      PR 説明文は必ず一時ファイルに書いて `--body-file` で渡すこと（`--body` に特殊記号（`` ` `` など）を含めるとシェルがコマンド置換して本文が壊れるため）。
       ```bash
-      gh pr create --title "feat: topic description" --body "Detailed description of changes"
+      cat > /tmp/pr-body.md <<'EOF'
+      feat: topic description
+      ...
+      EOF
+      gh pr create --title "feat: topic description" --body-file /tmp/pr-body.md
       ```
+    - **CI 結果の確認（推奨）**: マージ前に `gh pr checks` で `nix flake check` の結果を確認する。CI が重いため、即マージを優先するなら CI 完了を待たず進めてもよいが、リスクを避けたい場合は `PASS` を待つのを推奨。どちらの運用にするかはその都度ユーザーと合意する。
     - **PRマージ＆リモートブランチ削除**:
       ```bash
       gh pr merge --merge --delete-branch
@@ -115,6 +122,6 @@
 - **秘密情報編集**: `sops secrets/secrets.yaml`
 - **IPC 操作 (Noctalia)**: `noctalia ipc call <target> <function>`
 - **ビルド完了通知**: `curl -X POST ...` (ビルド成功時に webhook をトリガーする場合)
-- **PR作成 (GitHub CLI)**: `gh pr create --title "タイトル" --body "説明文"`
+- **PR作成 (GitHub CLI)**: `gh pr create --title "タイトル" --body-file /tmp/pr-body.md`（本文は `--body-file` で渡し、特殊文字はファイルで安全に扱う）
 - **PRマージ (GitHub CLI)**: `gh pr merge --merge --delete-branch`
 

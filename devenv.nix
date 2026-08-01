@@ -49,8 +49,13 @@
   '';
 
   # https://devenv.sh/git-hooks/
-  git-hooks.hooks.nixfmt.enable = true;
-  git-hooks.hooks.statix.enable = true;
+  git-hooks.hooks = {
+    nixfmt.enable = true;
+    statix.enable = true;
+
+    # Conventional Commits メッセージ形式を強制（nix-check.yml のブランチ規約と連動）
+    convco.enable = true;
+  };
 
   # See full reference at https://devenv.sh/reference/options/
 }

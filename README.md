@@ -61,7 +61,7 @@ For more specific deployment details, check the respective README.md files in ho
 
 This repository uses GitHub Actions for continuous integration and automated updates:
 
-- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feature/*`/`refactor/*` and on pull requests to ensure that configuration evaluation is clean.
+- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feat/*`/`fix/*`/`refactor/*`/`docs/*`/`chore/*` and on pull requests to ensure that configuration evaluation is clean.
 - **Scheduled Auto Update** (`auto-update.yml`): Runs daily at 04:00 JST. It automatically runs `nvfetcher` to fetch the latest Minecraft plugins and updates `flake.lock` to bump system packages, committing changes directly back to `main`.
 
 ## References
