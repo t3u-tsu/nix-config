@@ -57,6 +57,11 @@ in
         remember-recent-files = false;
         recent-files-max-age = 0;
       };
+      # Remove all CSD window buttons (minimize/maximize/close);
+      # rely on keyboard shortcuts (Niri: Mod+Q close, Mod+M maximize, etc.)
+      "org/gnome/desktop/wm/preferences" = {
+        button-layout = ":";
+      };
     };
 
     # Qt Appearance Integration via Kvantum (Superior for Dracula/Noctalia)
