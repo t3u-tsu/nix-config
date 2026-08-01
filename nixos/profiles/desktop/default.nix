@@ -47,7 +47,7 @@ with lib;
         theme.enable = true;
         xdg.enable = true;
         locales.enable = true;
-        niri.enable = true; # Force niri
+        niri.enable = true;
       };
     };
   };

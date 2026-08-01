@@ -18,6 +18,10 @@ in
 
   config = mkIf cfg.enable {
     programs.niri.settings = {
+      # Ask apps to use server-side decorations (strips CSD title bars;
+      # companion to button-layout removal in theme.nix)
+      prefer-no-csd = true;
+
       input = {
         keyboard = {
           xkb = {
@@ -99,7 +103,7 @@ in
         "Mod+Return".action.spawn = [ "ghostty" ];
         "Mod+B".action.spawn = [ "zen-beta" ];
         "Mod+F".action.spawn = [ "thunar" ];
-        "Mod+Shift+D".action.spawn = [ "vesktop" ];
+        "Mod+D".action.spawn = [ "vesktop" ];
 
         # Core Noctalia binds
         "Mod+Space".action.spawn = [
@@ -172,14 +176,14 @@ in
         "Mod+K".action.focus-window-or-workspace-up = { };
 
         # Column & Window Movement
-        "Mod+Ctrl+Left".action.move-column-left = { };
-        "Mod+Ctrl+Right".action.move-column-right = { };
-        "Mod+Ctrl+Down".action.move-window-down = { };
-        "Mod+Ctrl+Up".action.move-window-up = { };
-        "Mod+Ctrl+H".action.move-column-left = { };
-        "Mod+Ctrl+L".action.move-column-right = { };
-        "Mod+Ctrl+J".action.move-window-down = { };
-        "Mod+Ctrl+K".action.move-window-up = { };
+        "Mod+Alt+Left".action.move-column-left = { };
+        "Mod+Alt+Right".action.move-column-right = { };
+        "Mod+Alt+Down".action.move-window-down = { };
+        "Mod+Alt+Up".action.move-window-up = { };
+        "Mod+Alt+H".action.move-column-left = { };
+        "Mod+Alt+L".action.move-column-right = { };
+        "Mod+Alt+J".action.move-window-down = { };
+        "Mod+Alt+K".action.move-window-up = { };
 
         # Focus Monitor
         "Mod+Shift+Left".action.focus-monitor-left = { };
@@ -192,14 +196,14 @@ in
         "Mod+Shift+K".action.focus-monitor-up = { };
 
         # Move Column to Monitor
-        "Mod+Ctrl+Shift+Left".action.move-column-to-monitor-left = { };
-        "Mod+Ctrl+Shift+Right".action.move-column-to-monitor-right = { };
-        "Mod+Ctrl+Shift+Down".action.move-column-to-monitor-down = { };
-        "Mod+Ctrl+Shift+Up".action.move-column-to-monitor-up = { };
-        "Mod+Ctrl+Shift+H".action.move-column-to-monitor-left = { };
-        "Mod+Ctrl+Shift+L".action.move-column-to-monitor-right = { };
-        "Mod+Ctrl+Shift+J".action.move-column-to-monitor-down = { };
-        "Mod+Ctrl+Shift+K".action.move-column-to-monitor-up = { };
+        "Mod+Alt+Shift+Left".action.move-column-to-monitor-left = { };
+        "Mod+Alt+Shift+Right".action.move-column-to-monitor-right = { };
+        "Mod+Alt+Shift+Down".action.move-column-to-monitor-down = { };
+        "Mod+Alt+Shift+Up".action.move-column-to-monitor-up = { };
+        "Mod+Alt+Shift+H".action.move-column-to-monitor-left = { };
+        "Mod+Alt+Shift+L".action.move-column-to-monitor-right = { };
+        "Mod+Alt+Shift+J".action.move-column-to-monitor-down = { };
+        "Mod+Alt+Shift+K".action.move-column-to-monitor-up = { };
 
         # Workspace switching (1-9)
         "Mod+1".action.focus-workspace = 1;
@@ -230,10 +234,10 @@ in
         "Mod+Shift+9".action.move-column-to-workspace = 9;
 
         # Move Column to Workspace (Down/Up)
-        "Mod+Ctrl+U".action.move-column-to-workspace-down = { };
-        "Mod+Ctrl+I".action.move-column-to-workspace-up = { };
-        "Mod+Ctrl+Page_Down".action.move-column-to-workspace-down = { };
-        "Mod+Ctrl+Page_Up".action.move-column-to-workspace-up = { };
+        "Mod+Alt+U".action.move-column-to-workspace-down = { };
+        "Mod+Alt+I".action.move-column-to-workspace-up = { };
+        "Mod+Alt+Page_Down".action.move-column-to-workspace-down = { };
+        "Mod+Alt+Page_Up".action.move-column-to-workspace-up = { };
 
         # Move Workspace (Down/Up)
         "Mod+Shift+U".action.move-workspace-down = { };
