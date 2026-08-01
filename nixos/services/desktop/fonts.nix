@@ -21,6 +21,7 @@
         ];
         monospace = [
           "JetBrainsMono Nerd Font"
+          "Noto Sans CJK JP"
           "Noto Color Emoji"
         ];
       };
