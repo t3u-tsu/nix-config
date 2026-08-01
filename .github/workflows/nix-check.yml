@@ -2,7 +2,7 @@ name: Nix Flake Check
 
 on:
   push:
-    branches: [ "main", "feature/*", "refactor/*" ]
+    branches: [ "main", "feat/*", "fix/*", "refactor/*", "docs/*", "chore/*" ]
   pull_request:
     branches: [ "main" ]
 

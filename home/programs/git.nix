@@ -19,6 +19,9 @@
         # Always sign commits with GPG
         commit.gpgsign = true;
         gpg.format = "openpgp";
+
+        # Rebase on pull to keep history linear
+        pull.rebase = true;
       };
     };
 
