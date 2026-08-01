@@ -22,6 +22,13 @@ in
       # companion to button-layout removal in theme.nix)
       prefer-no-csd = true;
 
+      # Default new window width: half the screen (niri's stock default)
+      layout = {
+        default-column-width = {
+          proportion = 0.5;
+        };
+      };
+
       input = {
         keyboard = {
           xkb = {
