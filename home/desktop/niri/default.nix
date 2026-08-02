@@ -86,6 +86,20 @@ in
             fixed = 920;
           };
         }
+        # Zen Browser (beta) opens at full column width
+        {
+          matches = [ { app-id = "^zen(-beta)?$"; } ];
+          default-column-width = {
+            proportion = 1.0;
+          };
+        }
+        # Vesktop opens at full column width
+        {
+          matches = [ { app-id = "^(vesktop|Vesktop)$"; } ];
+          default-column-width = {
+            proportion = 1.0;
+          };
+        }
       ];
 
       # Backdrop integration
