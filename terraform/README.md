@@ -79,8 +79,17 @@ terraform output -json torii_chan_addresses
 ```
 
 `scripts/nixos-iso.sh` は ConoHa 公開 API を直接叩く（Image API で ISO を作成・
-アップロード、Compute API の `rescue`/`unrescue` で挿入・排出）。`status` サブコマンドで
-インスタンス状態を確認できる。
+アップロード、Compute API の `rescue`/`unrescue` で挿入・排出）。
+
+サブコマンド:
+- `install <instance_id> <iso_file>` — ISO を作成・アップロードし、サーバー停止 → rescue 挿入 → 起動
+- `eject <instance_id>` — サーバー停止 → unrescue（ISO 排出）→ 起動
+- `status <instance_id>` — インスタンス状態の確認（status / vm_state / task_state / addresses）
+
+エッジケース対応:
+- サーバーが既に停止中の場合は `os-stop` の 409 を許容して続行（冪等）
+- API エラー時はレスポンス本文を表示（原因の切り分けが容易）
+- 状態遷移の待機タイムアウトは `CONOHAVPS_WAIT_TIMEOUT` 環境変数で調整可（デフォルト 600 秒）
 
 ## 注意事項
 
