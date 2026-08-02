@@ -6,9 +6,11 @@
   ...
 }:
 {
-  # devenv.root を明示して pure 評価（--impure なし）でも動作させる。
-  # ※ 絶対パスのため、リポジトリのクローン先を変える場合は更新が必要。
-  devenv.root = "/home/t3u/nix-config";
+  # devenv.root は devenv CLI（impure）が PWD から自動設定する。
+  # 純粋評価（nix flake check --all-systems など）では PWD を参照できないため、
+  # PWD が空のときだけフォールバックを設定する（mkForce で devenv 側の空定義を上書き）。
+  # ※ CI ではチェックアウト先のパスが devenv 側の PWD で自動設定されるため競合しない。
+  devenv.root = lib.mkIf (builtins.getEnv "PWD" == "") (lib.mkForce "/home/t3u/nix-config");
 
   # terraform は BUSL-1.1（nixpkgs では unfree 扱い）。allowUnfree 済みの
   # nixpkgs インスタンスから取得して、devenv の pkgs で使えるようにする。
