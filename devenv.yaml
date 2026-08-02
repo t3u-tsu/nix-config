@@ -1,11 +1,20 @@
-# terraform は BUSL-1.1（nixpkgs では unfree 扱い）のため、devenv で許可する
+# devenv の設定（flake-parts 統合版）
+#
+# - allowUnfree: terraform は BUSL-1.1（nixpkgs では unfree 扱い）のため許可
+#   ※ この設定は devenv コマンド（devenv shell）用。
+#     `nix flake check` で devenv を含めて検証する場合は
+#     `NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure` を使うこと
+#     （flake の pure 評価では PWD と環境変数が参照できないため）
+# - inputs: devenv CLI はこのファイルの inputs から入力を解決する。
+#   flake 統合（nix develop / nix flake check）では flake.nix の inputs が使われる。
+#   両方で同じ nixpkgs（nixos-26.05）を指すように揃えている。
 allowUnfree: true
 
 inputs:
+  nixpkgs:
+    url: github:NixOS/nixpkgs/nixos-26.05
   git-hooks:
     url: github:cachix/git-hooks.nix
     inputs:
       nixpkgs:
         follows: nixpkgs
-  nixpkgs:
-    url: github:cachix/devenv-nixpkgs/rolling
