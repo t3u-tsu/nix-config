@@ -5,8 +5,30 @@
   inputs,
   ...
 }:
-
 {
+  # devenv.root は devenv CLI（impure）が PWD から自動設定する。
+  # 純粋評価（nix flake check --all-systems など）では PWD を参照できないため、
+  # PWD が空のときだけフォールバックを設定する（mkForce で devenv 側の空定義を上書き）。
+  # ※ CI ではチェックアウト先のパスが devenv 側の PWD で自動設定されるため競合しない。
+  devenv.root = lib.mkIf (builtins.getEnv "PWD" == "") (lib.mkForce "/home/t3u/nix-config");
+
+  # terraform は BUSL-1.1（nixpkgs では unfree 扱い）。allowUnfree 済みの
+  # nixpkgs インスタンスから取得して、devenv の pkgs で使えるようにする。
+  overlays = [
+    (final: prev: {
+      # allowUnfree 済みの nixpkgs から terraform を取得（inherit で同名アサインを回避）
+      inherit
+        (
+          (import inputs.nixpkgs {
+            inherit (final.stdenv.hostPlatform) system;
+            config.allowUnfree = true;
+          })
+        )
+        terraform
+        ;
+    })
+  ];
+
   # https://devenv.sh/basics/
   env.GREET = "nix-config";
 
@@ -15,6 +37,8 @@
     pkgs.git
     pkgs.nh
     pkgs.nix-tree
+    # Infrastructure as Code: ConoHa VPS を含むクラウドリソースの宣言的管理
+    pkgs.terraform
   ];
 
   # https://devenv.sh/languages/

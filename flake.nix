@@ -77,6 +77,27 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # === Development Environment (devenv) ===
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    devenv-root = {
+      url = "file+file:///dev/null";
+      flake = false;
+    };
+    nix2container = {
+      url = "github:nlewo/nix2container";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mk-shell-bin = {
+      url = "github:rrbutani/nix-mk-shell-bin";
+    };
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # === Package Sources ===
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
@@ -84,9 +105,10 @@
   };
 
   outputs =
-    { flake-parts, ... }@inputs:
+    { flake-parts, devenv, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
+        devenv.flakeModule
         ./flake/overlays.nix
         ./flake/hosts.nix
       ];
@@ -100,6 +122,12 @@
         { pkgs, ... }:
         {
           formatter = pkgs.nixfmt;
+
+          # devenv の開発環境（devenv.nix をモジュールとして読み込む）
+          devenv.shells.default = {
+            imports = [ ./devenv.nix ];
+
+          };
         };
     };
 }
