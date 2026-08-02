@@ -25,7 +25,7 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── networking/      # Network settings (hosts, WireGuard)
 │   ├── environment/     # System packages
 │   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
-│   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc)
+│   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc, gateway)
 │   └── services/        # System services (backup, Minecraft, deployment, etc.)
 ├── home/                # Home Manager modules
 │   ├── shell/           # Shell configuration (Zsh, Starship, Atuin)
@@ -33,7 +33,7 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
 ├── hosts/               # Host-specific configurations
 │   ├── BrokenPC/        # Desktop PC (NixOS)
-│   ├── torii-chan/      # Orange Pi Zero 3 SBC (NixOS, aarch64)
+│   ├── torii-chan/      # VPN gateway role (SBC aarch64 + VPS failover)
 │   ├── shosoin-tan/     # Tower server (NixOS)
 │   ├── kagutsuchi-sama/ # Tower server (NixOS)
 │   └── sando-kun/       # Tower server (NixOS)

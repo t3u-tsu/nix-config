@@ -1,3 +1,12 @@
+# Host: torii-chan (WireGuard gateway / VPN server + DDNS + Minecraft forward)
+#
+# This is the PLATFORM-NEUTRAL orchestrator for the shared "torii-chan" role.
+# The role itself lives in nixos/profiles/gateway and can run on either:
+#   - the physical Orange Pi Zero3 SBC  (platform layer: ./sbc.nix)
+#   - a failover VPS                    (platform layer: ./vps.nix)
+# Only ONE runs at a time (failover). Both share hostname `torii-chan` and the
+# SAME secrets (WireGuard keys, DDNS token) so peers keep reaching this host at
+# torii-chan.t3u.uk without reconfiguration.
 {
   config,
   pkgs,
@@ -6,64 +15,17 @@
   ...
 }:
 
-let
-  username = "t3u";
-in
 {
+  imports = [
+    ../../nixos
+    ../../nixos/profiles/gateway
+  ];
+
   nixpkgs.overlays = [
   ];
 
-  imports = [
-    ./services
-    ../../nixos
-    ../../nixos/profiles/sbc
-  ];
-
-  boot.loader = {
-    generic-extlinux-compatible.enable = true;
-    grub.enable = false;
-  };
-
-  networking = {
-    hostName = "torii-chan";
-    # networking.networkmanager.enable = true; # Using static config below
-    useDHCP = false;
-
-    interfaces.end0 = {
-      useDHCP = false;
-      ipv4.addresses = [
-        {
-          address = "192.168.0.128";
-          prefixLength = 24;
-        }
-      ];
-      macAddress = "36:43:64:11:45:14";
-    };
-
-    defaultGateway = "192.168.0.1";
-    nameservers = [
-      "1.1.1.1"
-      "8.8.8.8"
-    ];
-
-    firewall = {
-      enable = true;
-      allowedTCPPorts = [ 22 ];
-      logRefusedConnections = false;
-      logReversePathDrops = false;
-    };
-  };
-
-  # Request password for sudo by default (Production Security)
-  # This is disabled only during initial SD image creation in sd-image-installer.nix (mkForce false)
-  security.sudo.wheelNeedsPassword = true;
-
-  services.openssh = {
-    enable = true;
-    ports = [ 22 ];
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-    };
-  };
+  # The torii-chan role (WireGuard gateway + NAT/Minecraft forward + DDNS).
+  # Platform-specific wiring (boot loader, WAN network) is provided by the
+  # matching platform module imported per-host in flake/hosts.nix.
+  my.services.gateway.enable = true;
 }

@@ -29,4 +29,7 @@
   # Allow root login via SSH for initial setup/deployment convenience.
   # This avoids 'trusted-users' issues when deploying the first configuration.
   services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+
+  # Keep SSH reachable on the LAN for provisioning (don't restrict SSH to wg0).
+  my.services.gateway.restrictAccess = lib.mkForce false;
 }
