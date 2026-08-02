@@ -17,7 +17,7 @@
       fsType = "ext4";
     };
 
-    # NVMe SSD (1TB) - Data / Games
+    # NVMe SSD (1TB) - Data
     "/data" = {
       device = "/dev/disk/by-id/nvme-FIKWOT_FN500_1TB_AA000000000000000188-part1";
       fsType = "ext4";
