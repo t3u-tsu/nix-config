@@ -20,7 +20,11 @@ in
       enableZshIntegration = true;
       settings = {
         # Font settings
-        font-family = "JetBrainsMono Nerd Font";
+        font-family = [
+          "JetBrainsMono Nerd Font"
+          "Noto Sans CJK JP"
+          "Noto Color Emoji"
+        ];
         font-size = 12;
 
         # Window settings
