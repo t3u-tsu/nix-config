@@ -35,8 +35,8 @@ Platform-specific wiring is split into two thin layers:
 ## VPS Failover
 
 Because peers always connect to the public hostname `torii-chan.t3u.uk`, takeover
-is seamless: when the VPS assumes the role, its own DDNS updates the A/AAAA
-record to the VPS public IP and all peers reconnect automatically.
+is seamless: when the VPS assumes the role, its own DDNS updates the A record
+(IPv4-only; ip6Domains is empty) to the VPS public IP and all peers reconnect automatically.
 
 ### Prerequisites (SOPS)
 
