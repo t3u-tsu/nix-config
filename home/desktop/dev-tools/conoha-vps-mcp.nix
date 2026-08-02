@@ -45,7 +45,7 @@ in
               "command": "conoha-vps-mcp-schema-fix",
               "args": [],
               "env": {
-                "PATH": "/home/${username}/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin",
+                "PATH": "/etc/profiles/per-user/${username}/bin:/home/${username}/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin",
                 "OPENSTACK_TENANT_ID": "${config.sops.placeholder.conoha_vps_mcp_tenant_id}",
                 "OPENSTACK_USER_ID": "${config.sops.placeholder.conoha_vps_mcp_user_id}",
                 "OPENSTACK_PASSWORD": "${config.sops.placeholder.conoha_vps_mcp_password}"
