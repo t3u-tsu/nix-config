@@ -168,7 +168,10 @@ ssh -o KexAlgorithms=curve25519-sha256 t3u@10.0.0.1
 Unstable parent links (Rakuten Mobile MTU 1340) → `wg0`/`wg1` MTU is 1300.
 
 ### Out-of-Memory (OOM)
-4GB swapfile at `/var/lib/swapfile`, `vm.swappiness = 10` (SBC profile).
+4GB swapfile at `/var/lib/swapfile`, `vm.swappiness = 10` (SBC profile). The VPS
+(`vps.nix`) mirrors this on the 512MB plan: same swapfile + swappiness, with the
+bootstrap keeping a single root partition `/dev/vda1` (NixOS creates the
+swapfile at boot).
 
 ### USB HDD Stability
 `usb-storage.quirks=152d:0583:u` disables UAS for the JMicron JMS583 bridge.

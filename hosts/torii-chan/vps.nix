@@ -92,7 +92,17 @@ in
   # ssh-to-age) to .sops.yaml and both secret files, then `sops updatekeys`.
   # See the README for the full provisioning walkthrough.
   # ---------------------------------------------------------------------------
+  # 512MB plan: a swapfile keeps the low-RAM VPS buildable (mirrors the SBC
+  # profile). The bootstrap keeps a single root partition /dev/vda1; NixOS
+  # creates and enables the swapfile at boot. On a larger plan, drop this.
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 4096;
+    }
+  ];
 
-  # VPS typically has ample RAM; add swap here only for small instances.
-  swapDevices = [ ];
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;
+  };
 }
