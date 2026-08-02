@@ -12,6 +12,8 @@
     ./services
     ../../nixos
     ../../nixos/profiles/desktop
+    inputs.chaotic.nixosModules.nyx-cache
+    inputs.chaotic.nixosModules.nyx-overlay
   ];
 
   # Allow unfree packages
@@ -36,6 +38,7 @@
       "i8042.nopnp"
     ];
     extraModulePackages = [ ];
+    kernelPackages = pkgs.linuxPackages_cachyos;
     loader.grub = {
       enable = true;
       efiSupport = true;
@@ -46,16 +49,26 @@
   };
 
   # Firmware management (Crucial for Wi-Fi, BT, and GPU)
-  hardware.enableRedistributableFirmware = true;
+  hardware = {
+    enableRedistributableFirmware = true;
 
-  # Graphics (OpenGL/Vulkan)
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
+    # Graphics (OpenGL/Vulkan)
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+    };
+
+    # CachyOS kernel builds its own NVIDIA driver variant.
+    nvidia.package = pkgs.nvidia_cachyos;
   };
 
   # GPU Configuration (Super-Conservative NVIDIA + AMD Hybrid)
   services.xserver.videoDrivers = [ "amdgpu" ]; # "nvidia" is added by the module
+
+  # Chaotic-Nyx: use the manually managed cache from nixos/base/nix.nix
+  # (keeps chaotic-nyx at the lowest priority tier, per AGENTS.md).
+  chaotic.nyx.cache.enable = false;
+
   my = {
     hardware.nvidia = {
       enable = true;

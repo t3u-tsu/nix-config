@@ -28,7 +28,7 @@
         "https://cuda-maintainers.cachix.org?priority=45"
         "https://nix-gaming.cachix.org?priority=45"
 
-        "https://chaotic-nyx.cachix.org?priority=50"
+        "https://nyx-cache.chaotic.cx/?priority=50"
       ];
 
       extra-trusted-public-keys = [
@@ -38,7 +38,7 @@
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
         "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
-        "chaotic-nyx.cachix.org-1:HfnXSw4pj95iI/n17rIDy40agHj12WfF+Gqk6SonIT8="
+        "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
       ];
 
       auto-optimise-store = true;

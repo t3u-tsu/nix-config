@@ -77,7 +77,7 @@ in
       powerManagement.finegrained = cfg.powerManagement.finegrained;
       open = false;
       nvidiaSettings = true;
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      package = mkDefault config.boot.kernelPackages.nvidiaPackages.stable;
 
       prime = mkIf cfg.prime.enable {
         offload = {
