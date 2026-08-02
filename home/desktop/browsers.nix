@@ -172,6 +172,11 @@ in
           };
         };
 
+        # Force-overwrite containers.json on activation. Zen rewrites this file
+        # at runtime, which otherwise makes home-manager back it up on every
+        # switch and fail when a stale .backup already exists.
+        containersForce = true;
+
         settings = {
           # General UI/UX
           "extensions.autoDisableScopes" = 0;
