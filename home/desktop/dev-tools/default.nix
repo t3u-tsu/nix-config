@@ -13,6 +13,7 @@ in
     ./neovim.nix
     ./git-tools.nix
     ./ai-tools.nix
+    ./conoha-vps-mcp.nix
     ./hardware.nix
     ./ghostty.nix
     ./unity

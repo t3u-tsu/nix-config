@@ -44,6 +44,9 @@ creation_rules:
   - path_regex: secrets/services/signing\.yaml$
     key_groups:
       - age: [*master_key, *user_t3u] # For GPG signing, only user needs it
+  - path_regex: secrets/services/conoha-vps-mcp\.yaml$
+    key_groups:
+      - age: [*master_key, *user_t3u] # ConoHa VPS MCP (OpenStack credentials)
 
   # 3. Common secrets: [Master, User, All Hosts]
   - path_regex: secrets/common\.yaml$
