@@ -41,15 +41,20 @@ in
       xdg.configFile."distrobox/distrobox.ini".text = builtins.readFile ./distrobox.ini;
 
       # Desktop entry for host integration
-      xdg.desktopEntries.unityhub = {
-        name = "Unity Hub";
-        genericName = "Unity Hub Launcher";
-        exec = "systemd-run --user --collect -- ${config.home.profileDirectory}/bin/unityhub %U";
-        icon = "unityhub";
-        mimeType = [ "x-scheme-handler/unityhub" ];
-        categories = [ "Development" ];
-        terminal = false;
-      };
+      # Note: xdg.desktopEntries is broken in the current home-manager (the
+      # removed `extraConfig` option is evaluated for every entry), so the
+      # .desktop file is shipped directly via xdg.dataFile instead.
+      xdg.dataFile."applications/unityhub.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Name=Unity Hub
+        GenericName=Unity Hub Launcher
+        Exec=systemd-run --user --collect -- ${config.home.profileDirectory}/bin/unityhub %U
+        Icon=unityhub
+        MimeType=x-scheme-handler/unityhub;
+        Categories=Development;
+        Terminal=false
+      '';
 
       # Self-healing wrapper script
       home.packages = with pkgs; [

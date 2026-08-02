@@ -12,6 +12,11 @@ in
 {
   options.my.hardware.nvidia = {
     enable = mkEnableOption "NVIDIA driver support";
+    open = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Use the open-source NVIDIA kernel modules (Turing or newer).";
+    };
     powerManagement = {
       enable = mkOption {
         type = types.bool;
@@ -55,7 +60,8 @@ in
 
   config = mkIf cfg.enable {
     # Ensure nvidia is in videoDrivers
-    # Note: If AMD is also used, the host configuration should handle the order if necessary
+    # Note: If AMD is also used, the host configuration should handle the order if necessary.
+    # With PRIME offload the iGPU driver should come first; with sync mode the dGPU is primary.
     services.xserver.videoDrivers = mkBefore [ "nvidia" ];
 
     hardware.graphics = {
@@ -75,7 +81,7 @@ in
       modesetting.enable = true;
       powerManagement.enable = cfg.powerManagement.enable;
       powerManagement.finegrained = cfg.powerManagement.finegrained;
-      open = false;
+      inherit (cfg) open;
       nvidiaSettings = true;
       package = mkDefault config.boot.kernelPackages.nvidiaPackages.stable;
 
