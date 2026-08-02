@@ -12,12 +12,7 @@
     ./services
     ../../nixos
     ../../nixos/profiles/desktop
-    inputs.chaotic.nixosModules.nyx-cache
-    inputs.chaotic.nixosModules.nyx-overlay
   ];
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
 
   # Hardware settings (AMD CPU + HP Victus specifics)
   boot = {
@@ -48,26 +43,11 @@
     loader.efi.canTouchEfiVariables = true;
   };
 
-  # Firmware management (Crucial for Wi-Fi, BT, and GPU)
-  hardware = {
-    enableRedistributableFirmware = true;
-
-    # Graphics (OpenGL/Vulkan)
-    graphics = {
-      enable = true;
-      enable32Bit = true;
-    };
-
-    # CachyOS kernel builds its own NVIDIA driver variant.
-    nvidia.package = pkgs.nvidia_cachyos;
-  };
+  # CachyOS kernel builds its own NVIDIA driver variant.
+  hardware.nvidia.package = pkgs.nvidia_cachyos;
 
   # GPU Configuration (Super-Conservative NVIDIA + AMD Hybrid)
   services.xserver.videoDrivers = [ "amdgpu" ]; # "nvidia" is added by the module
-
-  # Chaotic-Nyx: use the manually managed cache from nixos/base/nix.nix
-  # (keeps chaotic-nyx at the lowest priority tier, per AGENTS.md).
-  chaotic.nyx.cache.enable = false;
 
   my = {
     hardware.nvidia = {
@@ -80,34 +60,11 @@
         amdgpuBusId = "PCI:7:0:0";
       };
     };
-    hardware.pc-tools.enable = true;
     virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
-    services.desktop.gaming.enable = true;
   };
 
-  networking = {
-    hostName = "BrokenPC";
-    networkmanager.enable = true;
-  };
-
-  users = {
-    mutableUsers = false;
-    users.${config.my.user.name} = {
-      isNormalUser = true;
-      description = config.my.user.name;
-      extraGroups = [
-        "networkmanager"
-        "wheel"
-        "video"
-        "audio"
-        "dialout"
-      ];
-      shell = pkgs.zsh;
-      hashedPasswordFile = config.sops.secrets.brokenpc_t3u_password_hash.path;
-    };
-    users.root.hashedPasswordFile = config.sops.secrets.brokenpc_root_password_hash.path;
-  };
+  networking.hostName = "BrokenPC";
 
   # Ensure /data exists and is owned by the user
   systemd.tmpfiles.rules = [
@@ -121,6 +78,4 @@
     group = "users";
     mode = "0600";
   };
-
-  system.stateVersion = "26.05";
 }

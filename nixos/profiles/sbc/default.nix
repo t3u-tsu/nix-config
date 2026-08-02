@@ -21,7 +21,14 @@
       "vm.swappiness" = 10;
     };
 
-    # Comin automatic deployment (default: enabled)
-    my.services.deployment.comin.enable = lib.mkDefault true;
+    my = {
+      # Common SBC user configuration (base/user.nix handles users.*)
+      user.authorizedKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
+      ];
+
+      # Comin automatic deployment (default: enabled)
+      services.deployment.comin.enable = lib.mkDefault true;
+    };
   };
 }

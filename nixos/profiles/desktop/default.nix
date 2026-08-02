@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 with lib;
 
@@ -6,6 +11,11 @@ with lib;
   imports = [
     ../../services/desktop
     ../../services/desktop/fonts.nix
+    # Chaotic-Nyx overlay: provides bleeding-edge packages used by desktop
+    # (e.g. gamescope_git, mangohud_git in home/desktop/gaming.nix).
+    # The binary cache is NOT imported here: it is managed manually in
+    # nixos/base/nix.nix (keeps chaotic-nyx at the lowest priority tier).
+    inputs.chaotic.nixosModules.nyx-overlay
   ];
 
   config = {
@@ -13,9 +23,30 @@ with lib;
       "ventoy-1.1.12"
     ];
 
+    # Desktop hardware: redistributable firmware (Wi-Fi/BT/GPU) and graphics
+    hardware = {
+      enableRedistributableFirmware = true;
+      graphics = {
+        enable = true;
+        enable32Bit = true;
+      };
+    };
+
+    # Desktop networking (NetworkManager)
+    networking.networkmanager.enable = true;
+
     my = {
+      user.extraGroups = [
+        "networkmanager"
+        "video"
+        "audio"
+        "dialout"
+      ];
+
       # Comin automatic deployment (default: enabled)
       services.deployment.comin.enable = lib.mkDefault true;
+
+      hardware.pc-tools.enable = true;
 
       # System-wide desktop services
       services.desktop = {

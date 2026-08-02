@@ -15,7 +15,6 @@
   ];
 
   my = {
-    hardware.pc-tools.enable = true;
     services.minecraft.enable = true;
   };
 
@@ -65,6 +64,4 @@
   # Core i7 870 is x86_64
   # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
   my.hardware.nvidia.enable = true;
-
-  system.stateVersion = "26.05";
 }
