@@ -1,0 +1,6 @@
+# Terraform の state / キャッシュ / ローカル変数はリポジトリにコミットしない
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log

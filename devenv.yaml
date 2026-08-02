@@ -1,3 +1,6 @@
+# terraform は BUSL-1.1（nixpkgs では unfree 扱い）のため、devenv で許可する
+allowUnfree: true
+
 inputs:
   git-hooks:
     url: github:cachix/git-hooks.nix

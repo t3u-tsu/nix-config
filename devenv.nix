@@ -5,7 +5,6 @@
   inputs,
   ...
 }:
-
 {
   # https://devenv.sh/basics/
   env.GREET = "nix-config";
@@ -15,6 +14,8 @@
     pkgs.git
     pkgs.nh
     pkgs.nix-tree
+    # Infrastructure as Code: ConoHa VPS を含むクラウドリソースの宣言的管理
+    pkgs.terraform
   ];
 
   # https://devenv.sh/languages/
