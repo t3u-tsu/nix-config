@@ -71,6 +71,9 @@
         amdgpuBusId = "PCI:7:0:0";
       };
     };
+    # Steam: inject the PRIME offload environment (same vars as nvidia-offload)
+    # so every game launched through Steam uses the dGPU without launch options.
+    services.desktop.gaming.nvidiaOffload.enable = true;
     virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
   };
