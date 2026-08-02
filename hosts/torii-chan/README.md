@@ -21,9 +21,9 @@ Platform-specific wiring is split into two thin layers:
 
 - **`sbc.nix`** (Orange Pi Zero3): extlinux boot chain, static LAN network on
   `end0` (192.168.0.128), and the low-RAM SBC profile (swapfile, sandbox off).
-- **`vps.nix`** (failover VPS): DHCP networking, GRUB boot, comin + operator
-  pubkey. **Adjust the `wanInterface` and GRUB `device` placeholders to your
-  provider before deploying.**
+- **`vps.nix`** (failover VPS, ConoHa): static networking from the ConoHa panel
+  (`eth0`), GRUB to the MBR of the VirtIO disk (`/dev/vda`), comin + operator
+  pubkey. Replace the `192.0.2.x` TEST-NET placeholders (`wanIp`/`wanGateway`) with the panel values before deploying.
 
 ## Configurations in Flake
 
@@ -62,6 +62,66 @@ own age identity added to those files:
   `wg0` (connect from a peer), or temporarily open port 22 on the WAN.
 - Ensure `mc.t3u.uk`, `*.mc.t3u.uk`, and `torii-chan.t3u.uk` are served by the
   active gateway (its DDNS handles this; only one gateway runs at a time).
+
+
+## Setup Guide (VPS / ConoHa)
+
+Target: ConoHa VPS (GMO), cheapest plan (512 MB, 1 vCPU / 30 GB SSD, ~460円/月
+with the まとめトク discount), hourly billing (1-hour units), Tokyo region.
+
+### Phase 1: Create the VPS
+1. Create the VPS in **tyo1 or tyo2**. (The custom-ISO API is NOT supported in
+   tyo3; the ISO mount flow below requires tyo1/tyo2.)
+2. Note the STATIC IPv4 / netmask / gateway shown in the panel — ConoHa does
+   NOT serve DHCP; these values go into `hosts/torii-chan/vps.nix`
+   (`wanIp` / `wanGateway`, currently `192.0.2.x` TEST-NET placeholders).
+3. **Security groups**: ConoHa v3 security groups default to DENY-ALL at the
+   hypervisor level. Allow at minimum: TCP 22 and 25565, UDP 51820 and 51821
+   (plus TCP 22 for bootstrap).
+
+### Phase 2: Boot the NixOS installer from a custom ISO
+1. Host the NixOS minimal ISO at a public URL (ConoHa downloads the ISO itself
+   from an external URL — there is no panel upload):
+   e.g. `https://channels.nixos.org/nixos-26.05/latest-nixos-minimal-x86_64-linux.iso`
+2. Use the `conoha-iso` CLI (https://github.com/hironobu-s/conoha-iso):
+   ```bash
+   conoha-iso download <ISO_URL>      # ConoHa stores it in a temp area
+   conoha-iso list                    # find the ISO id
+   # STOP the VPS first, then insert the ISO and start it:
+   conoha-iso insert <VPS_ID> <ISO_ID>
+   ```
+   Boot into the installer via the panel console (separate browser window;
+   it has a text-send feature but no copy-paste).
+3. Partition the VirtIO disk (BIOS/SeaBIOS, MBR) and mount:
+   ```bash
+   parted /dev/vda -- mklabel msdos mkpart primary ext4 1MiB 100%
+   mkfs.ext4 -L nixos /dev/vda1
+   mount /dev/vda1 /mnt
+   ```
+4. Install NixOS with a minimal configuration that:
+   - sets the STATIC network from the panel (`eth0`, IP/netmask/gateway) —
+     also set `networking.usePredictableInterfaceNames = false` so the NIC
+     really is `eth0`,
+   - writes GRUB to the MBR: `boot.loader.grub.device = "/dev/vda";`,
+   - keeps SSH reachable on the WAN for bootstrap
+     (`my.services.gateway.restrictAccess = lib.mkForce false;`).
+   After `nixos-install`, eject the ISO (`conoha-iso eject <VPS_ID> <ISO_ID>`)
+   and reboot.
+5. Alternative path (community-proven): boot the `nixos-kexec-installer` from a
+   running Ubuntu, then `nixos-anywhere --phases install` with a GPT layout
+   (BIOS-boot ef02 + root). See
+   https://gist.github.com/HelloWorld017/13e9aa366de60f3d9ecfc605e607b8d0
+
+### Phase 3: SOPS + first deploy
+1. Complete the SOPS prerequisites above (add the VPS age key derived from its
+   SSH host key; `sops updatekeys`).
+2. Fill in `hosts/torii-chan/vps.nix`: `wanIp`/`wanGateway` from the panel.
+3. Deploy:
+   ```bash
+   nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --use-remote-sudo --ask-sudo-password
+   ```
+4. After the first boot, re-enable SSH hardening by removing the temporary
+   `restrictAccess = lib.mkForce false;` from the bootstrap config and redeploy.
 
 ## Setup Guide (SBC)
 

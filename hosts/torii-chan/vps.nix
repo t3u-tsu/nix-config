@@ -1,23 +1,33 @@
-# Host: torii-chan — VPS platform layer (failover)
+# Host: torii-chan — VPS platform layer (failover, ConoHa VPS)
 #
 # Everything specific to running the shared torii-chan role on a VPS instead of
 # the physical Orange Pi Zero3. Intended for ONE-AT-A-TIME failover: when the
 # VPS is active, its Cloudflare DDNS points torii-chan.t3u.uk to the VPS public
 # IP and all WireGuard peers reconnect without reconfiguration.
 #
-# NOTE: adjust the network/boot/root placeholders below to your provider before deploy.
+# Target provider: ConoHa VPS (GMO). KVM/VirtIO, BIOS/MBR, static IP assigned
+# in the control panel (no DHCP by default). Tokyo/Osaka region, hourly billing.
+#
+# BEFORE DEPLOY: replace the TEST-NET placeholders below (192.0.2.x) with the
+# real static IPv4 / gateway shown in the ConoHa control panel.
 {
   config,
   lib,
   ...
 }:
 
+let
+  # RFC 5737 TEST-NET-1 addresses. These are never routed; the config will NOT
+  # come up until you replace them with the panel values.
+  wanIp = "192.0.2.10"; # TODO: ConoHa panel IPv4, e.g. 150.95.0.100
+  wanGateway = "192.0.2.1"; # TODO: ConoHa panel default gateway
+in
 {
   my = {
-    # The WAN interface the VPS uses for NAT. Typical names: eth0 (most),
-    # enp1s0, ens3 (OpenStack), eno1. Local cloud-init images may rename it.
     services = {
-      gateway.wanInterface = "eth0"; # TODO: set to your VPS interface
+      # WAN interface. ConoHa VPS exposes the NIC as eth0.
+      gateway.wanInterface = "eth0";
+
       # Auto-deploy from this repo (failover needs the VPS to track main too).
       deployment.comin.enable = lib.mkDefault true;
     };
@@ -31,32 +41,57 @@
     };
   };
 
-  # Root filesystem. Provider-dependent: adjust the device name to your VPS
-  # (e.g. /dev/vda1 on KVM, /dev/nvme0n1p1 on NVMe cloud disks).
-  fileSystems."/" = {
-    device = "/dev/sda1"; # TODO: set to your provider's root device
-    fsType = "ext4";
-  };
-
+  # ConoHa assigns a STATIC IPv4 (shown in the control panel). ConoHa does not
+  # run DHCP for the primary NIC by default.
   networking = {
-    # Assume the provider gives the address via DHCP (standard for x86_64 VPS).
-    # If cloud-init/static addressing is used, your provider image already
-    # configures it and you can leave networking unmanaged.
-    useDHCP = true;
+    # ConoHa NICs are eth0/eth1 in their own images; NixOS would otherwise use
+    # predictable names (enp*s*). Disable them so `eth0` is guaranteed.
+    usePredictableInterfaceNames = false;
+    useDHCP = false;
+    defaultGateway = wanGateway;
     nameservers = [
       "1.1.1.1"
       "8.8.8.8"
     ];
+    interfaces.eth0 = {
+      useDHCP = false;
+      ipv4.addresses = [
+        {
+          address = wanIp;
+          prefixLength = 24;
+        }
+      ];
+    };
+  };
+
+  # ConoHa disks are VirtIO block devices -> /dev/vda. BIOS/MBR boot.
+  fileSystems."/" = {
+    device = "/dev/vda1";
+    fsType = "ext4";
   };
 
   boot.loader = {
     grub = {
       enable = true;
-      # Provider-dependent: most x86_64 VPS use GRUB on /dev/sda; some (KVM
-      # clouds) use /dev/vda or prefer systemd-boot/EFI. Adjust before flashing.
-      device = "/dev/sda"; # TODO: set to your provider's boot device
+      device = "/dev/vda"; # install GRUB to the MBR
     };
   };
+
+  # ---------------------------------------------------------------------------
+  # Initial provisioning bootstrap
+  # ---------------------------------------------------------------------------
+  # The firewall hardening (restrictAccess = true) exposes SSH only via wg0,
+  # which is not reachable on the very first boot. For the FIRST deploy only,
+  # uncomment the line below to open SSH on the WAN, then re-enable hardening
+  # afterwards (mirrors hosts/torii-chan/sd-image-installer.nix).
+  # my.services.gateway.restrictAccess = lib.mkForce false;
+  #
+  # SOPS prerequisite: the VPS decrypts the SAME secrets as the SBC
+  # (secrets/hosts/torii-chan.yaml + secrets/services/ddns.yaml). Before the
+  # gateway role can start, add the VPS age key (from its SSH host key via
+  # ssh-to-age) to .sops.yaml and both secret files, then `sops updatekeys`.
+  # See the README for the full provisioning walkthrough.
+  # ---------------------------------------------------------------------------
 
   # VPS typically has ample RAM; add swap here only for small instances.
   swapDevices = [ ];
