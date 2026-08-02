@@ -25,4 +25,54 @@ jobs:
           skipPush: true
 
       - name: Check Nix Flake
-        run: nix flake check --show-trace --accept-flake-config --all-systems
+        # devenv 統合後は devenv が PWD を参照するため --impure が必要。
+        # terraform（unfree）を含むため NIXPKGS_ALLOW_UNFREE=1 も必要。
+        run: NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure --show-trace --accept-flake-config --all-systems
+
+  # devenv の git-hooks（nixfmt / statix / convco）を CI でも検証するジョブ。
+  # ローカルの pre-commit だけに頼らず、コミットメッセージ規約と
+  # nix コードの整形・静的解析を CI で強制する。
+  devenv-git-hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # convco でブランチ上のコミットを検証するため、全履歴を取得する
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Magic Nix Cache
+        uses: cachix/cachix-action@v15
+        with:
+          name: niri # Speeds up Niri caching
+          skipPush: true
+
+      - name: Install devenv
+        # devenv.yaml の allowUnfree: true（terraform が BUSL のため）は
+        # devenv が nixpkgs 設定へ自動反映するため、追加設定は不要
+        run: nix profile install 'github:NixOS/nixpkgs/nixos-unstable#devenv'
+
+      - name: Run devenv git-hooks and tests
+        # devenv test は devenv 1.0 で `devenv ci` からリネームされた CI 用コマンド。
+        # タスク機構により `devenv:git-hooks:run`（nixfmt / statix を全ファイルに実行）
+        # が先に走り、その後に enterTest を実行する。
+        run: devenv test
+
+      - name: Check Conventional Commits (convco)
+        # convco フックは commit-msg ステージのため `prek run -a` では実行されない。
+        # CI ではコミット作成が発生しないため、ブランチ上のコミットを
+        # `convco check <base>..HEAD` で直接検証する。
+        run: |
+          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            BASE="${{ github.event.before }}"
+          else
+            BASE="origin/main"
+          fi
+          devenv shell -- convco check "$BASE..HEAD"
