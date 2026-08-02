@@ -126,6 +126,7 @@
           # devenv の開発環境（devenv.nix をモジュールとして読み込む）
           devenv.shells.default = {
             imports = [ ./devenv.nix ];
+
           };
         };
     };

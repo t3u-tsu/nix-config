@@ -6,6 +6,27 @@
   ...
 }:
 {
+  # devenv.root を明示して pure 評価（--impure なし）でも動作させる。
+  # ※ 絶対パスのため、リポジトリのクローン先を変える場合は更新が必要。
+  devenv.root = "/home/t3u/nix-config";
+
+  # terraform は BUSL-1.1（nixpkgs では unfree 扱い）。allowUnfree 済みの
+  # nixpkgs インスタンスから取得して、devenv の pkgs で使えるようにする。
+  overlays = [
+    (final: prev: {
+      # allowUnfree 済みの nixpkgs から terraform を取得（inherit で同名アサインを回避）
+      inherit
+        (
+          (import inputs.nixpkgs {
+            inherit (final.stdenv.hostPlatform) system;
+            config.allowUnfree = true;
+          })
+        )
+        terraform
+        ;
+    })
+  ];
+
   # https://devenv.sh/basics/
   env.GREET = "nix-config";
 

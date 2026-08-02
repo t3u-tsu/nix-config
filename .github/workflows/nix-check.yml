@@ -25,9 +25,7 @@ jobs:
           skipPush: true
 
       - name: Check Nix Flake
-        # devenv 統合後は devenv が PWD を参照するため --impure が必要。
-        # terraform（unfree）を含むため NIXPKGS_ALLOW_UNFREE=1 も必要。
-        run: NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure --show-trace --accept-flake-config --all-systems
+        run: nix flake check --show-trace --accept-flake-config --all-systems
 
   # devenv の git-hooks（nixfmt / statix / convco）を CI でも検証するジョブ。
   # ローカルの pre-commit だけに頼らず、コミットメッセージ規約と
