@@ -43,7 +43,99 @@ terraform destroy  # 全リソース削除（※ 料金停止。承認が必要�
 
 - 変数のデフォルト値は `variables.tf` を参照（512MB プラン / 30GB ブートボリューム / Debian 12 仮 OS）
 - `.terraform.lock.hcl` はコミット対象（プロバイダのバージョン固定）
-- state ファイル（`terraform.tfstate`）は `.gitignore` で除外。リモート管理は未設定（ローカル運用）
+- state ファイルは **ConoHa オブジェクトストレージ（S3 互換 API）でリモート管理**する
+  （`backend.tf` 参照。セットアップ手順は下記「State 管理（リモートバックエンド）」）
+
+## State 管理（ConoHa オブジェクトストレージへのリモートバックエンド）
+
+### 調査結果: `backend "s3"` の利用可否
+
+**利用可能**。ConoHa VPS 3.0 のオブジェクトストレージは 2025-08 に **S3 互換 API** の提供を開始しており
+（Ceph RGW ベース）、Terraform の `backend "s3"` をそのまま使用できる。`terraform/backend.tf` に実装済み。
+
+- エンドポイント: `https://s3.c3j1.conoha.io`（**パススタイル**アクセス）
+- 認証: **EC2 Credential**（アクセスキー / シークレットキー）を Keystone v3 の Identity API
+  （`https://identity.c3j1.conoha.io/v3`）で発行し、SigV4 で署名
+- リージョン: 署名用に `conoha` を使用（RGW は任意リージョンの署名を受け付けることを実 API で確認済み）
+- バケット = オブジェクトストレージの**コンテナ**
+
+実 API での検証結果（2026-08）:
+
+| 操作 | 結果 |
+|---|---|
+| トークン発行 / EC2 Credential 発行（Keystone v3） | ✅ 成功 |
+| ListBuckets / CreateBucket（コンテナ作成） | ✅ 成功 |
+| バケットのバージョニング有効化（`PUT ?versioning`） | ✅ 成功 |
+| PutObject / GetObject | ⚠️ 書き込みは**現在 403/413 QuotaExceeded**（Swift API でも同様） |
+
+書き込みが失敗するのは S3 互換性の問題ではなく、**アカウントにオブジェクトストレージの容量契約
+（クォータ）がないため**（`x-account-meta-quota-bytes: 0`）。容量契約を済ませれば書き込み可能になる見込み
+（※未契約のため、state の実書き込み・`use_lockfile` の最終確認は未実施）。
+
+### 前提条件（セットアップ手順）
+
+1. **オブジェクトストレージの容量を契約**する（コントロールパネルで 100GB 単位）
+2. **EC2 Credential を発行**する（API ユーザー 1 つにつき 3 つまで）:
+
+   ```bash
+   # Keystone v3 でトークンを取得（CONOHAVPS_* は「認証情報の注入」参照）
+   TOKEN=$(curl -sS -D - -o /dev/null -X POST https://identity.c3j1.conoha.io/v3/auth/tokens \
+     -H "Content-Type: application/json" \
+     -d "{\"auth\":{\"identity\":{\"methods\":[\"password\"],\"password\":{\"user\":{\"id\":\"$CONOHAVPS_USER_ID\",\"password\":\"$CONOHAVPS_PASSWORD\"}}},\"scope\":{\"project\":{\"id\":\"$CONOHAVPS_TENANT_ID\"}}}}" \
+     | grep -i '^x-subject-token:' | awk '{print $2}' | tr -d '\r')
+
+   # EC2 Credential を発行（応答の access / secret が S3 のアクセスキー / シークレットキー）
+   curl -sS -X POST "https://identity.c3j1.conoha.io/v3/users/$CONOHAVPS_USER_ID/credentials/OS-EC2" \
+     -H "X-Auth-Token: $TOKEN" -H "Content-Type: application/json" \
+     -d "{\"tenant_id\":\"$CONOHAVPS_TENANT_ID\"}"
+   ```
+
+   発行した `access` / `secret` は SOPS ファイル（例: `secrets/services/conoha-vps-mcp.yaml`）に
+   追記して管理し、平文でコミットしないこと。
+3. **バケット（コンテナ）を作成**してバージョニングを有効化（state 誤削除対策）:
+
+   ```bash
+   export AWS_ACCESS_KEY_ID=<access> AWS_SECRET_ACCESS_KEY=<secret>
+   aws s3 mb s3://terraform-state --endpoint-url https://s3.c3j1.conoha.io --region conoha
+   aws s3api put-bucket-versioning --bucket terraform-state \
+     --versioning-configuration Status=Enabled \
+     --endpoint-url https://s3.c3j1.conoha.io --region conoha
+   ```
+
+   ※ `aws` は本リポジトリの devenv に未登録。必要なら `nix shell nixpkgs#awscli2` などで利用する。
+4. 認証情報を環境変数で注入して初期化:
+
+   ```bash
+   export AWS_ACCESS_KEY_ID=<access>
+   export AWS_SECRET_ACCESS_KEY=<secret>
+   cd terraform
+   terraform init -reconfigure   # リモートバックエンドの初期化
+   ```
+
+   ローカル state（`terraform.tfstate`）が既にある場合は `terraform init -migrate-state` で
+   **リモートへ移行**する（移行前にローカル state のバックアップを推奨）。移行後は
+   ローカル `terraform.tfstate` は不要になる（`.gitignore` で除外済みのまま）。
+
+### backend.tf の設定と補足
+
+- `skip_s3_checksum = true`: ConoHa の RGW は aws-sdk-go がデフォルトで付与する CRC32
+  チェックサムを受け付けないため、アップロード時のチェックサム付与を無効化している
+  （S3 互換 API 向けの標準オプション）
+- `use_lockfile`（state ロック）: オブジェクト書き込みが可能になった時点で
+  `use_lockfile = true` を追加すると、DynamoDB なしで S3 ロックファイル方式の state ロックを
+  有効化できる（推奨）。RGW の条件付き PUT（If-None-Match）対応を確認してから有効化すること
+- バケット名 `terraform-state` は他プロジェクトと共有しない専用コンテナを想定
+- AWS CLI 2.x で ConoHa の RGW を叩くと、エラー応答の `<Message>` が空の場合に
+  `argument of type 'NoneType' is not iterable` で落ちることがある（awscli 側の既知の問題）。
+  エラー内容は HTTP ステータスと XML 本文で確認すること
+
+### ローカル運用に戻す場合（ロールバック）
+
+```bash
+rm terraform/backend.tf          # backend.tf を削除してから
+cd terraform
+terraform init -migrate-state    # リモート state をローカルへ移行
+```
 
 ## リソース一覧
 
