@@ -43,6 +43,16 @@
     loader.efi.canTouchEfiVariables = true;
   };
 
+  # NOTE (2026-08-02): NVIDIA dGPU (RTX 3050 Ti) is FAULTY (hardware).
+  # Minecraft hangs/crashes the GPU under load:
+  #   - OpenGL: SIGSEGV in libnvidia-glcore.so (NULL pointer write)
+  #   - Vulkan: VK semaphore timeout (GPU hang) during texture updates
+  #   - glmark2 and a 90%-VRAM stress test pass; the AMD iGPU (Radeon 680M)
+  #     runs Minecraft stably
+  # → dGPU core fault (texture upload path), not VRAM, not driver-only.
+  # Workaround: nvidiaOffload is DISABLED; run games on the AMD iGPU.
+  # Re-enable nvidiaOffload after the dGPU is repaired/replaced.
+
   # CachyOS kernel builds its own NVIDIA driver variant.
   hardware.nvidia.package = pkgs.nvidia_cachyos;
 
@@ -71,9 +81,6 @@
         amdgpuBusId = "PCI:7:0:0";
       };
     };
-    # Steam: inject the PRIME offload environment (same vars as nvidia-offload)
-    # so every game launched through Steam uses the dGPU without launch options.
-    services.desktop.gaming.nvidiaOffload.enable = true;
     virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
   };
@@ -93,8 +100,6 @@
       Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-path/pci-0000:01:00.0-card"
     '';
 
-    # NVIDIA PRIME offload launchers for the desktop user (Steam on dGPU etc.)
-    my.home.desktop.gaming.nvidiaOffload.enable = true;
   };
 
   # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
