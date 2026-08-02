@@ -46,22 +46,59 @@
   # CachyOS kernel builds its own NVIDIA driver variant.
   hardware.nvidia.package = pkgs.nvidia_cachyos;
 
-  # GPU Configuration (Super-Conservative NVIDIA + AMD Hybrid)
-  services.xserver.videoDrivers = [ "amdgpu" ]; # "nvidia" is added by the module
+  # GPU Configuration (Battery-first: PRIME offload)
+  # - AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is only
+  #   activated on demand via `nvidia-offload` (games/compute).
+  # - `nvidia` is added to videoDrivers by the module (mkBefore).
+  services.xserver.videoDrivers = [ "amdgpu" ];
 
   my = {
     hardware.nvidia = {
       enable = true;
+      # Open kernel modules (Turing+): nvidia_cachyos.open (610.x)
+      open = true;
+      # systemd suspend/resume integration + Runtime D3 (RTD3) power gating.
+      # finegrained requires PRIME offload (assertion in nixpkgs module).
+      powerManagement = {
+        enable = true;
+        finegrained = true;
+      };
       prime = {
         enable = true;
-        offload.enable = false;
-        sync.enable = true;
+        offload.enable = true;
+        sync.enable = false;
         nvidiaBusId = "PCI:1:0:0";
         amdgpuBusId = "PCI:7:0:0";
       };
     };
     virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
+  };
+
+  # Make the AMD iGPU the primary DRM renderer so the NVIDIA dGPU stays powered
+  # down unless explicitly offloaded. by-path keeps this stable across boots
+  # regardless of cardN numbering (AMD = 07:00.0, NVIDIA = 01:00.0).
+  # This is a drop-in for the niri.service provided by the niri package
+  # (via /run/current-system/sw/share/systemd/user, XDG_DATA_DIRS). Defining
+  # systemd.user.services.niri here would REPLACE that unit (and lose its
+  # ExecStart), and /etc/systemd/user is a symlink to the user-units package
+  # (so environment.etc cannot create files inside it). We therefore place the
+  # drop-in in ~/.config/systemd/user via home-manager instead.
+  home-manager.users.${config.my.user.name} = {
+    xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''
+      [Service]
+      Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-path/pci-0000:01:00.0-card"
+    '';
+
+    # NVIDIA PRIME offload launchers for the desktop user (Steam on dGPU etc.)
+    my.home.desktop.gaming.nvidiaOffload.enable = true;
+  };
+
+  # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "lock";
+    HandleLidSwitchDocked = "ignore";
   };
 
   networking.hostName = "BrokenPC";

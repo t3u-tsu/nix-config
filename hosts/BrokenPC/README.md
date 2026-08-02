@@ -12,6 +12,13 @@ NixOS desktop machine with a hybrid GPU configuration. This host is a "Victus by
   - 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`) for OS/Boot
   - 1TB NVMe SSD (`nvme-FIKWOT_FN500_1TB_AA000000000000000188`) mapped to `/data`
 
+## GPU Configuration (Battery-first: PRIME offload)
+
+- The AMD Radeon 680M iGPU is the primary renderer (set via `WLR_DRM_DEVICES` on the niri user service, using PCI by-path so it stays stable across boots).
+- The NVIDIA RTX 3050 Ti runs the **open kernel modules** (`nvidia_cachyos.open`, driver 610.x) with **RTD3 power management** (`finegrained`): it powers down when idle and is only activated on demand.
+- Launch games on the dGPU with `nvidia-offload` (Steam desktop entry "Steam (NVIDIA)" or the `steam-nvidia` alias). For per-game offloading, set the Steam launch option to `nvidia-offload %command%` (optionally wrapped in `gamescope -e --`).
+- Lid behavior: suspend on battery, lock on AC, ignore when docked (`services.logind.settings.Login`).
+
 ## Installation Guide (Clean Install)
 
 ### Phase 1: Disk Preparation
