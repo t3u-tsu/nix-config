@@ -78,8 +78,6 @@
     };
 
     # === Package Sources ===
-    # Chaotic-Nyx (bleeding-edge packages). Do NOT follows nixpkgs:
-    # the nyxpkgs-unstable branch is cached against its own nixpkgs.
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     };
