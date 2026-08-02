@@ -30,9 +30,9 @@ in
     # ~/.codewhale/mcp.json を SOPS テンプレートから生成する。
     # 認証情報は sops.placeholder 経由で注入されるため、リポジトリに平文は残らない。
     sops.templates."codewhale-mcp.json" = {
-      # 直接 ~/.codewhale/mcp.json にレンダリングする。
-      # home.file.source 経由だと pure evaluation で絶対パス参照が forbidden になるため。
-      path = "/home/${username}/.codewhale/mcp.json";
+      # デフォルトの rendered パスに生成し、activation で ~/.codewhale/mcp.json に実ファイルとしてコピーする。
+      # 理由: sops.templates の path に直接指定するとシンボリックリンクになり、
+      #       codewhale が MCP config path must be a regular file で拒否するため。
       content = ''
         {
           "timeouts": {
@@ -60,6 +60,13 @@ in
         }
       '';
     };
+    # sops.templates の出力（rendered）を実ファイルとして ~/.codewhale/mcp.json に配置する。
+    # sops のレンダリング（setupSecrets）後に実行する。
+    home.activation.conohaMcpConfig = config.lib.dag.entryAfter [ "setupSecrets" ] ''
+      rm -f /home/${username}/.codewhale/mcp.json
+      cp -f ${config.sops.templates."codewhale-mcp.json".path} /home/${username}/.codewhale/mcp.json
+      chmod 600 /home/${username}/.codewhale/mcp.json
+    '';
 
   };
 }
