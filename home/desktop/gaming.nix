@@ -16,12 +16,12 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      mangohud
+      mangohud_git
       protonup-qt
       heroic
       prismlauncher
       steam-run
-      gamescope
+      gamescope_git
     ];
   };
 }
