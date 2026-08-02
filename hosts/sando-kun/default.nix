@@ -13,7 +13,6 @@
     ../../nixos/profiles/tower-server
   ];
 
-  my.hardware.pc-tools.enable = true;
   # GeForce 8400 GS (Tesla) is too old for modern NVIDIA drivers.
   # We stick with nouveau or basic kernel drivers for stability.
 
@@ -33,6 +32,4 @@
 
   # Enable local network optimizations (Disabled as default since machines moved LANs)
   # my.networking.local-network.enable = true;
-
-  system.stateVersion = "26.05";
 }

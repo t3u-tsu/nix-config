@@ -54,24 +54,6 @@ in
     };
   };
 
-  users = {
-    mutableUsers = false;
-    users.${config.my.user.name} = {
-      isNormalUser = true;
-      extraGroups = [ "wheel" ];
-      hashedPasswordFile = config.sops.secrets.torii_chan_t3u_password_hash.path;
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
-    };
-    users.root = {
-      hashedPasswordFile = config.sops.secrets.torii_chan_root_password_hash.path;
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
-    };
-  };
-
   # Request password for sudo by default (Production Security)
   # This is disabled only during initial SD image creation in sd-image-installer.nix (mkForce false)
   security.sudo.wheelNeedsPassword = true;
@@ -84,6 +66,4 @@ in
       PasswordAuthentication = false;
     };
   };
-
-  system.stateVersion = "26.05";
 }

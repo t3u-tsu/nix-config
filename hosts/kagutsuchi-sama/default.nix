@@ -13,7 +13,6 @@
     ../../nixos/profiles/tower-server
   ];
 
-  my.hardware.pc-tools.enable = true;
   # Bootloader configuration (Using GRUB to match shosoin-tan)
   boot.loader.grub = {
     enable = true;
@@ -31,6 +30,4 @@
 
   # GTX 980 Ti (Maxwell) configuration
   my.hardware.nvidia.enable = true;
-
-  system.stateVersion = "26.05";
 }
