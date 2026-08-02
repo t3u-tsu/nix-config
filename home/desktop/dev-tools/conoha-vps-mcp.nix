@@ -15,12 +15,15 @@ in
     sops.secrets = {
       conoha_vps_mcp_tenant_id = {
         sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        key = "OPENSTACK_TENANT_ID";
       };
       conoha_vps_mcp_user_id = {
         sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        key = "OPENSTACK_USER_ID";
       };
       conoha_vps_mcp_password = {
         sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        key = "OPENSTACK_PASSWORD";
       };
     };
 
