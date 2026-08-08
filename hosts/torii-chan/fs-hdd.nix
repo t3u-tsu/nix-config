@@ -12,6 +12,8 @@
     device = "/dev/disk/by-label/NIXOS_HDD";
     fsType = "ext4";
     neededForBoot = true;
+    # Reduce unnecessary atime writes to extend HDD lifespan.
+    options = [ "noatime" ];
   };
 
   # Mount the original SD card root partition as /boot.
@@ -37,9 +39,44 @@
     kernelParams = [
       "rootdelay=10"
       "usb-storage.quirks=152d:0583:u"
+      # Auto-repair the root filesystem on boot instead of dropping to
+      # emergency mode (which is unreachable when root account is locked).
+      "fsck.repair=yes"
     ];
 
     # Use systemd in initrd for more robust device discovery and mounting
     initrd.systemd.enable = true;
+  };
+
+  # --- HDD Lifespan & Monitoring ---
+
+  # Disable HDD APM (Advanced Power Management) to stop excessive head
+  # load/unload cycles (Load_Cycle_Count). WD Scorpio Blue drives are known
+  # for high LCC, which shortens drive lifespan. 255 = APM fully disabled.
+  systemd.services.hdd-apm = {
+    description = "Disable HDD APM for root disk";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "local-fs.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.hdparm}/bin/hdparm -B 255 /dev/disk/by-label/NIXOS_HDD";
+    };
+  };
+
+  # SMART monitoring to detect disk degradation early.
+  # (The previous Toshiba HDD died with 11,856 pending sectors and no
+  # monitoring in place, so failures were only noticed at boot time.)
+  services.smartd = {
+    enable = true;
+    # Monitor only the explicitly listed device. autodetect would also try
+    # to probe the USB bridge directly, which needs -d sat and may misbehave.
+    autodetect = false;
+    devices = [
+      {
+        device = "/dev/disk/by-label/NIXOS_HDD";
+        options = "-d sat -a -o on -S on -n standby,q -W 0,45,55";
+      }
+    ];
   };
 }
