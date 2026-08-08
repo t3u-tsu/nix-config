@@ -18,8 +18,9 @@
 - **対応言語**: ユーザーへの報告、相談はすべて **日本語** で行います。
 - **バイリンガル対応 (Bilingual Sync)**: プロジェクトルートの `README.md` および `README.ja.md` は、必ず英語と日本語の両方を同時に同期して更新してください。サブディレクトリの `README.md` は英語のみで管理し、日英の重複管理は行いません。
 - **ドキュメント優先**: 変更の際は `TODO.md` や `README.md` との整合性を確認してください。
-- **コミット方針**: 適切なコミットメッセージ（Conventional Commits 準拠など）と共にコミットし、変更内容の詳細はコミットメッセージおよび PR (Pull Request) の説明に詳しく記述してください。作業ログファイル（`.agents/` 等）の個別作成は廃止されました。
+- **コミット方針**: 適切なコミットメッセージ（Conventional Commits 準拠など）と共にコミットし、変更内容の詳細はコミットメッセージおよび PR (Pull Request) の説明に詳しく記述してください。
 - **ユーザー承認の義務化**: `main` へのマージ、リモートの `main` へのプッシュ、および `nixos-rebuild switch` の適用を行う際は、必ず実行前にユーザーへ明示的に確認し、承認を得てから進めてください。
+- **nix run及びnix shellの利用**: 本環境には `python3` を始め、ほとんどのパッケージがインストールされていないため、必要なパッケージを実行する際は `nix run` 及び `nix shell` を利用してください。
 
 ### 2. 変更・適用手順
 1.  **ブランチ作成（実装より前に必ず実行）**: `git checkout -b feat/topic-name`
@@ -98,18 +99,6 @@
   - **魔改造枠 (priority=50)**: `chaotic-nyx` （他と競合するリスクがあるため最後尾）
 - **記述の一貫性**:
   `extra-substituters` の並び順と、`extra-trusted-public-keys` の公開鍵の並び順は、視認性と管理のしやすさのために**完全に一致**させて記述してください。
-
-### 3. Ghostty 特有の設定上の罠
-- **ウィンドウ枠非表示オプションの名称**:
-  ウィンドウデコレーション（タイトルバーなど）をオフにするオプション名は、複数形の `window-decorations` ではなく、**単数形の `window-decoration`** です（`window-decoration = false`）。
-- **テーマカラー動的同期エラーの回避**:
-  Noctalia などの外部ツールが動的に生成するテーマカラーファイルを `config-file` で読み込む場合、ファイルがまだ存在しないタイミングでの起動エラー（`FileNotFound`）を防ぐため、パスの先頭にプレフィックス **`?`** を付与してください（例: `config-file = "?/path/to/ghostty-colors"`）。これにより、ファイル未生成時もサイレントに無視してフォールバック起動させることができます。
-
-### 4. GNOME環境外における XDG Desktop Portal の挙動とファイル選択の罠
-- **GNOMEポータルの不作動問題**:
-  Niri などの非GNOMEコンпозиター環境で `xdg-desktop-portal-gnome` を最優先ポータルとして使用すると、ファイル選択ダイアログ (`org.freedesktop.impl.portal.FileChooser`) 等が動作しません。これは、GNOME ポータルが GNOME Shell の D-Bus インターフェースや GNOME セッションに強く依存しているためです。
-- **回避策（明示的なGTKポータル指定）**:
-  ポータル設定 (`xdg.portal.config`) にて、`FileChooser` および `AppChooser` に対応するポータルとして `gtk` (`xdg-desktop-portal-gtk`) を明示的に優先指定することで、非GNOME環境でも正常に GTK ベースのファイル選択ダイアログが起動するようになります。
 
 ---
 
