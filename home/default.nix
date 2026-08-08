@@ -27,10 +27,9 @@ in
       ./programs/ssh.nix
     ];
 
-    # Command-not-found & comma (,) integration
+    # Command-not-found integration (nix-index)
     programs = {
       nix-index.enable = true;
-      nix-index-database.comma.enable = true;
     };
 
     # SOPS configuration for Home-manager
