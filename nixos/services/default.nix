@@ -6,6 +6,5 @@
     ./desktop
     ./discord-bridge
     ./minecraft
-    ./deployment/comin.nix
   ];
 }

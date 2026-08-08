@@ -47,9 +47,6 @@ with lib;
         "dialout"
       ];
 
-      # Comin automatic deployment (default: enabled)
-      services.deployment.comin.enable = lib.mkDefault true;
-
       hardware.pc-tools.enable = true;
 
       # System-wide desktop services

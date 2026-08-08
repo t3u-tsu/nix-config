@@ -8,9 +8,6 @@
 
   config = {
     my = {
-      # Comin automatic deployment (default: enabled)
-      services.deployment.comin.enable = lib.mkDefault true;
-
       # Common server user configuration (base/user.nix handles users.*)
       user = {
         # NOTE: keep "wheel" here — setting user.extraGroups replaces the base

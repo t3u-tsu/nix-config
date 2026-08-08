@@ -27,8 +27,6 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
       ];
 
-      # Comin automatic deployment (default: enabled)
-      services.deployment.comin.enable = lib.mkDefault true;
     };
   };
 }
