@@ -11,6 +11,11 @@ keys:
   - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
   - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
   - &brokenpc        age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk
+  # Failover VPS host (torii-chan-vps): shares the SAME torii-chan secrets. When the
+  # VPS exists, add its age key here (ssh-to-age from its SSH host key), then
+  # include it in secrets/hosts/torii-chan.yaml and secrets/services/ddns.yaml
+  # and run: sops updatekeys secrets/hosts/torii-chan.yaml secrets/services/ddns.yaml
+  # - &torii_chan_vps age1YOURKEY
 
 creation_rules:
   # 1. Host-specific secrets: [Master, Target Host]

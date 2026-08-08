@@ -21,7 +21,11 @@ in
 {
   flake.nixosConfigurations = {
 
-    # === torii-chan (Orange Pi Zero 3 SBC) ===
+    # === torii-chan (WireGuard gateway / VPN server + DDNS) ===
+    #
+    # The same role runs on the physical SBC or the failover VPS, one at a time.
+    # Both share hostname `torii-chan` and identical secrets so peers keep using
+    # torii-chan.t3u.uk without reconfiguration.
 
     # 1. SD card image builder (cross-compile from x86_64)
     "torii-chan-sd" = mkLib.mkSystem {
@@ -31,17 +35,19 @@ in
       targetSystem = "aarch64-linux";
       extraModules = [
         ../hosts/torii-chan/sd-image-installer.nix
+        ../hosts/torii-chan/sbc.nix
+        ../hosts/torii-chan/fs-sd.nix
       ];
     };
 
-    # 2. Production (HDD operation)
+    # 2. Production on the physical SBC (HDD operation)
     "torii-chan" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
       extraModules = [
+        ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-hdd.nix
-        ../hosts/torii-chan/production-security.nix
       ];
     };
 
@@ -51,8 +57,22 @@ in
       username = "t3u";
       system = "aarch64-linux";
       extraModules = [
+        ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-sd.nix
-        ../hosts/torii-chan/production-security.nix
+      ];
+    };
+
+    # === torii-chan (VPS failover host) ===
+    #
+    # Same role as above, on a VPS. When active, its DDNS updates
+    # torii-chan.t3u.uk to the VPS public IP and peers reconnect automatically.
+    # Adjust the placeholders in ../hosts/torii-chan/vps.nix to your provider.
+    "torii-chan-vps" = mkLib.mkSystem {
+      name = "torii-chan";
+      username = "t3u";
+      system = "x86_64-linux";
+      extraModules = [
+        ../hosts/torii-chan/vps.nix
       ];
     };
 

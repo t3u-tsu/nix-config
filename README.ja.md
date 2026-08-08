@@ -25,7 +25,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── networking/      # ネットワーク設定 (hosts, WireGuard)
 │   ├── environment/     # システムパッケージ
 │   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
-│   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc)
+│   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc, gateway)
 │   └── services/        # システムサービス (バックアップ, Minecraft, デプロイ等)
 ├── home/                # Home Manager モジュール
 │   ├── shell/           # シェル環境 (Zsh, Starship, Atuin)
@@ -33,7 +33,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
 ├── hosts/               # ホスト固有設定
 │   ├── BrokenPC/        # デスクトップPC (NixOS)
-│   ├── torii-chan/      # Orange Pi Zero 3 SBC (NixOS, aarch64)
+│   ├── torii-chan/      # VPN ゲートウェイ役割 (SBC aarch64 + VPS フェイルオーバー)
 │   ├── shosoin-tan/     # タワーサーバー (NixOS)
 │   ├── kagutsuchi-sama/ # タワーサーバー (NixOS)
 │   └── sando-kun/       # タワーサーバー (NixOS)
