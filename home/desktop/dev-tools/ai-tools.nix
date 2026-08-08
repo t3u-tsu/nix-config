@@ -15,9 +15,9 @@ let
   # conoha_post ツールの inputSchema に先読み正規表現（(?=...)）が含まれており、
   # OpenAI 互換 API（deepseek 等）が 400 "is not a regex" を返すため、
   # tools/list レスポンスをインターセプトして pattern を安全化する。
-  # 詳細は mcp/conoha-schema-fix.js を参照。
+  # 詳細は ./mcp/conoha-schema-fix.js を参照。
   conohaMcpWrapper = pkgs.writeScriptBin "conoha-vps-mcp-schema-fix" (
-    builtins.readFile ../../../mcp/conoha-schema-fix.js
+    builtins.readFile ./mcp/conoha-schema-fix.js
   );
 in
 {
