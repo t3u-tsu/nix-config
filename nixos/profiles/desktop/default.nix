@@ -65,10 +65,7 @@ with lib;
 
     # Integrate Home-manager desktop settings for the primary user
     home-manager.users.${config.my.user.name} = { config, pkgs, ... }: {
-      # Use gh (GitHub CLI) as the git credential helper (desktop only;
-      # gh does not cross-compile for aarch64, so SBCs/servers skip it).
-      programs.git.settings.credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
-
+      # gh credential helper is configured in home/desktop/dev-tools/git-tools.nix
       imports = [
         ../../../home/desktop
       ];
