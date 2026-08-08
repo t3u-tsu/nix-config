@@ -23,10 +23,6 @@ _:
       enable = true;
       nix-direnv.enable = true;
     };
-    zellij = {
-      enable = true;
-      enableZshIntegration = false;
-    };
   };
 
   home = {

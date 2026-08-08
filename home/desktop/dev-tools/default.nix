@@ -12,6 +12,7 @@ in
   imports = [
     ./neovim.nix
     ./git-tools.nix
+    ./nix.nix
     ./ai-tools.nix
     ./conoha-vps-mcp.nix
     ./hardware.nix
@@ -27,6 +28,7 @@ in
       ai-tools.enable = mkDefault true;
       hardware.enable = mkDefault true;
       ghostty.enable = mkDefault true;
+      nix.enable = mkDefault true;
       unity.enable = mkDefault true;
       unity.useDistrobox = mkDefault true;
     };

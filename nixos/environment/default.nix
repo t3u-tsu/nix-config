@@ -27,11 +27,6 @@ in
       default = true;
       description = "Enable data processing tools";
     };
-    nix-tools.enable = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Enable Nix ecosystem tools";
-    };
     security.enable = mkOption {
       type = types.bool;
       default = true;
@@ -44,7 +39,6 @@ in
     ./monitoring.nix
     ./network-tools.nix
     ./data.nix
-    ./nix-tools.nix
     ./security.nix
   ];
 }
