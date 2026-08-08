@@ -28,7 +28,7 @@ SBC（`torii-chan`）でのビルド負荷をゼロにしつつ、安全（自�
 - **Phase 3: ターゲット (`torii-chan`)**
   - `sops-nix` でAtticトークンを配布
   - `require-sigs = true` とAtticを `substituters` に設定し、ローカルビルドを禁止
-  - `comin` を無効化し、`deploy-rs` へ完全移行
+  - `deploy-rs` へ完全移行（`comin` は 2026-08-09 に削除済み）
 
 ## 5. アーキテクチャ概要
 ```mermaid

@@ -36,7 +36,6 @@ To reduce CPU load on the target, we transfer the pre-built image from the build
 
 ## Network and Security
 - **Boot Method:** Legacy BIOS (MBR)
-- **Automated Update:** Periodically pulls configuration updates from the latest `main` branch via the `comin` deployment service.
 - **Data Storage:** `/mnt/scratch` is mounted automatically.
 - **Management IP:** `10.0.0.2` (WireGuard)
 - **Application IP:** `10.0.1.2`
