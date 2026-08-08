@@ -44,7 +44,6 @@
       auto-optimise-store = true;
     };
 
-    # GC every week
     gc = {
       automatic = true;
       dates = "weekly";
