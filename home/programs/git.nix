@@ -5,9 +5,10 @@
     git = {
       enable = true;
 
-      # Git User Configuration
+      # Git User Configuration (credential helper is set per-profile
+      # in home/default.nix; gh is desktop-only because it does not
+      # cross-compile for aarch64)
       settings = {
-        credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
         user = {
           name = "t3u-tsu";
           email = "t3u@t3u.uk";
