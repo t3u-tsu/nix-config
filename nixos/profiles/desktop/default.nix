@@ -12,10 +12,6 @@ with lib;
   imports = [
     ../../services/desktop
     ../../services/desktop/fonts.nix
-    # Chaotic-Nyx overlay: provides bleeding-edge packages used by desktop
-    # (e.g. gamescope_git, mangohud_git in home/desktop/gaming.nix).
-    # The binary cache is NOT imported here: it is managed manually in
-    # nixos/base/nix.nix (keeps chaotic-nyx at the lowest priority tier).
     inputs.chaotic.nixosModules.nyx-overlay
   ];
 
@@ -37,9 +33,6 @@ with lib;
     networking.networkmanager.enable = true;
 
     my = {
-      # NOTE: keep "wheel" here — setting user.extraGroups replaces the base
-      # default ([ "wheel" ] in nixos/base/user.nix), so omitting it removes
-      # sudo access for the primary user.
       user.extraGroups = [
         "wheel"
         "networkmanager"
@@ -65,10 +58,6 @@ with lib;
 
     # Integrate Home-manager desktop settings for the primary user
     home-manager.users.${config.my.user.name} = { config, pkgs, ... }: {
-      # Use gh (GitHub CLI) as the git credential helper (desktop only;
-      # gh does not cross-compile for aarch64, so SBCs/servers skip it).
-      programs.git.settings.credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
-
       imports = [
         ../../../home/desktop
       ];

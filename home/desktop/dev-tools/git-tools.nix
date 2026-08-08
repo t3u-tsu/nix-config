@@ -17,7 +17,9 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       lazygit
-      gh # GitHub CLI
+      gh
     ];
+
+    programs.git.settings.credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
   };
 }
