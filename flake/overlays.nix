@@ -41,7 +41,7 @@
         version = "2024.01";
         defconfig = "orangepi_zero3_defconfig";
         extraMeta.platforms = [ "aarch64-linux" ];
-        BL31 = "${prev.armTrustedFirmwareAllwinnerH616}/bl31.bin";
+        env.BL31 = "${prev.armTrustedFirmwareAllwinnerH616}/bl31.bin";
         filesToInstall = [ "u-boot-sunxi-with-spl.bin" ];
         src = prev.fetchFromGitHub {
           owner = "u-boot";
