@@ -85,7 +85,7 @@ in
   # The firewall hardening (restrictAccess = true) exposes SSH only via wg0,
   # which is not reachable on the very first boot. For the FIRST deploy only,
   # uncomment the line below to open SSH on the WAN, then re-enable hardening
-  # afterwards (mirrors hosts/torii-chan/sd-image-installer.nix).
+  # afterwards (mirrors hosts/torii-chan/sd-installer.nix).
   # my.services.gateway.restrictAccess = lib.mkForce false;
   #
   # SOPS prerequisite: the VPS decrypts the SAME secrets as the SBC

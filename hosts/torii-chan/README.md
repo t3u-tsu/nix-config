@@ -27,9 +27,11 @@ Platform-specific wiring is split into two thin layers:
 
 ## Configurations in Flake
 
-- `torii-chan-sd`: initial SD card image build (aarch64 native).
-- `torii-chan-sd-live`: update system while running on SD card.
-- `torii-chan`: production on the physical SBC (root on HDD).
+- `torii-chan-sd-installer`: **SD installer image** (aarch64 native). stage:
+  installer — no production services, temp password + relaxed SSH for
+  provisioning. Build via `./hosts/torii-chan/build-sd-image.sh`.
+- `torii-chan-sd`: production on the physical SBC (root on SD card).
+- `torii-chan-hdd`: production on the physical SBC (root on HDD).
 - `torii-chan-vps`: same role on a failover VPS (x86_64).
 - `torii-chan-vps-installer`: SSH-operable NixOS installer ISO for the VPS (x86_64).
 
@@ -156,31 +158,56 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 ## Setup Guide (SBC)
 
 ### Phase 1: Build & Flash SD Image
-> **Build method**: `torii-chan-sd` is a native aarch64-linux build (no cross
+> **Build method**: `torii-chan-sd-installer` is a native aarch64-linux build (no cross
 > compilation). On x86_64 build hosts the aarch64 binaries run through QEMU
 > binfmt emulation, enabled in `nixos/base/nix.nix`
 > (`boot.binfmt.emulatedSystems`). The nixpkgs module wires up
 > `nix.settings.extra-platforms` and the sandbox paths automatically, so a plain
 > `nix build` works without extra flags.
 
+Use `build-sd-image.sh` to build an installer image with a **random temporary
+password** baked in (stored in `result-sd-temp-password.txt`, mode 0600):
+
 ```bash
-nix build .#nixosConfigurations.torii-chan-sd.config.system.build.sdImage
-sudo dd if=result/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M status=progress conv=fsync
+./hosts/torii-chan/build-sd-image.sh
+sudo dd if=result-sd-image/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M status=progress conv=fsync
 ```
 
-### Phase 2: Initial Provisioning
-1. Place your age secret key at `/var/lib/sops-nix/key.txt`.
-2. First deploy:
+The installer (`torii-chan-sd-installer`) runs **no production services**
+(WireGuard / DDNS / NAT are disabled) and only opens TCP 22. Log in with the
+temporary password or the `t3u@BrokenPC` SSH key over the LAN
+(static IP `192.168.0.128`).
+
+### Phase 2: Initial Provisioning (register host key, deploy production)
+The production configs (`torii-chan-sd` / `torii-chan-hdd`) decrypt secrets via
+SOPS using the **SSH host key** of this machine, so the fresh host key must be
+registered before the first production deploy:
+
+1. Boot the installer SD and read the freshly generated host key:
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd-live --target-host root@192.168.0.128
+   ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
    ```
+   (run on the SBC, or `cat /etc/ssh/ssh_host_ed25519_key.pub` over SSH and
+   convert locally).
+2. Replace the `&torii_chan` age key in `.sops.yaml` with the derived key and
+   re-encrypt:
+   ```bash
+   sops updatekeys secrets/hosts/torii-chan.yaml secrets/services/ddns.yaml
+   ```
+   Commit the changes.
+3. Deploy production (SD root):
+   ```bash
+   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
+   ```
+   The temporary password is replaced by the SOPS-managed production password
+   on this switch.
 
 ### Phase 3: Migrate to HDD
 1. Format HDD with label `NIXOS_HDD`.
 2. Rsync `/` to the HDD partition.
 3. Switch config:
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
    ```
 
 ## Secrets

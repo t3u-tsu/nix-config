@@ -27,20 +27,22 @@ in
     # Both share hostname `torii-chan` and identical secrets so peers keep using
     # torii-chan.t3u.uk without reconfiguration.
 
-    # 1. SD card image builder (aarch64 native, built on x86_64 via QEMU binfmt)
-    "torii-chan-sd" = mkLib.mkSystem {
+    # 1. SD installer image (aarch64 native, built on x86_64 via QEMU binfmt).
+    #    stage: installer — no production services, temp password + relaxed SSH.
+    #    Build with ./hosts/torii-chan/build-sd-image.sh
+    "torii-chan-sd-installer" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
       extraModules = [
-        ../hosts/torii-chan/sd-image-installer.nix
+        ../hosts/torii-chan/sd-installer.nix
         ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-sd.nix
       ];
     };
 
-    # 2. Production on the physical SBC (HDD operation)
-    "torii-chan" = mkLib.mkSystem {
+    # 2. Production on the physical SBC (HDD root)
+    "torii-chan-hdd" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
@@ -50,8 +52,8 @@ in
       ];
     };
 
-    # 3. Development on SD card (no HDD)
-    "torii-chan-sd-live" = mkLib.mkSystem {
+    # 3. Production on SD card (no HDD)
+    "torii-chan-sd" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";

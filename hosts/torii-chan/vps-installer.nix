@@ -4,27 +4,23 @@
 # / 30GB ボリューム、x86_64）に NixOS をインストールするための「SSH から操作できる
 # インストーラ ISO」を生成する NixOS モジュール。
 #
-# sd-image-installer.nix（SBC 用 SD イメージ）と同様に、ホスト torii-chan の
-# 「インストーラ」レイヤーとして hosts/torii-chan/ 配下に置く。
-#
-# 標準の NixOS インストーラ ISO は sshd 自体は有効だが、ログインにはコンソールで
-# パスワード設定か authorized_keys の追加が必要で、ConoHa は DHCP を提供しない。
-# そのため VNC コンソールでの手作業（遅い・非対話化が難しい）に依存していた。
-# 本モジュールは以下を組み込んで、SSH だけでインストールを完結させる:
-#
-#   - services.openssh 有効化 + root の authorizedKeys（公開鍵のみ・パスワード認証無効）
+# sd-installer.nix（SBC 用 SD イメージ）と stage: installer の共通設定
+# （installer-common.nix）を共有する。本モジュールは VPS 固有の差分のみを担う:
+#   - ISO 形式（image.modules."iso-installer"）
 #   - 静的 IP 設定（ConoHa は DHCP 無効。IP は conoha.installer.wan で指定）
 #   - 512MB 向け低メモリ設定（zram、シリアルコンソール、OOM 対策）
 #   - nixos-install 自動化スクリプト install-nixos（同梱・PATH に追加）
 #
-# ビルド:
-#   nix build .#torii-chan-vps-iso
+# 認証まわり（一時パスワード / SSH 公開鍵 / SOPS 分離 / 本番サービス無効化）は
+# installer-common.nix が提供する。VPS は公開 IP に直接晒されるため SSH は鍵のみ。
+#
+# ビルド（一時パスワード自動発行）:
+#   ./hosts/torii-chan/build-vps-iso.sh
 #   （nixosConfigurations には登録しない。nix flake check が ISO を通常の
 #    ブート可能システムとして検証して失敗するため、packages としてのみ公開）
 #
 # 静的 IP は terraform apply 後に確定するため、未確定なら conoha.installer.wan.ipv4 を
 # null のままビルドし、起動後に `install-nixos.sh network` で手動設定できる。
-# 認証情報・秘密鍵はハードコードしない（公開鍵のみ）。
 {
   config,
   lib,
@@ -34,15 +30,12 @@
 
 let
   cfg = config.conoha.installer;
-
-  # build-vps-iso.sh が --impure ビルドで環境変数として渡す一時パスワードハッシュ。
-  # 通常（純粋評価）のビルドでは空文字になり、一時パスワードは設定されない。
-  envTempPasswordHash = builtins.getEnv "TORII_INSTALLER_TEMP_PASSWORD_HASH";
-  # 環境変数（自動発行）を優先し、なければオプション指定（手動）を使う。
-  tempPasswordHash =
-    if envTempPasswordHash != "" then envTempPasswordHash else cfg.temporaryPasswordHash;
 in
 {
+  imports = [
+    ./installer-common.nix
+  ];
+
   # NOTE: installation-cd-base.nix は直接 import しない。
   # system.build.images.iso-installer が image.modules 経由で自動付加する
   # （nixpkgs/modules/image/images.nix の image.format = "iso-installer"）。
@@ -105,16 +98,6 @@ in
       };
     };
 
-    # SSH ログインを許可する公開鍵（authorizedKeys）。
-    authorizedKeys = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [
-        # t3u の公開鍵（公開情報。秘密鍵は含めない）
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
-      description = "インストーラの root に登録する SSH 公開鍵のリスト。";
-    };
-
     install = {
       disk = lib.mkOption {
         type = lib.types.str;
@@ -131,35 +114,19 @@ in
         description = "インストール時に作成するスワップファイルのサイズ。";
       };
     };
-    # ライブ環境（ISO）に焼き込む一時パスワードのハッシュ（SHA-512）。
-    # 指定すると root / t3u のパスワードがこのハッシュに設定され、本番
-    # （SOPS 管理）のパスワードハッシュは ISO に含めない。
-    # 通常は build-vps-iso.sh が自動生成して環境変数
-    # TORII_INSTALLER_TEMP_PASSWORD_HASH 経由で渡す（nix build --impure）。
-    # デフォルト null のままビルドするとパスワードなし（SSH 鍵のみの運用）。
-    temporaryPasswordHash = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "ライブ環境用の一時パスワードハッシュ。";
-    };
   };
 
   config = {
-    # インストーラ ISO では gateway 役割（WireGuard / DDNS / NAT）は実行しない。
-    # hosts/torii-chan/default.nix が my.services.gateway.enable = true を設定する
-    # ため、mkForce で無効化する（hostName 等の衝突も解消）。
-    my.services.gateway.enable = lib.mkForce false;
-    networking.hostName = cfg.hostName;
-
-    # ISO のボリュームラベル / ブートメニュー名（volumeID は 32 文字制限）。
-    # isoImage オプションは image.modules."iso-installer" 内で定義される
-    # （installation-cd-base がそのサブシステムに import されるため）。
-    image.modules."iso-installer" = {
-      isoImage = {
-        volumeID = "conoha-installer";
-        appendToMenuLabel = " ConoHa Installer";
-      };
+    # --- インストーラ共通（installer-common.nix） ---
+    # 本番サービス無効化 / 一時パスワード / SOPS 分離 / sshd 設定を提供する。
+    # 一時パスワードは build-vps-iso.sh が TORII_INSTALLER_TEMP_PASSWORD_HASH 経由で
+    # 注入する（nix build --impure）。VPS は公開 IP のため SSH は鍵のみ。
+    my.installer = {
+      enable = true;
+      allowPasswordAuthentication = false;
     };
+
+    networking.hostName = cfg.hostName;
 
     # --- ネットワーク（旧 nixos/installer/network.nix） ---
     # ConoHa VPS は DHCP を提供しないため、静的 IP を明示設定する。
@@ -187,13 +154,6 @@ in
 
       defaultGateway = lib.mkIf (cfg.wan.gateway != null) cfg.wan.gateway;
       nameservers = cfg.wan.nameservers;
-
-      # インストーラはパブリック IP に直接晒されるため、22/tcp のみ開放する
-      firewall = {
-        enable = true;
-        allowedTCPPorts = [ 22 ];
-        logRefusedConnections = false;
-      };
     };
 
     # 静的 IP 未指定時のビルド時警告（VNC コンソールからの手動設定が必要になる旨）
@@ -204,47 +164,11 @@ in
       または、terraform apply 後に IP を確定してから ISO をビルドし直してください。
     '';
 
-    # --- SSH（旧 nixos/installer/ssh.nix） ---
-    # 標準の NixOS インストーラ ISO（profiles/installation-device.nix）は sshd を
-    # 有効化するが（mkDefault true）、ログインには「コンソールでパスワードを設定する」
-    # か「authorized_keys を手で追加する」必要がある。ConoHa ではコンソールは VNC
-    # のみで非対話化が難しいため、本モジュールで root の authorizedKeys に公開鍵を
-    # 焼き込み、パスワード認証を無効化して「鍵だけで SSH ログインできる」状態にする。
-    services.openssh = {
-      enable = true; # installation-device.nix の mkDefault true を明示化
-      settings = {
-        # root は鍵のみ許可（パスワード / 空パスワードは不可）
-        PermitRootLogin = "prohibit-password";
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-
-        # SSH セッションの切断防止（VPS のネットワークは不安定になりがち）
-        ClientAliveInterval = 60;
-        ClientAliveCountMax = 3;
-      };
-    };
-
-    # --- 一時パスワード / SOPS 分離 ---
-    # 本番のパスワードハッシュ（SOPS 管理）を ISO に焼き込まない。
-    # neededForUsers を無効化してビルド時復号を止め、ライブ環境のユーザーには
-    # 一時パスワード（指定時のみ）を設定する。インストール後の本番システムは
-    # 通常の nixos-rebuild（SOPS 管理の hashedPasswordFile）に切り替わる。
-    sops.secrets = {
-      "torii_chan_t3u_password_hash".neededForUsers = lib.mkForce false;
-      "torii_chan_root_password_hash".neededForUsers = lib.mkForce false;
-    };
-
-    users.users = {
-      root = {
-        # インストーラ操作用: root の authorizedKeys に公開鍵を登録する。
-        openssh.authorizedKeys.keys = cfg.authorizedKeys;
-        # （インストーラの初期パスワードは設定しない。SSH は鍵のみで接続する）
-        hashedPasswordFile = lib.mkForce null;
-        hashedPassword = lib.mkIf (tempPasswordHash != null) (lib.mkForce tempPasswordHash);
-      };
-      t3u = {
-        hashedPasswordFile = lib.mkForce null;
-        hashedPassword = lib.mkIf (tempPasswordHash != null) (lib.mkForce tempPasswordHash);
+    # --- ISO のボリュームラベル / ブートメニュー名 ---
+    image.modules."iso-installer" = {
+      isoImage = {
+        volumeID = "conoha-installer";
+        appendToMenuLabel = " ConoHa Installer";
       };
     };
 
@@ -273,7 +197,7 @@ in
       "nomodeset"
     ];
 
-    # --- インストール補助ツール（旧 nixos/installer/installer-tools.nix） ---
+    # --- インストール補助ツール ---
     # nixos-install / nixos-generate-config / parted / gptfdisk は標準のインストーラ
     # ISO（module-list.nix の installer/tools/tools.nix と profiles/base.nix）に
     # 既に含まれるため、ここでは再追加しない。
