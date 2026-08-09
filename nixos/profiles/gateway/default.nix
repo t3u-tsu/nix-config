@@ -66,7 +66,7 @@ in
 
       # Firewall.
       #   - WAN TCP exposure depends on restrictAccess:
-      #       * true  -> only 25565 (Minecraft); SSH is wg0-only.
+      #       * true  -> only 25565 (Minecraft, rate-limited); SSH is wg0-only.
       #       * false -> plain SSH on all interfaces (SD provisioning).
       #   - WireGuard UDP is always allowed.
       #   - wg1 (application network) is trusted: all traffic.
@@ -76,7 +76,7 @@ in
           51820
           51821
         ];
-        allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ 25565 ] else [ 22 ];
+        allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
 
         # Suppress noisy kernel logs from internet scans (this host is exposed).
         logRefusedConnections = false;
@@ -99,11 +99,17 @@ in
           ];
         };
 
-        # Extra iptables rule for proper NAT loopback / hairpin handling.
+        # Extra iptables rules (the firewall uses the iptables backend;
+        # networking.nftables.enable is false, so nftables-only options such as
+        # extraInputRules are ignored here).
         extraCommands = ''
           # Ensure DNATed traffic to the Minecraft server is masqueraded so the
           # return path is correct.
           iptables -t nat -A POSTROUTING -d 10.0.1.4 -p tcp --dport 25565 -j MASQUERADE
+          # Rate-limit the public Minecraft port (WAN exposure, production only).
+          ${lib.optionalString cfg.restrictAccess ''
+            iptables -A INPUT -p tcp --dport 25565 -m limit --limit 10/sec --limit-burst 20 -j ACCEPT
+          ''}
         '';
       };
 
@@ -200,6 +206,18 @@ in
         settings = {
           PermitRootLogin = "no";
           PasswordAuthentication = false;
+
+          # --- hardening ---
+          # Limit brute-force attempts (SSH is wg0-only in production, but
+          # defense in depth on the LAN/provisioning path).
+          MaxAuthTries = 3;
+          LoginGraceTime = 30;
+          ClientAliveInterval = 60;
+          ClientAliveCountMax = 3;
+          AllowUsers = [
+            "root"
+            config.my.user.name
+          ];
         };
       };
 
@@ -249,6 +267,20 @@ in
     boot.kernel.sysctl = {
       "net.ipv4.ip_forward" = 1;
       "net.ipv6.conf.all.forwarding" = 1;
+
+      # --- kernel hardening ---
+      # Restrict kernel pointer / dmesg visibility to root.
+      "kernel.kptr_restrict" = 2;
+      "kernel.dmesg_restrict" = 1;
+      # Disable unprivileged BPF and harden the JIT compiler.
+      "kernel.unprivileged_bpf_disabled" = 1;
+      "net.core.bpf_jit_harden" = 2;
+      # Reverse-path filtering + disable ICMP redirect handling (mitigate
+      # spoofing / redirect-based attacks on this internet-exposed gateway).
+      "net.ipv4.conf.all.rp_filter" = 1;
+      "net.ipv4.conf.all.accept_redirects" = 0;
+      "net.ipv4.conf.all.send_redirects" = 0;
+      "net.ipv6.conf.all.accept_redirects" = 0;
     };
 
     # Explicitly disable IPv6 detection to avoid timeouts on slow links.
