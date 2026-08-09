@@ -27,12 +27,11 @@ in
     # Both share hostname `torii-chan` and identical secrets so peers keep using
     # torii-chan.t3u.uk without reconfiguration.
 
-    # 1. SD card image builder (cross-compile from x86_64)
+    # 1. SD card image builder (aarch64 native, built on x86_64 via QEMU binfmt)
     "torii-chan-sd" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
-      system = "x86_64-linux";
-      targetSystem = "aarch64-linux";
+      system = "aarch64-linux";
       extraModules = [
         ../hosts/torii-chan/sd-image-installer.nix
         ../hosts/torii-chan/sbc.nix
