@@ -15,7 +15,6 @@
       system,
       username ? "t3u",
       profile ? "tower-server",
-      targetSystem ? null,
       extraModules ? [ ],
     }:
     nixpkgs.lib.nixosSystem {
@@ -45,16 +44,6 @@
           };
           nixpkgs.overlays = overlays;
         }
-        (
-          if targetSystem != null then
-            {
-              nixpkgs.crossSystem = {
-                system = targetSystem;
-              };
-            }
-          else
-            { }
-        )
 
         ../hosts/${name}/default.nix
       ]
