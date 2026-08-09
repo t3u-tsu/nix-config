@@ -27,27 +27,27 @@
 {
   config,
   lib,
-  modulesPath,
   pkgs,
   ...
 }:
 
 let
   cfg = config.conoha.installer;
+
+  # build-vps-iso.sh が --impure ビルドで環境変数として渡す一時パスワードハッシュ。
+  # 通常（純粋評価）のビルドでは空文字になり、一時パスワードは設定されない。
+  envTempPasswordHash = builtins.getEnv "TORII_INSTALLER_TEMP_PASSWORD_HASH";
+  # 環境変数（自動発行）を優先し、なければオプション指定（手動）を使う。
+  tempPasswordHash =
+    if envTempPasswordHash != "" then envTempPasswordHash else cfg.temporaryPasswordHash;
 in
 {
-  imports = [
-    # インストーラ ISO のベース（iso-image + インストーラツール群）。
-    # - nixos-install / nixos-generate-config / parted 等が同梱される
-    # - isoImage.* オプションが定義される
-    # - ライブ環境のファイルシステム（tmpfs ルート + squashfs ストア）が設定される
-    #
-    # 注: system.build.images.iso-installer バリアントでも同じモジュールが付加されるが、
-    #     重複 import は NixOS モジュールシステムが冪等にマージするため問題ない。
-    #     直接 import しておくことで nixosConfigurations.<name>.config.system.build.isoImage
-    #     でも ISO をビルドできる。
-    "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
-  ];
+  # NOTE: installation-cd-base.nix は直接 import しない。
+  # system.build.images.iso-installer が image.modules 経由で自動付加する
+  # （nixpkgs/modules/image/images.nix の image.format = "iso-installer"）。
+  # 直接 import すると system.build.image がトップレベルに定義され、
+  # system.build.images と衝突する警告（build.image vs images）が出る。
+  # isoImage.* の設定は image.modules."iso-installer" で行う（下記）。
 
   options.conoha.installer = {
     hostName = lib.mkOption {
@@ -130,6 +130,17 @@ in
         description = "インストール時に作成するスワップファイルのサイズ。";
       };
     };
+    # ライブ環境（ISO）に焼き込む一時パスワードのハッシュ（SHA-512）。
+    # 指定すると root / t3u のパスワードがこのハッシュに設定され、本番
+    # （SOPS 管理）のパスワードハッシュは ISO に含めない。
+    # 通常は build-vps-iso.sh が自動生成して環境変数
+    # TORII_INSTALLER_TEMP_PASSWORD_HASH 経由で渡す（nix build --impure）。
+    # デフォルト null のままビルドするとパスワードなし（SSH 鍵のみの運用）。
+    temporaryPasswordHash = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "ライブ環境用の一時パスワードハッシュ。";
+    };
   };
 
   config = {
@@ -140,11 +151,13 @@ in
     networking.hostName = cfg.hostName;
 
     # ISO のボリュームラベル / ブートメニュー名（volumeID は 32 文字制限）。
-    # installation-cd-base（iso-image.nix）を直接 import しているため、
-    # ベース設定の時点で isoImage オプションが存在する。
-    isoImage = {
-      volumeID = "conoha-installer";
-      appendToMenuLabel = " ConoHa Installer";
+    # isoImage オプションは image.modules."iso-installer" 内で定義される
+    # （installation-cd-base がそのサブシステムに import されるため）。
+    image.modules."iso-installer" = {
+      isoImage = {
+        volumeID = "conoha-installer";
+        appendToMenuLabel = " ConoHa Installer";
+      };
     };
 
     # --- ネットワーク（旧 nixos/installer/network.nix） ---
@@ -213,6 +226,26 @@ in
     # インストーラ操作用: root の authorizedKeys に公開鍵を登録する。
     # （インストーラの初期パスワードは設定しない。SSH は鍵のみで接続する）
     users.users.root.openssh.authorizedKeys.keys = cfg.authorizedKeys;
+    # --- 一時パスワード / SOPS 分離 ---
+    # 本番のパスワードハッシュ（SOPS 管理）を ISO に焼き込まない。
+    # neededForUsers を無効化してビルド時復号を止め、ライブ環境のユーザーには
+    # 一時パスワード（指定時のみ）を設定する。インストール後の本番システムは
+    # 通常の nixos-rebuild（SOPS 管理の hashedPasswordFile）に切り替わる。
+    sops.secrets = {
+      "torii_chan_t3u_password_hash".neededForUsers = lib.mkForce false;
+      "torii_chan_root_password_hash".neededForUsers = lib.mkForce false;
+    };
+
+    users.users = {
+      root = {
+        hashedPasswordFile = lib.mkForce null;
+        hashedPassword = lib.mkIf (tempPasswordHash != null) (lib.mkForce tempPasswordHash);
+      };
+      t3u = {
+        hashedPasswordFile = lib.mkForce null;
+        hashedPassword = lib.mkIf (tempPasswordHash != null) (lib.mkForce tempPasswordHash);
+      };
+    };
 
     # --- 低メモリチューニング（旧 nixos/installer/memory.nix） ---
     # ライブ環境の /nix/store は squashfs + tmpfs オーバーレイで構成され、
