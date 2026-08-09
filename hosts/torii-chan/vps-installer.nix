@@ -224,9 +224,6 @@ in
       };
     };
 
-    # インストーラ操作用: root の authorizedKeys に公開鍵を登録する。
-    # （インストーラの初期パスワードは設定しない。SSH は鍵のみで接続する）
-    users.users.root.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     # --- 一時パスワード / SOPS 分離 ---
     # 本番のパスワードハッシュ（SOPS 管理）を ISO に焼き込まない。
     # neededForUsers を無効化してビルド時復号を止め、ライブ環境のユーザーには
@@ -239,6 +236,9 @@ in
 
     users.users = {
       root = {
+        # インストーラ操作用: root の authorizedKeys に公開鍵を登録する。
+        openssh.authorizedKeys.keys = cfg.authorizedKeys;
+        # （インストーラの初期パスワードは設定しない。SSH は鍵のみで接続する）
         hashedPasswordFile = lib.mkForce null;
         hashedPassword = lib.mkIf (tempPasswordHash != null) (lib.mkForce tempPasswordHash);
       };
