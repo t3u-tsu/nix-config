@@ -75,9 +75,7 @@ in
         ../hosts/torii-chan/vps.nix
       ];
     };
-
     # === Tower Servers ===
-
     # 4. shosoin-tan
     "shosoin-tan" = mkLib.mkSystem {
       name = "shosoin-tan";

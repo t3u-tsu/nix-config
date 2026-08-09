@@ -102,28 +102,67 @@
 
   outputs =
     { flake-parts, devenv, ... }@inputs:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        devenv.flakeModule
-        ./flake/overlays.nix
-        ./flake/hosts.nix
-      ];
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      top@{
+        config,
+        lib,
+        inputs,
+        ...
+      }:
+      {
+        imports = [
+          devenv.flakeModule
+          ./flake/overlays.nix
+          ./flake/hosts.nix
+        ];
 
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
+        systems = [
+          "x86_64-linux"
+          "aarch64-linux"
+        ];
 
-      perSystem =
-        { pkgs, ... }:
-        {
-          formatter = pkgs.nixfmt;
+        perSystem =
+          {
+            pkgs,
+            system,
+            ...
+          }:
+          {
+            formatter = pkgs.nixfmt;
 
-          # devenv の開発環境（devenv.nix をモジュールとして読み込む）
-          devenv.shells.default = {
-            imports = [ ./devenv.nix ];
+            # torii-chan のフェイルオーバー VPS 用インストーラ ISO（旧 nixos/installer サブフレーク）
+            # ビルド: nix build .#torii-chan-vps-iso
+            # ConoHa VPS は x86_64 のため、ISO は x86_64-linux でのみ公開する。
+            # nixosConfigurations には登録しない（nix flake check が ISO を通常の
+            # ブート可能システムとして検証し、fileSystems / grub のアサーションで
+            # 失敗するため。ISO は packages としてのみ公開する）。
+            packages = lib.optionalAttrs (system == "x86_64-linux") {
+              torii-chan-vps-iso =
+                let
+                  mkLib = import ./lib {
+                    inherit (inputs)
+                      nixpkgs
+                      home-manager
+                      sops-nix
+                      nix-minecraft
+                      ;
+                    inherit inputs;
+                    overlays = lib.attrValues (config.flake.overlays or { });
+                  };
+                in
+                (mkLib.mkSystem {
+                  name = "torii-chan";
+                  username = "t3u";
+                  system = "x86_64-linux";
+                  extraModules = [ ./hosts/torii-chan/vps-installer.nix ];
+                }).config.system.build.images.iso-installer;
+            };
 
+            # devenv の開発環境（devenv.nix をモジュールとして読み込む）
+            devenv.shells.default = {
+              imports = [ ./devenv.nix ];
+            };
           };
-        };
-    };
+      }
+    );
 }

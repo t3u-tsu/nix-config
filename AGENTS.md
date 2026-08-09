@@ -68,13 +68,17 @@
 - `nixos/networking/`: ネットワーク・VPN（WireGuard, Hosts）
 - `nixos/environment/`: システムパッケージ
 - `nixos/hardware/`: ハードウェア固有設定
-- `nixos/profiles/`: 役割別プロファイル
+- `nixos/profiles/`: 役割別プロファイル（desktop / sbc / tower-server / gateway）
 - `nixos/services/`: システムサービス
+- `nixos/virtualisation/`: 仮想化（distrobox, microvm）
 - `home/shell/`: ユーザーシェル環境（Zsh, Starship, Atuin）
 - `home/programs/`: 共通ワークステーションツール（CLIツール, Git, SSH）
-- `home/desktop/`: GUI アプリ、WM (Niri/Noctalia)
-- `hosts/`: マシン固有の定義
+- `home/desktop/`: GUI アプリ、WM (Niri/Noctalia)、dev-tools（開発ツール、desktop 限定）
+- `hosts/`: マシン固有の定義（例: torii-chan は SBC + VPS フェイルオーバーを共有）
+- `flake/`: フレーク定義（hosts, overlays）
+- `lib/`: システムビルダー・ヘルパー（mkSystem）
 - `secrets/`: SOPS による機密情報管理
+- `terraform/`: ConoHa VPS インフラ管理
 - `docs/`: 設計計画書やシステムアーキテクチャのドキュメント管理用
 
 

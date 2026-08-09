@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install-nixos - ConoHa VPS（512MB）への NixOS インストール補助スクリプト
 #
-# インストーラ ISO（nixos/installer/default.nix）に同梱され、SSH セッションから
+# インストーラ ISO（hosts/torii-chan/vps-installer.nix）に同梱され、SSH セッションから
 # nixos-install を非対話で実行するために使う。
 #
 # 使い方（ISO 起動後の root シェルで実行）:
