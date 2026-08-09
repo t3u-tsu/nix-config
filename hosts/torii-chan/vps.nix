@@ -28,8 +28,10 @@ in
       # WAN interface. ConoHa VPS exposes the NIC as eth0.
       gateway.wanInterface = "eth0";
 
-      # Auto-deploy from this repo (failover needs the VPS to track main too).
-      deployment.comin.enable = lib.mkDefault true;
+      # NOTE: auto-deploy (previously planned via comin) is deferred.
+      # The comin module was dropped in the flake-parts migration and the
+      # remaining option reference broke evaluation. Plan is to migrate to
+      # deploy-rs instead (separate task).
     };
 
     # Primary user + SSH access for the operator (same key as the rest of fleet).

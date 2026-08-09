@@ -2,7 +2,7 @@
 #
 # Everything specific to running the shared torii-chan role on the physical
 # Orange Pi Zero3: SD/HDD boot chain, extlinux loader, static LAN networking,
-# and the low-RAM SBC profile (swapfile, sandbox disabled, comin, pubkey).
+# and the low-RAM SBC profile (swapfile, sandbox disabled, pubkey).
 {
   config,
   lib,
@@ -11,7 +11,7 @@
 
 {
   imports = [
-    # SBC profile: 4GB swapfile, nix sandbox off, comin + authorizedKeys, swappiness
+    # SBC profile: 4GB swapfile, nix sandbox off, authorizedKeys, swappiness
     ../../nixos/profiles/sbc
   ];
 
