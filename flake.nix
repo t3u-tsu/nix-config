@@ -115,9 +115,14 @@
       ];
 
       perSystem =
-        { pkgs, ... }:
+        { pkgs, self, ... }:
         {
           formatter = pkgs.nixfmt;
+
+          # torii-chan のフェイルオーバー VPS 用インストーラ ISO（旧 nixos/installer サブフレーク）
+          # ビルド: nix build .#torii-chan-vps-iso
+          packages.torii-chan-vps-iso =
+            self.nixosConfigurations.torii-chan-vps-installer.config.system.build.images.iso-installer;
 
           # devenv の開発環境（devenv.nix をモジュールとして読み込む）
           devenv.shells.default = {

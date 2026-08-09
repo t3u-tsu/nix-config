@@ -31,8 +31,13 @@ Platform-specific wiring is split into two thin layers:
 - `torii-chan-sd-live`: update system while running on SD card.
 - `torii-chan`: production on the physical SBC (root on HDD).
 - `torii-chan-vps`: same role on a failover VPS (x86_64).
+- `torii-chan-vps-installer`: SSH-operable NixOS installer ISO for the VPS (x86_64).
 
 ## VPS Failover
+> **⚠️ NOT VERIFIED**: The VPS failover path (`vps.nix`, installer ISO, DDNS
+> takeover, comin tracking) has NOT been tested on a real VPS yet. The static
+> IP/gateway in `vps.nix` are TEST-NET placeholders (`192.0.2.x`) and must be
+> replaced with real ConoHa panel values before any deployment.
 
 Because peers always connect to the public hostname `torii-chan.t3u.uk`, takeover
 is seamless: when the VPS assumes the role, its own DDNS updates the A record
@@ -80,6 +85,19 @@ with the まとめトク discount), hourly billing (1-hour units), Tokyo region.
    (plus TCP 22 for bootstrap).
 
 ### Phase 2: Boot the NixOS installer from a custom ISO
+Instead of the stock minimal ISO, you can build the SSH-operable custom ISO
+from this repo (`hosts/torii-chan/vps-installer.nix`):
+
+```bash
+nix build .#torii-chan-vps-iso -o result-iso
+ls result-iso/iso/   # nixos-<version>-x86_64-linux.iso
+```
+
+The custom ISO has sshd enabled with the operator pubkey, static IP support
+(via `conoha.installer.wan`), and the `install-nixos` helper script, so no VNC
+console work is needed. (Static IP must be baked in before building, or set
+manually at boot with `install-nixos.sh network`.)
+
 1. Host the NixOS minimal ISO at a public URL (ConoHa downloads the ISO itself
    from an external URL — there is no panel upload):
    e.g. `https://channels.nixos.org/nixos-26.05/latest-nixos-minimal-x86_64-linux.iso`
