@@ -66,7 +66,7 @@ in
 
       # Firewall.
       #   - WAN TCP exposure depends on restrictAccess:
-      #       * true  -> only 25565 (Minecraft); SSH is wg0-only.
+      #       * true  -> only 25565 (Minecraft, rate-limited); SSH is wg0-only.
       #       * false -> plain SSH on all interfaces (SD provisioning).
       #   - WireGuard UDP is always allowed.
       #   - wg1 (application network) is trusted: all traffic.
@@ -76,7 +76,13 @@ in
           51820
           51821
         ];
-        allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ 25565 ] else [ 22 ];
+        allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
+
+        # Minecraft proxy (25565): accept on the WAN with rate limiting to
+        # mitigate port scanning / DoS. Only in restrictAccess (production) mode.
+        extraInputRules = lib.mkIf cfg.restrictAccess ''
+          tcp dport 25565 limit rate 10/second burst 20 packets accept
+        '';
 
         # Suppress noisy kernel logs from internet scans (this host is exposed).
         logRefusedConnections = false;
@@ -200,6 +206,18 @@ in
         settings = {
           PermitRootLogin = "no";
           PasswordAuthentication = false;
+
+          # --- hardening ---
+          # Limit brute-force attempts (SSH is wg0-only in production, but
+          # defense in depth on the LAN/provisioning path).
+          MaxAuthTries = 3;
+          LoginGraceTime = 30;
+          ClientAliveInterval = 60;
+          ClientAliveCountMax = 3;
+          AllowUsers = [
+            "root"
+            config.my.user.name
+          ];
         };
       };
 
@@ -249,6 +267,20 @@ in
     boot.kernel.sysctl = {
       "net.ipv4.ip_forward" = 1;
       "net.ipv6.conf.all.forwarding" = 1;
+
+      # --- kernel hardening ---
+      # Restrict kernel pointer / dmesg visibility to root.
+      "kernel.kptr_restrict" = 2;
+      "kernel.dmesg_restrict" = 1;
+      # Disable unprivileged BPF and harden the JIT compiler.
+      "kernel.unprivileged_bpf_disabled" = 1;
+      "net.core.bpf_jit_harden" = 2;
+      # Reverse-path filtering + disable ICMP redirect handling (mitigate
+      # spoofing / redirect-based attacks on this internet-exposed gateway).
+      "net.ipv4.conf.all.rp_filter" = 1;
+      "net.ipv4.conf.all.accept_redirects" = 0;
+      "net.ipv4.conf.all.send_redirects" = 0;
+      "net.ipv6.conf.all.accept_redirects" = 0;
     };
 
     # Explicitly disable IPv6 detection to avoid timeouts on slow links.
