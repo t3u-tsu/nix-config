@@ -33,7 +33,7 @@
       "i8042.nopnp"
     ];
     extraModulePackages = [ ];
-    kernelPackages = pkgs.linuxPackages_cachyos;
+    kernelPackages = pkgs.linuxPackages_xanmod;
     loader.grub = {
       enable = true;
       efiSupport = true;
@@ -53,9 +53,6 @@
   # Workaround: nvidiaOffload is DISABLED; run games on the AMD iGPU.
   # Re-enable nvidiaOffload after the dGPU is repaired/replaced.
 
-  # CachyOS kernel builds its own NVIDIA driver variant.
-  hardware.nvidia.package = pkgs.nvidia_cachyos;
-
   # GPU Configuration (Battery-first: PRIME offload)
   # - AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is only
   #   activated on demand via `nvidia-offload` (games/compute).
@@ -65,7 +62,7 @@
   my = {
     hardware.nvidia = {
       enable = true;
-      # Open kernel modules (Turing+): nvidia_cachyos.open (610.x)
+      # Open kernel modules (Turing+): nixpkgs 標準の nvidiaPackages.open
       open = true;
       # systemd suspend/resume integration + Runtime D3 (RTD3) power gating.
       # finegrained requires PRIME offload (assertion in nixpkgs module).
