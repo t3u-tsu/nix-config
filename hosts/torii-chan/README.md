@@ -27,7 +27,7 @@ Platform-specific wiring is split into two thin layers:
 
 ## Configurations in Flake
 
-- `torii-chan-sd`: initial SD card image build.
+- `torii-chan-sd`: initial SD card image build (aarch64 native).
 - `torii-chan-sd-live`: update system while running on SD card.
 - `torii-chan`: production on the physical SBC (root on HDD).
 - `torii-chan-vps`: same role on a failover VPS (x86_64).
@@ -156,6 +156,13 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 ## Setup Guide (SBC)
 
 ### Phase 1: Build & Flash SD Image
+> **Build method**: `torii-chan-sd` is a native aarch64-linux build (no cross
+> compilation). On x86_64 build hosts the aarch64 binaries run through QEMU
+> binfmt emulation, enabled in `nixos/base/nix.nix`
+> (`boot.binfmt.emulatedSystems`). The nixpkgs module wires up
+> `nix.settings.extra-platforms` and the sandbox paths automatically, so a plain
+> `nix build` works without extra flags.
+
 ```bash
 nix build .#nixosConfigurations.torii-chan-sd.config.system.build.sdImage
 sudo dd if=result/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M status=progress conv=fsync
