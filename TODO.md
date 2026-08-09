@@ -10,4 +10,3 @@
 - **オニオンルーティング（Tor）による ssh バックドアの導入**: グローバルIPやVPNが全滅して torii-chan 等がダウンした際、最終手段として遠隔から ssh 接続できる裏ルートを確保する。
 - **BrokenPC バックアップサーバーの構築**: BrokenPC のデータを自動で安全にバックアップ（shosoin-tan等へ退避）する仕組みを構築する。
 - **GPUリソースを活用したローカルLLMサーバーのホスト**: kagutsuchi-sama や shosoin-tan の余剰GPUでローカルLLMサーバーをホストし、API等で利用できるようにする。
-- **torii-chan への HE Tunnel Broker 導入**: 非力な SBC である torii-chan に Hurricane Electric Tunnel Broker を導入し、固定 IPv6 トンネルを確保してネットワーク環境を拡張・強化する。
