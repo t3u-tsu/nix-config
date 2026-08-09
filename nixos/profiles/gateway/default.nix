@@ -78,12 +78,6 @@ in
         ];
         allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
 
-        # Minecraft proxy (25565): accept on the WAN with rate limiting to
-        # mitigate port scanning / DoS. Only in restrictAccess (production) mode.
-        extraInputRules = lib.mkIf cfg.restrictAccess ''
-          tcp dport 25565 limit rate 10/second burst 20 packets accept
-        '';
-
         # Suppress noisy kernel logs from internet scans (this host is exposed).
         logRefusedConnections = false;
         logReversePathDrops = false;
@@ -105,11 +99,17 @@ in
           ];
         };
 
-        # Extra iptables rule for proper NAT loopback / hairpin handling.
+        # Extra iptables rules (the firewall uses the iptables backend;
+        # networking.nftables.enable is false, so nftables-only options such as
+        # extraInputRules are ignored here).
         extraCommands = ''
           # Ensure DNATed traffic to the Minecraft server is masqueraded so the
           # return path is correct.
           iptables -t nat -A POSTROUTING -d 10.0.1.4 -p tcp --dport 25565 -j MASQUERADE
+          # Rate-limit the public Minecraft port (WAN exposure, production only).
+          ${lib.optionalString cfg.restrictAccess ''
+            iptables -A INPUT -p tcp --dport 25565 -m limit --limit 10/sec --limit-burst 20 -j ACCEPT
+          ''}
         '';
       };
 
