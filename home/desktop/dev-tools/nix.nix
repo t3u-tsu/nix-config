@@ -19,7 +19,6 @@ in
       devenv
       nh
       nix-du
-      nix-index
       nix-output-monitor
       nix-tree
       nixfmt
