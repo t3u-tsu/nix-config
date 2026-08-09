@@ -6,6 +6,10 @@
 }:
 
 {
+  # Auto-repair the root filesystem on boot (remote host without physical
+  # access; recovers from ext4 inconsistency after an abrupt power loss).
+  boot.kernelParams = [ "fsck.repair=yes" ];
+
   # File systems configuration for SD Card operation
   # Based on the default partition layout of the SD image
 
