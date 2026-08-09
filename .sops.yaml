@@ -6,7 +6,8 @@ keys:
 
   # Host keys (Public keys converted from SSH host keys via ssh-to-age)
   # Update these with: ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
-  - &torii_chan      age1w8fxejc76h7jzpekecf34l2n964n2552ldxzgzmhfdam0u58meesuaqhf2
+  # torii-chan: regenerated after 2026-08 SD/HDD replacement (new host key)
+  - &torii_chan      age1wleksdz5clzup08vtfdwhpcy35nwsxvnnt2m5w8ktmkpzq6ctd9sael64k
   - &shosoin_tan     age16qpt6hr079pmj5dsgq5xm20x9kwamu90c2l8nkgwf8mtrhwauapqf93muk
   - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
   - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
