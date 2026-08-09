@@ -103,7 +103,12 @@
   outputs =
     { flake-parts, devenv, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      top@{ config, lib, ... }:
+      top@{
+        config,
+        lib,
+        inputs,
+        ...
+      }:
       {
         imports = [
           devenv.flakeModule
@@ -117,16 +122,40 @@
         ];
 
         perSystem =
-          { pkgs, system, ... }:
+          {
+            pkgs,
+            system,
+            ...
+          }:
           {
             formatter = pkgs.nixfmt;
 
             # torii-chan のフェイルオーバー VPS 用インストーラ ISO（旧 nixos/installer サブフレーク）
             # ビルド: nix build .#torii-chan-vps-iso
-            # ConoHa VPS は x86_64 のため、ISO は x86_64-linux でのみ公開する
+            # ConoHa VPS は x86_64 のため、ISO は x86_64-linux でのみ公開する。
+            # nixosConfigurations には登録しない（nix flake check が ISO を通常の
+            # ブート可能システムとして検証し、fileSystems / grub のアサーションで
+            # 失敗するため。ISO は packages としてのみ公開する）。
             packages = lib.optionalAttrs (system == "x86_64-linux") {
               torii-chan-vps-iso =
-                config.flake.nixosConfigurations.torii-chan-vps-installer.config.system.build.images.iso-installer;
+                let
+                  mkLib = import ./lib {
+                    inherit (inputs)
+                      nixpkgs
+                      home-manager
+                      sops-nix
+                      nix-minecraft
+                      ;
+                    inherit inputs;
+                    overlays = lib.attrValues (config.flake.overlays or { });
+                  };
+                in
+                (mkLib.mkSystem {
+                  name = "torii-chan";
+                  username = "t3u";
+                  system = "x86_64-linux";
+                  extraModules = [ ./hosts/torii-chan/vps-installer.nix ];
+                }).config.system.build.images.iso-installer;
             };
 
             # devenv の開発環境（devenv.nix をモジュールとして読み込む）

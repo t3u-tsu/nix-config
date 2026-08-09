@@ -18,8 +18,9 @@
 #   - nixos-install 自動化スクリプト install-nixos（同梱・PATH に追加）
 #
 # ビルド:
-#   nix build .#nixosConfigurations.torii-chan-vps-installer.config.system.build.images.iso-installer
-#   （または nix build .#torii-chan-vps-iso）
+#   nix build .#torii-chan-vps-iso
+#   （nixosConfigurations には登録しない。nix flake check が ISO を通常の
+#    ブート可能システムとして検証して失敗するため、packages としてのみ公開）
 #
 # 静的 IP は terraform apply 後に確定するため、未確定なら conoha.installer.wan.ipv4 を
 # null のままビルドし、起動後に `install-nixos.sh network` で手動設定できる。

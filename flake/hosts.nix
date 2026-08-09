@@ -75,21 +75,7 @@ in
         ../hosts/torii-chan/vps.nix
       ];
     };
-    # === torii-chan (VPS installer ISO) ===
-    #
-    # SSH-operable NixOS installer ISO for the ConoHa VPS failover host.
-    # Build: nix build .#nixosConfigurations.torii-chan-vps-installer.config.system.build.images.iso-installer
-    "torii-chan-vps-installer" = mkLib.mkSystem {
-      name = "torii-chan";
-      username = "t3u";
-      system = "x86_64-linux";
-      extraModules = [
-        ../hosts/torii-chan/vps-installer.nix
-      ];
-    };
-
     # === Tower Servers ===
-
     # 4. shosoin-tan
     "shosoin-tan" = mkLib.mkSystem {
       name = "shosoin-tan";

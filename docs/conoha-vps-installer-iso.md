@@ -30,8 +30,9 @@ nixos-26.05 を使用）。そのため nixpkgs 標準の image framework を使
 - `system.build.images.iso` … 素のライブ ISO（インストーラ無し。`iso-image.nix` のみ）
 
 ルートフレークに統合済み（`flake/hosts.nix` の `torii-chan-vps-installer`）。
-`nix build .#torii-chan-vps-iso -o result-iso` でビルドする（または
-`nix build .#nixosConfigurations.torii-chan-vps-installer.config.system.build.images.iso-installer`）。
+`nix build .#torii-chan-vps-iso -o result-iso` でビルドする。
+（インストーラは nixosConfigurations ではなく packages としてのみ公開する。
+ nix flake check が ISO をブート可能システムとして検証して失敗するため。）
 
 ## 3. 静的 IP の設定
 
