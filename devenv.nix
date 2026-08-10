@@ -6,10 +6,10 @@
   ...
 }:
 {
-  # devenv.root は devenv CLI（impure）が PWD から自動設定する。
-  # 純粋評価（nix flake check --all-systems など）では PWD を参照できないため、
-  # PWD が空のときだけフォールバックを設定する（mkForce で devenv 側の空定義を上書き）。
-  # ※ CI ではチェックアウト先のパスが devenv 側の PWD で自動設定されるため競合しない。
+  # devenv.root is set automatically by the devenv CLI (impure) from PWD.
+  # Pure evaluation (nix flake check --all-systems etc.) cannot reference PWD, so
+  # set the fallback only when PWD is empty (mkForce overrides devenv's empty definition).
+  # Note: in CI the checkout path is set automatically via devenv's PWD, so there is no conflict.
   devenv.root = lib.mkIf (builtins.getEnv "PWD" == "") (lib.mkForce "/home/t3u/nix-config");
 
   # https://devenv.sh/basics/
@@ -20,7 +20,7 @@
     pkgs.git
     pkgs.nh
     pkgs.nix-tree
-    # Infrastructure as Code: ConoHa VPS を含むクラウドリソースの宣言的管理
+    # Infrastructure as Code: declarative management of cloud resources including ConoHa VPS
     # (OpenTofu — MPL-2.0, unfree allowance no longer needed)
     pkgs.opentofu
   ];
@@ -61,7 +61,7 @@
     nixfmt.enable = true;
     statix.enable = true;
 
-    # Conventional Commits メッセージ形式を強制（nix-check.yml のブランチ規約と連動）
+    # Enforce the Conventional Commits message format (linked to the branch convention in nix-check.yml)
     convco.enable = true;
   };
 

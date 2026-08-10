@@ -8,11 +8,11 @@
 with lib;
 let
   cfg = config.my.services.minecraft;
-  # 自動生成されたプラグイン情報を読み込む
+  # Load the auto-generated plugin definitions
   plugins = pkgs.callPackage ../plugins/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
 
-  # server.properties のベース設定 (パスワード抜き)
+  # Base server.properties settings (password omitted)
   serverProperties = {
     server-port = 25567;
     max-players = 30;
@@ -51,7 +51,7 @@ in
       };
 
       files = {
-        # 共通設定から LunaChat の設定を引用
+        # Reference LunaChat's settings from the shared config
         "plugins/LunaChat/config.yml".value = lunachat.config.lunaChatConfig;
       };
     };
@@ -61,11 +61,11 @@ in
       environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
 
       preStart = lib.mkAfter ''
-              # 1. RCON Password 取得
+              # 1. Fetch the RCON password
               RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
 
-              # 2. server.properties を新規作成 (上書き)
-              # 既存のリンクがある場合は削除
+              # 2. Write server.properties from scratch (overwrite)
+              # Remove the existing symlink if present
               if [ -L server.properties ]; then rm server.properties; fi
               
               cat <<EOF > server.properties
@@ -75,7 +75,7 @@ in
               chown minecraft:minecraft server.properties
               chmod 600 server.properties
 
-              # 3. paper-global.yml の生成
+              # 3. Generate paper-global.yml
               mkdir -p config
               SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
               if [ -L "config/paper-global.yml" ]; then rm "config/paper-global.yml"; fi

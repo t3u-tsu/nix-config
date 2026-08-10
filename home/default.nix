@@ -9,7 +9,7 @@ in
     home = {
       stateVersion = systemStateVersion;
 
-      # アクティベーション時に日常用 SSH 鍵から age 秘密鍵を安全に変換・出力する設定
+      # At activation, safely convert and export the age private key from the daily SSH key
       activation.generateAgeKey = config.lib.dag.entryBetween [ "writeBoundary" ] [ "setupSecrets" ] ''
         if [ ! -f "/home/${username}/.config/sops/age/keys.txt" ]; then
           $DRY_RUN_CMD mkdir -p "/home/${username}/.config/sops/age"
@@ -34,7 +34,7 @@ in
 
     # SOPS configuration for Home-manager
     sops = {
-      # 宣言的に ~/.config/sops/age/keys.txt に age 秘密鍵を自動生成・配置
+      # Declaratively auto-generate and place the age private key at ~/.config/sops/age/keys.txt
       age = {
         keyFile = "/home/${username}/.config/sops/age/keys.txt";
         sshKeyPaths = [ "/home/${username}/.ssh/id_ed25519" ];

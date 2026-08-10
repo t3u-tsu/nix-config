@@ -130,12 +130,12 @@
           {
             formatter = pkgs.nixfmt;
 
-            # torii-chan のフェイルオーバー VPS 用インストーラ ISO（旧 nixos/installer サブフレーク）
-            # ビルド: nix build .#torii-chan-vps-iso
-            # ConoHa VPS は x86_64 のため、ISO は x86_64-linux でのみ公開する。
-            # nixosConfigurations には登録しない（nix flake check が ISO を通常の
-            # ブート可能システムとして検証し、fileSystems / grub のアサーションで
-            # 失敗するため。ISO は packages としてのみ公開する）。
+            # Installer ISO for torii-chan's failover VPS (formerly the nixos/installer subflake)
+            # Build: nix build .#torii-chan-vps-iso
+            # ConoHa VPS is x86_64, so the ISO is only exposed on x86_64-linux.
+            # Not registered in nixosConfigurations (nix flake check validates the ISO as a regular
+            # bootable system and fails on the fileSystems / grub assertions;
+            # the ISO is therefore only exposed as a package).
             packages = lib.optionalAttrs (system == "x86_64-linux") {
               torii-chan-vps-iso =
                 let
@@ -158,7 +158,7 @@
                 }).config.system.build.images.iso-installer;
             };
 
-            # devenv の開発環境（devenv.nix をモジュールとして読み込む）
+            # devenv development environment (loads devenv.nix as a module)
             devenv.shells.default = {
               imports = [ ./devenv.nix ];
             };

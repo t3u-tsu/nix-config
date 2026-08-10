@@ -1,6 +1,6 @@
-# ブートボリューム（30GB）。
-# 注: NixOS は後から rescue ISO（scripts/nixos-iso.sh）で上書きインストールするため、
-#     ここでは一時的に ConoHa 標準 OS（Debian 12）を展開し SSH 経路を確保する。
+# Boot volume (30GB).
+# Note: NixOS is later installed over the disk via a rescue ISO (scripts/nixos-iso.sh),
+#       so here we temporarily deploy the ConoHa stock OS (Debian 12) to establish an SSH path.
 resource "conohavps_volume" "boot" {
   name        = "${var.instance_name}-boot"
   description = "torii-chan VPS boot volume (OS replaced with NixOS via rescue ISO)"
@@ -9,8 +9,8 @@ resource "conohavps_volume" "boot" {
   volume_type = "c3j1-ds02-boot"
 }
 
-# VPS インスタンス（512MB プラン: g2l-t-c1m512）。
-# キーペアとセキュリティグループは同じ tf ファイル内で作成したものを参照する。
+# VPS instance (512MB plan: g2l-t-c1m512).
+# References the keypair and security group created in this same tf file.
 resource "conohavps_instance" "torii_chan" {
   instance_name_tag = var.instance_name
   admin_pass        = var.admin_password

@@ -1,14 +1,16 @@
 # hosts/torii-chan/installer-common.nix
 #
-# インストーラ（stage: installer）共通設定。SBC SD イメージ（sd-installer.nix）と
-# VPS インストーラ ISO（vps-installer.nix）の両方で共用する（DRY）。
+# Common settings for the installer (stage: installer), shared (DRY) by the SBC
+# SD image (sd-installer.nix) and the VPS installer ISO (vps-installer.nix).
 #
-# 本番（stage: production）とは逆の性質を持つ:
-#   - 本番サービス（gateway: Nebula / DDNS / NAT）を無効化
-#   - 本番シークレット（SOPS 管理のパスワードハッシュ）を焼き込まない
-#   - 一時パスワード（build-*.sh が --impure ビルドで注入）または公開鍵でログイン
-#   - sshd はプラットフォームに応じて「緩さ」を調整する
-#     （SBC = LAN 内なので一時パスワード + パスワード認証可 / VPS = 公開 IP なので鍵のみ）
+# Inverts the properties of production (stage: production):
+#   - Production services (gateway: Nebula / DDNS / NAT) are disabled
+#   - Production secrets (SOPS-managed password hashes) are not baked in
+#   - Login via a temporary password (injected by build-*.sh in an --impure build)
+#     or a public key
+#   - sshd tightness is adjusted per platform
+#     (SBC = LAN-only, so temporary password + password auth allowed /
+#      VPS = public IP, so key-only)
 {
   config,
   lib,
@@ -20,13 +22,14 @@ with lib;
 let
   cfg = config.my.installer;
   username = config.my.user.name;
-  # ホスト名を SOPS の secret 名プレフィックス（例: "torii-chan" -> "torii_chan"）に変換
+  # Translate the hostname into the SOPS secret name prefix (e.g. "torii-chan" -> "torii_chan").
   hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
 
-  # build-*.sh が --impure ビルドで環境変数として渡す一時パスワードハッシュ。
-  # 通常（純粋評価）のビルドでは空文字になり、一時パスワードは設定されない。
+  # Temporary password hash passed by build-*.sh as an environment variable in an
+  # --impure build. In a normal (pure evaluation) build it is empty and no
+  # temporary password is set.
   envTempPasswordHash = builtins.getEnv "TORII_INSTALLER_TEMP_PASSWORD_HASH";
-  # 環境変数（自動発行）を優先し、なければオプション指定（手動）を使う。
+  # Prefer the environment variable (auto-issued); otherwise use the option (manual).
   tempPasswordHash =
     if envTempPasswordHash != "" then envTempPasswordHash else cfg.temporaryPasswordHash;
 in
@@ -53,7 +56,7 @@ in
     authorizedKeys = mkOption {
       type = types.listOf types.str;
       default = [
-        # t3u の公開鍵（公開情報。秘密鍵は含めない）
+        # t3u's public key (public information; no private key included)
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
       ];
       description = "SSH public keys for the installer root user.";
@@ -77,14 +80,14 @@ in
   };
 
   config = mkIf cfg.enable {
-    # --- 本番サービスを無効化 ---
-    # hosts/torii-chan/default.nix が my.services.gateway.enable = true を設定する
-    # ため、mkForce で無効化する（Nebula / DDNS / NAT は実行しない）。
+    # --- Disable production services ---
+    # hosts/torii-chan/default.nix sets my.services.gateway.enable = true, so it is
+    # disabled with mkForce (Nebula / DDNS / NAT are not run).
     my.services.gateway.enable = lib.mkForce false;
 
     networking.hostName = cfg.hostName;
 
-    # --- ファイアウォール（プロビジョニング用に 22 のみ） ---
+    # --- Firewall (port 22 only, for provisioning) ---
     networking.firewall = {
       enable = true;
       allowedTCPPorts = cfg.firewallOpenPorts;
@@ -92,9 +95,9 @@ in
       logRefusedConnections = false;
     };
 
-    # --- SSH（プロビジョニング用） ---
-    # インストーラでは root の authorizedKeys に公開鍵を焼き込み、一時パスワード
-    # （指定時のみ）でもログインできるようにする。
+    # --- SSH (for provisioning) ---
+    # The installer bakes the public keys into root's authorizedKeys and also
+    # allows login with the temporary password (only when one is set).
     services.openssh = {
       enable = true;
       settings = {
@@ -104,11 +107,12 @@ in
       };
     };
 
-    # --- 一時パスワード / SOPS 分離 ---
-    # 本番のパスワードハッシュ（SOPS 管理）をインストーラに焼き込まない。
-    # neededForUsers を無効化して起動時復号を止め、ライブ環境のユーザーには
-    # 一時パスワード（指定時のみ）を設定する。本番化後のシステムは通常の
-    # nixos-rebuild（SOPS 管理の hashedPasswordFile）に切り替わる。
+    # --- Temporary password / SOPS separation ---
+    # The production password hash (SOPS-managed) is not baked into the installer.
+    # neededForUsers is disabled to stop decryption at boot; users in the live
+    # environment get the temporary password (only when one is set). After going to
+    # production the system switches to the normal nixos-rebuild path (SOPS-managed
+    # hashedPasswordFile).
     sops.secrets = {
       "${hostKey}_${username}_password_hash".neededForUsers = lib.mkForce false;
       "${hostKey}_root_password_hash".neededForUsers = lib.mkForce false;

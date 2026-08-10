@@ -62,7 +62,7 @@
   my = {
     hardware.nvidia = {
       enable = true;
-      # Open kernel modules (Turing+): nixpkgs 標準の nvidiaPackages.open
+      # Open kernel modules (Turing+): nixpkgs' standard nvidiaPackages.open
       open = true;
       # systemd suspend/resume integration + Runtime D3 (RTD3) power gating.
       # finegrained requires PRIME offload (assertion in nixpkgs module).
