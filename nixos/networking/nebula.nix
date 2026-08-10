@@ -36,10 +36,14 @@ let
 
   # Convert our convenience extraInbound entries ({port; proto; group|host|cidr})
   # into the raw Nebula firewall rule shape.
+  # NOTE: Nebula >=1.10 requires every inbound rule to carry at least one of
+  # host/group/cidr/local_cidr/ca_name/ca_sha, so the common ICMP rule pins
+  # host = "any" (ICMP is allowed from every peer).
   inboundRules = [
     {
       proto = "icmp";
       port = "any";
+      host = "any";
     }
   ]
   ++ map (
