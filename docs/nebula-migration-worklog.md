@@ -1,0 +1,98 @@
+# Nebula Mesh VPN — Migration Worklog (2026-08-10)
+
+Operational log for the WireGuard → Nebula (full mesh) migration, per
+`docs/plans/nebula-migration.md`. Single overlay `nebula0` (10.0.2.0/24),
+UDP 4242, torii-chan = Lighthouse + Relay.
+
+## Status
+
+- **Phase 1 (parallel overlay)**: deployed on **torii-chan** (Lighthouse/Relay)
+  and **BrokenPC** (client). WireGuard (wg0/wg1) intentionally kept active.
+- **torii-chan HDD migration**: completed (root now on HDD, HDD services active).
+- **Phase 2 smoke checks**: P2P + nebula SSH verified between BrokenPC ↔ torii-chan.
+- **Pending**: 3 hosts (shosoin-tan / kagutsuchi-sama / sando-kun) are OFFLINE;
+  apply nebula when they come online. Minecraft / DNAT / restic / Relay checks
+  need shosoin-tan online.
+
+## What was done
+
+### 1. Common module `nixos/networking/nebula.nix`
+- Generates `services.nebula.networks.nebula0` from `my.networking.nebula`
+  (ip / groups / mtu / isLighthouse / isRelay / extraInbound).
+- SOPS-declared CA cert (`secrets/common.yaml`) + per-host node cert/key
+  (`secrets/hosts/<host>.yaml`).
+- `tun.device = nebula0`, `networking.firewall.trustedInterfaces = [ "nebula0" ]`
+  (in-tunnel control delegated to the Nebula firewall: ICMP + extraInbound only).
+- MTU 1320 (common). Relay = torii-chan. Lighthouse advertised via
+  `advertise_addrs = torii-chan.t3u.uk:4242` (SBC/VPS DDNS failover).
+- Imported in `nixos/networking/default.nix`.
+
+### 2. Host wiring (WireGuard kept)
+- torii-chan (gateway profile, shared by SBC+VPS): Lighthouse + Relay @ 10.0.2.1,
+  inbound 22 (mgmt) + 25565 (app).
+- shosoin-tan 10.0.2.4 (mgmt,app): inbound 22 (mgmt) + 25565 (from 10.0.2.1).
+- kagutsuchi-sama 10.0.2.3 (mgmt): inbound 22.
+- sando-kun 10.0.2.2 (mgmt): inbound 22.
+- BrokenPC 10.0.2.100 (mgmt,app): ICMP only (no services).
+
+### 3. CA + certificates
+- CA `t3u-home-ca` created in `~/.nebula-ca/` (10-year, networks 10.0.2.0/24,
+  groups mgmt,app, **passphrase-encrypted**). Passphrase in
+  `~/.nebula-ca/passphrase` (0600) — store in a password manager.
+- 5 node certs (1-year, `10.0.2.x/24`) issued via `nebula-cert sign`.
+- Verified with `nebula-cert print` (name / networks / groups / validity).
+
+### 4. SOPS secrets
+- CA cert → `secrets/common.yaml` (`nebula_ca`).
+- Node cert/key → each `secrets/hosts/<host>.yaml` via
+  `scripts/nebula-import-secrets.sh` (requires the offline master key).
+- **Fix**: common.yaml still carried the pre-2026-08 torii-chan age key; ran
+  `sops updatekeys` so the gateway can decrypt the shared CA cert.
+
+### 5. Deployments
+- torii-chan: `nixos-rebuild switch --flake .#torii-chan-hdd --target-host ...`
+  (with `--sudo --ask-sudo-password`). Lighthouse now active (10.0.2.1/4242).
+- BrokenPC: `sudo nixos-rebuild switch --flake .#BrokenPC` — client active
+  (10.0.2.100).
+
+### 6. torii-chan HDD migration (root from SD → HDD)
+- Formatted `/dev/sda1` as ext4 with label `NIXOS_HDD` (`mkfs.ext4 -L NIXOS_HDD`).
+- rsync'd `/` to the HDD (excluded virtual/boot-only mounts; `/boot` stays on SD).
+- Verified system profile link + fstab, then rebooted.
+- After boot: root on `/dev/sda1`, `hdd-apm.service` + `smartd.service` active.
+- Procedure documented in `hosts/torii-chan/README.md` (Phase 3).
+
+## Verification (Phase 2, partial)
+
+- **P2P**: `ping 10.0.2.1` from BrokenPC → 0% loss (rtt 5–33 ms).
+- **SSH over mesh**: `ssh t3u@10.0.2.1` from BrokenPC succeeds.
+- Remaining (needs shosoin-tan online): Minecraft within mesh, DNAT return,
+  restic SFTP, mobile (NAT64) P2P/Relay fallback.
+
+## Issues found & fixed during rollout
+
+1. **ICMP inbound rule** — Nebula ≥1.10 requires host/group/cidr on every
+   inbound rule; bare `{proto=icmp; port=any}` made nebula exit 1. Fixed with
+   `host = "any"`. (`78164bd`)
+2. **static_host_map** — clients need the Lighthouse's real address; without it
+   nebula exits 1 ("lighthouse ... does not have a static_host_map entry").
+   Added `staticHostMap` on non-lighthouse nodes. (`54b7ecc`)
+3. **common.yaml stale torii-chan key** — fixed via `sops updatekeys`. (`ccc1b95`)
+
+## Remaining / Next steps
+
+- **Deploy 3 offline hosts** when online: `sudo nixos-rebuild switch --flake .#<host>`
+  (shosoin-tan / kagutsuchi-sama / sando-kun).
+- **Phase 3 cutover** (after Phase 2): switch app/NAT (25565 → 10.0.2.4), SSH
+  path, then remove wg0/wg1 (`wireguard.nix`, close 51820/51821).
+- **Phase 4 ops**: cert rotation (1y), pki.blocklist maintenance, optional 2nd
+  Lighthouse.
+
+## Relevant commits (branch `docs/nebula-mesh-design`)
+
+- `54b7ecc` fix(nebula): add static_host_map for clients to reach the Lighthouse
+- `78164bd` fix(nebula): add host=any to the common inbound ICMP rule
+- `c0c60ec` docs(torii-chan): detail the HDD migration procedure in README
+- `ccc1b95` fix(secrets): update common.yaml recipients to the torii-chan key
+- `137a479` chore(secrets): add Nebula CA cert and per-host node certs/keys
+- `d6bc353` feat(networking): add Nebula mesh VPN (nebula0) config
