@@ -27,7 +27,7 @@
     # Fall back to a known terminfo when the current TERM is undefined on the
     # remote host (e.g. `xterm-ghostty` from the ghostty terminal), otherwise
     # SSH shells and the prompt break with "can't find terminal definition".
-    initExtra = ''
+    initContent = ''
       if [[ -n "$TERM" && "$TERM" != "dumb" ]] \
         && command -v infocmp >/dev/null 2>&1 \
         && ! infocmp "$TERM" >/dev/null 2>&1; then
