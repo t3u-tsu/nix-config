@@ -8,7 +8,6 @@
 
   config = {
     my = {
-      # Common server user configuration (base/user.nix handles users.*)
       user = {
         # NOTE: keep "wheel" here — setting user.extraGroups replaces the base
         # default ([ "wheel" ] in nixos/base/user.nix), so omitting it removes

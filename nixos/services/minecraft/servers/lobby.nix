@@ -8,7 +8,6 @@
 with lib;
 let
   cfg = config.my.services.minecraft;
-  # Load the auto-generated plugin definitions
   plugins = pkgs.callPackage ../plugins/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
 in
@@ -32,7 +31,7 @@ in
         level-seed = "";
         # Superflat customization (air only, biome is the_void)
         generator-settings = "{\"layers\": [{\"block\": \"minecraft:air\", \"height\": 1}], \"biome\": \"minecraft:the_void\"}";
-        generate-structures = false; # Do not generate structures
+        generate-structures = false;
         spawn-monsters = false;
         spawn-animals = false;
         spawn-npcs = false;
@@ -82,10 +81,8 @@ in
                 rm .reset_world
               fi
 
-              # Prepare the config directory
               mkdir -p config
               
-              # Read the sops secret
               SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
               
               # If the config file is a symlink into the Nix store (or similar), it cannot

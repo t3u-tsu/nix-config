@@ -133,7 +133,7 @@ in
 
     networking.hostName = cfg.hostName;
 
-    # --- Networking (formerly nixos/installer/network.nix) ---
+    # --- Networking ---
     # ConoHa VPS does not provide DHCP, so the static IP is set explicitly.
     # The IP is only known after `terraform apply` (see torii_chan_addresses in
     # terraform/outputs.tf). If it is unknown at ISO build time, build with

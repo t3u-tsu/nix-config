@@ -11,7 +11,6 @@ let
   cfg = config.my.services.desktop.niri;
 in
 {
-  # Import the niri-flake NixOS module at the top level
   imports = [
     inputs.niri.nixosModules.niri
   ];
@@ -66,7 +65,6 @@ in
       # as it provides the settings daemon needed for many apps.
     };
 
-    # Core desktop services
     services = {
       dbus.enable = true;
       upower.enable = true;

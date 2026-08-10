@@ -16,13 +16,11 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Podman with Docker compatibility layer
     virtualisation.podman = {
       enable = true;
       dockerCompat = true;
     };
 
-    # Distrobox CLI
     environment.systemPackages = [ pkgs.distrobox ];
 
     # Enable Flatpak to provide Flatpak portal interface for host-spawn (required by xdg-open in container)

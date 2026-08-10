@@ -16,7 +16,6 @@
   # GeForce 8400 GS (Tesla) is too old for modern NVIDIA drivers.
   # We stick with nouveau or basic kernel drivers for stability.
 
-  # Bootloader configuration
   boot.loader.grub = {
     enable = true;
     efiSupport = false; # i7-860 is Legacy BIOS

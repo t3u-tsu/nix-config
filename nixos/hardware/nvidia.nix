@@ -59,7 +59,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Ensure nvidia is in videoDrivers
     # Note: If AMD is also used, the host configuration should handle the order if necessary.
     # With PRIME offload the iGPU driver should come first; with sync mode the dGPU is primary.
     services.xserver.videoDrivers = mkBefore [ "nvidia" ];

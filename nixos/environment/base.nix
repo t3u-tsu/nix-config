@@ -19,7 +19,6 @@ in
       which
     ];
 
-    # Zsh configuration via NixOS (System-wide)
     programs.zsh.enable = true;
     users.defaultUserShell = pkgs.zsh;
   };
