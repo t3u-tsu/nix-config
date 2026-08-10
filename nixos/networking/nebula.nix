@@ -175,6 +175,12 @@ in
       # All nodes prefer direct P2P and fall back through the Relay (torii-chan).
       relays = [ cfg.lighthouse ];
 
+      # Clients must know the Lighthouse's real (public) address to reach it.
+      # The Lighthouse itself instead advertises via `advertise_addrs`.
+      staticHostMap = optionalAttrs (!cfg.isLighthouse) {
+        "${cfg.lighthouse}" = cfg.advertiseAddrs;
+      };
+
       # Use the interface name the plan expects (trustedInterfaces / greps).
       tun.device = "nebula0";
 
