@@ -1,8 +1,7 @@
 # OpenTofu: ConoHa VPS リソース管理
 
-[torii-chan のフェイルオーバー VPS](https://github.com/t3u-tsu/nix-config) を
+torii-chan のフェイルオーバー VPS を
 **ConoHa VPS**（GMO）上に宣言的に構築するための OpenTofu 設定です
-（Terraform から移行。コマンドは `tofu` を使用）。
 
 ## 前提
 
