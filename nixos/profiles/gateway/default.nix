@@ -48,7 +48,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # ------------------------------------------------ base system
     networking = {
       hostName = "torii-chan";
 
@@ -84,7 +83,7 @@ in
       # NAT + port forwarding (Minecraft proxy -> shosoin-tan over nebula0).
       nat = {
         enable = true;
-        externalInterface = cfg.wanInterface; # WAN interface
+        externalInterface = cfg.wanInterface;
         # Nebula is a full mesh (P2P); no outbound NAT over the overlay is
         # needed. Only the Minecraft port-forward (with the MASQUERADE above)
         # applies.
@@ -99,7 +98,6 @@ in
       };
     };
 
-    # ------------------------------------------------ Nebula mesh VPN
     # torii-chan is the single Lighthouse + Relay for the nebula0 overlay.
     # Placing it in the shared gateway profile (used by both the SBC and the
     # failover VPS) makes Lighthouse failover seamless: DDNS advertises
@@ -111,12 +109,10 @@ in
       isLighthouse = true;
       isRelay = true;
       extraInbound = [
-        # SSH (management).
         {
           port = 22;
           group = "mgmt";
         }
-        # Minecraft DNAT return path (Phase 3, when forwarding moves to nebula).
         {
           port = 25565;
           group = "app";
@@ -142,7 +138,6 @@ in
           PermitRootLogin = "no";
           PasswordAuthentication = false;
 
-          # --- hardening ---
           # Limit brute-force attempts (SSH is Nebula-only in production, but
           # defense in depth on the LAN/provisioning path).
           MaxAuthTries = 3;
@@ -178,7 +173,6 @@ in
       };
     };
 
-    # ------------------------------------------------ secrets (SOPS)
     sops.secrets = {
       cloudflare_api_env = {
         sopsFile = ../../../secrets/services/ddns.yaml;
@@ -188,12 +182,10 @@ in
       };
     };
 
-    # ------------------------------------------------ IP forwarding
     boot.kernel.sysctl = {
       "net.ipv4.ip_forward" = 1;
       "net.ipv6.conf.all.forwarding" = 1;
 
-      # --- kernel hardening ---
       # Restrict kernel pointer / dmesg visibility to root.
       "kernel.kptr_restrict" = 2;
       "kernel.dmesg_restrict" = 1;

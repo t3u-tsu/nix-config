@@ -64,7 +64,7 @@ in
     timerConfig = mkOption {
       type = types.attrs;
       default = {
-        OnCalendar = "00/2:00:00"; # Every 2 hours
+        OnCalendar = "00/2:00:00";
         RandomizedDelaySec = "10m";
       };
       description = "Systemd timer configuration";
@@ -72,7 +72,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Ensure restic is installed
     environment.systemPackages = [ pkgs.restic ];
 
     services.restic.backups = mkMerge [

@@ -18,7 +18,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Steam configuration
     programs.steam = {
       enable = true;
       remotePlay.openFirewall = true;
@@ -39,7 +38,6 @@ in
       );
     };
 
-    # GameMode configuration
     programs.gamemode.enable = true;
 
     # Move user-facing tools to Home-manager,

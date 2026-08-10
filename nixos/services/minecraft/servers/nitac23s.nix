@@ -8,7 +8,6 @@
 with lib;
 let
   cfg = config.my.services.minecraft;
-  # Load the auto-generated plugin definitions
   plugins = pkgs.callPackage ../plugins/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
 
@@ -65,7 +64,6 @@ in
               RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
 
               # 2. Write server.properties from scratch (overwrite)
-              # Remove the existing symlink if present
               if [ -L server.properties ]; then rm server.properties; fi
               
               cat <<EOF > server.properties

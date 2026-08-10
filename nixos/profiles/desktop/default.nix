@@ -20,7 +20,6 @@ with lib;
       "ventoy-1.1.12"
     ];
 
-    # Desktop hardware: redistributable firmware (Wi-Fi/BT/GPU) and graphics
     hardware = {
       enableRedistributableFirmware = true;
       graphics = {
@@ -29,7 +28,6 @@ with lib;
       };
     };
 
-    # Desktop networking (NetworkManager)
     networking.networkmanager.enable = true;
 
     my = {
@@ -43,7 +41,6 @@ with lib;
 
       hardware.pc-tools.enable = true;
 
-      # System-wide desktop services
       services.desktop = {
         niri.enable = true;
         greetd.enable = true;
