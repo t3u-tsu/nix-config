@@ -1,51 +1,53 @@
 #!/usr/bin/env bash
-# build-sd-image.sh - Orange Pi Zero3 用 SD インストーライメージを
-# 「一時パスワード自動発行」付きでビルドする
+# build-sd-image.sh - Builds an SD installer image for the Orange Pi Zero3 with
+# auto-issued temporary passwords
 #
-# 使い方:
+# Usage:
 #   ./hosts/torii-chan/build-sd-image.sh
 #
-# 動作:
-#   1. ライブ環境（SD 起動中）用の一時パスワードをランダム生成
-#   2. SHA-512 ハッシュ化し、--impure ビルドで環境変数経由でイメージに焼き込む
-#   3. 一時パスワードを result-sd-temp-password.txt（0600）に保存して表示
+# Behavior:
+#   1. Randomly generates a temporary password for the live environment (SD boot)
+#   2. Hashes it with SHA-512 and bakes it into the image via an environment
+#      variable in an --impure build
+#   3. Saves the temporary password to result-sd-temp-password.txt (0600) and prints it
 #
-# 一時パスワードはインストーラ（SD 起動中）の root / t3u でのみ有効。
-# 本番化（nixos-rebuild switch --flake .#torii-chan-sd / torii-chan-hdd）後は
-# SOPS 管理のパスワードに切り替わる。
+# The temporary password is only valid for root / t3u in the installer (while the
+# SD is booted). After going to production (nixos-rebuild switch --flake
+# .#torii-chan-sd / torii-chan-hdd), the SOPS-managed password takes over.
 #
-# 注意:
-#   - 本スクリプトのビルドは一時パスワードを焼き込むため --impure（非再現性）になる。
-#     再現性のある通常ビルドは: nix build .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage
-#   - パスワード不要（SSH 鍵のみで運用）なら通常ビルドで十分。
-#   - 書き込み先デバイス（例: /dev/sdX）は必ず確認してから dd すること。
+# Notes:
+#   - Because this script bakes in a temporary password, its build is --impure
+#     (non-reproducible). A reproducible normal build:
+#     nix build .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage
+#   - If no password is needed (SSH key only), a normal build is sufficient.
+#   - Always double-check the target device (e.g. /dev/sdX) before running dd.
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-# 1. 一時パスワードを生成（英数字 16 文字。LAN 内 SSH でのプロビジョニング用）
+# 1. Generate the temporary password (16 alphanumeric characters, for provisioning over LAN SSH)
 TEMP_PASSWORD="${TEMP_PASSWORD:-}"
 [ -n "${TEMP_PASSWORD}" ] || TEMP_PASSWORD="$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 16)"
 
-# 2. SHA-512 ハッシュ化（openssl passwd -6 はランダムソルト）
+# 2. Hash with SHA-512 (openssl passwd -6 uses a random salt)
 TEMP_PASSWORD_HASH="$(openssl passwd -6 "${TEMP_PASSWORD}")"
 
-# 3. 一時パスワードをファイルに保存（権限 0600）
+# 3. Save the temporary password to a file (mode 0600)
 PASSWORD_FILE="result-sd-temp-password.txt"
 umask 077
-printf '一時パスワード（インストーラ SD の root / t3u 用）: %s\n' "${TEMP_PASSWORD}" > "${PASSWORD_FILE}"
-printf 'ビルド完了後もこのファイルを安全に保管し、不要になったら削除してください。\n' >> "${PASSWORD_FILE}"
+printf 'Temporary password (installer SD root / t3u): %s\n' "${TEMP_PASSWORD}" > "${PASSWORD_FILE}"
+printf 'Keep this file somewhere safe after the build and delete it once it is no longer needed.\n' >> "${PASSWORD_FILE}"
 
-# 4. イメージをビルド（一時パスワードハッシュを環境変数で渡す）
-echo "==> 一時パスワードを発行: ${PASSWORD_FILE} に保存"
-echo "==> SD イメージ ビルド開始（--impure）..."
+# 4. Build the image (passing the temporary password hash via environment variable)
+echo "==> Temporary password issued: saved to ${PASSWORD_FILE}"
+echo "==> Building SD image (--impure) ..."
 TORII_INSTALLER_TEMP_PASSWORD_HASH="${TEMP_PASSWORD_HASH}" \
   nix build --impure .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage \
   -o result-sd-image
 
-echo "==> ビルド完了"
+echo "==> Build complete"
 ls -lh result-sd-image/sd-image/
-echo "一時パスワード: ${PASSWORD_FILE} を確認してください"
-echo "書き込み例（デバイスを必ず確認）:"
+echo "Check the temporary password at: ${PASSWORD_FILE}"
+echo "Flashing example (always verify the device):"
 echo "  lsblk -o NAME,SIZE,MODEL"
 echo "  sudo dd if=result-sd-image/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M status=progress conv=fsync"

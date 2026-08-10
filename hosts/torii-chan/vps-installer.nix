@@ -1,26 +1,28 @@
-# hosts/torii-chan/vps-installer.nix - ConoHa VPS (512MB) 用 カスタム NixOS インストーラ ISO 設定
+# hosts/torii-chan/vps-installer.nix - Custom NixOS installer ISO configuration for a ConoHa VPS (512MB)
 #
-# torii-chan のフェイルオーバー VPS（ConoHa VPS g2l-t-c1m512 = 1 vCPU / 512MB RAM
-# / 30GB ボリューム、x86_64）に NixOS をインストールするための「SSH から操作できる
-# インストーラ ISO」を生成する NixOS モジュール。
+# NixOS module that produces an "installer ISO operable over SSH" for installing
+# NixOS on torii-chan's failover VPS (ConoHa VPS g2l-t-c1m512 = 1 vCPU / 512MB RAM
+# / 30GB volume, x86_64).
 #
-# sd-installer.nix（SBC 用 SD イメージ）と stage: installer の共通設定
-# （installer-common.nix）を共有する。本モジュールは VPS 固有の差分のみを担う:
-#   - ISO 形式（image.modules."iso-installer"）
-#   - 静的 IP 設定（ConoHa は DHCP 無効。IP は conoha.installer.wan で指定）
-#   - 512MB 向け低メモリ設定（zram、シリアルコンソール、OOM 対策）
-#   - nixos-install 自動化スクリプト install-nixos（同梱・PATH に追加）
+# Shares the stage: installer common settings (installer-common.nix) with
+# sd-installer.nix (SBC SD image). This module only covers the VPS-specific bits:
+#   - ISO format (image.modules."iso-installer")
+#   - Static IP configuration (ConoHa has no DHCP; the IP is set via conoha.installer.wan)
+#   - Low-memory settings for 512MB (zram, serial console, OOM mitigation)
+#   - install-nixos, a nixos-install automation script (bundled and added to PATH)
 #
-# 認証まわり（一時パスワード / SSH 公開鍵 / SOPS 分離 / 本番サービス無効化）は
-# installer-common.nix が提供する。VPS は公開 IP に直接晒されるため SSH は鍵のみ。
+# Authentication handling (temporary password / SSH public keys / SOPS separation /
+# production services disabled) is provided by installer-common.nix. Since the VPS
+# is directly exposed on a public IP, SSH is key-only.
 #
-# ビルド（一時パスワード自動発行）:
+# Build (temporary password auto-issued):
 #   ./hosts/torii-chan/build-vps-iso.sh
-#   （nixosConfigurations には登録しない。nix flake check が ISO を通常の
-#    ブート可能システムとして検証して失敗するため、packages としてのみ公開）
+#   (Not registered in nixosConfigurations; exposed only as a package because
+#    nix flake check would fail verifying the ISO as a normal bootable system)
 #
-# 静的 IP は terraform apply 後に確定するため、未確定なら conoha.installer.wan.ipv4 を
-# null のままビルドし、起動後に `install-nixos.sh network` で手動設定できる。
+# The static IP is only known after `terraform apply`, so if it is not set yet,
+# build with conoha.installer.wan.ipv4 left null and configure it manually after
+# boot with `install-nixos.sh network`.
 {
   config,
   lib,
@@ -36,28 +38,29 @@ in
     ./installer-common.nix
   ];
 
-  # NOTE: installation-cd-base.nix は直接 import しない。
-  # system.build.images.iso-installer が image.modules 経由で自動付加する
-  # （nixpkgs/modules/image/images.nix の image.format = "iso-installer"）。
-  # 直接 import すると system.build.image がトップレベルに定義され、
-  # system.build.images と衝突する警告（build.image vs images）が出る。
-  # isoImage.* の設定は image.modules."iso-installer" で行う（下記）。
+  # NOTE: do not import installation-cd-base.nix directly.
+  # system.build.images.iso-installer is attached automatically via image.modules
+  # (nixpkgs/modules/image/images.nix, image.format = "iso-installer").
+  # Importing it directly defines system.build.image at the top level and triggers
+  # a warning about it conflicting with system.build.images (build.image vs images).
+  # Configure isoImage.* via image.modules."iso-installer" (below).
 
   options.conoha.installer = {
     hostName = lib.mkOption {
       type = lib.types.str;
       default = "torii-chan";
-      description = "インストーラ（ライブ環境）のホスト名。";
+      description = "Hostname of the installer (live environment).";
     };
 
-    # ネットワーク関連。ConoHa VPS は DHCP を提供しないため静的設定が基本。
+    # Networking. ConoHa VPS does not provide DHCP, so static configuration is the norm.
     interface = lib.mkOption {
       type = lib.types.str;
       default = "eth0";
       description = ''
-        インストーラが使うネットワークインターフェース名。
-        ConoHa VPS は virtio NIC で、予測可能なインターフェース名を無効化している
-        ため通常は eth0。起動後に `ip link` で確認し、違う名前なら変更すること。
+        Network interface used by the installer.
+        ConoHa VPS uses a virtio NIC with predictable interface naming disabled,
+        so it is usually eth0. Check with `ip link` after boot and change this if
+        the name differs.
       '';
     };
 
@@ -67,10 +70,11 @@ in
         default = null;
         example = "203.0.113.10";
         description = ''
-          ConoHa から割り当てられた IPv4 アドレス。
-          `terraform apply` 後に `terraform output -json torii_chan_addresses` で
-          確認して指定する。null のままビルドすると静的 IP は設定されず、
-          起動後に `install-nixos.sh network` で手動設定するモードになる。
+          IPv4 address assigned by ConoHa.
+          Check it after `terraform apply` with
+          `terraform output -json torii_chan_addresses` and set it here. Building
+          with null leaves the static IP unset and switches to the mode where it
+          is configured manually after boot with `install-nixos.sh network`.
         '';
       };
 
@@ -78,14 +82,14 @@ in
         type = lib.types.int;
         default = 24;
         example = 32;
-        description = "IPv4 アドレスのプレフィックス長。ConoHa の割当に合わせて指定。";
+        description = "IPv4 address prefix length; set it to match the allocation from ConoHa.";
       };
 
       gateway = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         example = "203.0.113.1";
-        description = "デフォルトゲートウェイの IPv4 アドレス。";
+        description = "IPv4 address of the default gateway.";
       };
 
       nameservers = lib.mkOption {
@@ -94,7 +98,7 @@ in
           "1.1.1.1"
           "8.8.8.8"
         ];
-        description = "DNS ネームサーバーのリスト。";
+        description = "List of DNS nameservers.";
       };
     };
 
@@ -103,24 +107,25 @@ in
         type = lib.types.str;
         default = "/dev/vda";
         description = ''
-          インストール先ディスク（install-nixos.sh のデフォルト値）。
-          ConoHa の 30GB ブートボリュームは通常 /dev/vda。
+          Target disk for the installation (default for install-nixos.sh).
+          ConoHa's 30GB boot volume is usually /dev/vda.
         '';
       };
 
       swapSize = lib.mkOption {
         type = lib.types.str;
         default = "1G";
-        description = "インストール時に作成するスワップファイルのサイズ。";
+        description = "Size of the swap file created during installation.";
       };
     };
   };
 
   config = {
-    # --- インストーラ共通（installer-common.nix） ---
-    # 本番サービス無効化 / 一時パスワード / SOPS 分離 / sshd 設定を提供する。
-    # 一時パスワードは build-vps-iso.sh が TORII_INSTALLER_TEMP_PASSWORD_HASH 経由で
-    # 注入する（nix build --impure）。VPS は公開 IP のため SSH は鍵のみ。
+    # --- Installer common (installer-common.nix) ---
+    # Provides production-service disabling / temporary password / SOPS separation /
+    # sshd settings. The temporary password is injected by build-vps-iso.sh via
+    # TORII_INSTALLER_TEMP_PASSWORD_HASH (nix build --impure). The VPS sits on a
+    # public IP, so SSH is key-only.
     my.installer = {
       enable = true;
       allowPasswordAuthentication = false;
@@ -128,20 +133,20 @@ in
 
     networking.hostName = cfg.hostName;
 
-    # --- ネットワーク（旧 nixos/installer/network.nix） ---
-    # ConoHa VPS は DHCP を提供しないため、静的 IP を明示設定する。
-    # IP は terraform apply 後に確定する（terraform/outputs.tf の
-    # torii_chan_addresses を参照）。ISO ビルド時点で未確定なら
-    # conoha.installer.wan.ipv4 = null のままビルドし、起動後に
-    # `install-nixos.sh network` で手動設定するフォールバックを用意する。
+    # --- Networking (formerly nixos/installer/network.nix) ---
+    # ConoHa VPS does not provide DHCP, so the static IP is set explicitly.
+    # The IP is only known after `terraform apply` (see torii_chan_addresses in
+    # terraform/outputs.tf). If it is unknown at ISO build time, build with
+    # conoha.installer.wan.ipv4 = null and fall back to configuring the network
+    # manually after boot with `install-nixos.sh network`.
     networking = {
-      # スクリプト式ネットワーク（systemd-networkd / NetworkManager は使わない）
+      # Scripted networking (systemd-networkd / NetworkManager are not used)
       useDHCP = false;
-      # virtio NIC を eth0 として扱う（systemd の予測可能な命名を無効化）
+      # Treat the virtio NIC as eth0 (disable systemd's predictable naming)
       usePredictableInterfaceNames = false;
-      networkmanager.enable = lib.mkForce false; # installation-device.nix が有効化するため mkForce で無効化
+      networkmanager.enable = lib.mkForce false; # disabled with mkForce because installation-device.nix enables it
 
-      # 静的 IP 設定（wan.ipv4 が指定された場合のみ有効）
+      # Static IP configuration (only effective when wan.ipv4 is set)
       interfaces.${cfg.interface} = lib.mkIf (cfg.wan.ipv4 != null) {
         useDHCP = false;
         ipv4.addresses = [
@@ -156,15 +161,16 @@ in
       nameservers = cfg.wan.nameservers;
     };
 
-    # 静的 IP 未指定時のビルド時警告（VNC コンソールからの手動設定が必要になる旨）
+    # Build-time warning when no static IP is set (manual setup from the VNC console
+    # will be needed)
     warnings = lib.optional (cfg.wan.ipv4 == null) ''
-      conoha.installer.wan.ipv4 が未設定です。この ISO は静的 IP が設定されないため、
-      SSH 接続には起動後に VNC コンソールから次を実行してネットワークを設定してください:
+      conoha.installer.wan.ipv4 is not set. This ISO has no static IP, so to connect
+      over SSH, configure the network after boot from the VNC console by running:
         install-nixos.sh network
-      または、terraform apply 後に IP を確定してから ISO をビルドし直してください。
+      Alternatively, finalize the IP after terraform apply and rebuild the ISO.
     '';
 
-    # --- ISO のボリュームラベル / ブートメニュー名 ---
+    # --- ISO volume label / boot menu name ---
     image.modules."iso-installer" = {
       isoImage = {
         volumeID = "conoha-installer";
@@ -172,40 +178,40 @@ in
       };
     };
 
-    # --- 低メモリチューニング（旧 nixos/installer/memory.nix） ---
-    # ライブ環境の /nix/store は squashfs + tmpfs オーバーレイで構成され、
-    # nixos-install 時のキャッシュ展開で RAM を消費する。512MB では OOM しやすい
-    # ため、zram でメモリ不足を吸収し、スワップを積極利用する。
+    # --- Low-memory tuning (formerly nixos/installer/memory.nix) ---
+    # The live environment's /nix/store is a squashfs + tmpfs overlay, and cache
+    # extraction during nixos-install consumes RAM. OOM is likely at 512MB, so zram
+    # absorbs memory pressure and swap is used aggressively.
     zramSwap = {
       enable = true;
-      algorithm = "lz4"; # 1 vCPU のため高速な圧縮アルゴリズムを選択（デフォルトは zstd）
+      algorithm = "lz4"; # fast compression algorithm for a single vCPU (default is zstd)
       memoryPercent = 50;
-      priority = 100; # ディスクスワップより優先して利用
+      priority = 100; # prefer zram over disk swap
     };
 
     boot.kernel.sysctl = {
-      # 余剰 RAM を zram に積極的に退避させて OOM を防ぐ
+      # Aggressively evict spare RAM to zram to prevent OOM
       "vm.swappiness" = 100;
     };
 
-    # ヘッドレス（VNC / シリアル）コンソール向けカーネルパラメータ。
-    # console=ttyS0 はシリアルコンソールの有効化、nomodeset は VNC での
-    # 文字表示を確実にするための指定。
+    # Kernel parameters for headless (VNC / serial) consoles.
+    # console=ttyS0 enables the serial console; nomodeset ensures text renders
+    # over VNC.
     boot.kernelParams = [
       "console=tty0"
       "console=ttyS0,115200n8"
       "nomodeset"
     ];
 
-    # --- インストール補助ツール ---
-    # nixos-install / nixos-generate-config / parted / gptfdisk は標準のインストーラ
-    # ISO（module-list.nix の installer/tools/tools.nix と profiles/base.nix）に
-    # 既に含まれるため、ここでは再追加しない。
+    # --- Installation helper tools ---
+    # nixos-install / nixos-generate-config / parted / gptfdisk are already included
+    # in the standard installer ISO (installer/tools/tools.nix and profiles/base.nix
+    # in module-list.nix), so they are not re-added here.
     environment.systemPackages = [
-      # インストール自動化スクリプト（install-nixos として PATH に追加）
+      # Installation automation script (added to PATH as install-nixos)
       (pkgs.writeShellScriptBin "install-nixos" (builtins.readFile ./install-nixos.sh))
 
-      # 手動フォールバックやファイル転送に使うツール
+      # Tools for manual fallback and file transfer
       pkgs.curl
     ];
   };
