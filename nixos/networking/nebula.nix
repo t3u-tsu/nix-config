@@ -2,7 +2,6 @@
 #
 # Common Nebula mesh-VPN module (single overlay "nebula0").
 #
-# Replaces the WireGuard hub-and-spoke design (wg0/wg1) with a full mesh:
 #   - network  nebula0, subnet 10.0.0.0/24, UDP 4242 (Lighthouse/Relay only)
 #   - torii-chan (10.0.0.1) is the Lighthouse + Relay, advertised via
 #     torii-chan.t3u.uk:4242 (DDNS failover between SBC and VPS).
@@ -164,7 +163,6 @@ in
       enable = true;
       inherit (cfg) isLighthouse isRelay;
 
-      # Certificates (paths resolved from SOPS secrets).
       ca = config.sops.secrets.nebula_ca.path;
       cert = config.sops.secrets."${hostKey}_nebula_cert".path;
       key = config.sops.secrets."${hostKey}_nebula_key".path;
@@ -181,7 +179,7 @@ in
         "${cfg.lighthouse}" = cfg.advertiseAddrs;
       };
 
-      # Use the interface name the plan expects (trustedInterfaces / greps).
+      # Use the interface name the rest of the config expects (trustedInterfaces / greps).
       tun.device = "nebula0";
 
       firewall = {
@@ -208,7 +206,6 @@ in
     # All in-tunnel traffic is controlled by the Nebula firewall.
     networking.firewall.trustedInterfaces = [ "nebula0" ];
 
-    # --- SOPS secrets ------------------------------------------------
     sops.secrets = {
       # CA cert (public) — shared by every host.
       nebula_ca = {

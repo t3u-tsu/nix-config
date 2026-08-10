@@ -10,7 +10,6 @@ let
   # Convert hostname hyphens to underscores for internal SOPS key mapping
   hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower hostname);
 
-  # Path to the host-specific secrets file
   hostSecretsFile = ../../secrets/hosts/${hostname}.yaml;
 in
 {
