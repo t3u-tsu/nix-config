@@ -203,12 +203,51 @@ registered before the first production deploy:
    on this switch.
 
 ### Phase 3: Migrate to HDD
-1. Format HDD with label `NIXOS_HDD`.
-2. Rsync `/` to the HDD partition.
-3. Switch config:
+
+`torii-chan-hdd` (root on `NIXOS_HDD`) is the intended production layout for the
+SBC: `/boot` stays on the SD card (`NIXOS_SD`), only `/` moves to the HDD.
+`fs-hdd.nix` wires root, `hdd-apm.service` and `smartd` to
+`/dev/disk/by-label/NIXOS_HDD`.
+
+> **Why this is more than a `switch`**: applying `torii-chan-hdd` only writes the
+> *declaration* (mount root from `NIXOS_HDD`). The disk itself must physically
+> exist, be formatted and carry the `NIXOS_HDD` label, or the system will not
+> boot (and `hdd-apm`/`smartd` fail with "No such file or directory"). Do the
+> disk preparation below **before** rebooting, otherwise the next boot drops to
+> emergency mode.
+
+1. Format the HDD and label it `NIXOS_HDD` (**destructive — wipes the disk**):
    ```bash
-   nixos-rebuild -- switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+   sudo mkfs.ext4 -L NIXOS_HDD /dev/sda1
    ```
+2. Copy the running SD root to the HDD (exclude virtual/boot-only mounts):
+   ```bash
+   sudo mkdir -p /mnt/hdd
+   sudo mount /dev/sda1 /mnt/hdd
+   sudo rsync -aAXHx --exclude='/proc/*' --exclude='/sys/*' --exclude='/dev/*' \
+     --exclude='/run/*' --exclude='/tmp/*' --exclude='/mnt/*' --exclude='/lost+found' \
+     --exclude='/boot/*' --exclude='/swapfile' / /mnt/hdd/
+   sudo sync
+   ```
+3. Verify the copy before rebooting:
+   ```bash
+   ls -l /mnt/hdd/nix/var/nix/profiles/system   # should point at system-<N>-link
+   du -sh /mnt/hdd                                # ~same as the SD root usage
+   ```
+4. Deploy the HDD config (already done if you switched earlier; re-run to be safe):
+   ```bash
+   nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+   ```
+5. Reboot. After boot, verify root is now on the HDD and the HDD services start:
+   ```bash
+   mount | grep " on / "                    # should be /dev/sda1
+   systemctl status hdd-apm.service smartd.service   # should be active
+   ```
+
+**Safety**: `/boot` (extlinux) stays on the SD card, so even after a failed HDD
+boot you can still pick an older generation from the extlinux menu. To abort the
+migration, revert to the SD config (`.#torii-chan-sd`) rather than rebooting
+with the HDD config while the HDD is unprepared.
 
 ## Secrets
 
