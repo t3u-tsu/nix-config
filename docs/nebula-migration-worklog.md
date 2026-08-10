@@ -10,9 +10,11 @@ UDP 4242, torii-chan = Lighthouse + Relay.
   and **BrokenPC** (client). WireGuard (wg0/wg1) intentionally kept active.
 - **torii-chan HDD migration**: completed (root now on HDD, HDD services active).
 - **Phase 2 smoke checks**: P2P + nebula SSH verified between BrokenPC ↔ torii-chan.
+- **Phase 3 (full migration)**: WireGuard removed on **torii-chan** and **BrokenPC**
+  (applied via nebula-only SSH; nebula0 is now the only tunnel on those hosts).
 - **Pending**: 3 hosts (shosoin-tan / kagutsuchi-sama / sando-kun) are OFFLINE;
-  apply nebula when they come online. Minecraft / DNAT / restic / Relay checks
-  need shosoin-tan online.
+  apply the Phase-3 config (they already carry the nebula secrets) when they come
+  online. Minecraft / DNAT / restic / Relay checks need shosoin-tan online.
 
 ## What was done
 
@@ -62,6 +64,19 @@ UDP 4242, torii-chan = Lighthouse + Relay.
 - After boot: root on `/dev/sda1`, `hdd-apm.service` + `smartd.service` active.
 - Procedure documented in `hosts/torii-chan/README.md` (Phase 3).
 
+### 7. Phase 3 — full migration (remove WireGuard)
+- gateway: dropped `wg0`/`wg1` (interfaces, ports 51820/51821, keys, firewall
+  rules); NAT/MASQUERADE now forwards 25565 → `10.0.2.4`; `internalInterfaces`
+  emptied (mesh is P2P, no outbound overlay NAT).
+- `tower-server/security.nix`: SSH now only via nebula0 (dropped the wg0 firewall
+  reference); `allowedTCPPorts = mkForce []` still holds.
+- Deleted all host `wireguard.nix` files + `nixos/networking/wireguard.nix` +
+  their imports.
+- `shosoin-tan` restic backup: remote receiver `10.0.1.3` → `10.0.2.3` (nebula).
+- **Applied on torii-chan and BrokenPC** (via nebula-only SSH). After apply:
+  `wg0`/`wg1` gone, nebula0 is the only tunnel, P2P ping + SSH over mesh OK.
+- 3 offline hosts still need the Phase-3 config applied when online.
+
 ## Verification (Phase 2, partial)
 
 - **P2P**: `ping 10.0.2.1` from BrokenPC → 0% loss (rtt 5–33 ms).
@@ -81,18 +96,23 @@ UDP 4242, torii-chan = Lighthouse + Relay.
 
 ## Remaining / Next steps
 
-- **Deploy 3 offline hosts** when online: `sudo nixos-rebuild switch --flake .#<host>`
-  (shosoin-tan / kagutsuchi-sama / sando-kun).
-- **Phase 3 cutover** (after Phase 2): switch app/NAT (25565 → 10.0.2.4), SSH
-  path, then remove wg0/wg1 (`wireguard.nix`, close 51820/51821).
-- **Phase 4 ops**: cert rotation (1y), pki.blocklist maintenance, optional 2nd
+- **Deploy 3 offline hosts** with the Phase-3 config when they come online:
+  `sudo nixos-rebuild switch --flake .#<host>`
+  (shosoin-tan / kagutsuchi-sama / sando-kun). They already carry the nebula
+  secrets, so a plain switch is enough.
+- **Phase 2 residual checks** (need shosoin-tan online): Minecraft within mesh,
+  DNAT return (25565 → 10.0.2.4), restic SFTP (→ 10.0.2.3), mobile (NAT64)
+  P2P / Relay fallback.
+- **Phase 4 ops**: cert rotation (1y), `pki.blocklist` maintenance, optional 2nd
   Lighthouse.
 
 ## Relevant commits (branch `docs/nebula-mesh-design`)
 
+- `cb49adb` feat(networking): remove WireGuard, migrate fully to the Nebula mesh
+- `c932850` docs(nebula): add migration worklog
+- `c0c60ec` docs(torii-chan): detail the HDD migration procedure in README
 - `54b7ecc` fix(nebula): add static_host_map for clients to reach the Lighthouse
 - `78164bd` fix(nebula): add host=any to the common inbound ICMP rule
-- `c0c60ec` docs(torii-chan): detail the HDD migration procedure in README
 - `ccc1b95` fix(secrets): update common.yaml recipients to the torii-chan key
 - `137a479` chore(secrets): add Nebula CA cert and per-host node certs/keys
 - `d6bc353` feat(networking): add Nebula mesh VPN (nebula0) config
