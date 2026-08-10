@@ -10,7 +10,6 @@ resource "conohavps_volume" "boot" {
 }
 
 # VPS instance (512MB plan: g2l-t-c1m512).
-# References the keypair and security group created in this same tf file.
 resource "conohavps_instance" "torii_chan" {
   instance_name_tag = var.instance_name
   admin_pass        = var.admin_password

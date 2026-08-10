@@ -1,4 +1,3 @@
-# hosts/shosoin-tan/hardware.nix - Filesystem and ZFS configuration
 { config, lib, ... }:
 {
   # SSD (480GB) - System

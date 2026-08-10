@@ -1,4 +1,3 @@
-# hosts/kagutsuchi-sama/hardware.nix - Filesystem and boot configuration
 { config, lib, ... }:
 {
   # SSD (500GB) - System

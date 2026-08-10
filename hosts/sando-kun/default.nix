@@ -13,16 +13,12 @@
     ../../nixos/profiles/tower-server
   ];
 
-  # GeForce 8400 GS (Tesla) is too old for modern NVIDIA drivers.
-  # We stick with nouveau or basic kernel drivers for stability.
-
   boot.loader.grub = {
     enable = true;
-    efiSupport = false; # i7-860 is Legacy BIOS
+    efiSupport = false;
     device = "/dev/disk/by-id/ata-ST9250320AS_5SW1VK4F";
   };
 
-  # Networking
   networking = {
     hostId = "5a4d0001";
     hostName = "sando-kun";

@@ -1,6 +1,3 @@
-# hosts/sando-kun/services/nebula.nix
-#
-# Nebula mesh client (management). SSH via the mesh.
 _:
 
 {

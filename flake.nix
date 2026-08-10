@@ -29,7 +29,7 @@
 
     # === Desktop Environment ===
     # niri / noctalia / noctalia-greeter / ghostty: no follows to keep the
-    # upstream Cachix binary cache hash-matching (see AGENTS.md).
+    # upstream Cachix binary cache hash-matching.
     niri.url = "github:sodiboo/niri-flake";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
@@ -118,7 +118,6 @@
           {
             formatter = pkgs.nixfmt;
 
-            # devenv development environment (loads devenv.nix as a module)
             devenv.shells.default = {
               imports = [ ./devenv.nix ];
             };

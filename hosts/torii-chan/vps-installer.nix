@@ -1,4 +1,4 @@
-# hosts/torii-chan/vps-installer.nix - Custom NixOS installer ISO configuration for a ConoHa VPS (512MB)
+# Custom NixOS installer ISO configuration for a ConoHa VPS (512MB)
 #
 # NixOS module that produces an "installer ISO operable over SSH" for installing
 # NixOS on torii-chan's failover VPS (ConoHa VPS g2l-t-c1m512 = 1 vCPU / 512MB RAM

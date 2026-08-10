@@ -1,4 +1,3 @@
-# lib/default.nix - System builder and helper functions
 {
   nixpkgs,
   inputs,

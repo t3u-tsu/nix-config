@@ -1,8 +1,3 @@
-# hosts/shosoin-tan/services/nebula.nix
-#
-# Nebula mesh client (management + app). Runs the Minecraft proxy, so it accepts
-# SSH from the mgmt group and Minecraft from the gateway (torii-chan, 10.0.0.1)
-# for the DNAT return path.
 _:
 
 {

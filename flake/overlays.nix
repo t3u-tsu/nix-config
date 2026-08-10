@@ -1,4 +1,3 @@
-# flake/overlays.nix - Nixpkgs overlays used across all nixosConfigurations
 { inputs, lib, ... }:
 {
   flake.overlays.default = lib.composeManyExtensions [

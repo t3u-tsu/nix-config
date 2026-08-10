@@ -21,7 +21,7 @@
         "sudo"
         "direnv"
       ];
-      theme = ""; # Starship handles the prompt
+      theme = "";
     };
   };
 }

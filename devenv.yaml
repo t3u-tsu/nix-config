@@ -1,8 +1,3 @@
-# devenv configuration (flake-parts integration)
-#
-# - inputs: the devenv CLI resolves inputs from this file's inputs section.
-#   With flake integration (nix develop / nix flake check), the inputs from flake.nix are used.
-#   Both are aligned to point at the same nixpkgs (nixos-26.05).
 inputs:
   nixpkgs:
     url: github:NixOS/nixpkgs/nixos-26.05

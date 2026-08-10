@@ -1,4 +1,3 @@
-# flake/packages.nix - Extra flake packages (installer ISO, etc.)
 { config, lib, ... }:
 {
   perSystem =

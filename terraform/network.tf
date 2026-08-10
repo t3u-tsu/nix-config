@@ -1,5 +1,3 @@
-# Security group for the torii-chan VPS.
-#
 # Open policy:
 #   - 22/tcp   : SSH access for initial boot and troubleshooting. After NixOS is
 #                applied, access is expected to be restricted to nebula0 only via

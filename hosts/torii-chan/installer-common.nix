@@ -1,5 +1,3 @@
-# hosts/torii-chan/installer-common.nix
-#
 # Common settings for the installer (stage: installer), shared (DRY) by the SBC
 # SD image (sd-installer.nix) and the VPS installer ISO (vps-installer.nix).
 #

@@ -1,4 +1,3 @@
-# hosts/sando-kun/hardware.nix - Filesystem and boot configuration
 { config, lib, ... }:
 {
   # Main HDD (250GB) - System
