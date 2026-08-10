@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# ConoHa VPS への ISO 注入 / 排出（非対話）スクリプト
+# ConoHa VPS ISO inject / eject (non-interactive) script
 #
-# 概要:
-#   ConoHa 標準 OS（例: Debian）で作成した VPS に、rescue モードの CD-ROM
-#   （ISO イメージ）を挿入して NixOS インストーラをブートし、ディスクを
-#   上書きインストールするための補助スクリプト。
-#   API は ConoHa 公開 API を直接叩く（terraform プロバイダには ISO 操作が無いため）。
+# Overview:
+#   Helper script that inserts a rescue-mode CD-ROM (ISO image) into a VPS
+#   created with the ConoHa stock OS (e.g. Debian), boots the NixOS installer,
+#   and overwrites the disk with a fresh install.
+#   It calls the ConoHa public API directly (the terraform provider has no ISO operations).
 #
-# 使い方:
-#   ./nixos-iso.sh install <instance_id> <iso_file>   # ISO 作成→アップロード→挿入→起動
-#   ./nixos-iso.sh eject   <instance_id>              # ISO 排出（unrescue）→起動
-#   ./nixos-iso.sh status  <instance_id>              # インスタンス状態の確認
+# Usage:
+#   ./nixos-iso.sh install <instance_id> <iso_file>   # create ISO -> upload -> insert -> start
+#   ./nixos-iso.sh eject   <instance_id>              # eject ISO (unrescue) -> start
+#   ./nixos-iso.sh status  <instance_id>              # check instance status
 #
-# 環境変数（terraform プロバイダと同じものを使用）:
+# Environment variables (same as those used by the terraform provider):
 #   CONOHAVPS_USER_ID / CONOHAVPS_PASSWORD / CONOHAVPS_TENANT_ID / CONOHAVPS_REGION
-#   CONOHAVPS_WAIT_TIMEOUT  状態遷移の最大待機秒数（デフォルト 600）
-#   （CONOHAVPS_REGION 省略時は c3j1。SOPS からの注入例は ../README.md 参照）
+#   CONOHAVPS_WAIT_TIMEOUT  max wait seconds for state transitions (default 600)
+#   (When CONOHAVPS_REGION is omitted it defaults to c3j1. See ../README.md for SOPS injection examples)
 #
-# 依存: curl, jq
+# Dependencies: curl, jq
 set -euo pipefail
 
 REGION="${CONOHAVPS_REGION:-c3j1}"
@@ -27,11 +27,11 @@ IDENTITY="https://identity.${REGION}.conoha.io/v3"
 IMAGE="https://image-service.${REGION}.conoha.io/v2"
 COMPUTE="https://compute.${REGION}.conoha.io/v2.1"
 
-: "${CONOHAVPS_USER_ID:?CONOHAVPS_USER_ID が未設定}"
-: "${CONOHAVPS_PASSWORD:?CONOHAVPS_PASSWORD が未設定}"
-: "${CONOHAVPS_TENANT_ID:?CONOHAVPS_TENANT_ID が未設定}"
+: "${CONOHAVPS_USER_ID:?CONOHAVPS_USER_ID is not set}"
+: "${CONOHAVPS_PASSWORD:?CONOHAVPS_PASSWORD is not set}"
+: "${CONOHAVPS_TENANT_ID:?CONOHAVPS_TENANT_ID is not set}"
 
-# --- 認証: Identity API v3 で X-Subject-Token を取得 -------------------------
+# --- Authentication: obtain X-Subject-Token via Identity API v3 -------------------------
 get_token() {
   local body
   body=$(jq -n \
@@ -53,13 +53,13 @@ server_status() {
     jq -r '.server.status'
 }
 
-# --- サーバー詳細取得（状態遷移待ち・診断用） ---------------------------------
+# --- Get server details (for waiting on state transitions / diagnostics) ---------------------------------
 server_details() {
   local token="$1" id="$2"
   curl -sS --max-time 30 "${COMPUTE}/servers/${id}" -H "X-Auth-Token: ${token}"
 }
 
-# --- サーバー状態をポーリングして指定状態を待つ ------------------------------
+# --- Poll server status and wait for a specified state ------------------------------
 wait_status() {
   local token="$1" id="$2" want="$3" label="$4"
   local status="" elapsed=0

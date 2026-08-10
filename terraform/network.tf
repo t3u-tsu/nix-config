@@ -1,11 +1,12 @@
-# torii-chan VPS 用セキュリティグループ。
+# Security group for the torii-chan VPS.
 #
-# 開放方針:
-#   - 22/tcp   : 初期ブート時・障害時の SSH アクセス。NixOS 適用後は gateway の
-#                firewall（restrictAccess）で nebula0 経由のみに制限される想定
-#   - 4242/udp : Nebula Lighthouse / Relay の受信（torii-chan = Lighthouse + Relay）
-#   - icmp     : 疎通確認
-#   - egress   : 全許可（ConoHa の SG は明示しないと egress も拒否されるため明示）
+# Open policy:
+#   - 22/tcp   : SSH access for initial boot and troubleshooting. After NixOS is
+#                applied, access is expected to be restricted to nebula0 only via
+#                the gateway firewall (restrictAccess)
+#   - 4242/udp : Nebula Lighthouse / Relay inbound (torii-chan = Lighthouse + Relay)
+#   - icmp     : reachability check
+#   - egress   : allow all (ConoHa SG rejects egress unless explicitly allowed)
 resource "conohavps_securitygroup" "torii_chan" {
   name        = "torii-chan"
   description = "torii-chan VPS: SSH (bootstrap) + Nebula + ICMP"
