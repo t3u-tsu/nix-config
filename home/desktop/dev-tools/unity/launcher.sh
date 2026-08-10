@@ -45,7 +45,7 @@ fi
 # ── Phase 2: Provisioning (if needed) ──────────────────────────────
 
 if ! "$DISTROBOX" list 2>/dev/null | awk -F'|' -v name="$CONTAINER_NAME" 'NR>1 {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); if ($2 == name) {found=1; exit}} END {exit !found}'; then
-    notify "Unityコンテナの自動セットアップを開始します（数分かかります）..."
+    notify "Starting automatic Unity container setup (this may take a few minutes)..."
     echo "Provisioning Unity Distrobox container..."
     echo "This will download Ubuntu 22.04 and install Unity Hub."
     echo ""
@@ -64,11 +64,11 @@ if ! "$DISTROBOX" list 2>/dev/null | awk -F'|' -v name="$CONTAINER_NAME" 'NR>1 {
         echo "─ Full assemble log: $log_file"
         echo "  (auto-removed on next success; kept for debugging)"
         echo "=================================================="
-        fail "Unityコンテナのセットアップに失敗しました"
+        fail "Unity container setup failed"
     fi
 
     rm -f "$log_file"
-    notify "Unityコンテナのセットアップが完了しました！Unity Hubを起動します。"
+    notify "Unity container setup complete! Launching Unity Hub."
     echo ""
 fi
 

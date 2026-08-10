@@ -10,7 +10,7 @@ let
   username = config.home.username;
 in
 {
-  # ai-tools (codewhale) が有効なときだけ MCP 設定を生成する
+  # Only generate the MCP config when ai-tools (codewhale) is enabled
   config = mkIf config.my.home.desktop.dev-tools.ai-tools.enable {
     sops.secrets = {
       conoha_vps_mcp_tenant_id = {
@@ -27,12 +27,12 @@ in
       };
     };
 
-    # ~/.codewhale/mcp.json を SOPS テンプレートから生成する。
-    # 認証情報は sops.placeholder 経由で注入されるため、リポジトリに平文は残らない。
+    # Generate ~/.codewhale/mcp.json from a SOPS template.
+    # Credentials are injected via sops.placeholder, so no plaintext remains in the repository.
     sops.templates."codewhale-mcp.json" = {
-      # デフォルトの rendered パスに生成し、activation で ~/.codewhale/mcp.json に実ファイルとしてコピーする。
-      # 理由: sops.templates の path に直接指定するとシンボリックリンクになり、
-      #       codewhale が MCP config path must be a regular file で拒否するため。
+      # Render to the default rendered path and copy it to ~/.codewhale/mcp.json as a real file during activation.
+      # Reason: pointing path directly at sops.templates creates a symlink,
+      #       which codewhale rejects with "MCP config path must be a regular file".
       content = ''
         {
           "timeouts": {
@@ -60,12 +60,12 @@ in
         }
       '';
     };
-    # sops.templates の出力（rendered）を実ファイルとして ~/.codewhale/mcp.json に配置する。
-    # sops-nix の home-manager フック（sops-nix）の後に実行する。
-    # 注意: フック名は sops-nix モジュールの home.activation.sops-nix であり、
-    # "setupSecrets"（NixOS 側の system.activation フック名）ではない。
-    # 誤った名前を entryAfter に指定すると順序制約が無視され、
-    # レンダリング前の古いファイルがコピーされてしまう。
+    # Place the sops.templates output (rendered) at ~/.codewhale/mcp.json as a real file.
+    # Run after the sops-nix home-manager hook (sops-nix).
+    # Note: the hook name is home.activation.sops-nix from the sops-nix module,
+    # not "setupSecrets" (the NixOS system.activation hook name).
+    # Using the wrong name in entryAfter silently drops the ordering constraint
+    # and copies the stale pre-render file.
     home.activation.conohaMcpConfig = config.lib.dag.entryAfter [ "sops-nix" ] ''
       rm -f /home/${username}/.codewhale/mcp.json
       cp -f ${config.sops.templates."codewhale-mcp.json".path} /home/${username}/.codewhale/mcp.json

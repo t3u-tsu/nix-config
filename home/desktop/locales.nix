@@ -40,9 +40,9 @@ in
       GLFW_IM_MODULE = mkForce "ibus";
     };
 
-    # Fcitx5 ユーザープロファイル設定 (宣言的に Mozc を有効化)
-    # 参照: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
-    # システム側の i18n.inputMethod は無効化し、こちらで一括管理する
+    # Fcitx5 user profile settings (declaratively enable Mozc)
+    # Reference: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
+    # Disable the system-wide i18n.inputMethod and manage everything here
     i18n.inputMethod = mkIf (cfg.inputMethod == "fcitx5") {
       enable = true;
       type = "fcitx5";
