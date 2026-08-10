@@ -27,15 +27,15 @@ jobs:
       - name: Check Nix Flake
         run: nix flake check --show-trace --accept-flake-config --all-systems
 
-  # devenv の git-hooks（nixfmt / statix / convco）を CI でも検証するジョブ。
-  # ローカルの pre-commit だけに頼らず、コミットメッセージ規約と
-  # nix コードの整形・静的解析を CI で強制する。
+  # Job that also runs devenv's git-hooks (nixfmt / statix / convco) in CI.
+  # Enforce the commit-message convention and nix formatting/static analysis
+  # in CI instead of relying only on local pre-commit.
   devenv-git-hooks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          # convco でブランチ上のコミットを検証するため、全履歴を取得する
+          # Fetch the full history so convco can validate the branch commits
           fetch-depth: 0
 
       - name: Install Nix
@@ -54,15 +54,15 @@ jobs:
         run: nix profile install 'github:NixOS/nixpkgs/nixos-unstable#devenv'
 
       - name: Run devenv git-hooks and tests
-        # devenv test は devenv 1.0 で `devenv ci` からリネームされた CI 用コマンド。
-        # タスク機構により `devenv:git-hooks:run`（nixfmt / statix を全ファイルに実行）
-        # が先に走り、その後に enterTest を実行する。
+        # devenv test is the CI command renamed from `devenv ci` in devenv 1.0.
+        # The task mechanism runs `devenv:git-hooks:run` (nixfmt / statix across
+        # all files) first, then enterTest.
         run: devenv test
 
       - name: Check Conventional Commits (convco)
-        # convco フックは commit-msg ステージのため `prek run -a` では実行されない。
-        # CI ではコミット作成が発生しないため、ブランチ上のコミットを
-        # `convco check <base>..HEAD` で直接検証する。
+        # The convco hook lives on the commit-msg stage, so `prek run -a` does
+        # not execute it. CI does not create commits, so validate the commits
+        # on the branch directly with `convco check <base>..HEAD`.
         run: |
           if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
             BASE="${{ github.event.pull_request.base.sha }}"
