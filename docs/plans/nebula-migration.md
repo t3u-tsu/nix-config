@@ -1,22 +1,27 @@
 # Nebula メッシュVPN 移行計画（要点）
 
+> **2026-08-10 更新**: オーバーレイサブネットを **10.0.0.0/24** に変更（旧 `10.0.2.0/24`）。
+> WireGuard 管理網（`wg0`, `10.0.0.0/24`）と同じ帯域に統一し、`home/programs/ssh.nix` の
+> ホスト定義（`10.0.0.1`〜`10.0.0.100`）と整合させるため。CA 再発行 + 全ノード証明書再署名を
+> `scripts/nebula-rotate-ca.sh` で実施済み。
+
 WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 **単一オーバーレイ統合案**: wg0/wg1 を 1 つの Nebula 網に統合し、ゾーン分離は証明書グループ + Nebula ファイアウォールで行う。
 
 ## ネットワーク設計
 
-- ネットワーク名 `nebula0`、サブネット **10.0.2.0/24**、UDP **4242**（Lighthouse/Relay のみ固定）
+- ネットワーク名 `nebula0`、サブネット **10.0.0.0/24**、UDP **4242**（Lighthouse/Relay のみ固定）
 - **MTU は全ノード共通の単一値**（P2P メッシュでは送信側の tun MTU がそのままパケットサイズになるため、
   最小の拠点に全員が合わせる。詳細は下記「MTU」節）
 - 各ノードは Lighthouse（torii-chan）に報告 → P2P 接続。中央死後も確立済みトンネルは継続
 
 | ノード | Nebula IP | グループ | 役割 |
 | :--- | :--- | :--- | :--- |
-| torii-chan | 10.0.2.1 | mgmt | **Lighthouse + Relay**（SBC/VPS 共有） |
-| sando-kun | 10.0.2.2 | mgmt | クライアント |
-| kagutsuchi-sama | 10.0.2.3 | mgmt | クライアント（restic 受信） |
-| shosoin-tan | 10.0.2.4 | mgmt, app | クライアント（Minecraft） |
-| BrokenPC | 10.0.2.100 | mgmt, app | クライアント（＝持ち出しPC） |
+| torii-chan | 10.0.0.1 | mgmt | **Lighthouse + Relay**（SBC/VPS 共有） |
+| sando-kun | 10.0.0.2 | mgmt | クライアント |
+| kagutsuchi-sama | 10.0.0.3 | mgmt | クライアント（restic 受信） |
+| shosoin-tan | 10.0.0.4 | mgmt, app | クライアント（Minecraft） |
+| BrokenPC | 10.0.0.100 | mgmt, app | クライアント（＝持ち出しPC） |
 
 - **mgmt** = 全ノード（SSH 等の管理用）、**app** = Minecraft 等のアプリ通信ノード
 - フェイルオーバー: VPS は同一証明書・鍵を共有。`advertise_addrs = ["torii-chan.t3u.uk:4242"]` + DDNS 差替で全ピア無変更で追随
@@ -34,7 +39,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 - **CA 秘密鍵**: BrokenPC のローカル領域のみ（`~/.nebula-ca/`、`-encrypt` でパスフレーズ保護）。リポジトリ外・SOPS に載せない
 - **CA 証明書** (`ca.crt`): `secrets/common.yaml`
 - **ノード証明書・秘密鍵**: `secrets/hosts/<host>.yaml`（各ホスト + master 鍵）
-- 発行: `nebula-cert ca -name t3u-home-ca -networks 10.0.2.0/24 -groups mgmt,app -encrypt` →
+- 発行: `nebula-cert ca -name t3u-home-ca -networks 10.0.0.0/24 -groups mgmt,app -encrypt` →
   `nebula-cert sign -name <host> -networks <ip>/24 -groups <g> -duration 8760h`
 - 有効期限 1 年。失効は `pki.blocklist`（全ホストの設定に列挙。自動配布されない）
 
@@ -51,7 +56,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 | ホスト | Nebula inbound（追加分） | 理由 |
 | :--- | :--- | :--- |
 | torii-chan | 22 (mgmt), 25565 (app) | SSH / Minecraft DNAT 戻り |
-| shosoin-tan | 22 (mgmt), 25565 (app, cidr 10.0.2.1) | SSH / Minecraft 受信 |
+| shosoin-tan | 22 (mgmt), 25565 (app, cidr 10.0.0.1) | SSH / Minecraft 受信 |
 | kagutsuchi-sama | 22 (mgmt) | SSH / restic SFTP |
 | sando-kun | 22 (mgmt) | SSH |
 | BrokenPC | （なし = ICMP のみ） | サービスなし |
@@ -61,7 +66,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 
 **WAN 側（torii-chan の NixOS firewall）**:
 - UDP 4242（Nebula、`services.nebula` が自動追加）
-- TCP 25565（Minecraft 公開、rate-limit 継続）。DNAT 転送先を `10.0.1.4 → 10.0.2.4` に変更（MASQUERADE 含む）
+- TCP 25565（Minecraft 公開、rate-limit 継続）。DNAT 転送先を `10.0.1.4 → 10.0.0.4` に変更（MASQUERADE 含む）
 
 ## Relay の位置づけ
 
@@ -69,7 +74,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 - **実測による重要事例**: 楽天モバイル（NAT64）は UDP は通るがステートフル NAT のため
   直接 P2P が成立しにくい → **モバイル時は Relay 経由が主経路になる**（Lighthouse への
   接続自体は外向きで問題なし）。Relay はモバイル参加の要となる
-- 全ノードが `relays = ["10.0.2.1"]` を指定し、直接接続失敗時に torii-chan 経由でフォールバック
+- 全ノードが `relays = ["10.0.0.1"]` を指定し、直接接続失敗時に torii-chan 経由でフォールバック
 
 ## 実装の骨子
 
@@ -77,7 +82,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
   （isLighthouse/isRelay/IP/groups/**mtu**/extraInbound）で生成。SOPS 参照 + `trustedInterfaces = ["nebula0"]` を内包
 - `tower-server/security.nix`: wg0 参照を撤去し `extraInbound = [{port=22; proto="tcp"; group="mgmt";}]`
 - `nixos/services/minecraft/default.nix`: `extraInbound` に 25565 を追加
-- `nixos/profiles/gateway/default.nix`: NAT 転送先を 10.0.2.4 へ、`extraInbound` に 25565 を追加
+- `nixos/profiles/gateway/default.nix`: NAT 転送先を 10.0.0.4 へ、`extraInbound` に 25565 を追加
 
 ## 移行フェーズ
 

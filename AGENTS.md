@@ -65,7 +65,7 @@
 - `nixos/base/`: システム共通インフラ基盤（User, Nix, Time）
 - `nixos/core/`: OS核心動作環境（i18n）
 - `nixos/security/`: セキュリティ・機密管理（SOPS）
-- `nixos/networking/`: ネットワーク・VPN（WireGuard, Hosts）
+- `nixos/networking/`: ネットワーク・VPN（Nebula, Hosts）
 - `nixos/environment/`: システムパッケージ
 - `nixos/hardware/`: ハードウェア固有設定
 - `nixos/profiles/`: 役割別プロファイル（desktop / sbc / tower-server / gateway）
@@ -111,7 +111,7 @@
 ## 便利なコマンド集
 
 - **デプロイ**: `sudo nixos-rebuild switch --flake .#BrokenPC`
-- **torii-chan デプロイ (手動/SBC用)**: `nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false`
+- **torii-chan デプロイ (手動/SBC用)**: `nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false`
 - **秘密情報編集**: `sops secrets/secrets.yaml`
 - **IPC 操作 (Noctalia)**: `noctalia ipc call <target> <function>`
 - **ビルド完了通知**: `curl -X POST ...` (ビルド成功時に webhook をトリガーする場合)

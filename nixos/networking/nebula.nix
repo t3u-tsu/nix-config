@@ -3,8 +3,8 @@
 # Common Nebula mesh-VPN module (single overlay "nebula0").
 #
 # Replaces the WireGuard hub-and-spoke design (wg0/wg1) with a full mesh:
-#   - network  nebula0, subnet 10.0.2.0/24, UDP 4242 (Lighthouse/Relay only)
-#   - torii-chan (10.0.2.1) is the Lighthouse + Relay, advertised via
+#   - network  nebula0, subnet 10.0.0.0/24, UDP 4242 (Lighthouse/Relay only)
+#   - torii-chan (10.0.0.1) is the Lighthouse + Relay, advertised via
 #     torii-chan.t3u.uk:4242 (DDNS failover between SBC and VPS).
 #   - zone separation is done via certificate groups + the Nebula firewall,
 #     NOT per-overlay interfaces.
@@ -63,7 +63,7 @@ in
     ip = mkOption {
       type = types.str;
       default = "";
-      example = "10.0.2.1";
+      example = "10.0.0.1";
       description = "Nebula IP of this node (must be within the CA network).";
     };
 
@@ -99,7 +99,7 @@ in
 
     lighthouse = mkOption {
       type = types.str;
-      default = "10.0.2.1";
+      default = "10.0.0.1";
       description = "Nebula IP of the Lighthouse (torii-chan).";
     };
 

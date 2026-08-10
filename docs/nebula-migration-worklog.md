@@ -94,6 +94,28 @@ UDP 4242, torii-chan = Lighthouse + Relay.
    Added `staticHostMap` on non-lighthouse nodes. (`54b7ecc`)
 3. **common.yaml stale torii-chan key** — fixed via `sops updatekeys`. (`ccc1b95`)
 
+## Subnet change: 10.0.2.0/24 → 10.0.0.0/24 (2026-08-10)
+
+Overlay subnet rotated to **10.0.0.0/24** (same band as the retired WireGuard
+`wg0` management net, so it aligns with `home/programs/ssh.nix` host entries).
+
+- **Why**: during the design the overlay used `10.0.2.0/24`; aligning on
+  `10.0.0.0/24` keeps a single management band across the fleet and matches the
+  SSH host definitions (`10.0.0.1`–`10.0.0.100`).
+- **New tool** `scripts/nebula-rotate-ca.sh`: one-shot CA rotation (new CA for
+  `10.0.0.0/24` + re-sign all 5 nodes), feeding the encrypt passphrase on a pty.
+  Reuses `scripts/nebula-import-secrets.sh` for the SOPS step.
+- **Certificates**: new CA `t3u-home-ca` (networks `10.0.0.0/24`, groups
+  `mgmt,app`) written to `~/.nebula-ca-10-0-0/`; all node certs re-signed to
+  `10.0.0.x/24` (verified via `nebula-cert print`).
+- **SOPS**: `secrets/common.yaml` (`nebula_ca`) + all `secrets/hosts/*.yaml`
+  (`*_nebula_cert` / `*_nebula_key`) re-encrypted via
+  `nebula-import-secrets.sh` (master key).
+- **Config**: `nixos/networking/nebula.nix`, `nixos/profiles/gateway/default.nix`,
+  `hosts/*/services/nebula.nix`, `hosts/shosoin-tan/services/backup.nix` updated
+  to `10.0.0.x`.
+- **Verified**: `nix flake check` passes.
+
 ## Remaining / Next steps
 
 - **Deploy 3 offline hosts** with the Phase-3 config when they come online:

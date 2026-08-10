@@ -16,7 +16,7 @@
     ];
     passwordFile = config.sops.secrets.restic_password.path;
     localRepo = "/mnt/tank-1tb/backups/minecraft";
-    remoteRepo = "sftp:restic-shosoin@10.0.2.3:/mnt/data/backups/shosoin-tan";
+    remoteRepo = "sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan";
     sshKeyFile = config.sops.secrets.restic_shosoin_ssh_key.path;
 
     backupPrepareCommand = ''
@@ -42,7 +42,7 @@
 
   # SSH configuration for restic backup (kagutsuchi-sama over nebula0).
   programs.ssh.extraConfig = ''
-    Host 10.0.2.3
+    Host 10.0.0.3
       IdentityFile ${config.sops.secrets.restic_shosoin_ssh_key.path}
       StrictHostKeyChecking no
       UserKnownHostsFile /dev/null

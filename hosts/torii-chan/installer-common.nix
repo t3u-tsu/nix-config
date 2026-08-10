@@ -4,7 +4,7 @@
 # VPS インストーラ ISO（vps-installer.nix）の両方で共用する（DRY）。
 #
 # 本番（stage: production）とは逆の性質を持つ:
-#   - 本番サービス（gateway: WireGuard / DDNS / NAT）を無効化
+#   - 本番サービス（gateway: Nebula / DDNS / NAT）を無効化
 #   - 本番シークレット（SOPS 管理のパスワードハッシュ）を焼き込まない
 #   - 一時パスワード（build-*.sh が --impure ビルドで注入）または公開鍵でログイン
 #   - sshd はプラットフォームに応じて「緩さ」を調整する
@@ -79,7 +79,7 @@ in
   config = mkIf cfg.enable {
     # --- 本番サービスを無効化 ---
     # hosts/torii-chan/default.nix が my.services.gateway.enable = true を設定する
-    # ため、mkForce で無効化する（WireGuard / DDNS / NAT は実行しない）。
+    # ため、mkForce で無効化する（Nebula / DDNS / NAT は実行しない）。
     my.services.gateway.enable = lib.mkForce false;
 
     networking.hostName = cfg.hostName;

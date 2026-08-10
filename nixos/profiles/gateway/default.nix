@@ -9,7 +9,7 @@
 # access-restriction toggle used during SD image provisioning.
 #
 # torii-chan is the single Lighthouse + Relay of the nebula0 overlay
-# (10.0.2.0/24). Peers reach it via the public hostname
+# (10.0.0.0/24). Peers reach it via the public hostname
 # `torii-chan.t3u.uk:4242`, so SBC/VPS takeover is seamless: when the VPS
 # assumes the role, its own DDNS updates the A record to the VPS public IP and
 # all peers reconnect without reconfiguration.
@@ -73,7 +73,7 @@ in
         extraCommands = ''
           # Ensure DNATed traffic to the Minecraft server is masqueraded so the
           # return path is correct.
-          iptables -t nat -A POSTROUTING -d 10.0.2.4 -p tcp --dport 25565 -j MASQUERADE
+          iptables -t nat -A POSTROUTING -d 10.0.0.4 -p tcp --dport 25565 -j MASQUERADE
           # Rate-limit the public Minecraft port (WAN exposure, production only).
           ${lib.optionalString cfg.restrictAccess ''
             iptables -A INPUT -p tcp --dport 25565 -m limit --limit 10/sec --limit-burst 20 -j ACCEPT
@@ -93,7 +93,7 @@ in
           {
             proto = "tcp";
             sourcePort = 25565;
-            destination = "10.0.2.4:25565";
+            destination = "10.0.0.4:25565";
           }
         ];
       };
@@ -106,7 +106,7 @@ in
     # `torii-chan.t3u.uk:4242` and all peers reconnect without reconfiguration.
     my.networking.nebula = {
       enable = true;
-      ip = "10.0.2.1";
+      ip = "10.0.0.1";
       groups = [ "mgmt" ];
       isLighthouse = true;
       isRelay = true;

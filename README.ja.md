@@ -22,7 +22,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── base/            # OS 基盤 (ユーザー, Nix, 時間同期)
 │   ├── core/            # OS 核心設定 (i18n)
 │   ├── security/        # セキュリティと秘密情報 (SOPS)
-│   ├── networking/      # ネットワーク設定 (hosts, WireGuard)
+│   ├── networking/      # ネットワーク設定 (hosts, Nebula mesh)
 │   ├── environment/     # システムパッケージ
 │   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
 │   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc, gateway)
@@ -52,7 +52,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 リモートマシン（例: Orange Pi Zero 3 の `torii-chan`）へデプロイする場合：
 
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
 ```
 
 より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください．

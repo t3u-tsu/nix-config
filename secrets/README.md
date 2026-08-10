@@ -7,7 +7,7 @@ encrypted with [SOPS](https://github.com/getsops/sops) using
 ## Layout
 
 - `hosts/<hostname>.yaml` — host-specific secrets (password hashes,
-  WireGuard private keys, ...).
+  Nebula node certs/keys, ...).
 - `services/<service>.yaml` — service-level secrets shared by the hosts that
   run the service (DDNS, Minecraft, backup, signing, ...).
 - `common.yaml` — secrets shared across every host.

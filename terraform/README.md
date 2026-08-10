@@ -59,7 +59,7 @@ state ファイル（`terraform.tfstate`）はローカルに保存し、`.gitig
 ## リソース一覧
 
 - `conohavps_keypair.t3u` — SSH キーペア（全ホスト共通の t3u 公開鍵）
-- `conohavps_securitygroup.torii_chan` + ルール — 22/tcp・51820-51821/udp・ICMP・egress 全許可
+- `conohavps_securitygroup.torii_chan` + ルール — 22/tcp・4242/udp (Nebula Lighthouse)・ICMP・egress 全許可
 - `conohavps_volume.boot` — 30GB ブートボリューム（`c3j1-ds02-boot`、Debian 12 展開）
 - `conohavps_instance.torii_chan` — 512MB プラン（`g2l-t-c1m512`）
 

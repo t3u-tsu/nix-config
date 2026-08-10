@@ -3,7 +3,7 @@
 # Everything specific to running the shared torii-chan role on a VPS instead of
 # the physical Orange Pi Zero3. Intended for ONE-AT-A-TIME failover: when the
 # VPS is active, its Cloudflare DDNS points torii-chan.t3u.uk to the VPS public
-# IP and all WireGuard peers reconnect without reconfiguration.
+# IP and all Nebula peers reconnect without reconfiguration.
 #
 # Target provider: ConoHa VPS (GMO). KVM/VirtIO, BIOS/MBR, static IP assigned
 # in the control panel (no DHCP by default). Tokyo/Osaka region, hourly billing.
@@ -82,7 +82,7 @@ in
   # ---------------------------------------------------------------------------
   # Initial provisioning bootstrap
   # ---------------------------------------------------------------------------
-  # The firewall hardening (restrictAccess = true) exposes SSH only via wg0,
+  # The firewall hardening (restrictAccess = true) exposes SSH only via nebula0,
   # which is not reachable on the very first boot. For the FIRST deploy only,
   # uncomment the line below to open SSH on the WAN, then re-enable hardening
   # afterwards (mirrors hosts/torii-chan/sd-installer.nix).
