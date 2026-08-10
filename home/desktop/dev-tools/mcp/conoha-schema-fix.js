@@ -1,23 +1,9 @@
 #!/usr/bin/env node
-/**
- * conoha-vps-mcp 用スキーマ修正ラッパー
- *
- * 背景:
- *   conoha_post ツールの inputSchema に先読み正規表現（(?=...)）が含まれており、
- *   OpenAI 互換 API（deepseek 等）のツールスキーマ検証で 400 "is not a regex" になる。
- *   このラッパーは tools/list レスポンスをインターセプトし、(?= を含む pattern を
- *   OpenAI 互換の安全なパターン（長さ制約のみ）に置換してから親に流す。
- *
- * 実行方法:
- *   nodejs と npm が PATH に存在する必要がある（NixOS では home.packages に
- *   pkgs.nodejs を追加する）。conoha-vps-mcp 本体は npm exec で解決されるため、
- *   nix store の絶対パスや npm キャッシュのパスには依存しない（GC 耐性）。
- */
+
 'use strict';
 const { spawn } = require('node:child_process');
 const readline = require('node:readline');
 
-// PATH 解決で npm を起動する（NixOS 標準の env を使う）
 const ENV_BIN = process.env.CONOHA_MCP_ENV || '/run/current-system/sw/bin/env';
 const MCP_CMD = process.env.CONOHA_MCP_CMD || 'npm';
 const MCP_ARGS = (process.env.CONOHA_MCP_ARGS || 'exec --yes @gmo-internet/conoha-vps-mcp@latest').split(/\s+/);
@@ -26,11 +12,6 @@ const child = spawn(ENV_BIN, [MCP_CMD, ...MCP_ARGS], { stdio: ['pipe', 'pipe', '
 
 process.stdin.pipe(child.stdin);
 
-/**
- * 先読みを含む pattern を安全なパターンに置換する。
- * 元: ^(?=.*[A-Z])(?=.*[a-z])...{9,70}$  →  長さ制約のみ: ^.{9,70}$
- * 元の長さ制約（{m,n}）は維持する。
- */
 function safePattern(original) {
   const m = original.match(/\{\s*(\d+)\s*(?:,\s*(\d+)\s*)?\}/);
   if (m) {
@@ -39,7 +20,6 @@ function safePattern(original) {
   return '^.{0,255}$';
 }
 
-/** 再帰的に schema を走査し、先読みを含む pattern を修正する */
 function fixPatterns(schema) {
   if (!schema || typeof schema !== 'object') return;
   for (const [k, v] of Object.entries(schema)) {
