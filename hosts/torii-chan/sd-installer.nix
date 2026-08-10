@@ -3,7 +3,7 @@
 # stage: installer の SD カードイメージ（本番サービスなし・一時パスワードで SSH 可）。
 # 旧 sd-image-installer.nix を installer-common.nix（VPS インストーラと共用）方式に
 # 再設計したもの。本番 SD（torii-chan-sd）や HDD 本番（torii-chan-hdd）への
-# プロビジョニング専用であり、WireGuard / DDNS / NAT は実行しない。
+# プロビジョニング専用であり、Nebula / DDNS / NAT は実行しない。
 #
 # ビルド（一時パスワード自動発行）:
 #   ./hosts/torii-chan/build-sd-image.sh
@@ -36,7 +36,7 @@
   # --- SBC インストーラ: LAN 内プロビジョニング専用 ---
   # 一時パスワード + パスワード認証可（"緩め"）で、焼いた直後に SSH から
   # そのまま作業できる。ネットワークは sbc.nix の静的 IP（192.168.0.128）。
-  # ファイアウォールは 22 のみ開放（本番の wg0 制限とは無関係の素の LAN 状態）。
+  # ファイアウォールは 22 のみ開放（本番の nebula0 制限とは無関係の素の LAN 状態）。
   my.installer = {
     enable = true;
     # LAN 内限定なので一時パスワードでのログインを許可（VPS インストーラは鍵のみ）

@@ -42,10 +42,9 @@ To avoid CPU freezes on the target, build the image on a build host and transfer
 - **Minecraft Discord Bridge:** Discord management bot is active. Socket at `/run/minecraft-discord-bridge/bridge.sock`.
 - **Backup:** Runs every 2 hours via `restic`.
   - Dual setup: Local (`/mnt/tank-1tb/backups/minecraft`) and Remote (`kagutsuchi-sama`).
-- **Management IP:** `10.0.0.4` (WireGuard)
-- **App IP:** `10.0.1.4` (Minecraft, etc.)
-- **MTU Setting:** WireGuard MTU is set to `1380` to ensure stability when using USB-LAN adapters.
-- **SSH Access Control:** Limited to the WireGuard (`wg0`) interface ONLY for enhanced security.
+- **Management IP:** `10.0.0.4` (Nebula mesh)
+- **MTU Setting:** Nebula MTU is set to `1320` (common across the fleet).
+- **SSH Access Control:** Limited to the Nebula (`nebula0`) mesh ONLY for enhanced security.
 
 ## Notes
 - **Overclocking:** CPU overclocking can cause instability (Kernel Oops) during heavy Nix builds. Running at stock speeds is highly recommended.

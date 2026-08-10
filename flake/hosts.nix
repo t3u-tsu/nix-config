@@ -21,7 +21,7 @@ in
 {
   flake.nixosConfigurations = {
 
-    # === torii-chan (WireGuard gateway / VPN server + DDNS) ===
+    # === torii-chan (Nebula gateway / Lighthouse + DDNS) ===
     #
     # The same role runs on the physical SBC or the failover VPS, one at a time.
     # Both share hostname `torii-chan` and identical secrets so peers keep using

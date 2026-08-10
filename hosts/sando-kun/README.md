@@ -37,9 +37,8 @@ To reduce CPU load on the target, we transfer the pre-built image from the build
 ## Network and Security
 - **Boot Method:** Legacy BIOS (MBR)
 - **Data Storage:** `/mnt/scratch` is mounted automatically.
-- **Management IP:** `10.0.0.2` (WireGuard)
-- **Application IP:** `10.0.1.2`
-- **SSH Access Restriction:** For enhanced security, SSH access is limited to the WireGuard (`wg0`) interface.
+- **Management IP:** `10.0.0.2` (Nebula mesh)
+- **SSH Access Restriction:** For enhanced security, SSH access is limited to the Nebula (`nebula0`) mesh.
 
 ## Notes
 - **GPU:** The GeForce 8400 GS is extremely old and modern NVIDIA drivers will not work. It runs on the open-source `nouveau` driver or standard kernel drivers.

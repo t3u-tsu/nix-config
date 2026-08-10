@@ -2,6 +2,6 @@
 
 {
   imports = [
-    ./wireguard.nix
+    ./nebula.nix
   ];
 }

@@ -1,21 +1,21 @@
-# Host: torii-chan (VPN Gateway / WireGuard Server + DDNS + Minecraft Forward)
+# Host: torii-chan (Nebula Gateway / Lighthouse + DDNS + Minecraft Forward)
 
-This directory configures **torii-chan**, a VPN gateway that can run on EITHER
-the physical Orange Pi Zero3 SBC **or** a VPS — one at a time (failover).
+This directory configures **torii-chan**, a Nebula mesh gateway that can run on
+EITHER the physical Orange Pi Zero3 SBC **or** a VPS — one at a time (failover).
 Both machines share the same hostname `torii-chan` and the SAME secrets
-(WireGuard keys, DDNS token), so peers keep reaching the host at
-`torii-chan.t3u.uk:51820/51821` without reconfiguration.
+(Nebula CA + node certs, DDNS token), so peers keep reaching the host at
+`torii-chan.t3u.uk:4242` without reconfiguration.
 
 ## Role (shared module)
 
 The gateway role itself is platform-agnostic and lives in
 `nixos/profiles/gateway/default.nix`:
 
-- WireGuard servers: `wg0` management net `10.0.0.1/24`, `wg1` app net `10.0.1.1/24`
-- NAT + port-forward `25565` → `shosoin-tan (10.0.1.4)` (Minecraft proxy)
+- Nebula mesh: `nebula0` overlay `10.0.0.0/24`, torii-chan = **Lighthouse + Relay** @ `10.0.0.1`
+- NAT + port-forward `25565` → `shosoin-tan (10.0.0.4)` (Minecraft proxy)
 - Cloudflare DDNS for `torii-chan.t3u.uk`, `mc.t3u.uk`, `*.mc.t3u.uk`
-- Firewall hardening: SSH only via `wg0`, public `25565`, all of `wg1` trusted
-- SOPS-managed WireGuard keys + Cloudflare token
+- Firewall hardening: SSH only via `nebula0`, public `25565`
+- SOPS-managed Nebula certs (CA + node) + Cloudflare token
 
 Platform-specific wiring is split into two thin layers:
 
@@ -64,9 +64,10 @@ own age identity added to those files:
 
 ### Before activating the VPS
 
-- Verify the firewall: public SSH is intentionally restricted to `wg0`. For the
-  FIRST deploy you must bring the VPS up while it can still be reached over
-  `wg0` (connect from a peer), or temporarily open port 22 on the WAN.
+- Verify the firewall: public SSH is intentionally restricted to the Nebula mesh
+  (`nebula0`). For the FIRST deploy you must bring the VPS up while it can still
+  be reached over the mesh (connect from a peer), or temporarily open port 22 on
+  the WAN.
 - Ensure `mc.t3u.uk`, `*.mc.t3u.uk`, and `torii-chan.t3u.uk` are served by the
   active gateway (its DDNS handles this; only one gateway runs at a time).
 
@@ -83,8 +84,8 @@ with the まとめトク discount), hourly billing (1-hour units), Tokyo region.
    NOT serve DHCP; these values go into `hosts/torii-chan/vps.nix`
    (`wanIp` / `wanGateway`, currently `192.0.2.x` TEST-NET placeholders).
 3. **Security groups**: ConoHa v3 security groups default to DENY-ALL at the
-   hypervisor level. Allow at minimum: TCP 22 and 25565, UDP 51820 and 51821
-   (plus TCP 22 for bootstrap).
+   hypervisor level. Allow at minimum: TCP 22 and 25565, UDP 4242 (Nebula
+   Lighthouse/Relay), plus TCP 22 for bootstrap.
 
 ### Phase 2: Boot the NixOS installer from a custom ISO
 Instead of the stock minimal ISO, you can build the SSH-operable custom ISO
@@ -150,7 +151,7 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 2. Fill in `hosts/torii-chan/vps.nix`: `wanIp`/`wanGateway` from the panel.
 3. Deploy:
    ```bash
-   nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --use-remote-sudo --ask-sudo-password
+   nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --sudo --ask-sudo-password
    ```
 4. After the first boot, re-enable SSH hardening by removing the temporary
    `restrictAccess = lib.mkForce false;` from the bootstrap config and redeploy.
@@ -174,7 +175,7 @@ sudo dd if=result-sd-image/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M 
 ```
 
 The installer (`torii-chan-sd-installer`) runs **no production services**
-(WireGuard / DDNS / NAT are disabled) and only opens TCP 22. Log in with the
+(Nebula / DDNS / NAT are disabled) and only opens TCP 22. Log in with the
 temporary password or the `t3u@BrokenPC` SSH key over the LAN
 (static IP `192.168.0.128`).
 
@@ -197,22 +198,61 @@ registered before the first production deploy:
    Commit the changes.
 3. Deploy production (SD root):
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
+   nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
    ```
    The temporary password is replaced by the SOPS-managed production password
    on this switch.
 
 ### Phase 3: Migrate to HDD
-1. Format HDD with label `NIXOS_HDD`.
-2. Rsync `/` to the HDD partition.
-3. Switch config:
+
+`torii-chan-hdd` (root on `NIXOS_HDD`) is the intended production layout for the
+SBC: `/boot` stays on the SD card (`NIXOS_SD`), only `/` moves to the HDD.
+`fs-hdd.nix` wires root, `hdd-apm.service` and `smartd` to
+`/dev/disk/by-label/NIXOS_HDD`.
+
+> **Why this is more than a `switch`**: applying `torii-chan-hdd` only writes the
+> *declaration* (mount root from `NIXOS_HDD`). The disk itself must physically
+> exist, be formatted and carry the `NIXOS_HDD` label, or the system will not
+> boot (and `hdd-apm`/`smartd` fail with "No such file or directory"). Do the
+> disk preparation below **before** rebooting, otherwise the next boot drops to
+> emergency mode.
+
+1. Format the HDD and label it `NIXOS_HDD` (**destructive — wipes the disk**):
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+   sudo mkfs.ext4 -L NIXOS_HDD /dev/sda1
    ```
+2. Copy the running SD root to the HDD (exclude virtual/boot-only mounts):
+   ```bash
+   sudo mkdir -p /mnt/hdd
+   sudo mount /dev/sda1 /mnt/hdd
+   sudo rsync -aAXHx --exclude='/proc/*' --exclude='/sys/*' --exclude='/dev/*' \
+     --exclude='/run/*' --exclude='/tmp/*' --exclude='/mnt/*' --exclude='/lost+found' \
+     --exclude='/boot/*' --exclude='/swapfile' / /mnt/hdd/
+   sudo sync
+   ```
+3. Verify the copy before rebooting:
+   ```bash
+   ls -l /mnt/hdd/nix/var/nix/profiles/system   # should point at system-<N>-link
+   du -sh /mnt/hdd                                # ~same as the SD root usage
+   ```
+4. Deploy the HDD config (already done if you switched earlier; re-run to be safe):
+   ```bash
+   nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+   ```
+5. Reboot. After boot, verify root is now on the HDD and the HDD services start:
+   ```bash
+   mount | grep " on / "                    # should be /dev/sda1
+   systemctl status hdd-apm.service smartd.service   # should be active
+   ```
+
+**Safety**: `/boot` (extlinux) stays on the SD card, so even after a failed HDD
+boot you can still pick an older generation from the extlinux menu. To abort the
+migration, revert to the SD config (`.#torii-chan-sd`) rather than rebooting
+with the HDD config while the HDD is unprepared.
 
 ## Secrets
 
-- WireGuard server keys + password hashes: `secrets/hosts/torii-chan.yaml`
+- Nebula CA + node certs + password hashes: `secrets/hosts/torii-chan.yaml`
 - Cloudflare DDNS token: `secrets/services/ddns.yaml`
 
 ## Operation & Troubleshooting
@@ -220,7 +260,7 @@ registered before the first production deploy:
 ### Remote Deployment Build Errors (seccomp / sandbox)
 The Orange Pi kernel lacks `user_namespaces` / `seccomp BPF`. Deploy natively:
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
 ### Unstable SSH Connection or Timeout
@@ -228,8 +268,8 @@ nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remot
 ssh -o KexAlgorithms=curve25519-sha256 t3u@10.0.0.1
 ```
 
-### Network (WireGuard) Stability
-Unstable parent links (Rakuten Mobile MTU 1340) → `wg0`/`wg1` MTU is 1300.
+### Network (Nebula) Stability
+Unstable parent links (Rakuten Mobile MTU 1340) → nebula0 MTU is 1320 (common).
 
 ### Out-of-Memory (OOM)
 4GB swapfile at `/var/lib/swapfile`, `vm.swappiness = 10` (SBC profile). The VPS

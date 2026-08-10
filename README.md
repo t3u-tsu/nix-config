@@ -22,7 +22,7 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── base/            # OS foundation (users, Nix, time)
 │   ├── core/            # OS core settings (i18n)
 │   ├── security/        # Security and secrets (SOPS)
-│   ├── networking/      # Network settings (hosts, WireGuard)
+│   ├── networking/      # Network settings (hosts, Nebula mesh)
 │   ├── environment/     # System packages
 │   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
 │   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc, gateway)
@@ -52,7 +52,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
 ```
 
 For more specific deployment details, check the respective README.md files in hosts/ and modules/.

@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./wireguard.nix
+    ./nebula.nix
     ../../../nixos/services/backup/receiver.nix
   ];
 }
