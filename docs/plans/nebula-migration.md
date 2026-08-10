@@ -32,6 +32,8 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
   - ルート mtu 属性は `ip link set` に追従しない（`cache mtu` が旧値のまま残り EMSGSIZE）。実測時は
     `ip route replace 10.0.0.0/24 dev nebula0 src 10.0.0.100 mtu <value>` でルートを書換える。
     switch 適用で Nebula が tun を再作成すればルートも新 MTU で生成されるため、通常は不要。
+  - 設定キーは **`tun.mtu`**（`nebula.nix` の `settings.tun.mtu`）。トップレベルの `mtu` は Nebula 1.10 では
+    読まれず、内蔵デフォルト 1300 が適用される（2026-08-11 の再起動で 1300 に戻る問題から判明）。
 - 計算: `共通 MTU = 最小パス MTU (1380) − Nebula オーバーヘッド (60) = 1320`
   - Nebula ヘッダ 16B（`header/header.go` の `Len = 16`）+ AEAD タグ 16B + UDP 8B + IPv4 20B
   - 最小パス MTU 1380 は楽天モバイル回線の実測値（`tracepath 1.1.1.1` の pmtu。

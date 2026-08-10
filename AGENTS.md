@@ -32,7 +32,7 @@
 4.  **適用**: `sudo nixos-rebuild switch --flake .#BrokenPC` （適用前にユーザー承認を得ること）
 5.  **コミットとプッシュ**:
     ```bash
-    git add .
+    git add -A
     git commit -m "feat: topic description"
     git push origin feat/topic-name
     ```
