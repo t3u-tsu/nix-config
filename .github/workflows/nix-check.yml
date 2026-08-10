@@ -51,8 +51,6 @@ jobs:
           skipPush: true
 
       - name: Install devenv
-        # devenv.yaml の allowUnfree: true（terraform が BUSL のため）は
-        # devenv が nixpkgs 設定へ自動反映するため、追加設定は不要
         run: nix profile install 'github:NixOS/nixpkgs/nixos-unstable#devenv'
 
       - name: Run devenv git-hooks and tests

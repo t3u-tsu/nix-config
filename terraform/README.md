@@ -1,11 +1,12 @@
-# Terraform: ConoHa VPS リソース管理
+# OpenTofu: ConoHa VPS リソース管理
 
 [torii-chan のフェイルオーバー VPS](https://github.com/t3u-tsu/nix-config) を
-**ConoHa VPS**（GMO）上に宣言的に構築するための Terraform 設定です。
+**ConoHa VPS**（GMO）上に宣言的に構築するための OpenTofu 設定です
+（Terraform から移行。コマンドは `tofu` を使用）。
 
 ## 前提
 
-- [devenv](https://devenv.sh/) シェル内で `terraform` を使用する（`devenv.nix` で管理）
+- [devenv](https://devenv.sh/) シェル内で `tofu` を使用する（`devenv.nix` で管理）
 - プロバイダ: [gmo-internet/conohavps](https://registry.terraform.io/providers/gmo-internet/conohavps/latest)（ベータ版）
 - 認証情報: ConoHa の API ユーザー（`secrets/services/conoha-vps-mcp.yaml` に SOPS で保管済み）
 
@@ -32,13 +33,13 @@ export TF_VAR_ssh_public_key='ssh-ed25519 AAAA... t3u@BrokenPC'  # vps.nix と�
 
 ```bash
 cd terraform
-terraform init     # プロバイダ取得（初回）
-terraform fmt      # 整形
-terraform validate # 構文チェック
-terraform plan     # 変更計画の確認
-terraform apply    # 適用（※ VPS 作成で料金発生。実行前にユーザー承認が必要）
-terraform output -json torii_chan_addresses   # 割当 IP 確認（wanIp 確定用）
-terraform destroy  # 全リソース削除（※ 料金停止。承認が必要）
+tofu init     # プロバイダ取得（初回）
+tofu fmt      # 整形
+tofu validate # 構文チェック
+tofu plan     # 変更計画の確認
+tofu apply    # 適用（※ VPS 作成で料金発生。実行前にユーザー承認が必要）
+tofu output -json torii_chan_addresses   # 割当 IP 確認（wanIp 確定用）
+tofu destroy  # 全リソース削除（※ 料金停止。承認が必要）
 ```
 
 - 変数のデフォルト値は `variables.tf` を参照（512MB プラン / 30GB ブートボリューム / Debian 12 仮 OS）
@@ -51,10 +52,10 @@ terraform destroy  # 全リソース削除（※ 料金停止。承認が必要�
 state ファイル（`terraform.tfstate`）はローカルに保存し、`.gitignore` で除外する（未コミット）。
 
 - **単一オペレータ・単一ホストでの運用を前提**とする
-- **バックアップ**: `terraform apply` の前に `terraform.tfstate` のコピーを推奨
+- **バックアップ**: `tofu apply` の前に `terraform.tfstate` のコピーを推奨
   （例: `cp terraform.tfstate terraform.tfstate.bak`）
 - **ConoHa オブジェクトストレージの S3 バックエンドは使用しない**（容量契約が必要なため見送り）。
-  将来必要になった場合は `backend.tf` を追加し、`terraform init -migrate-state` で移行する
+  将来必要になった場合は `backend.tf` を追加し、`tofu init -migrate-state` で移行する
 
 ## リソース一覧
 
@@ -70,7 +71,7 @@ ConoHa 標準 OS では NixOS を直接選べないため、**rescue ISO 注入*
 
 ```bash
 # 1. VPS 作成（Debian 起動）
-terraform apply
+tofu apply
 
 # 2. Debian への SSH 疎通確認（キーペアが入っているか）
 ssh -i ~/.ssh/t3u root@<public_ip>
@@ -86,7 +87,7 @@ ssh -i ~/.ssh/t3u root@<public_ip>
 ./scripts/nixos-iso.sh eject <instance_id>
 
 # 6. 割当 IP を vps.nix の wanIp / wanGateway に反映して NixOS を適用
-terraform output -json torii_chan_addresses
+tofu output -json torii_chan_addresses
 ```
 
 `scripts/nixos-iso.sh` は ConoHa 公開 API を直接叩く（Image API で ISO を作成・
