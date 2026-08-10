@@ -41,7 +41,6 @@
     };
   };
 
-  # Bootloader configuration
   boot = {
     loader.grub = {
       enable = true;
