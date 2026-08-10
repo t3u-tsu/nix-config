@@ -150,7 +150,7 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 2. Fill in `hosts/torii-chan/vps.nix`: `wanIp`/`wanGateway` from the panel.
 3. Deploy:
    ```bash
-   nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --use-remote-sudo --ask-sudo-password
+   nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --sudo --ask-sudo-password
    ```
 4. After the first boot, re-enable SSH hardening by removing the temporary
    `restrictAccess = lib.mkForce false;` from the bootstrap config and redeploy.
@@ -197,7 +197,7 @@ registered before the first production deploy:
    Commit the changes.
 3. Deploy production (SD root):
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
+   nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
    ```
    The temporary password is replaced by the SOPS-managed production password
    on this switch.
@@ -207,7 +207,7 @@ registered before the first production deploy:
 2. Rsync `/` to the HDD partition.
 3. Switch config:
    ```bash
-   nix run nixpkgs#nixos-rebuild -- switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+   nixos-rebuild -- switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
    ```
 
 ## Secrets
@@ -220,7 +220,7 @@ registered before the first production deploy:
 ### Remote Deployment Build Errors (seccomp / sandbox)
 The Orange Pi kernel lacks `user_namespaces` / `seccomp BPF`. Deploy natively:
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
 ### Unstable SSH Connection or Timeout

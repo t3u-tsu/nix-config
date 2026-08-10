@@ -52,7 +52,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 リモートマシン（例: Orange Pi Zero 3 の `torii-chan`）へデプロイする場合：
 
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
 ```
 
 より詳細なデプロイ・運用方法については、`hosts/` および `modules/` 配下の各 `README.md`（英語）を参照してください．

@@ -52,7 +52,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 
 ```bash
-nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --use-remote-sudo --ask-sudo-password
+nixos-rebuild switch --flake .#torii-chan --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
 ```
 
 For more specific deployment details, check the respective README.md files in hosts/ and modules/.
