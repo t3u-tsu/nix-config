@@ -74,8 +74,8 @@ own age identity added to those files:
 
 ## Setup Guide (VPS / ConoHa)
 
-Target: ConoHa VPS (GMO), cheapest plan (512 MB, 1 vCPU / 30 GB SSD, ~460円/月
-with the まとめトク discount), hourly billing (1-hour units), Tokyo region.
+Target: ConoHa VPS (GMO), cheapest plan (512 MB, 1 vCPU / 30 GB SSD, ~460 JPY/month
+with the "Matometoku" discount), hourly billing (1-hour units), Tokyo region.
 
 ### Phase 1: Create the VPS
 1. Create the VPS in **tyo1 or tyo2**. (The custom-ISO API is NOT supported in

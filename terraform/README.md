@@ -1,110 +1,112 @@
-# OpenTofu: ConoHa VPS リソース管理
+# OpenTofu: ConoHa VPS Resource Management
 
-torii-chan のフェイルオーバー VPS を
-**ConoHa VPS**（GMO）上に宣言的に構築するための OpenTofu 設定です
+Declarative OpenTofu configuration to provision torii-chan's failover VPS on
+**ConoHa VPS** (GMO).
 
-## 前提
+## Prerequisites
 
-- [devenv](https://devenv.sh/) シェル内で `tofu` を使用する（`devenv.nix` で管理）
-- プロバイダ: [gmo-internet/conohavps](https://registry.terraform.io/providers/gmo-internet/conohavps/latest)（ベータ版）
-- 認証情報: ConoHa の API ユーザー（`secrets/services/conoha-vps-mcp.yaml` に SOPS で保管済み）
+- Use `tofu` inside the [devenv](https://devenv.sh/) shell (managed in `devenv.nix`)
+- Provider: [gmo-internet/conohavps](https://registry.terraform.io/providers/gmo-internet/conohavps/latest) (beta)
+- Credentials: ConoHa API user (stored in `secrets/services/conoha-vps-mcp.yaml` via SOPS)
 
-## 認証情報の注入
+## Injecting credentials
 
-認証情報は環境変数から読み込む（ファイルに平文で書かないこと）。
+Credentials are read from environment variables (never write them in plain text in files).
 
 ```bash
-# SOPS から ConoHa API 認証情報を注入
+# Inject ConoHa API credentials from SOPS
 export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' secrets/services/conoha-vps-mcp.yaml)
-export CONOHAVPS_PASSWORD=$(sops -d --extract '["OPENSTACK_PASSWORD"]' secrets/services/conoha-vps-mcp.yaml)
+export CONOHAVPS_PASSWORD=[redacted]
 export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' secrets/services/conoha-vps-mcp.yaml)
-# リージョンは省略可（デフォルト c3j1）。プロバイダは CONOHAVPS_REGION も参照する。
+# Region is optional (default c3j1). The provider also reads CONOHAVPS_REGION.
 ```
 
-必須変数（`TF_VAR_*` で渡す）:
+Required variables (passed via `TF_VAR_*`):
 
 ```bash
-export TF_VAR_admin_password='<9-70文字、英大・英小・数字・記号を含む>'
-export TF_VAR_ssh_public_key='ssh-ed25519 AAAA... t3u@BrokenPC'  # vps.nix と同じ鍵
+export TF_VAR_admin_password="[redacted]"
+export TF_VAR_ssh_public_key='ssh-ed25519 AAAA... t3u@BrokenPC'  # same key as vps.nix
 ```
 
-## 使い方
+## Usage
 
 ```bash
 cd terraform
-tofu init     # プロバイダ取得（初回）
-tofu fmt      # 整形
-tofu validate # 構文チェック
-tofu plan     # 変更計画の確認
-tofu apply    # 適用（※ VPS 作成で料金発生。実行前にユーザー承認が必要）
-tofu output -json torii_chan_addresses   # 割当 IP 確認（wanIp 確定用）
-tofu destroy  # 全リソース削除（※ 料金停止。承認が必要）
+tofu init     # fetch provider (first run)
+tofu fmt      # format
+tofu validate # syntax check
+tofu plan     # review the change plan
+tofu apply    # apply (creates a VPS -> incurs cost. Requires user approval before running)
+tofu output -json torii_chan_addresses   # check assigned IPs (for wanIp)
+tofu destroy  # delete all resources (stops billing. Requires approval)
 ```
 
-- 変数のデフォルト値は `variables.tf` を参照（512MB プラン / 30GB ブートボリューム / Debian 12 仮 OS）
-- `.terraform.lock.hcl` はコミット対象（プロバイダのバージョン固定）
-- state ファイルは **ローカル管理**（`terraform.tfstate`、`.gitignore` で除外済み）。
-  ConoHa オブジェクトストレージ（S3 互換 API）は容量契約が必要なため、リモートバックエンドは使用しない
+- Variable defaults live in `variables.tf` (512MB plan / 30GB boot volume / Debian 12 placeholder OS)
+- `.terraform.lock.hcl` is committed (pins provider versions)
+- State is **local** (`terraform.tfstate`, excluded via `.gitignore`).
+  Remote backend is not used because ConoHa object storage (S3-compatible API)
+  requires a capacity contract
 
-## State 管理（ローカル運用）
+## State management (local)
 
-state ファイル（`terraform.tfstate`）はローカルに保存し、`.gitignore` で除外する（未コミット）。
+The state file (`terraform.tfstate`) is stored locally and excluded via `.gitignore` (not committed).
 
-- **単一オペレータ・単一ホストでの運用を前提**とする
-- **バックアップ**: `tofu apply` の前に `terraform.tfstate` のコピーを推奨
-  （例: `cp terraform.tfstate terraform.tfstate.bak`）
-- **ConoHa オブジェクトストレージの S3 バックエンドは使用しない**（容量契約が必要なため見送り）。
-  将来必要になった場合は `backend.tf` を追加し、`tofu init -migrate-state` で移行する
+- Assumes **single-operator, single-host** operation
+- **Backup**: copy `terraform.tfstate` before `tofu apply`
+  (e.g. `cp terraform.tfstate terraform.tfstate.bak`)
+- **ConoHa object storage S3 backend is not used** (skipped because it requires
+  a capacity contract). If needed later, add `backend.tf` and migrate with
+  `tofu init -migrate-state`
 
-## リソース一覧
+## Resources
 
-- `conohavps_keypair.t3u` — SSH キーペア（全ホスト共通の t3u 公開鍵）
-- `conohavps_securitygroup.torii_chan` + ルール — 22/tcp・4242/udp (Nebula Lighthouse)・ICMP・egress 全許可
-- `conohavps_volume.boot` — 30GB ブートボリューム（`c3j1-ds02-boot`、Debian 12 展開）
-- `conohavps_instance.torii_chan` — 512MB プラン（`g2l-t-c1m512`）
+- `conohavps_keypair.t3u` — SSH keypair (shared t3u public key across hosts)
+- `conohavps_securitygroup.torii_chan` + rules — 22/tcp, 4242/udp (Nebula Lighthouse), ICMP, egress allow all
+- `conohavps_volume.boot` — 30GB boot volume (`c3j1-ds02-boot`, Debian 12 provisioned)
+- `conohavps_instance.torii_chan` — 512MB plan (`g2l-t-c1m512`)
 
-## NixOS インストールワークフロー
+## NixOS install workflow
 
-ConoHa 標準 OS では NixOS を直接選べないため、**rescue ISO 注入**方式で
-ディスクを NixOS に置き換える（512MB プランのため nixos-anywhere は不可）。
+ConoHa's standard OS images do not include NixOS, so we use the **rescue ISO injection**
+method to replace the disk with NixOS (nixos-anywhere is not possible on the 512MB plan).
 
 ```bash
-# 1. VPS 作成（Debian 起動）
+# 1. Create the VPS (Debian boot)
 tofu apply
 
-# 2. Debian への SSH 疎通確認（キーペアが入っているか）
+# 2. Verify SSH reachability to Debian (keypair installed)
 ssh -i ~/.ssh/t3u root@<public_ip>
 
-# 3. NixOS minimal ISO を取得し、ISO を注入して rescue ブート
+# 3. Fetch the NixOS minimal ISO and inject it for a rescue boot
 ./scripts/nixos-iso.sh install <instance_id> ./nixos-minimal.iso
 
-# 4. ConoHa コントロールパネルの VNC コンソールで NixOS インストーラを操作
-#    （ネットワークを静的 IP に設定 → parted/mkfs → nixos-generate-config
-#      → nixos-install。詳細は hosts/torii-chan/README.md の手順を参照）
+# 4. Operate the NixOS installer via the VNC console in the ConoHa control panel
+#    (set a static IP -> parted/mkfs -> nixos-generate-config -> nixos-install.
+#     See hosts/torii-chan/README.md for details)
 
-# 5. インストール完了後、ISO を排出して通常ブート
+# 5. After installation, eject the ISO and boot normally
 ./scripts/nixos-iso.sh eject <instance_id>
 
-# 6. 割当 IP を vps.nix の wanIp / wanGateway に反映して NixOS を適用
+# 6. Reflect the assigned IPs into wanIp / wanGateway in vps.nix and apply NixOS
 tofu output -json torii_chan_addresses
 ```
 
-`scripts/nixos-iso.sh` は ConoHa 公開 API を直接叩く（Image API で ISO を作成・
-アップロード、Compute API の `rescue`/`unrescue` で挿入・排出）。
+`scripts/nixos-iso.sh` talks directly to the ConoHa public API (creates and uploads an
+ISO via the Image API, and inserts/ejects it via the Compute API `rescue`/`unrescue`).
 
-サブコマンド:
-- `install <instance_id> <iso_file>` — ISO を作成・アップロードし、サーバー停止 → rescue 挿入 → 起動
-- `eject <instance_id>` — サーバー停止 → unrescue（ISO 排出）→ 起動
-- `status <instance_id>` — インスタンス状態の確認（status / vm_state / task_state / addresses）
+Subcommands:
+- `install <instance_id> <iso_file>` — create/upload the ISO, stop the server, inject via rescue, then start
+- `eject <instance_id>` — stop the server, unrescue (eject ISO), then start
+- `status <instance_id>` — check instance state (status / vm_state / task_state / addresses)
 
-エッジケース対応:
-- サーバーが既に停止中の場合は `os-stop` の 409 を許容して続行（冪等）
-- API エラー時はレスポンス本文を表示（原因の切り分けが容易）
-- 状態遷移の待機タイムアウトは `CONOHAVPS_WAIT_TIMEOUT` 環境変数で調整可（デフォルト 600 秒）
+Edge cases:
+- If the server is already stopped, tolerate the `os-stop` 409 and continue (idempotent)
+- On API errors, print the response body (easy to diagnose)
+- The state-transition wait timeout is adjustable via the `CONOHAVPS_WAIT_TIMEOUT` env var (default 600s)
 
-## 注意事項
+## Notes
 
-- **ベータ版プロバイダ**: 機能・スキーマが予告なく変わる可能性がある
-- **料金**: 512MB プランは月額 459 円。`apply` で即課金が始まる
-- **admin_pass 変更はインスタンス再作成**（force new）になるため、apply 前に確定させる
-- **destroy 時**: ボリューム・SG・キーペアも削除される（インスタンス削除後の残リソースに注意）
+- **Beta provider**: features/schema may change without notice
+- **Cost**: the 512MB plan costs ¥459/month. `apply` starts billing immediately
+- **admin_pass changes recreate the instance** (force new), so settle it before applying
+- **On destroy**: volumes, security groups, and keypairs are also deleted (watch out for leftover resources after instance deletion)

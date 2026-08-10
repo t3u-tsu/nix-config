@@ -1,11 +1,26 @@
-# リポジトリ改善 TODO リスト
+# Repository Improvement TODO
 
-このリストは、NixOS 設定リポジトリの保守性・拡張性、および複数拠点インフラの可用性を向上させるための未完了タスク一覧です。（※完了したタスクは履歴に残さずリストから削除します）
+Outstanding tasks to improve the maintainability and extensibility of this
+NixOS configuration repository and the availability of the multi-site
+infrastructure. (Completed tasks are removed from the list rather than kept in
+history.)
 
-- **遠隔サーバー（shosoin-tan / torii-chan）のビルド負荷対策**: 評価・ビルドをメインマシン（BrokenPC）で肩代わりさせるかリモートビルドを設定し、シェル設定も軽量化してリソース飢餓（D-Busタイムアウト等）を根本から防ぐ。
-- **キャッシュサーバー（Attic等）の導入**: ホスト間でのビルドキャッシュ共有の仕組みを構築。ライセンス制約のあるパッケージ用にプライベートキャッシュを運用し、サーバーのビルド負荷を下げる。
-- **deploy-rs（またはキャッシュ経由プル）へのデプロイ戦略確定**: 遠隔サーバーに重いビルドをさせない最適なデプロイ手法を確定させる（`comin` は 2026-08-09 に削除済み）。
-- **フェイルオーバーVPSの導入**: torii-chan との接続が切れた場合に、Vultr などの従量課金制の格安VPSのAPIを利用し、CNAMEで動的に接続先を切り替える仕組みを導入する。
-- **オニオンルーティング（Tor）による ssh バックドアの導入**: グローバルIPやVPNが全滅して torii-chan 等がダウンした際、最終手段として遠隔から ssh 接続できる裏ルートを確保する。
-- **BrokenPC バックアップサーバーの構築**: BrokenPC のデータを自動で安全にバックアップ（shosoin-tan等へ退避）する仕組みを構築する。
-- **GPUリソースを活用したローカルLLMサーバーのホスト**: kagutsuchi-sama や shosoin-tan の余剰GPUでローカルLLMサーバーをホストし、API等で利用できるようにする。
+- **Reduce build load on remote servers (shosoin-tan / torii-chan)**: offload
+  evaluation/builds to the main machine (BrokenPC) or set up remote builds; also
+  slim down the shell setup to prevent resource starvation (D-Bus timeouts, etc.)
+- **Introduce a cache server (Attic, etc.)**: share build caches between hosts;
+  operate a private cache for packages with license restrictions to lower the
+  build load on servers.
+- **Decide on a deployment strategy (deploy-rs or cache-based pull)**: settle on
+  an optimal deployment method that avoids heavy builds on remote servers
+  (`comin` was removed on 2026-08-09).
+- **Introduce a failover VPS**: when the connection to torii-chan is lost, use
+  the API of a metered cheap VPS (Vultr, etc.) to dynamically switch the
+  connection target via CNAME.
+- **Introduce an onion-routing (Tor) SSH backdoor**: as a last resort, ensure a
+  remote SSH route when the global IP / VPN is completely down and torii-chan
+  is unreachable.
+- **Build a BrokenPC backup server**: automatically and safely back up BrokenPC
+  data (e.g. to shosoin-tan).
+- **Host a local LLM server using GPU resources**: host a local LLM server on
+  surplus GPUs of kagutsuchi-sama / shosoin-tan and make it available via API etc.
