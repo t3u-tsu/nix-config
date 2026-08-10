@@ -19,6 +19,8 @@ in
       enable = true;
       enableZshIntegration = true;
       settings = {
+        term = "xterm-256color";
+
         # Font settings
         font-family = [
           "JetBrainsMono Nerd Font"
