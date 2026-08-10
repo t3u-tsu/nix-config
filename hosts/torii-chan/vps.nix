@@ -34,12 +34,10 @@ in
       # deploy-rs instead (separate task).
     };
 
-    # Primary user + SSH access for the operator (same key as the rest of fleet).
+    # Primary user (SSH access comes from the shared gateway profile, so the SBC
+    # and failover VPS both get the same operator key).
     user = {
       extraGroups = [ "wheel" ];
-      authorizedKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
     };
   };
 

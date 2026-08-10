@@ -124,6 +124,12 @@ in
       ];
     };
 
+    # Operator SSH access (shared by the SBC and failover VPS). Lives in the
+    # gateway profile so both platform layers of torii-chan get the same key.
+    my.user.authorizedKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
+    ];
+
     # Request sudo password by default (Production Security).
     # Overridden (mkForce false) only during initial SD image creation.
     security.sudo.wheelNeedsPassword = true;
