@@ -1,22 +1,7 @@
 # flake/hosts.nix - nixosConfigurations for all hosts
-{
-  self,
-  inputs,
-  config,
-  lib,
-  ...
-}:
+{ config, ... }:
 let
-  mkLib = import ../lib {
-    inherit (inputs)
-      nixpkgs
-      home-manager
-      sops-nix
-      nix-minecraft
-      ;
-    inherit inputs;
-    overlays = lib.attrValues (config.flake.overlays or { });
-  };
+  mkLib = config.flake.lib.mkLib;
 in
 {
   flake.nixosConfigurations = {
@@ -27,9 +12,8 @@ in
     # Both share hostname `torii-chan` and identical secrets so peers keep using
     # torii-chan.t3u.uk without reconfiguration.
 
-    # 1. SD installer image (aarch64 native, built on x86_64 via QEMU binfmt).
-    #    stage: installer — no production services, temp password + relaxed SSH.
-    #    Build with ./hosts/torii-chan/build-sd-image.sh
+    # SD installer image: no production services, temp password + relaxed SSH.
+    # Build with ./hosts/torii-chan/build-sd-image.sh
     "torii-chan-sd-installer" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
@@ -41,7 +25,7 @@ in
       ];
     };
 
-    # 2. Production on the physical SBC (HDD root)
+    # Production on the physical SBC (HDD root)
     "torii-chan-hdd" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
@@ -52,7 +36,7 @@ in
       ];
     };
 
-    # 3. Production on SD card (no HDD)
+    # Production on SD card (no HDD)
     "torii-chan-sd" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";
@@ -76,22 +60,20 @@ in
         ../hosts/torii-chan/vps.nix
       ];
     };
+
     # === Tower Servers ===
-    # 4. shosoin-tan
     "shosoin-tan" = mkLib.mkSystem {
       name = "shosoin-tan";
       username = "t3u";
       system = "x86_64-linux";
     };
 
-    # 5. kagutsuchi-sama
     "kagutsuchi-sama" = mkLib.mkSystem {
       name = "kagutsuchi-sama";
       username = "t3u";
       system = "x86_64-linux";
     };
 
-    # 6. sando-kun
     "sando-kun" = mkLib.mkSystem {
       name = "sando-kun";
       username = "t3u";
@@ -99,8 +81,6 @@ in
     };
 
     # === Desktop ===
-
-    # 7. BrokenPC
     "BrokenPC" = mkLib.mkSystem {
       name = "BrokenPC";
       username = "t3u";

@@ -28,18 +28,12 @@
     };
 
     # === Desktop Environment ===
-    niri = {
-      url = "github:sodiboo/niri-flake";
-    };
-    noctalia = {
-      url = "github:noctalia-dev/noctalia/cachix";
-    };
-    noctalia-greeter = {
-      url = "github:noctalia-dev/noctalia-greeter";
-    };
-    ghostty = {
-      url = "github:ghostty-org/ghostty";
-    };
+    # niri / noctalia / noctalia-greeter / ghostty: no follows to keep the
+    # upstream Cachix binary cache hash-matching (see AGENTS.md).
+    niri.url = "github:sodiboo/niri-flake";
+    noctalia.url = "github:noctalia-dev/noctalia/cachix";
+    noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
+    ghostty.url = "github:ghostty-org/ghostty";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -95,6 +89,7 @@
     };
 
     # === Package Sources ===
+    # Chaotic-Nyx, imported by the desktop profile's nyx-overlay module.
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     };
@@ -103,17 +98,14 @@
   outputs =
     { flake-parts, devenv, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      top@{
-        config,
-        lib,
-        inputs,
-        ...
-      }:
+      { ... }:
       {
         imports = [
           devenv.flakeModule
+          ./flake/lib.nix
           ./flake/overlays.nix
           ./flake/hosts.nix
+          ./flake/packages.nix
         ];
 
         systems = [
@@ -122,41 +114,9 @@
         ];
 
         perSystem =
-          {
-            pkgs,
-            system,
-            ...
-          }:
+          { pkgs, ... }:
           {
             formatter = pkgs.nixfmt;
-
-            # Installer ISO for torii-chan's failover VPS (formerly the nixos/installer subflake)
-            # Build: nix build .#torii-chan-vps-iso
-            # ConoHa VPS is x86_64, so the ISO is only exposed on x86_64-linux.
-            # Not registered in nixosConfigurations (nix flake check validates the ISO as a regular
-            # bootable system and fails on the fileSystems / grub assertions;
-            # the ISO is therefore only exposed as a package).
-            packages = lib.optionalAttrs (system == "x86_64-linux") {
-              torii-chan-vps-iso =
-                let
-                  mkLib = import ./lib {
-                    inherit (inputs)
-                      nixpkgs
-                      home-manager
-                      sops-nix
-                      nix-minecraft
-                      ;
-                    inherit inputs;
-                    overlays = lib.attrValues (config.flake.overlays or { });
-                  };
-                in
-                (mkLib.mkSystem {
-                  name = "torii-chan";
-                  username = "t3u";
-                  system = "x86_64-linux";
-                  extraModules = [ ./hosts/torii-chan/vps-installer.nix ];
-                }).config.system.build.images.iso-installer;
-            };
 
             # devenv development environment (loads devenv.nix as a module)
             devenv.shells.default = {
