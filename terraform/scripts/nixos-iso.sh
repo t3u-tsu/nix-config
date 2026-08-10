@@ -45,8 +45,8 @@ get_token() {
     awk 'tolower($1)=="x-subject-token:"{print $2}' | tr -d '\r'
 }
 
-# --- サーバー状態取得: ACTIVE / SHUTOFF / ERROR など -------------------------
-# 戻り値: サーバー状態（.server.status）。詳細は server_details で取得
+# --- Get server status: ACTIVE / SHUTOFF / ERROR etc. -------------------------
+# Returns: server status (.server.status). Details are fetched via server_details.
 server_status() {
   local token="$1" id="$2"
   curl -sS --max-time 30 "${COMPUTE}/servers/${id}" -H "X-Auth-Token: ${token}" |
@@ -74,12 +74,12 @@ wait_status() {
     elapsed=$((elapsed + WAIT_INTERVAL))
   done
   echo "ERROR: timeout waiting for ${want} (last status: ${status})" >&2
-  echo "HINT: 現在のサーバー状態を確認: $0 status ${id}" >&2
+  echo "HINT: check the current server status: $0 status ${id}" >&2
   return 1
 }
 
-# --- サーバーアクション実行 ---------------------------------------------------
-# 成功時: HTTP コードを出力。失敗時（4xx/5xx）: レスポンスボディを表示して終了
+# --- Execute a server action ---------------------------------------------------
+# On success: prints the HTTP code. On failure (4xx/5xx): prints the response body and exits.
 server_action() {
   local token="$1" id="$2" body="$3"
   local code response
@@ -88,7 +88,7 @@ server_action() {
     -d "$body" "${COMPUTE}/servers/${id}/action")
   code=$(printf '%s' "${response}" | tail -1)
   if [ "${code}" -ge 400 ] 2>/dev/null; then
-    # エラーレスポンスの本文を表示（改行区切りを除去）
+    # Print the error response body (strip line breaks)
     printf '  API error (HTTP %s): %s\n' "${code}" \
       "$(printf '%s' "${response}" | sed '$d' | tr -d '\n' | head -c 500)" >&2
     return 1
@@ -96,7 +96,7 @@ server_action() {
   printf '%s' "${code}"
 }
 
-# --- ISO イメージ作成（queued 状態で作成され ID が返る） ----------------------
+# --- Create the ISO image (created in queued state; the ID is returned) ----------------------
 create_iso_image() {
   local token="$1" name="$2"
   local response
@@ -106,14 +106,14 @@ create_iso_image() {
     "${IMAGE}/images")
   code=$(printf '%s' "${response}" | tail -1)
   if [ "${code}" != "201" ]; then
-    printf 'ERROR: ISO イメージ作成失敗 (HTTP %s): %s\n' "${code}" \
+    printf 'ERROR: ISO image creation failed (HTTP %s): %s\n' "${code}" \
       "$(printf '%s' "${response}" | sed '$d' | tr -d '\n' | head -c 500)" >&2
     return 1
   fi
   printf '%s' "${response}" | sed '$d' | jq -r '.id'
 }
 
-# --- ISO ファイル本体のアップロード（204 で完了） -----------------------------
+# --- Upload the ISO file body (completes with 204) -----------------------------
 upload_iso() {
   local token="$1" image_id="$2" file="$3"
   curl -sS --max-time 600 -o /dev/null -w "%{http_code}" -X PUT \
@@ -121,111 +121,111 @@ upload_iso() {
     --data-binary "@${file}" "${IMAGE}/images/${image_id}/file"
 }
 
-# --- サーバーを SHUTOFF にする（冪等: 既に停止中なら 409 を許容） -------------
+# --- Put the server into SHUTOFF (idempotent: 409 is tolerated if already stopped) -------------
 stop_server() {
   local token="$1" id="$2"
-  echo "==> サーバー停止"
+  echo "==> Stopping server"
   if ! code=$(server_action "$token" "$id" '{"os-stop":null}'); then
     return 1
   fi
   case "${code}" in
     202) wait_status "$token" "$id" "SHUTOFF" "shutdown" ;;
-    409) echo "  (すでに SHUTOFF のためスキップ)"; return 0 ;;
-    *) echo "ERROR: os-stop 失敗 (HTTP ${code})" >&2; return 1 ;;
+    409) echo "  (already SHUTOFF, skipping)"; return 0 ;;
+    *) echo "ERROR: os-stop failed (HTTP ${code})" >&2; return 1 ;;
   esac
 }
 
-# --- メイン -------------------------------------------------------------------
+# --- Main -------------------------------------------------------------------
 cmd="${1:-}"
 case "${cmd}" in
   install)
     [ $# -eq 3 ] || { echo "usage: $0 install <instance_id> <iso_file>" >&2; exit 1; }
     instance_id="$2"
     iso_file="$3"
-    [ -f "${iso_file}" ] || { echo "ERROR: ISO ファイルが見つかりません: ${iso_file}" >&2; exit 1; }
+    [ -f "${iso_file}" ] || { echo "ERROR: ISO file not found: ${iso_file}" >&2; exit 1; }
 
-    echo "==> 認証"
+    echo "==> Authenticating"
     token=$(get_token)
-    [ -n "${token}" ] || { echo "ERROR: トークン取得失敗" >&2; exit 1; }
+    [ -n "${token}" ] || { echo "ERROR: failed to obtain token" >&2; exit 1; }
 
-    echo "==> ISO イメージ作成"
+    echo "==> Creating ISO image"
     iso_name="nixos-$(basename "${iso_file}" .iso)-$(date +%Y%m%d%H%M%S)"
     if ! iso_id=$(create_iso_image "$token" "$iso_name"); then
-      echo "ERROR: ISO イメージ作成に失敗しました" >&2
+      echo "ERROR: ISO image creation failed" >&2
       exit 1
     fi
     echo "  image_id=${iso_id}"
 
-    echo "==> ISO アップロード (${iso_file})"
+    echo "==> Uploading ISO (${iso_file})"
     code=$(upload_iso "$token" "$iso_id" "${iso_file}")
-    [ "${code}" = "204" ] || { echo "ERROR: ISO アップロード失敗 (HTTP ${code})" >&2; exit 1; }
+    [ "${code}" = "204" ] || { echo "ERROR: ISO upload failed (HTTP ${code})" >&2; exit 1; }
     echo "  OK: 204"
 
     if ! stop_server "$token" "$instance_id"; then
-      echo "ERROR: サーバーを停止できませんでした" >&2
+      echo "ERROR: could not stop the server" >&2
       exit 1
     fi
 
-    echo "==> ISO 挿入（rescue）"
-    # rescue 実行: サーバーは SHUTOFF 状態でなければならない
+    echo "==> Inserting ISO (rescue)"
+    # rescue run: the server must be in SHUTOFF state
     rescue_code=0
     code=$(server_action "$token" "$instance_id" "{\"rescue\":{\"rescue_image_ref\":\"${iso_id}\"}}") || rescue_code=$?
     if [ "${rescue_code}" -ne 0 ]; then
-      # エラーレスポンスの詳細を表示して終了（既に rescue 中の場合はメッセージで判別可能）
-      echo "ERROR: rescue に失敗しました。サーバー状態を確認してください。" >&2
-      echo "HINT: 既に rescue モードの場合は先に eject してください: $0 eject ${instance_id}" >&2
+      # Print the error response details and exit (the message indicates whether rescue mode was already active)
+      echo "ERROR: rescue failed. Please check the server status." >&2
+      echo "HINT: if already in rescue mode, eject first: $0 eject ${instance_id}" >&2
       exit 1
     fi
-    [ "${code}" = "200" ] || { echo "ERROR: rescue 失敗 (HTTP ${code})" >&2; exit 1; }
-    echo "  OK: 200 (rescue モードで起動します)"
+    [ "${code}" = "200" ] || { echo "ERROR: rescue failed (HTTP ${code})" >&2; exit 1; }
+    echo "  OK: 200 (booting into rescue mode)"
 
-    # rescue 実行後に ACTIVE（rescue モード）になっていなければ起動する
+    # Start the server if it is not yet ACTIVE (rescue mode) after the rescue run
     if [ "$(server_status "$token" "$instance_id")" != "ACTIVE" ]; then
-      echo "==> サーバー起動"
+      echo "==> Starting server"
       code=$(server_action "$token" "$instance_id" '{"os-start":null}')
-      [ "${code}" = "202" ] || { echo "ERROR: os-start 失敗 (HTTP ${code})" >&2; exit 1; }
+      [ "${code}" = "202" ] || { echo "ERROR: os-start failed (HTTP ${code})" >&2; exit 1; }
     fi
     wait_status "$token" "$instance_id" "ACTIVE" "boot from ISO"
 
     echo ""
-    echo "==> 完了: ISO からブートします。VNC コンソール（ConoHa コントロールパネル）でインストーラを操作してください。"
-    echo "    インストール完了後、./nixos-iso.sh eject ${instance_id} で ISO を排出します。"
+    echo "==> Done: booting from ISO. Use the VNC console (ConoHa control panel) to operate the installer."
+    echo "    After the installation completes, eject the ISO with ./nixos-iso.sh eject ${instance_id}."
     ;;
 
   eject)
     [ $# -eq 2 ] || { echo "usage: $0 eject <instance_id>" >&2; exit 1; }
     instance_id="$2"
 
-    echo "==> 認証"
+    echo "==> Authenticating"
     token=$(get_token)
-    [ -n "${token}" ] || { echo "ERROR: トークン取得失敗" >&2; exit 1; }
+    [ -n "${token}" ] || { echo "ERROR: failed to obtain token" >&2; exit 1; }
 
     if ! stop_server "$token" "$instance_id"; then
-      echo "ERROR: サーバーを停止できませんでした" >&2
+      echo "ERROR: could not stop the server" >&2
       exit 1
     fi
 
-    echo "==> ISO 排出（unrescue）"
+    echo "==> Ejecting ISO (unrescue)"
     if ! code=$(server_action "$token" "$instance_id" '{"unrescue":null}'); then
-      echo "ERROR: unrescue に失敗しました（rescue モードでない可能性）。" >&2
-      echo "HINT: $0 status ${instance_id} でサーバー状態を確認してください。" >&2
+      echo "ERROR: unrescue failed (the server may not be in rescue mode)." >&2
+      echo "HINT: check the server status with $0 status ${instance_id}." >&2
       exit 1
     fi
-    [ "${code}" = "200" ] || { echo "ERROR: unrescue 失敗 (HTTP ${code})" >&2; exit 1; }
+    [ "${code}" = "200" ] || { echo "ERROR: unrescue failed (HTTP ${code})" >&2; exit 1; }
     echo "  OK: 200"
 
-    echo "==> サーバー起動"
+    echo "==> Starting server"
     code=$(server_action "$token" "$instance_id" '{"os-start":null}')
-    [ "${code}" = "202" ] || { echo "ERROR: os-start 失敗 (HTTP ${code})" >&2; exit 1; }
+    [ "${code}" = "202" ] || { echo "ERROR: os-start failed (HTTP ${code})" >&2; exit 1; }
     wait_status "$token" "$instance_id" "ACTIVE" "boot from disk"
 
-    echo "==> 完了: 通常ブートに戻りました。"
+    echo "==> Done: back to normal boot."
     ;;
 
   status)
     [ $# -eq 2 ] || { echo "usage: $0 status <instance_id>" >&2; exit 1; }
     token=$(get_token)
-    [ -n "${token}" ] || { echo "ERROR: トークン取得失敗" >&2; exit 1; }
+    [ -n "${token}" ] || { echo "ERROR: failed to obtain token" >&2; exit 1; }
     server_details "$token" "$2" | jq '.server | {id, name, status, "vm_state": .["OS-EXT-STS:vm_state"], "task_state": .["OS-EXT-STS:task_state"], addresses, created, updated}'
     ;;
 
