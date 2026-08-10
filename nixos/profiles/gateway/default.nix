@@ -195,6 +195,31 @@ in
       };
     };
 
+    # ------------------------------------------------ Nebula mesh VPN
+    # torii-chan is the single Lighthouse + Relay for the nebula0 overlay.
+    # Placing it in the shared gateway profile (used by both the SBC and the
+    # failover VPS) makes Lighthouse failover seamless: DDNS advertises
+    # `torii-chan.t3u.uk:4242` and all peers reconnect without reconfiguration.
+    my.networking.nebula = {
+      enable = true;
+      ip = "10.0.2.1";
+      groups = [ "mgmt" ];
+      isLighthouse = true;
+      isRelay = true;
+      extraInbound = [
+        # SSH (management).
+        {
+          port = 22;
+          group = "mgmt";
+        }
+        # Minecraft DNAT return path (Phase 3, when forwarding moves to nebula).
+        {
+          port = 25565;
+          group = "app";
+        }
+      ];
+    };
+
     # Request sudo password by default (Production Security).
     # Overridden (mkForce false) only during initial SD image creation.
     security.sudo.wheelNeedsPassword = true;
