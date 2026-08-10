@@ -78,7 +78,7 @@
 - `flake/`: フレーク定義（hosts, overlays）
 - `lib/`: システムビルダー・ヘルパー（mkSystem）
 - `secrets/`: SOPS による機密情報管理
-- `terraform/`: ConoHa VPS インフラ管理
+- `terraform/`: ConoHa VPS インフラ管理（OpenTofu）
 - `docs/`: 設計計画書やシステムアーキテクチャのドキュメント管理用
 
 
