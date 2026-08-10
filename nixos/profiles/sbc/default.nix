@@ -21,12 +21,8 @@
       "vm.swappiness" = 10;
     };
 
-    my = {
-      # Common SBC user configuration (base/user.nix handles users.*)
-      user.authorizedKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
-
-    };
+    # SSH authorized keys for torii-chan live in the shared gateway profile
+    # (see nixos/profiles/gateway/default.nix), so the SBC and failover VPS
+    # both get the same operator access.
   };
 }
