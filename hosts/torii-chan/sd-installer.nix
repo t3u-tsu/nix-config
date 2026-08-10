@@ -1,5 +1,3 @@
-# hosts/torii-chan/sd-installer.nix - SD installer image for the Orange Pi Zero3
-#
 # stage: installer SD card image (no production services, SSH via temporary password).
 # Redesigned from the old sd-image-installer.nix around installer-common.nix
 # (shared with the VPS installer). Solely for provisioning the production SD

@@ -4,7 +4,6 @@
   services.minecraft-discord-bridge = {
     enable = true;
     settings = {
-      # Values are overridden by environment variables in sops
       discord.admin_guild_id = "SET_VIA_ENV";
       database.path = "/var/lib/minecraft-discord-bridge/bridge.db";
       bridge.socket_path = "/run/minecraft-discord-bridge/bridge.sock";

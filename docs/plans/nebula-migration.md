@@ -28,7 +28,10 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 
 ### MTU（全ノード共通）
 
-- **共通 MTU: 1320（原理的最適値。境界のため Phase 2 で実測し確定）**
+- **共通 MTU: 1320（✅ Phase 2 実測確定 2026-08-11: BrokenPC@楽天モバイル → torii-chan で `ping -M do -s 1292` 成功）**
+  - ルート mtu 属性は `ip link set` に追従しない（`cache mtu` が旧値のまま残り EMSGSIZE）。実測時は
+    `ip route replace 10.0.0.0/24 dev nebula0 src 10.0.0.100 mtu <value>` でルートを書換える。
+    switch 適用で Nebula が tun を再作成すればルートも新 MTU で生成されるため、通常は不要。
 - 計算: `共通 MTU = 最小パス MTU (1380) − Nebula オーバーヘッド (60) = 1320`
   - Nebula ヘッダ 16B（`header/header.go` の `Len = 16`）+ AEAD タグ 16B + UDP 8B + IPv4 20B
   - 最小パス MTU 1380 は楽天モバイル回線の実測値（`tracepath 1.1.1.1` の pmtu。
@@ -87,7 +90,7 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 ## 移行フェーズ
 
 1. **Phase 1 並行導入**: CA 作成 → 証明書発行 → SOPS 格納 → 全ホストに nebula0 追加（WireGuard 維持）→ flake check / dry-activate → 適用（承認後）
-2. **Phase 2 検証**: P2P 疎通 / SSH 切替 / Minecraft メッシュ内 / グループ制御 / **DNAT 戻り（conntrack 相互作用）** / restic SFTP / Lighthouse 停止テスト / Relay フォールバック / **MTU 1320 の実測確定（モバイル回線で `ping -M do`、境界のため要確認） / モバイル時（NAT64）の P2P 可否と Relay 経由確認**
+2. **Phase 2 検証**: P2P 疎通 / SSH 切替 / Minecraft メッシュ内 / グループ制御 / **DNAT 戻り（conntrack 相互作用）** / restic SFTP / Lighthouse 停止テスト / Relay フォールバック / **MTU 1320 ✅（2026-08-11 楽天モバイルで実測済み）** / **モバイル時（NAT64）の P2P 可否と Relay 経由確認**
 3. **Phase 3 全面移行**: アプリ切替 → NAT 転送先変更 → SSH 経路切替 → wg0/wg1 撤去（`wireguard.nix` 削除、51820/51821 閉鎖）
 4. **Phase 4 運用**: 証明書ローテーション（1 年）、blocklist 更新、第二 Lighthouse は将来検討
 
@@ -97,4 +100,4 @@ WireGuard（Hub-and-Spoke）→ Nebula（フルメッシュ）への移行。
 - DNAT 転送と Nebula conntrack の不整合 → inbound に 25565 を明示許可 + Phase 2 で実機確認
 - モバイル時は NAT64 の性質上 P2P が成立せず Relay に依存 → Relay（torii-chan）の可用性が重要。
   万一 torii-chan が落ちているときのモバイル時アクセス手段（現行 wg0 は並行維持でカバー）
-- MTU 1320 は境界値（パス MTU 1380 ちょうど）→ Phase 2 で実測し、不安定なら 1300 に下げる判断をする
+- MTU 1320 は境界値（パス MTU 1380 ちょうど）→ 2026-08-11 楽天モバイルで通過確認済み。経路変動で不安定が観測されたら 1300 に下げる

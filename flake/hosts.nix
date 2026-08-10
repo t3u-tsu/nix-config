@@ -1,4 +1,3 @@
-# flake/hosts.nix - nixosConfigurations for all hosts
 { config, ... }:
 let
   mkLib = config.flake.lib.mkLib;
@@ -7,10 +6,7 @@ in
   flake.nixosConfigurations = {
 
     # === torii-chan (Nebula gateway / Lighthouse + DDNS) ===
-    #
     # The same role runs on the physical SBC or the failover VPS, one at a time.
-    # Both share hostname `torii-chan` and identical secrets so peers keep using
-    # torii-chan.t3u.uk without reconfiguration.
 
     # SD installer image: no production services, temp password + relaxed SSH.
     # Build with ./hosts/torii-chan/build-sd-image.sh
@@ -47,11 +43,7 @@ in
       ];
     };
 
-    # === torii-chan (VPS failover host) ===
-    #
-    # Same role as above, on a VPS. When active, its DDNS updates
-    # torii-chan.t3u.uk to the VPS public IP and peers reconnect automatically.
-    # Adjust the placeholders in ../hosts/torii-chan/vps.nix to your provider.
+    # VPS failover host
     "torii-chan-vps" = mkLib.mkSystem {
       name = "torii-chan";
       username = "t3u";

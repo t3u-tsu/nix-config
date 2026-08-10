@@ -1,6 +1,3 @@
-# hosts/BrokenPC/services/nebula.nix
-#
-# Nebula mesh client (management + app). No services -> ICMP only (common module).
 _:
 
 {

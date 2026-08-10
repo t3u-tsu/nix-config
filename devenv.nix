@@ -17,8 +17,6 @@
     pkgs.git
     pkgs.nh
     pkgs.nix-tree
-    # IaC: declarative management of cloud resources including ConoHa VPS
-    # (OpenTofu — MPL-2.0, unfree allowance no longer needed)
     pkgs.opentofu
   ];
 
@@ -38,7 +36,6 @@
   git-hooks.hooks = {
     nixfmt.enable = true;
     statix.enable = true;
-    # Enforce the Conventional Commits message format (linked to nix-check.yml)
     convco.enable = true;
   };
 }

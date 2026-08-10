@@ -1,4 +1,3 @@
-# hosts/BrokenPC/hardware.nix - Filesystem and boot configuration
 { config, lib, ... }:
 {
   # NVMe SSD (512GB) - System

@@ -6,17 +6,11 @@ keys:
 
   # Host keys (Public keys converted from SSH host keys via ssh-to-age)
   # Update these with: ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
-  # torii-chan: regenerated after 2026-08 SD/HDD replacement (new host key)
   - &torii_chan      age1wleksdz5clzup08vtfdwhpcy35nwsxvnnt2m5w8ktmkpzq6ctd9sael64k
   - &shosoin_tan     age16qpt6hr079pmj5dsgq5xm20x9kwamu90c2l8nkgwf8mtrhwauapqf93muk
   - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
   - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
   - &brokenpc        age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk
-  # Failover VPS host (torii-chan-vps): shares the SAME torii-chan secrets. When the
-  # VPS exists, add its age key here (ssh-to-age from its SSH host key), then
-  # include it in secrets/hosts/torii-chan.yaml and secrets/services/ddns.yaml
-  # and run: sops updatekeys secrets/hosts/torii-chan.yaml secrets/services/ddns.yaml
-  # - &torii_chan_vps age1YOURKEY
 
 creation_rules:
   # 1. Host-specific secrets: [Master, Target Host]
@@ -58,8 +52,3 @@ creation_rules:
   - path_regex: secrets/common\.yaml$
     key_groups:
       - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc]
-
-  # Legacy rule for transition
-  - path_regex: secrets/secrets\.yaml$
-    key_groups:
-      - age: [age1rcwjh7jwm48qjv0rg6q2wza3a5sn4u4fgvxawjlj5jl4vylla4vq6d4adu, *user_t3u]

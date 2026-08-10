@@ -60,7 +60,5 @@
   # Enable local network optimizations (NAT loopback bypass for torii-chan)
   # my.networking.local-network.enable = true;
 
-  # Core i7 870 is x86_64
-  # Quadro K2200 (Maxwell) uses standard NVIDIA drivers
   my.hardware.nvidia.enable = true;
 }

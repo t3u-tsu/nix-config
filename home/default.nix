@@ -27,14 +27,11 @@ in
       ./programs/ssh.nix
     ];
 
-    # Command-not-found integration (nix-index)
     programs = {
       nix-index.enable = true;
     };
 
-    # SOPS configuration for Home-manager
     sops = {
-      # Declaratively auto-generate and place the age private key at ~/.config/sops/age/keys.txt
       age = {
         keyFile = "/home/${username}/.config/sops/age/keys.txt";
         sshKeyPaths = [ "/home/${username}/.ssh/id_ed25519" ];
