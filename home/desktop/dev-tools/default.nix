@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 with lib;
 let
@@ -17,11 +22,10 @@ in
     ./conoha-vps-mcp.nix
     ./hardware.nix
     ./ghostty.nix
-    ./unity
+    inputs.unity-via-distrobox.homeManagerModules.unity
   ];
 
   config = mkIf cfg.enable {
-    # Enable specific tools by default when the category is enabled
     my.home.desktop.dev-tools = {
       neovim.enable = mkDefault true;
       git-tools.enable = mkDefault true;
@@ -29,8 +33,7 @@ in
       hardware.enable = mkDefault true;
       ghostty.enable = mkDefault true;
       nix.enable = mkDefault true;
-      unity.enable = mkDefault true;
-      unity.useDistrobox = mkDefault true;
     };
+    my.unity.enable = mkDefault true;
   };
 }
