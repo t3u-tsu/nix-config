@@ -1234,11 +1234,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786471252,
-        "narHash": "sha256-Cx9jmkxnLbd4eNx6kDTmGvAijW555Tqu7bRxUY7ZD6A=",
+        "lastModified": 1786478348,
+        "narHash": "sha256-4X5G/pmD8BSk+/jPhSf+cxY+9RCirCAPklyOrucazRo=",
         "owner": "t3u-tsu",
         "repo": "unity-via-distrobox-flake",
-        "rev": "4b4297af039d2c6d26c2473d6e749a75a6bccafc",
+        "rev": "0fda747ab3ec141bf3e62e75a0d8221d34782fd6",
         "type": "github"
       },
       "original": {

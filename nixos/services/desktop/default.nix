@@ -5,5 +5,6 @@
     ./niri.nix
     ./greetd.nix
     ./pipewire.nix
+    ./unity.nix
   ];
 }
