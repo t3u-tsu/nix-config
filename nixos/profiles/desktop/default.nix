@@ -46,6 +46,7 @@ with lib;
         greetd.enable = true;
         pipewire.enable = true;
         gaming.enable = true;
+        unity.enable = true;
       };
 
       # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)

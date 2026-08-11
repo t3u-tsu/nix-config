@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  inputs,
   ...
 }:
 
@@ -22,7 +21,7 @@ in
     ./conoha-vps-mcp.nix
     ./hardware.nix
     ./ghostty.nix
-    inputs.unity-via-distrobox.homeManagerModules.unity
+    ./unity.nix
   ];
 
   config = mkIf cfg.enable {
@@ -34,6 +33,5 @@ in
       ghostty.enable = mkDefault true;
       nix.enable = mkDefault true;
     };
-    my.unity.enable = mkDefault true;
   };
 }
