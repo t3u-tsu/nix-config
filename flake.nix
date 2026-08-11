@@ -67,7 +67,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     unity-via-distrobox = {
-      url = "github:t3u-tsu/unity-via-distrobox-flake";
+      url = "git+ssh://git@github.com/t3u-tsu/unity-via-distrobox-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
