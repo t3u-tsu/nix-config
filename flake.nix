@@ -66,6 +66,10 @@
       url = "github:Hmbown/CodeWhale";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    unity-via-distrobox = {
+      url = "git+ssh://git@github.com/t3u-tsu/unity-via-distrobox-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # === Development Environment (devenv) ===
     devenv = {
