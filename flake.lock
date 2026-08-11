@@ -1234,11 +1234,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786459316,
-        "narHash": "sha256-EfKJnOwTfGUff+nL7JWvQMJknbLV8ivOCRhoX/WyvRM=",
+        "lastModified": 1786464450,
+        "narHash": "sha256-7zc53bxfDEY0nMhi5CkQsRjG/61QOSlWLbZNoi4yI8s=",
         "ref": "refs/heads/main",
-        "rev": "8b8d6dc6b35f2f7ae29fea3f345e4cfbf13d3a51",
-        "revCount": 4,
+        "rev": "3706cece9cc548470d8ef427c6cd99563d3218f5",
+        "revCount": 11,
         "type": "git",
         "url": "ssh://git@github.com/t3u-tsu/unity-via-distrobox-flake"
       },
