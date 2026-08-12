@@ -11,7 +11,7 @@ let
 in
 {
   imports = [
-    inputs.unity-via-distrobox.homeManagerModules.unity
+    inputs.unity-via-distrobox.homeModules.unity
   ];
 
   config = mkIf cfg.enable {
