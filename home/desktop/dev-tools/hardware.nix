@@ -11,13 +11,14 @@ let
 in
 {
   options.my.home.desktop.dev-tools.hardware = {
-    enable = mkEnableOption "Hardware development tools (KiCad, Picocom, etc.)";
+    enable = mkEnableOption "Hardware development tools (KiCad, Qucs-S, Picocom, etc.)";
   };
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       kicad
       picocom
+      qucs-s
       ventoy
     ];
   };
