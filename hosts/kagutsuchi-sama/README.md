@@ -41,7 +41,7 @@ Run these commands from the NixOS Installer environment:
 - **Management IP:** `10.0.0.3` (Nebula mesh)
 - **SSH Restriction:** SSH is restricted to the Nebula (`nebula0`) mesh ONLY.
 - **User:** `t3u` (with wheel/sudo privileges)
-- **Password:** Defined in `secrets.yaml` (managed via sops-nix).
+- **Password:** Defined in `secrets/hosts/kagutsuchi-sama.yaml` (managed via sops-nix).
 - **SSH Key:** Enabled for `t3u` and `root`.
 
 ## Known Issue: NAT Loopback

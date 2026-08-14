@@ -43,19 +43,31 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ## Quick Start
 
+Available configurations (defined in `flake/hosts.nix`):
+
+- **`BrokenPC`** — desktop PC (local machine)
+- **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
+- **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
+- **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
+- **`torii-chan-sd-installer`** / **`torii-chan-vps-installer`** — installer images (see `hosts/torii-chan/README.md`)
+
 To apply configurations to the local machine:
 
 ```bash
-sudo nixos-rebuild switch --flake .#<hostname>
+sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
 For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 
 ```bash
-nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-For more specific deployment details, check the respective README.md files in hosts/ and modules/.
+The `sandbox false` / `filter-syscalls false` flags are required because the
+Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` support (see the
+troubleshooting section in `hosts/torii-chan/README.md`).
+
+For more specific deployment details, check the respective README.md files in `hosts/`, `nixos/` and `home/`.
 
 ## CI/CD and Automation
 
