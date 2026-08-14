@@ -13,7 +13,7 @@
       name,
       system,
       username ? "t3u",
-      profile ? "tower-server",
+      profile,
       extraModules ? [ ],
     }:
     nixpkgs.lib.nixosSystem {
@@ -45,6 +45,7 @@
         }
 
         ../hosts/${name}/default.nix
+        ../nixos/profiles/${profile}
       ]
       ++ extraModules;
     };

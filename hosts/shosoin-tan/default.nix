@@ -10,7 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos/profiles/tower-server
     ../../nixos
   ];
 

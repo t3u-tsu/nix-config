@@ -11,7 +11,6 @@
     ./hardware.nix
     ./services
     ../../nixos
-    ../../nixos/profiles/desktop
   ];
 
   # Hardware settings (AMD CPU + HP Victus specifics)
