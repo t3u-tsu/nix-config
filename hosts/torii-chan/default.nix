@@ -18,7 +18,6 @@
 {
   imports = [
     ../../nixos
-    ../../nixos/profiles/gateway
   ];
 
   nixpkgs.overlays = [

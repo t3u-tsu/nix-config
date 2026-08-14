@@ -82,6 +82,91 @@
 - `terraform/`: ConoHa VPS インフラ管理（OpenTofu）
 - `docs/`: 設計計画書やシステムアーキテクチャのドキュメント管理用
 
+---
+
+## モジュール読み込みフロー
+
+```text
+flake.nix（flake-parts エントリポイント）
+ ├─ imports: flake/lib.nix, flake/overlays.nix, flake/hosts.nix, flake/packages.nix
+ │
+ ├─ flake/lib.nix      → flake.lib.mkLib を定義（lib/default.nix を inputs + overlays 付きで import）
+ ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, ghostty, unstable, U-Boot 等）
+ ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
+ ├─ flake/packages.nix → torii-chan-vps-iso（mkSystem のビルド成果物）
+ │
+ └─ lib/default.nix: mkSystem { name, system, username, profile, extraModules }
+      └─ nixpkgs.lib.nixosSystem {
+           specialArgs = { inputs };        # 全モジュールから inputs を直接参照可能
+           modules = [
+             { my.user.name = username; }    # ユーザー名の伝達
+             sops-nix / nix-minecraft / home-manager /
+             nix-index-database / noctalia-greeter のモジュール
+             home-manager 共通設定（sharedModules: nix-index, zen-browser, sops, noctalia）
+             nixpkgs.overlays
+             ../nixos/profiles/${profile}    # profile は必須（mkSystem が自動適用）
+             ../hosts/${name}/default.nix    # ホスト固有エントリ
+           ] ++ extraModules;                # ホスト固有の追加モジュール（例: sbc.nix）
+         }
+```
+
+## ホストからモジュールへの展開
+
+```text
+hosts/<name>/default.nix（各ホストのエントリ）
+ ├─ ./hardware.nix            # ハードウェア固有設定
+ ├─ ./services                # ホスト固有サービス
+ ├─ ../../nixos               # nixos/default.nix が一括 import:
+ │                             base（user/nix/time）, core（i18n）, security（SOPS）,
+ │                             networking（Nebula/hosts）, environment（パッケージ群）,
+ │                             hardware, services, virtualisation, ../home
+ │   └─ home/default.nix      # home-manager.users.<user>
+ │                             imports: shell/, programs/
+ │                             ※ desktop 系はここでは読み込まれない
+ └─ ../../nixos/profiles/<profile>（mkSystem が自動適用。hosts/<name>/ より前に評価）
+     ├─ desktop/              # services/desktop, fonts, nyx-overlay
+     │                         + home/desktop を home-manager に import（desktop 専用）
+     ├─ tower-server/         # boot, security, ssh（タワーサーバー共通）
+     ├─ gateway/              # torii-chan ロール（Nebula + DDNS + Minecraft forward）
+     └─ sbc/                  # 低メモリ SBC（sandbox 無効化等。torii-chan/sbc.nix 経由）
+```
+
+## 編集ガイド（パッケージ・モジュールを追加するとき）
+
+### パッケージを追加するとき
+
+- **全ホスト共通のシステムツール**: `nixos/environment/<カテゴリ>.nix` の `environment.systemPackages` に追記する。カテゴリ新設は `nixos/environment/default.nix` に `my.packages.<name>.enable` を定義してから使う
+- **特定ホストだけ**: `hosts/<name>/default.nix` で `environment.systemPackages` を直接追記する
+- **サービスに付随するツール**: そのサービスのモジュール内に追記する（例: `nixos/services/minecraft/` 配下）
+- **desktop 専用（GUI アプリ等）**: `home/desktop/<カテゴリ>.nix` の `home.packages` に追記する（例: theme.nix, gaming.nix）。`home/desktop` は `nixos/profiles/desktop` 経由でのみ読み込まれるため、desktop ホストにしか影響しない
+- **ユーザー共通ツール**: `home/programs/` 配下（home-manager の `programs.*.enable` パターン。例: cli-tools.nix）
+
+### モジュール・サービスを追加するとき
+
+1. 対応ディレクトリにモジュールを作成し、親の `default.nix` の imports に追加する
+   - 新サービス: `nixos/services/<name>/default.nix` + `nixos/services/default.nix`
+   - 新ハードウェア: `nixos/hardware/<name>.nix` + `nixos/hardware/default.nix`
+   - desktop 新機能: `home/desktop/<name>.nix` + `home/desktop/default.nix`
+2. オプションは `my.*` 体系で定義する（例: `options.my.services.<name>.enable` を宣言し、`mkEnableOption` でフラグ化）
+3. 使いたいホストの設定で `my.<カテゴリ>.<name>.enable = true;` を指定する
+
+### 新ホストを追加するとき
+
+1. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` を追加する（`profile` は必ず指定）
+2. `hosts/<name>/` に `default.nix` を作成する（必要に応じて `hardware.nix` / `services/` も）
+3. 検証する: `nix flake check` → `nixos-rebuild dry-activate --flake .#<name>`
+
+### 新プロファイルを追加するとき
+
+1. `nixos/profiles/<name>/default.nix` を作成し、役割共通の設定を集約する
+2. 使うホストの `flake/hosts.nix` で `profile = "<name>";` を指定する
+
+## モジュール評価順序の注意
+
+- mkSystem の modules リストは `profile → hosts/<name>/default.nix → extraModules` の順で評価される（後勝ち）
+- つまり**ホスト固有設定（hosts/<name>）がプロファイルの設定を上書きできる**
+- `environment.systemPackages` のようなリスト型オプションはマージ順に連結されるため、モジュール構成を変えると順序が変わり drv が変わる（パッケージ集合は不変なので実害は通常ない）
+- 優先度を明示的に制御したい場合は `mkForce` / `mkDefault` / `mkOrder` を使用する
 
 ---
 

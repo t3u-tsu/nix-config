@@ -10,7 +10,6 @@
     ./hardware.nix
     ./services
     ../../nixos
-    ../../nixos/profiles/tower-server
   ];
 
   boot.loader.grub = {

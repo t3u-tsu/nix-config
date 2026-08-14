@@ -12,6 +12,7 @@
             name = "torii-chan";
             username = "t3u";
             system = "x86_64-linux";
+            profile = "gateway";
             extraModules = [ ../hosts/torii-chan/vps-installer.nix ];
           }).config.system.build.images.iso-installer;
       };

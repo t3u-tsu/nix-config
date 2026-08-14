@@ -14,6 +14,7 @@ in
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
+      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sd-installer.nix
         ../hosts/torii-chan/sbc.nix
@@ -26,6 +27,7 @@ in
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
+      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-hdd.nix
@@ -37,6 +39,7 @@ in
       name = "torii-chan";
       username = "t3u";
       system = "aarch64-linux";
+      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-sd.nix
@@ -48,6 +51,7 @@ in
       name = "torii-chan";
       username = "t3u";
       system = "x86_64-linux";
+      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/vps.nix
       ];
@@ -58,18 +62,21 @@ in
       name = "shosoin-tan";
       username = "t3u";
       system = "x86_64-linux";
+      profile = "tower-server";
     };
 
     "kagutsuchi-sama" = mkLib.mkSystem {
       name = "kagutsuchi-sama";
       username = "t3u";
       system = "x86_64-linux";
+      profile = "tower-server";
     };
 
     "sando-kun" = mkLib.mkSystem {
       name = "sando-kun";
       username = "t3u";
       system = "x86_64-linux";
+      profile = "tower-server";
     };
 
     # === Desktop ===
