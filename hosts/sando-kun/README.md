@@ -1,4 +1,4 @@
-# Hostname: sando-kun (i7-860 Tower Server)
+# Host: sando-kun (i7-860 Tower Server)
 
 This host is a general-purpose tower server equipped with an Intel Core i7-860 and an 80GB HDD configuration. It follows the standard configuration established by `shosoin-tan` and `kagutsuchi-sama`.
 
