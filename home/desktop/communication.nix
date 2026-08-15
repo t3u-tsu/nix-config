@@ -20,11 +20,17 @@ in
       type = types.bool;
       default = true;
     };
+    thunderbird.enable = mkOption {
+      type = types.bool;
+      default = true;
+    };
   };
 
   config = mkIf cfg.enable {
     home.packages =
-      (optional cfg.discord.enable pkgs.discord) ++ (optional cfg.vesktop.enable pkgs.vesktop);
+      (optional cfg.discord.enable pkgs.discord)
+      ++ (optional cfg.vesktop.enable pkgs.vesktop)
+      ++ (optional cfg.thunderbird.enable pkgs.thunderbird);
 
     # Vesktop (Vencord) will automatically pick up the theme generated
     # by Noctalia Shell templates in Step 7.
