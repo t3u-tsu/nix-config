@@ -20,7 +20,7 @@ in
 
     imports = [
       ./shell/shell.nix
-      ./shell/starship.nix
+      ./shell/pure.nix
       ./shell/atuin.nix
       ./programs/git.nix
       ./programs/cli-tools.nix
