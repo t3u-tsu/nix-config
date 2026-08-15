@@ -1,16 +1,8 @@
-{ pkgs, ... }:
+{ inputs, ... }:
 
-let
-  pure = pkgs.fetchFromGitHub {
-    owner = "sindresorhus";
-    repo = "pure";
-    rev = "v1.28.3";
-    hash = "sha256-ZNi0ruTX9HRELXq1yvTm+StOuQ0UZgK6toMSgwqSD9A=";
-  };
-in
 {
-  home.file.".config/zsh/pure/prompt_pure_setup".source = "${pure}/prompt_pure_setup";
-  home.file.".config/zsh/pure/async".source = "${pure}/async";
+  home.file.".config/zsh/pure/prompt_pure_setup".source = "${inputs.pure}/prompt_pure_setup";
+  home.file.".config/zsh/pure/async".source = "${inputs.pure}/async";
 
   programs.zsh.initContent = ''
     # Must run after oh-my-zsh, which overwrites the prompt

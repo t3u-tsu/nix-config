@@ -27,6 +27,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # === Shell ===
+    pure = {
+      url = "github:sindresorhus/pure";
+      flake = false;
+    };
+
     # === Desktop Environment ===
     # niri / noctalia / noctalia-greeter / ghostty: no follows to keep the
     # upstream Cachix binary cache hash-matching.
