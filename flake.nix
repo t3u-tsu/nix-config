@@ -77,22 +77,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # === Development Environment (devenv) ===
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    devenv-root = {
-      url = "file+file:///dev/null";
-      flake = false;
-    };
-    nix2container = {
-      url = "github:nlewo/nix2container";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    mk-shell-bin = {
-      url = "github:rrbutani/nix-mk-shell-bin";
-    };
+    # === Development Environment ===
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -106,12 +91,12 @@
   };
 
   outputs =
-    { flake-parts, devenv, ... }@inputs:
+    { flake-parts, git-hooks, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } (
       { ... }:
       {
         imports = [
-          devenv.flakeModule
+          git-hooks.flakeModule
           ./flake/lib.nix
           ./flake/overlays.nix
           ./flake/hosts.nix
@@ -124,12 +109,35 @@
         ];
 
         perSystem =
-          { pkgs, ... }:
+          {
+            pkgs,
+            config,
+            system,
+            ...
+          }:
           {
             formatter = pkgs.nixfmt;
 
-            devenv.shells.default = {
-              imports = [ ./devenv.nix ];
+            pre-commit.check.enable = system == "x86_64-linux";
+
+            pre-commit.settings.hooks = {
+              nixfmt.enable = true;
+              statix.enable = true;
+              convco.enable = true;
+            };
+
+            devShells.default = pkgs.mkShell {
+              packages = [
+                pkgs.git
+                pkgs.nh
+                pkgs.nix-tree
+                pkgs.opentofu
+                pkgs.convco
+              ];
+              inputsFrom = [ config.pre-commit.devShell ];
+              shellHook = ''
+                echo "Welcome to the nix-config development environment!"
+              '';
             };
           };
       }

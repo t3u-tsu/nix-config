@@ -14,7 +14,7 @@
 
 ### 1. 作業の基本ルール
 - **ブランチ戦略**: 直接 `main` にコミットせず、**作業を開始する前（いかなるファイル編集前）に必ず** ブランチを作成・切り替えてください。`main` 上でファイルを編集してからブランチを切る行為は禁止します。ただし、GitHub Actions の自動更新ワークフロー（`.github/workflows/auto-update.yml`）が `nvfetcher` と `flake.lock` の更新を `main` へ直接コミットするのは意図的な例外です（README の CI/CD セクション参照）。
-- **ブランチ命名規約**: Conventional Commits の型に揃え、`feat/<名前>`・`fix/<名前>`・`refactor/<名前>`・`docs/<名前>`・`chore/<名前>` のいずれかを使用します（必要ならばこの5種を超えてもよい）。`.github/workflows/nix-check.yml` の push 対象と `devenv.nix` の `git-hooks`（convco による Conventional Commits 検証）と整合するよう、新たな型を追加する場合は**三方同時に更新**してください。
+- **ブランチ命名規約**: Conventional Commits の型に揃え、`feat/<名前>`・`fix/<名前>`・`refactor/<名前>`・`docs/<名前>`・`chore/<名前>` のいずれかを使用します（必要ならばこの5種を超えてもよい）。`.github/workflows/nix-check.yml` の push 対象と `flake.nix` の `pre-commit` hooks（convco による Conventional Commits 検証）と整合するよう、新たな型を追加する場合は**三方同時に更新**してください。
 - **対応言語**: ユーザーへの報告、相談はすべて **日本語** で行います。
 - **コード・コミットの言語**: コード内コメントおよびコミットメッセージは **英語** で記述します（日本語のコメント・コミットメッセージは書かない）。ドキュメントも `docs/` と `AGENTS.md` を除いて英語を基本とします。
 - **コメント方針**: コード内コメントは、そのコメントがなければコードの意図を読者が理解できない場合にのみ付ける。自明な処理の説明や見出し目的のコメントは付けない。コメントは可読性を下げるコストとみなし、最小限に留める。
