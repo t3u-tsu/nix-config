@@ -16,7 +16,6 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      devenv
       nh
       nix-du
       nix-output-monitor

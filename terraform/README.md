@@ -5,7 +5,7 @@ Declarative OpenTofu configuration to provision torii-chan's failover VPS on
 
 ## Prerequisites
 
-- Use `tofu` inside the [devenv](https://devenv.sh/) shell (managed in `devenv.nix`)
+- Use `tofu` inside the development shell (`nix develop`)
 - Provider: [gmo-internet/conohavps](https://registry.terraform.io/providers/gmo-internet/conohavps/latest) (beta)
 - Credentials: ConoHa API user (stored in `secrets/services/conoha-vps-mcp.yaml` via SOPS)
 
