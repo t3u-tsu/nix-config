@@ -17,7 +17,7 @@
 - **ブランチ命名規約**: Conventional Commits の型に揃え、`feat/<名前>`・`fix/<名前>`・`refactor/<名前>`・`docs/<名前>`・`chore/<名前>` のいずれかを使用します（必要ならばこの5種を超えてもよい）。`.github/workflows/nix-check.yml` の push 対象と `flake.nix` の `pre-commit` hooks（convco による Conventional Commits 検証）と整合するよう、新たな型を追加する場合は**三方同時に更新**してください。
 - **対応言語**: ユーザーへの報告、相談はすべて **日本語** で行います。
 - **コード・コミットの言語**: コード内コメントおよびコミットメッセージは **英語** で記述します（日本語のコメント・コミットメッセージは書かない）。ドキュメントも `docs/` と `AGENTS.md` を除いて英語を基本とします。
-- **コメント方針**: コード内コメントは、そのコメントがなければコードの意図を読者が理解できない場合にのみ付ける。自明な処理の説明や見出し目的のコメントは付けない。コメントは可読性を下げるコストとみなし、最小限に留める。
+- **コメント方針**: コード内コメントは、基本的に付けない。コードの意図を読めず困る場合のみ、1〜2行の最小限の説明に留める。長い説明コメント、外部フレーク・wiki 由来の説明の貼り付け、見出し目的のコメントは付けない。関連作業の範囲で長すぎる既存コメントを見かけたら削除する。
 - **バイリンガル対応 (Bilingual Sync)**: プロジェクトルートの `README.md` および `README.ja.md` は、必ず英語と日本語の両方を同時に同期して更新してください。サブディレクトリの `README.md` は英語のみで管理し、日英の重複管理は行いません。
 - **ドキュメント優先**: 変更の際は `TODO.md` や `README.md` との整合性を確認してください。
 - **コミット方針**: 適切なコミットメッセージ（Conventional Commits 準拠など）と共にコミットし、変更内容の詳細はコミットメッセージおよび PR (Pull Request) の説明に詳しく記述してください。
@@ -28,7 +28,7 @@
 1.  **ブランチ作成（実装より前に必ず実行）**: `git checkout -b feat/topic-name`
 2.  **実装**: 必要な Nix ファイルを編集。
 3.  **検証**:
-    - `nix flake check`
+    - `nix flake check`（pre-commit の nixfmt / statix / convco を通すこと。statix W:20 を避けるため、同じトップレベルキーはまとめて attrset で定義し、分割して記述しない）
     - `sudo nixos-rebuild dry-activate --flake .#BrokenPC`
 4.  **適用**: `sudo nixos-rebuild switch --flake .#BrokenPC` （適用前にユーザー承認を得ること）
 5.  **コミットとプッシュ**:
@@ -151,6 +151,15 @@ hosts/<name>/default.nix（各ホストのエントリ）
 2. オプションは `my.*` 体系で定義する（例: `options.my.services.<name>.enable` を宣言し、`mkEnableOption` でフラグ化）
 3. 使いたいホストの設定で `my.<カテゴリ>.<name>.enable = true;` を指定する
 
+### 設計原則（機能追加時の配置と記述の判断基準）
+
+- **profiles/*.nix に設定を直書きしない**: プロファイルファイル（例: `nixos/profiles/desktop/default.nix`）には options 定義・imports・具体的なシステム設定を書かず、`my.*` オプションを持つモジュールを `nixos/services/`（または `home/desktop/`）に作成し、プロファイル側は `enable` フラグ（1行）のみ記述する。
+- **home/ と nixos/ の関心事を分離する**:
+  - `home/`（home-manager、特に `home/desktop`）: ユーザーが使う GUI アプリ・パッケージ（`home.packages`）とユーザー設定
+  - `nixos/`（特に `nixos/services/`）: システムサービス、`/etc` 設定（`networking.hosts` など）、カーネル・システム連携
+  - 判断基準: 「ユーザーが直接使うデスクトップアプリ」なら home 側、「`/etc` へ書くなどシステム全体に効く設定を含む」なら nixos 側に置く。両方に及ぶ場合は home（アプリ）と nixos（hosts 等のシステム要件）に役割を分ける（例: ランチャー本体は home、hosts ルールは nixos/services）。
+- **既存モジュールへの統合を優先する**: 新機能は関連する既存モジュールカテゴリに統合する（例: ゲーム関連は `nixos/services/desktop/gaming.nix` や `home/desktop/gaming.nix`）。単独ファイル化は機能が大きく、既存と分離しないと維持しづらい場合のみ。フラグはデフォルト enable にするなどしてプロファイル側の記述を簡潔に保つ。
+
 ### 新ホストを追加するとき
 
 1. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` を追加する（`profile` は必ず指定）
@@ -190,6 +199,8 @@ hosts/<name>/default.nix（各ホストのエントリ）
   - **魔改造枠 (priority=50)**: `chaotic-nyx` （他と競合するリスクがあるため最後尾）
 - **記述の一貫性**:
   `extra-substituters` の並び順と、`extra-trusted-public-keys` の公開鍵の並び順は、視認性と管理のしやすさのために**完全に一致**させて記述してください。
+- **一元管理**:
+  Cachix の `extra-substituters` / `extra-trusted-public-keys` は必ず `nixos/base/nix.nix`（全ホスト共通）で管理する。外部フレークの提供する `nixConfig` をプロファイル等で直接参照して `nix.settings = <flake>.nixConfig;` と書くのは避け、同値の内容（substituter URL と trusted-public-keys）を base/nix.nix に手動で追加する。優先度・並び順も base/nix.nix で統一する。
 
 ---
 
