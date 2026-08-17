@@ -44,6 +44,10 @@
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    aagl = {
+      url = "github:ezKEa/aagl-gtk-on-nix/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     awww = {
       url = "git+https://codeberg.org/LGFae/awww";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
