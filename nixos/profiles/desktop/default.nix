@@ -11,7 +11,6 @@ with lib;
 {
   imports = [
     ../../services/desktop
-    ../../services/desktop/fonts.nix
     inputs.chaotic.nixosModules.nyx-overlay
   ];
 

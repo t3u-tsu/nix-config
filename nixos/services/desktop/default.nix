@@ -6,5 +6,6 @@
     ./greetd.nix
     ./pipewire.nix
     ./unity.nix
+    ./fonts.nix
   ];
 }
