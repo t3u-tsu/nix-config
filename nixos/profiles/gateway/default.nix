@@ -151,25 +151,20 @@ in
         };
       };
 
-      # DDNS: lightweight Go implementation (favonia/cloudflare-ddns).
-      cloudflare-ddns = {
+      ddclient = {
         enable = true;
-        credentialsFile = config.sops.secrets.cloudflare_api_env.path;
-        detectionTimeout = "15s";
-
-        # Update only IPv4 (A records).
-        ip4Domains = [
-          "torii-chan.t3u.uk"
-          "mc.t3u.uk"
-          "*.mc.t3u.uk"
-        ];
-        ip6Domains = [ ];
-
+        protocol = "cloudflare";
+        username = "token";
+        zone = "t3u.uk";
+        usev4 = "webv4, webv4=ipify-ipv4";
+        usev6 = "";
+        interval = "5min";
         domains = [
           "torii-chan.t3u.uk"
           "mc.t3u.uk"
           "*.mc.t3u.uk"
         ];
+        extraConfig = "password_env=CLOUDFLARE_API_TOKEN";
       };
     };
 
@@ -178,7 +173,7 @@ in
         sopsFile = ../../../secrets/services/ddns.yaml;
         owner = "root";
         # Restart the service automatically when the secret changes.
-        restartUnits = [ "cloudflare-ddns.service" ];
+        restartUnits = [ "ddclient.service" ];
       };
     };
 
@@ -200,9 +195,19 @@ in
       "net.ipv6.conf.all.accept_redirects" = 0;
     };
 
-    # Explicitly disable IPv6 detection to avoid timeouts on slow links.
-    systemd.services.cloudflare-ddns.serviceConfig.Environment = [
-      "IP6_PROVIDER=none"
-    ];
+    systemd.services.ddclient.serviceConfig = {
+      DynamicUser = mkForce false;
+      User = "ddclient";
+      Group = "ddclient";
+      EnvironmentFile = [
+        config.sops.secrets.cloudflare_api_env.path
+      ];
+    };
+
+    users.users.ddclient = {
+      isSystemUser = true;
+      group = "ddclient";
+    };
+    users.groups.ddclient = { };
   };
 }
