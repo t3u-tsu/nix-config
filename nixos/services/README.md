@@ -13,7 +13,7 @@ This directory manages the global backup configuration using Restic.
 
 ### Destinations
 1.  **Local**: High-reliability disks on each machine (e.g., ZFS Mirror on shosoin-tan).
-2.  **Remote**: Large HDD on `kagutsuchi-sama` (10.0.1.3).
+2.  **Remote**: Large HDD on `kagutsuchi-sama` (10.0.0.3).
 
 ### Backup Targets (shosoin-tan)
 - `/srv/minecraft`: All Minecraft world data.
@@ -39,7 +39,7 @@ sudo systemctl start restic-backups-remote-backup.service
 # For local repo
 sudo restic -r /mnt/tank-1tb/backups/minecraft snapshots
 # For remote repo
-sudo restic -r sftp:restic-shosoin@10.0.1.3:/mnt/data/backups/shosoin-tan snapshots
+sudo restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan snapshots
 ```
 
 ## Restoration Procedure
