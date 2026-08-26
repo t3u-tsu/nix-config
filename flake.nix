@@ -70,6 +70,11 @@
       url = "github:t3u-tsu/minecraft-discord-bridge";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llama-cpp = {
+      url = "github:ggml-org/llama.cpp";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+    };
 
     # === Developer Tools ===
     codewhale = {
