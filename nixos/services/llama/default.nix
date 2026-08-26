@@ -14,6 +14,7 @@ let
     mkOption
     types
     ;
+  llama-cpp = pkgs.llama-cpp.override { useCuda = true; };
   presetsIni = pkgs.writeText "llama-models.ini" (
     lib.concatMapStringsSep "\n" (
       name:
@@ -132,7 +133,6 @@ in
 
     nixpkgs.config = {
       allowUnfree = true;
-      cudaSupport = true;
       inherit (cfg) cudaCapabilities;
     };
 
@@ -140,7 +140,7 @@ in
       description = "llama.cpp inference server";
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.llama-cpp}/bin/llama-server --models-dir ${cfg.modelsDir} --models-max ${toString cfg.modelsMax} ${
+        ExecStart = "${llama-cpp}/bin/llama-server --models-dir ${cfg.modelsDir} --models-max ${toString cfg.modelsMax} ${
           lib.optionalString (cfg.presets != { }) "--models-preset ${presetsIni}"
         } -ngl ${toString cfg.ngl} -ncmoe ${toString cfg.ncmoe} -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
         Restart = "on-failure";
