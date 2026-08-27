@@ -38,10 +38,6 @@
           ngl = 99;
           ncmoe = 99;
         };
-        "gemma-4-26B-A4B-it-Q4_0" = {
-          ngl = 99;
-          ncmoe = 99;
-        };
       };
     };
   };
