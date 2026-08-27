@@ -57,18 +57,6 @@ in
       description = "Address to bind.";
     };
 
-    ngl = mkOption {
-      type = types.int;
-      default = 99;
-      description = "Number of layers to offload to the GPU.";
-    };
-
-    ncmoe = mkOption {
-      type = types.int;
-      default = 99;
-      description = "Number of MoE expert layers to keep on the CPU.";
-    };
-
     threads = mkOption {
       type = types.int;
       default = 8;
@@ -125,7 +113,7 @@ in
       Service = {
         ExecStart = "${llama-cpp}/bin/llama-server --models-dir ${cfg.modelsDir} --models-max ${toString cfg.modelsMax} ${
           lib.optionalString (cfg.presets != { }) "--models-preset ${presetsIni}"
-        } --no-kv-offload -ngl ${toString cfg.ngl} -ncmoe ${toString cfg.ncmoe} -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
+        } -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
         Restart = "on-failure";
       };
     };

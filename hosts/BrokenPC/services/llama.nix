@@ -26,10 +26,6 @@
           ngl = 12;
           ncmoe = 0;
         };
-        "gemma-4-E4B-Q4_0" = {
-          ngl = 99;
-          ncmoe = 99;
-        };
         "Ling-3.0-tiny-Q4_K_M" = {
           ngl = 99;
           ncmoe = 99;
