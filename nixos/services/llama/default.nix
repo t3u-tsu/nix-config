@@ -78,8 +78,8 @@ in
 
     ctxSize = mkOption {
       type = types.int;
-      default = 2048;
-      description = "Prompt context size.";
+      default = 0;
+      description = "Prompt context size (0 = auto via --fit).";
     };
 
     presets = mkOption {
@@ -98,8 +98,8 @@ in
             };
             ctxSize = mkOption {
               type = types.int;
-              default = 2048;
-              description = "Prompt context size.";
+              default = 0;
+              description = "Prompt context size (0 = auto via --fit).";
             };
           };
         }
@@ -142,7 +142,7 @@ in
       serviceConfig = {
         ExecStart = "${llama-cpp}/bin/llama-server --models-dir ${cfg.modelsDir} --models-max ${toString cfg.modelsMax} ${
           lib.optionalString (cfg.presets != { }) "--models-preset ${presetsIni}"
-        } -ngl ${toString cfg.ngl} -ncmoe ${toString cfg.ncmoe} -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
+        } --fit on -ngl ${toString cfg.ngl} -ncmoe ${toString cfg.ncmoe} -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
         Restart = "on-failure";
       };
     };

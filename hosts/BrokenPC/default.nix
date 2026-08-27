@@ -113,11 +113,7 @@
           ngl = 99;
           ncmoe = 99;
         };
-        "gemma-4-26B-A4B-it-Q4_K_M" = {
-          ngl = 99;
-          ncmoe = 99;
-        };
-        "Qwen3-30B-A3B-Instruct-2507-Q3_K_M" = {
+        "gemma-4-26B-A4B-it-Q4_0" = {
           ngl = 99;
           ncmoe = 99;
         };
