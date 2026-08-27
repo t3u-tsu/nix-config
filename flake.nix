@@ -56,10 +56,6 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    antigravity-nix = {
-      url = "github:jacopone/antigravity-nix";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
 
     # === Services ===
     nix-minecraft = {
@@ -144,9 +140,6 @@
                 pkgs.convco
               ];
               inputsFrom = [ config.pre-commit.devShell ];
-              shellHook = ''
-                echo "Welcome to the nix-config development environment!"
-              '';
             };
           };
       }

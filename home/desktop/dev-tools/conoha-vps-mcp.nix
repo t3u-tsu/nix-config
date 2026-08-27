@@ -28,11 +28,7 @@ in
     };
 
     # Generate ~/.codewhale/mcp.json from a SOPS template.
-    # Credentials are injected via sops.placeholder, so no plaintext remains in the repository.
     sops.templates."codewhale-mcp.json" = {
-      # Render to the default rendered path and copy it to ~/.codewhale/mcp.json as a real file during activation.
-      # Reason: pointing path directly at sops.templates creates a symlink,
-      #       which codewhale rejects with "MCP config path must be a regular file".
       content = ''
         {
           "timeouts": {
@@ -61,11 +57,6 @@ in
       '';
     };
     # Place the sops.templates output (rendered) at ~/.codewhale/mcp.json as a real file.
-    # Run after the sops-nix home-manager hook (sops-nix).
-    # Note: the hook name is home.activation.sops-nix from the sops-nix module,
-    # not "setupSecrets" (the NixOS system.activation hook name).
-    # Using the wrong name in entryAfter silently drops the ordering constraint
-    # and copies the stale pre-render file.
     home.activation.conohaMcpConfig = config.lib.dag.entryAfter [ "sops-nix" ] ''
       rm -f /home/${username}/.codewhale/mcp.json
       cp -f ${config.sops.templates."codewhale-mcp.json".path} /home/${username}/.codewhale/mcp.json
