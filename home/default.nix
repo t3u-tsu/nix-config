@@ -25,6 +25,7 @@ in
       ./programs/git.nix
       ./programs/cli-tools.nix
       ./programs/ssh.nix
+      ./programs/llama.nix
     ];
 
     programs = {
