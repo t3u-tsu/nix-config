@@ -63,12 +63,6 @@ in
       description = "CPU thread count.";
     };
 
-    ctxSize = mkOption {
-      type = types.int;
-      default = 0;
-      description = "Prompt context size (0 = loaded from model).";
-    };
-
     presets = mkOption {
       type = types.attrsOf (
         types.submodule {
@@ -113,7 +107,7 @@ in
       Service = {
         ExecStart = "${llama-cpp}/bin/llama-server --models-dir ${cfg.modelsDir} --models-max ${toString cfg.modelsMax} ${
           lib.optionalString (cfg.presets != { }) "--models-preset ${presetsIni}"
-        } -t ${toString cfg.threads} -c ${toString cfg.ctxSize} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
+        } -t ${toString cfg.threads} --host ${cfg.host} --port ${toString cfg.port} --sleep-idle-seconds ${toString cfg.sleepIdleSeconds}";
         Restart = "on-failure";
       };
     };
