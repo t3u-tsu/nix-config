@@ -50,5 +50,8 @@
         };
       };
     })
+
+    # llama.cpp inference server (CUDA)
+    inputs.llama-cpp.overlays.default
   ];
 }
