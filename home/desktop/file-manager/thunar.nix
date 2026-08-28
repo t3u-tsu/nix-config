@@ -7,13 +7,11 @@
 
 with lib;
 let
-  cfg = config.my.home.desktop.file-manager;
+  cfg = config.my.home.desktop.thunar;
 in
 {
-  options.my.home.desktop.file-manager = {
-    enable = mkEnableOption "File manager" // {
-      default = true;
-    };
+  options.my.home.desktop.thunar = {
+    enable = mkEnableOption "File manager";
   };
 
   config = mkIf cfg.enable {

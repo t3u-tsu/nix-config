@@ -71,6 +71,7 @@ with lib;
         xdg.enable = true;
         locales.enable = true;
         niri.enable = true;
+        thunar.enable = true;
       };
     };
   };
