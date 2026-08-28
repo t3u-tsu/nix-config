@@ -49,9 +49,5 @@ in
       gamemode.enable = true;
       anime-game-launcher.enable = cfg.aagl.enable;
     };
-
-    environment.systemPackages = with pkgs; [
-      gperftools
-    ];
   };
 }

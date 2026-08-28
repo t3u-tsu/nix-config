@@ -26,16 +26,7 @@ in
         package = pkgs.niri;
       };
 
-      xfconf.enable = true; # Required for Thunar settings persistence
       dconf.enable = true; # Required for gsettings/dconf integration
-
-      thunar = {
-        enable = true;
-        plugins = with pkgs; [
-          thunar-archive-plugin
-          thunar-volman
-        ];
-      };
     };
 
     # xfce4-exo provides `exo-open`, used as the xdg-open backend and by other
@@ -69,8 +60,6 @@ in
       dbus.enable = true;
       upower.enable = true;
       power-profiles-daemon.enable = true;
-      gvfs.enable = true; # Required for file manager features (Trash, Mounts)
-      tumbler.enable = true; # Required for file manager thumbnails
     };
 
     # Enable brightness and volume control via dbus/logind for non-root access
