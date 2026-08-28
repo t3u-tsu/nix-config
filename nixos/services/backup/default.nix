@@ -9,6 +9,27 @@ with lib;
 
 let
   cfg = config.my.services.backup;
+
+  mkBackup = name: repo: {
+    ${name} = {
+      inherit (cfg)
+        paths
+        exclude
+        passwordFile
+        timerConfig
+        backupPrepareCommand
+        backupCleanupCommand
+        ;
+      repository = repo;
+      initialize = true;
+
+      pruneOpts = [
+        "--keep-daily 7"
+        "--keep-weekly 4"
+        "--keep-monthly 6"
+      ];
+    };
+  };
 in
 {
   options.my.services.backup = {
@@ -75,47 +96,8 @@ in
     environment.systemPackages = [ pkgs.restic ];
 
     services.restic.backups = mkMerge [
-      (mkIf (cfg.localRepo != null) {
-        local-backup = {
-          inherit (cfg)
-            paths
-            exclude
-            passwordFile
-            timerConfig
-            backupPrepareCommand
-            backupCleanupCommand
-            ;
-          repository = cfg.localRepo;
-          initialize = true;
-
-          pruneOpts = [
-            "--keep-daily 7"
-            "--keep-weekly 4"
-            "--keep-monthly 6"
-          ];
-        };
-      })
-
-      (mkIf (cfg.remoteRepo != null) {
-        remote-backup = {
-          inherit (cfg)
-            paths
-            exclude
-            passwordFile
-            timerConfig
-            backupPrepareCommand
-            backupCleanupCommand
-            ;
-          repository = cfg.remoteRepo;
-          initialize = true;
-
-          pruneOpts = [
-            "--keep-daily 7"
-            "--keep-weekly 4"
-            "--keep-monthly 6"
-          ];
-        };
-      })
+      (mkIf (cfg.localRepo != null) (mkBackup "local-backup" cfg.localRepo))
+      (mkIf (cfg.remoteRepo != null) (mkBackup "remote-backup" cfg.remoteRepo))
     ];
   };
 }
