@@ -13,6 +13,6 @@
     ./theme.nix
     ./xdg.nix
     ./locales.nix
-    ./file-manager/thunar.nix
+    ./thunar.nix
   ];
 }
