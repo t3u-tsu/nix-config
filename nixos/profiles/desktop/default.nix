@@ -10,15 +10,10 @@ with lib;
 
 {
   imports = [
-    ../../services/desktop
     inputs.chaotic.nixosModules.nyx-overlay
   ];
 
   config = {
-    nixpkgs.config.permittedInsecurePackages = [
-      "ventoy-1.1.12"
-    ];
-
     hardware = {
       enableRedistributableFirmware = true;
       graphics = {
@@ -39,6 +34,7 @@ with lib;
       ];
 
       hardware.pc-tools.enable = true;
+      dev-tools.enable = true;
 
       services.desktop = {
         niri.enable = true;
@@ -46,11 +42,9 @@ with lib;
         pipewire.enable = true;
         gaming.enable = true;
         unity.enable = true;
+        thunar.enable = true;
+        fonts.enable = true;
       };
-
-      # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)
-      hardware.dev-tools.wch-linke.enable =
-        config.home-manager.users.${config.my.user.name}.my.home.desktop.dev-tools.hardware.enable;
     };
 
     # Integrate Home-manager desktop settings for the primary user
@@ -71,6 +65,7 @@ with lib;
         xdg.enable = true;
         locales.enable = true;
         niri.enable = true;
+        thunar.enable = true;
       };
     };
   };

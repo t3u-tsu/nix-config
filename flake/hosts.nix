@@ -1,6 +1,19 @@
 { config, ... }:
 let
   mkLib = config.flake.lib.mkLib;
+
+  # Shared builder for the torii-chan gateway host (SBC or VPS failover).
+  mkToriiChan =
+    {
+      system,
+      extraModules ? [ ],
+    }:
+    mkLib.mkSystem {
+      name = "torii-chan";
+      username = "t3u";
+      profile = "gateway";
+      inherit system extraModules;
+    };
 in
 {
   flake.nixosConfigurations = {
@@ -10,11 +23,8 @@ in
 
     # SD installer image: no production services, temp password + relaxed SSH.
     # Build with ./hosts/torii-chan/build-sd-image.sh
-    "torii-chan-sd-installer" = mkLib.mkSystem {
-      name = "torii-chan";
-      username = "t3u";
+    "torii-chan-sd-installer" = mkToriiChan {
       system = "aarch64-linux";
-      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sd-installer.nix
         ../hosts/torii-chan/sbc.nix
@@ -23,11 +33,8 @@ in
     };
 
     # Production on the physical SBC (HDD root)
-    "torii-chan-hdd" = mkLib.mkSystem {
-      name = "torii-chan";
-      username = "t3u";
+    "torii-chan-hdd" = mkToriiChan {
       system = "aarch64-linux";
-      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-hdd.nix
@@ -35,11 +42,8 @@ in
     };
 
     # Production on SD card (no HDD)
-    "torii-chan-sd" = mkLib.mkSystem {
-      name = "torii-chan";
-      username = "t3u";
+    "torii-chan-sd" = mkToriiChan {
       system = "aarch64-linux";
-      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/sbc.nix
         ../hosts/torii-chan/fs-sd.nix
@@ -47,11 +51,8 @@ in
     };
 
     # VPS failover host
-    "torii-chan-vps" = mkLib.mkSystem {
-      name = "torii-chan";
-      username = "t3u";
+    "torii-chan-vps" = mkToriiChan {
       system = "x86_64-linux";
-      profile = "gateway";
       extraModules = [
         ../hosts/torii-chan/vps.nix
       ];

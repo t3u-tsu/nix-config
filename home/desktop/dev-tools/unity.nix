@@ -6,15 +6,12 @@
 }:
 
 with lib;
-let
-  cfg = config.my.home.desktop.dev-tools;
-in
 {
   imports = [
     inputs.unity-via-distrobox.homeModules.unity
   ];
 
-  config = mkIf cfg.enable {
+  config = mkIf config.my.home.desktop.dev-tools.enable {
     my.unity = {
       enable = mkDefault true;
       stopOnExit = true;

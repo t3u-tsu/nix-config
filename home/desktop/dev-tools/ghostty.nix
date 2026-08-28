@@ -7,14 +7,14 @@
 
 with lib;
 let
-  cfg = config.my.home.desktop.dev-tools;
+  cfg = config.my.home.desktop.dev-tools.ghostty;
 in
 {
   options.my.home.desktop.dev-tools.ghostty = {
     enable = mkEnableOption "Ghostty terminal emulator";
   };
 
-  config = mkIf cfg.ghostty.enable {
+  config = mkIf cfg.enable {
     programs.ghostty = {
       enable = true;
       enableZshIntegration = true;

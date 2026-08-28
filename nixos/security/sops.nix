@@ -7,8 +7,7 @@
 
 let
   hostname = config.networking.hostName;
-  # Convert hostname hyphens to underscores for internal SOPS key mapping
-  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower hostname);
+  hostKey = config.my.hostKey;
 
   hostSecretsFile = ../../secrets/hosts/${hostname}.yaml;
 in

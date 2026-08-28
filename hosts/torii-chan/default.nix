@@ -20,9 +20,6 @@
     ../../nixos
   ];
 
-  nixpkgs.overlays = [
-  ];
-
   # The torii-chan role (Nebula gateway + NAT/Minecraft forward + DDNS).
   # Platform-specific wiring (boot loader, WAN network) is provided by the
   # matching platform module imported per-host in flake/hosts.nix.

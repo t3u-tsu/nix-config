@@ -29,7 +29,6 @@ in
 
     programs.zen-browser = mkIf cfg.zen.enable {
       enable = true;
-      # nativeMessagingHosts = [ pkgs.bitwarden-desktop ];
 
       policies = {
         DisableTelemetry = true;
