@@ -48,12 +48,16 @@ jobs:
         # The convco hook lives on the commit-msg stage, so `pre-commit run`
         # does not execute it. CI does not create commits, so validate the
         # commits on the branch directly with `convco check <base>..HEAD`.
+        # On a force-push/amend the `github.event.before` SHA is no longer an
+        # ancestor of HEAD and cannot be resolved by git, so fall back to a
+        # merge-base instead of failing.
         run: |
           if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
             BASE="${{ github.event.pull_request.base.sha }}"
-          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] \
+            && git merge-base --is-ancestor "${{ github.event.before }}" HEAD 2>/dev/null; then
             BASE="${{ github.event.before }}"
           else
-            BASE="origin/main"
+            BASE="$(git merge-base origin/main HEAD 2>/dev/null || echo origin/main)"
           fi
           nix develop .#default --command convco check "$BASE..HEAD"
