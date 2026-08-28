@@ -11,9 +11,7 @@ let
 in
 {
   options.my.services.desktop.thunar = {
-    enable = mkEnableOption "Thunar file manager" // {
-      default = true;
-    };
+    enable = mkEnableOption "Thunar file manager";
   };
 
   config = mkIf cfg.enable {

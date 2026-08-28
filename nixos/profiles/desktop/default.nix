@@ -46,6 +46,7 @@ with lib;
         pipewire.enable = true;
         gaming.enable = true;
         unity.enable = true;
+        thunar.enable = true;
       };
 
       # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)
