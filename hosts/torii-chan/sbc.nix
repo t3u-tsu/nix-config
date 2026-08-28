@@ -21,7 +21,6 @@
   };
 
   networking = {
-    # networking.networkmanager.enable = true; # Using static config below
     useDHCP = false;
 
     interfaces.end0 = {

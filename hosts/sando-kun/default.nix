@@ -23,7 +23,4 @@
     hostName = "sando-kun";
     useDHCP = true;
   };
-
-  # Enable local network optimizations (Disabled as default since machines moved LANs)
-  # my.networking.local-network.enable = true;
 }

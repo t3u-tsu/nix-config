@@ -15,18 +15,15 @@ in
         allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
         logRefusedConnections = false;
         logReversePathDrops = false;
-        extraCommands = ''
-          iptables -t nat -A POSTROUTING -d 10.0.0.4 -p tcp --dport 25565 -j MASQUERADE
-          ${lib.optionalString cfg.restrictAccess ''
-            iptables -A INPUT -p tcp --dport 25565 -m limit --limit 10/sec --limit-burst 20 -j ACCEPT
-          ''}
-        '';
       };
 
       nat = {
         enable = true;
         externalInterface = cfg.wanInterface;
         internalInterfaces = lib.mkForce [ ];
+        # MASQUERADE return traffic from the Minecraft backend (shosoin-tan).
+        # Replaces the former hand-written iptables POSTROUTING rule.
+        internalIPs = [ "10.0.0.4" ];
         forwardPorts = [
           {
             proto = "tcp";
