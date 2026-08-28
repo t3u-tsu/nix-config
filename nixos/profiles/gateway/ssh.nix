@@ -7,10 +7,6 @@ let
 in
 {
   config = mkIf cfg.enable {
-    my.user.authorizedKeys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-    ];
-
     security.sudo.wheelNeedsPassword = true;
 
     services.openssh = {
@@ -24,7 +20,6 @@ in
         ClientAliveInterval = 60;
         ClientAliveCountMax = 3;
         AllowUsers = [
-          "root"
           config.my.user.name
         ];
       };

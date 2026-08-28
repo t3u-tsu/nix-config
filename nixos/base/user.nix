@@ -8,10 +8,16 @@
 with lib;
 let
   username = config.my.user.name;
-  # Map the hostname to the SOPS secret key prefix (e.g. "torii-chan" -> "torii_chan")
-  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
 in
 {
+  options.my = {
+    # Map the hostname to the SOPS secret key prefix (e.g. "torii-chan" -> "torii_chan")
+    hostKey = mkOption {
+      type = types.str;
+      description = "Hostname with hyphens replaced by underscores (SOPS key prefix)";
+    };
+  };
+
   options.my.user = {
     name = mkOption {
       type = types.str;
@@ -25,7 +31,9 @@ in
     };
     authorizedKeys = mkOption {
       type = types.listOf types.str;
-      default = [ ];
+      default = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
+      ];
       description = "SSH public keys for the primary user and root";
     };
     shell = mkOption {
@@ -36,6 +44,8 @@ in
   };
 
   config = {
+    my.hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
+
     users = {
       mutableUsers = false;
 
@@ -45,12 +55,12 @@ in
         extraGroups = config.my.user.extraGroups;
         shell = config.my.user.shell;
         # Password hashes are managed via SOPS (see nixos/security/sops.nix)
-        hashedPasswordFile = config.sops.secrets."${hostKey}_t3u_password_hash".path;
+        hashedPasswordFile = config.sops.secrets."${config.my.hostKey}_t3u_password_hash".path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };
 
       users.root = {
-        hashedPasswordFile = config.sops.secrets."${hostKey}_root_password_hash".path;
+        hashedPasswordFile = config.sops.secrets."${config.my.hostKey}_root_password_hash".path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };
     };

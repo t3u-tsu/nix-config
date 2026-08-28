@@ -21,7 +21,7 @@ let
   cfg = config.my.installer;
   username = config.my.user.name;
   # Translate the hostname into the SOPS secret name prefix (e.g. "torii-chan" -> "torii_chan").
-  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
+  hostKey = config.my.hostKey;
 
   # Temporary password hash passed by build-*.sh as an environment variable in an
   # --impure build. In a normal (pure evaluation) build it is empty and no

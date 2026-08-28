@@ -9,7 +9,7 @@ with lib;
 
 let
   # Lowercased hostname (hyphens -> underscores) used for SOPS key mapping.
-  hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
+  hostKey = config.my.hostKey;
 
   serviceUser = "nebula-nebula0";
   serviceUnit = "nebula@nebula0.service";
