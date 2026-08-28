@@ -141,6 +141,10 @@
               ];
               inputsFrom = [ config.pre-commit.devShell ];
             };
+
+            devShells.convco = pkgs.mkShell {
+              packages = [ pkgs.convco ];
+            };
           };
       }
     );
