@@ -14,10 +14,6 @@ with lib;
   ];
 
   config = {
-    nixpkgs.config.permittedInsecurePackages = [
-      "ventoy-1.1.12"
-    ];
-
     hardware = {
       enableRedistributableFirmware = true;
       graphics = {
@@ -38,6 +34,7 @@ with lib;
       ];
 
       hardware.pc-tools.enable = true;
+      dev-tools.enable = true;
 
       services.desktop = {
         niri.enable = true;
@@ -48,9 +45,6 @@ with lib;
         thunar.enable = true;
         fonts.enable = true;
       };
-
-      # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)
-      hardware.dev-tools.wch-linke.enable = true;
     };
 
     # Integrate Home-manager desktop settings for the primary user

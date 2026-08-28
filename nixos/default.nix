@@ -7,6 +7,7 @@
     ./networking
     ./environment
     ./hardware
+    ./dev-tools
     ./services
     ./virtualisation
     ../home

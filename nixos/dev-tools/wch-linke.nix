@@ -2,10 +2,10 @@
 
 with lib;
 let
-  cfg = config.my.hardware.dev-tools.wch-linke;
+  cfg = config.my.dev-tools.wch-linke;
 in
 {
-  options.my.hardware.dev-tools.wch-linke = {
+  options.my.dev-tools.wch-linke = {
     enable = mkEnableOption "WCH-LinkE programming/debugging udev rules";
   };
 
