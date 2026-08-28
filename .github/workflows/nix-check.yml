@@ -50,4 +50,4 @@ jobs:
           else
             BASE="$(git merge-base origin/main HEAD 2>/dev/null || echo origin/main)"
           fi
-          nix develop .#convco --command convco check "$BASE..HEAD"
+          nix develop .#convco --command convco check --ignore-reverts "$BASE..HEAD"
