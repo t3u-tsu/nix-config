@@ -7,5 +7,6 @@
     ./pipewire.nix
     ./unity.nix
     ./fonts.nix
+    ./thunar.nix
   ];
 }
