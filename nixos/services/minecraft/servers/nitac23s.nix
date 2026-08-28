@@ -8,8 +8,7 @@
 with lib;
 let
   cfg = config.my.services.minecraft;
-  plugins = pkgs.callPackage ../plugins/generated.nix { };
-  lunachat = import ../plugins/lunachat.nix { };
+  common = import ./common.nix { inherit pkgs lib; };
 
   # Base server.properties settings (password omitted)
   serverProperties = {
@@ -43,51 +42,39 @@ in
       serverProperties = { };
 
       symlinks = {
-        "plugins/ViaVersion.jar" = plugins.viaversion.src;
-        "plugins/ViaBackwards.jar" = plugins.viabackwards.src;
-        "plugins/GSit.jar" = plugins.gsit.src;
-        "plugins/LunaChat.jar" = plugins.lunachat.src;
+        "plugins/ViaVersion.jar" = common.plugins.viaversion.src;
+        "plugins/ViaBackwards.jar" = common.plugins.viabackwards.src;
+        "plugins/GSit.jar" = common.plugins.gsit.src;
+        "plugins/LunaChat.jar" = common.plugins.lunachat.src;
       };
 
       files = {
         # Reference LunaChat's settings from the shared config
-        "plugins/LunaChat/config.yml".value = lunachat.config.lunaChatConfig;
+        "plugins/LunaChat/config.yml".value = common.lunachat.config.lunaChatConfig;
       };
     };
 
     systemd.services.minecraft-server-nitac23s = {
       # Fix udev warning
-      environment.LD_LIBRARY_PATH = "${lib.makeLibraryPath [ pkgs.udev ]}";
+      environment.LD_LIBRARY_PATH = common.ldLibraryPath;
 
       preStart = lib.mkAfter ''
-              # 1. Fetch the RCON password
-              RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
+        # 1. Fetch the RCON password
+        RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
 
-              # 2. Write server.properties from scratch (overwrite)
-              if [ -L server.properties ]; then rm server.properties; fi
-              
-              cat <<EOF > server.properties
+        # 2. Write server.properties from scratch (overwrite)
+        if [ -L server.properties ]; then rm server.properties; fi
+
+        cat <<EOF > server.properties
         ${staticProps}
         rcon.password=$RCON_PASS
         EOF
-              chown minecraft:minecraft server.properties
-              chmod 600 server.properties
+        chown minecraft:minecraft server.properties
+        chmod 600 server.properties
 
-              # 3. Generate paper-global.yml
-              mkdir -p config
-              SECRET=$(cat ${config.sops.secrets.minecraft_forwarding_secret.path})
-              if [ -L "config/paper-global.yml" ]; then rm "config/paper-global.yml"; fi
-              
-              cat <<EOF > config/paper-global.yml
-        config-version: 31
-        proxies:
-          velocity:
-            enabled: true
-            online-mode: true
-            secret: $SECRET
-        EOF
-              chown minecraft:minecraft config/paper-global.yml
-              chmod 600 config/paper-global.yml
+        ${common.mkPaperGlobalPreStart {
+          secretPath = config.sops.secrets.minecraft_forwarding_secret.path;
+        }}
       '';
     };
   };
