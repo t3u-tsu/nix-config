@@ -5,6 +5,7 @@ on:
     - cron: '0 19 * * *' # 04:00 JST
   workflow_dispatch:
   push:
+    branches: [ "main" ]
     paths:
       - '.github/workflows/auto-update.yml'
 
