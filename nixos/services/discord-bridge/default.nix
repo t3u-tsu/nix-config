@@ -38,13 +38,6 @@ in
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      preStart = ''
-        # Ensure database directory exists and is owned by the service user
-        mkdir -p /var/lib/minecraft-discord-bridge
-        chown -R minecraft:minecraft /var/lib/minecraft-discord-bridge
-        chmod 700 /var/lib/minecraft-discord-bridge
-      '';
-
       serviceConfig = {
         ExecStart = "${bridgePkg}/bin/minecraft-discord-bridge -c ${configFile}";
         Restart = "always";
