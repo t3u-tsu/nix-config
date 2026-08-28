@@ -22,5 +22,8 @@
   networking.hostId = "c0ffee01";
   networking.hostName = "kagutsuchi-sama";
 
+  # Enable local network optimizations (NAT loopback bypass for torii-chan)
+  # my.networking.local-network.enable = true;
+
   my.hardware.nvidia.enable = true;
 }
