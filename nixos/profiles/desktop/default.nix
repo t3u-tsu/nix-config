@@ -10,7 +10,6 @@ with lib;
 
 {
   imports = [
-    ../../services/desktop
     inputs.chaotic.nixosModules.nyx-overlay
   ];
 
@@ -47,6 +46,7 @@ with lib;
         gaming.enable = true;
         unity.enable = true;
         thunar.enable = true;
+        fonts.enable = true;
       };
 
       # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)

@@ -11,9 +11,7 @@ let
 in
 {
   options.my.services.desktop.fonts = {
-    enable = mkEnableOption "System fonts" // {
-      default = true;
-    };
+    enable = mkEnableOption "System fonts";
   };
 
   config = mkIf cfg.enable {
