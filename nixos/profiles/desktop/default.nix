@@ -49,8 +49,7 @@ with lib;
       };
 
       # WCH-LinkE udev rules (defined in nixos/hardware/wch-linke.nix)
-      hardware.dev-tools.wch-linke.enable =
-        config.home-manager.users.${config.my.user.name}.my.home.desktop.dev-tools.hardware.enable;
+      hardware.dev-tools.wch-linke.enable = true;
     };
 
     # Integrate Home-manager desktop settings for the primary user

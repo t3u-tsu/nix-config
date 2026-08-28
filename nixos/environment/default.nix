@@ -7,30 +7,20 @@ let
 in
 {
   options.my.packages = {
-    core.enable = mkOption {
-      type = types.bool;
+    core.enable = mkEnableOption "Core packages and shell integration" // {
       default = true;
-      description = "Enable core packages and shell integration";
     };
-    monitoring.enable = mkOption {
-      type = types.bool;
+    monitoring.enable = mkEnableOption "Monitoring and hardware tools" // {
       default = true;
-      description = "Enable monitoring and hardware tools";
     };
-    network-tools.enable = mkOption {
-      type = types.bool;
+    network-tools.enable = mkEnableOption "Networking utilities" // {
       default = true;
-      description = "Enable networking utilities";
     };
-    data.enable = mkOption {
-      type = types.bool;
+    data.enable = mkEnableOption "Data processing tools" // {
       default = true;
-      description = "Enable data processing tools";
     };
-    security.enable = mkOption {
-      type = types.bool;
+    security.enable = mkEnableOption "Security and encryption tools" // {
       default = true;
-      description = "Enable security and encryption tools";
     };
   };
 
