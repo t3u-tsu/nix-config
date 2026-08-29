@@ -49,7 +49,7 @@ in
       fcitx5 = {
         waylandFrontend = true;
         addons = with pkgs; [
-          fcitx5-mozc
+          fcitx5-mozc-ut
           kdePackages.fcitx5-qt
           fcitx5-gtk
           kdePackages.fcitx5-configtool

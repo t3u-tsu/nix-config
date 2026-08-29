@@ -18,6 +18,7 @@ in
     home.packages = with pkgs; [
       gimp
       obs-studio
+      blender
     ];
   };
 }
