@@ -171,3 +171,13 @@ git checkout main && git pull origin main
   means re-signing (and re-importing) that node's cert.
 - TLP vs `power-profiles-daemon`: `common-pc-laptop` (nixos-hardware)
   auto-enables TLP only when power-profiles-daemon is off.
+
+## Nebula CA maintenance
+
+- **CA validity**: 10y (rotated 2026-08-31; valid until **2036-08-28**). Node
+  certificates are signed for **1y**, so refresh them yearly (next:
+  2027-08-31) — this is a **re-sign, not a rotation**: `nebula-cert sign`
+  against the existing CA, re-import into SOPS, deploy, `switch`.
+- **Backup**: back up `~/.nebula-ca/{ca.crt,ca.key,passphrase}` (the CA key needs
+  its passphrase to be useful). Node keys are recoverable from SOPS
+  (`secrets/`), so they need no separate backup.
