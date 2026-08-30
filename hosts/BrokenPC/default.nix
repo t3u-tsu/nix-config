@@ -59,6 +59,9 @@
   services.xserver.videoDrivers = [ "amdgpu" ];
 
   my = {
+    # Full desktop stack (gaming, Unity/Distrobox, creative, media, office)
+    desktop.full.enable = true;
+
     hardware.nvidia = {
       enable = true;
       open = true;

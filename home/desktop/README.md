@@ -11,7 +11,8 @@ User-specific desktop environment configurations managed via Home Manager.
 - **`gpg-signing.nix`**: GnuPG agent setup and configuration.
 - **`communication.nix`**: Messaging applications (e.g. Discord/Vesktop).
 - **`gaming.nix`**: User-level gaming options and tools.
-- **`media.nix`**: Media players and utility apps.
+- **`media.nix`**: Media players (VLC) and Spicetify theming.
+- **`office.nix`**: LibreOffice office suite.
 - **`creative.nix`**: Design and creative tools.
 - **`thunar.nix`**: Thunar file manager settings (system services live in `nixos/services/desktop/thunar.nix`).
 - **`niri/`**: Niri Wayland compositor settings.

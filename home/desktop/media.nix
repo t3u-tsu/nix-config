@@ -45,7 +45,6 @@ in
 
     home.packages = with pkgs; [
       vlc
-      libreoffice
     ];
   };
 }

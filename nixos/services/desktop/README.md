@@ -13,4 +13,4 @@ This directory manages system-wide services and hardware integration for the des
 - **`unity.nix`**: Unity Hub & Editor via Distrobox (system side: podman + rootless podman).
 - **`graphics.nix`**: Redistributable firmware and 32-bit GPU support.
 - **`networkmanager.nix`**: NetworkManager for desktop network management.
-- **`default.nix`**: Master index for importing all desktop-related services; defines the aggregate `my.services.desktop.enable` flag.
+- **`default.nix`**: Master index for importing all desktop-related services; defines the aggregate `my.services.desktop.enable` flag (lightweight core) and `my.services.desktop.full.enable` for the gaming/Unity stack.
