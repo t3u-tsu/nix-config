@@ -14,6 +14,7 @@ in
     ./niri.nix
     ./greetd.nix
     ./pipewire.nix
+    ./bluetooth.nix
     ./unity.nix
     ./fonts.nix
     ./thunar.nix
@@ -39,6 +40,7 @@ in
         thunar.enable = mkDefault true;
         graphics.enable = mkDefault true;
         networkmanager.enable = mkDefault true;
+        bluetooth.enable = mkDefault true;
         fonts.enable = mkDefault true;
 
         # Heavy extras: opt-in via my.services.desktop.full.enable
