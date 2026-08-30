@@ -52,11 +52,11 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 利用可能な設定（`flake/hosts.nix` で定義）:
 
 - **`BrokenPC`** — デスクトップPC（ローカルマシン）
-- **`shosoin-tan`**、**`kagutsuchi-sama`**、**`sando-kun`** — タワーサーバー
+- **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — タワーサーバー
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
 - **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）
 - **`torii-chan-sd-installer`** — SD インストーライメージ（`hosts/torii-chan/README.md` 参照）
-- **`torii-chan-vps-iso`** — VPS インストーラ ISO。nixosConfiguration ではなく **package** として公開（`nix build .#torii-chan-vps-iso`）
+- **`torii-chan-vps-iso`** — VPS インストーラ ISO．nixosConfiguration ではなく **package** として公開（`nix build .#torii-chan-vps-iso`）
 
 ローカルマシンの設定を適用する場合：
 
@@ -70,11 +70,11 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-`sandbox false` / `filter-syscalls false` フラグは、Orange Pi のカーネルが
+`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが
 `user_namespaces` / `seccomp BPF` に対応していないため必要です
-（`hosts/torii-chan/README.md` のトラブルシューティング参照）。
+（`hosts/torii-chan/README.md` のトラブルシューティング参照）．
 
-より詳細なデプロイ・運用方法については、`hosts/`、`nixos/`、`home/` 配下の各 `README.md`（英語）を参照してください．
+より詳細なデプロイ・運用方法については，`hosts/`，`nixos/`，`home/` 配下の各 `README.md`（英語）を参照してください．
 
 ## CI/CD と自動化
 
