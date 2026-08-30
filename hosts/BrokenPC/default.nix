@@ -84,6 +84,9 @@
       };
     };
     virtualisation.microvm.enable = true;
+
+    # bluez experimental features (LE Audio); daemon is in the desktop core.
+    services.desktop.bluetooth.experimental = true;
   };
 
   # Make the AMD iGPU the primary DRM renderer so the NVIDIA dGPU stays powered
