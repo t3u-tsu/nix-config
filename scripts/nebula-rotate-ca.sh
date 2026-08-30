@@ -12,6 +12,9 @@
 # nodes, then re-import the new secrets into SOPS. This script encapsulates the
 # cert side so the rotation is repeatable instead of a hand-typed session.
 #
+# For adding a SINGLE new host, do NOT run this: sign one cert against the
+# existing CA and import it (see hosts/README.md).
+#
 # Passphrase handling: the CA and node private keys are encrypted with a
 # per-directory passphrase (like the original `~/.nebula-ca`). The passphrase is
 # generated on first run and stored (chmod 600) in `$CA_DIR/passphrase`; it is
@@ -30,23 +33,25 @@
 #              (default: ~/.nebula-ca-<prefix, dots->hyphens>)
 #   --prefix   first three octets of the new overlay subnet (default 10.0.0)
 #
+# The node list comes from scripts/nebula-lib.sh (FLEET).
+#
 # Idempotent: re-running overwrites the CA directory (and reuses the passphrase
 # if one already exists there).
 #
 set -euo pipefail
 
-# --- fleet definition ------------------------------------------------------
-# node name | last octet | groups
-NODES=(
-  "torii-chan|1|mgmt"
-  "sando-kun|2|mgmt"
-  "kagutsuchi-sama|3|mgmt"
-  "shosoin-tan|4|mgmt,app"
-  "BrokenPC|100|mgmt,app"
-)
+# shellcheck disable=SC1091 # nebula-lib.sh is followed via -x (see dev.nix)
+# shellcheck source=nebula-lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/nebula-lib.sh"
+
 CA_NAME="t3u-home-ca"
-CA_GROUPS="mgmt,app"            # groups the CA permits on subordinate certs
-DURATION="8760h"                # 1y, matches the existing CA convention
+DURATION="87600h" # 10y, avoids frequent CA rotations (node certs stay at whatever sign -duration says)
+
+# Union of every group used in the fleet; the CA must permit all of them.
+CA_GROUPS="$(for entry in "${FLEET[@]}"; do
+  IFS='|' read -r _ _ groups <<< "$entry"
+  tr ',' '\n' <<< "$groups"
+done | sort -u | paste -sd, -)"
 
 # --- arg parsing -----------------------------------------------------------
 CA_DIR=""
@@ -101,11 +106,8 @@ run_nebula nebula-cert ca \
   -out-key ca.key
 
 # --- sign every node --------------------------------------------------------
-for entry in "${NODES[@]}"; do
-  name="${entry%%|*}"
-  rest="${entry#*|}"
-  octet="${rest%%|*}"
-  groups="${rest#*|}"
+for entry in "${FLEET[@]}"; do
+  IFS='|' read -r name octet groups <<< "$entry"
   ip="$PREFIX.$octet"
   echo "== sign $name ($ip/24, $groups) =="
   run_nebula nebula-cert sign \
