@@ -11,6 +11,10 @@
     ./hardware.nix
     ./services
     ../../nixos
+    # Generic laptop/SSD tuning from nixos-hardware (no-op where already
+    # configured: TLP is skipped while power-profiles-daemon is active).
+    inputs.nixos-hardware.nixosModules.common-pc-laptop
+    inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
 
   # Hardware settings (AMD CPU + HP Victus specifics)
