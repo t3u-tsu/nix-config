@@ -1,72 +1,43 @@
 {
   config,
   lib,
-  pkgs,
   inputs,
   ...
 }:
-
-with lib;
 
 {
   imports = [
     inputs.chaotic.nixosModules.nyx-overlay
   ];
 
-  config = {
-    hardware = {
-      enableRedistributableFirmware = true;
-      graphics = {
-        enable = true;
-        enable32Bit = true;
-      };
-    };
+  options.my.desktop = {
+    full.enable = lib.mkEnableOption "Full desktop experience (gaming, Unity/Distrobox, creative, media, office, AI/hardware dev tools)";
+  };
 
-    networking.networkmanager.enable = true;
+  config = {
+    # Chaotic-Nyx overlay supplies packages absent from nixpkgs (mangohud_git,
+    # gamescope_git, etc.) used by the full gaming stack; only apply it when
+    # the full desktop is enabled to keep lightweight cores cheap to evaluate.
+    chaotic.nyx.overlay.enable = lib.mkDefault config.my.desktop.full.enable;
 
     my = {
-      user.extraGroups = [
-        "wheel"
-        "networkmanager"
-        "video"
-        "audio"
-        "dialout"
-      ];
+      # Aggregate system services (lightweight core; full stack via my.desktop.full)
+      services.desktop.enable = true;
+      services.desktop.full.enable = lib.mkDefault config.my.desktop.full.enable;
 
+      # System-side developer/hardware tooling for user workstations
       hardware.pc-tools.enable = true;
       dev-tools.enable = true;
-
-      services.desktop = {
-        niri.enable = true;
-        greetd.enable = true;
-        pipewire.enable = true;
-        gaming.enable = true;
-        unity.enable = true;
-        thunar.enable = true;
-        fonts.enable = true;
-      };
     };
 
-    # Integrate Home-manager desktop settings for the primary user
-    home-manager.users.${config.my.user.name} = { config, pkgs, ... }: {
+    # Wire the home-manager desktop modules for the primary user
+    home-manager.users.${config.my.user.name} = {
       imports = [
         ../../../home/desktop
       ];
 
-      my.home.desktop = {
-        browsers.enable = true;
-        communication.enable = true;
-        dev-tools.enable = true;
-        gaming.enable = true;
-        gpg-signing.enable = true;
-        media.enable = true;
-        creative.enable = true;
-        theme.enable = true;
-        xdg.enable = true;
-        locales.enable = true;
-        niri.enable = true;
-        thunar.enable = true;
-      };
+      my.home.desktop.enable = true;
+      my.home.desktop.full.enable = lib.mkDefault config.my.desktop.full.enable;
     };
   };
 }

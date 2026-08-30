@@ -44,8 +44,8 @@
           nixpkgs.overlays = overlays;
         }
 
-        ../hosts/${name}/default.nix
         ../nixos/profiles/${profile}
+        ../hosts/${name}/default.nix
       ]
       ++ extraModules;
     };

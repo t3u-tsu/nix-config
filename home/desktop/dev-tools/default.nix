@@ -28,10 +28,10 @@ in
     my.home.desktop.dev-tools = {
       neovim.enable = mkDefault true;
       git-tools.enable = mkDefault true;
-      ai-tools.enable = mkDefault true;
-      hardware.enable = mkDefault true;
       ghostty.enable = mkDefault true;
       nix.enable = mkDefault true;
+      # ai-tools / hardware default to false; the desktop aggregate turns them
+      # on with my.home.desktop.full.enable (they pull in heavy packages).
     };
   };
 }

@@ -59,6 +59,9 @@
   services.xserver.videoDrivers = [ "amdgpu" ];
 
   my = {
+    # Full desktop stack (gaming, Unity/Distrobox, creative, media, office)
+    desktop.full.enable = true;
+
     hardware.nvidia = {
       enable = true;
       open = true;
@@ -76,7 +79,6 @@
         amdgpuBusId = "PCI:7:0:0";
       };
     };
-    virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
   };
 
