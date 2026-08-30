@@ -18,6 +18,12 @@
         nixfmt.enable = true;
         statix.enable = true;
         convco.enable = true;
+        # shellcheck -x follows the source= directives (nebula-lib.sh).
+        shellcheck = {
+          enable = true;
+          files = "scripts/.*\\.sh$";
+          entry = "${pkgs.shellcheck}/bin/shellcheck -x";
+        };
         ja-punctuation = {
           enable = true;
           name = "ja-punctuation";

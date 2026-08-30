@@ -119,9 +119,11 @@ nix shell nixpkgs#nebula -c nebula-cert sign \
 If the CA key is passphrase-encrypted, feed the passphrase on a pty like
 `run_nebula` in `scripts/nebula-rotate-ca.sh` does.
 
-Then add the host to the `HOSTS` array in
-`scripts/nebula-import-secrets.sh` (host file | sops prefix | cert basename)
-and import — requires the offline **master age key**:
+Then add the host to the `FLEET` array in `scripts/nebula-lib.sh`
+(`<name>|<last-octet>|<groups>` — the single source of truth for both
+`nebula-import-secrets.sh` and `nebula-rotate-ca.sh`; the secrets file path
+and SOPS key prefix are derived from the name) and import — requires the
+offline **master age key**:
 
 ```bash
 SOPS_AGE_KEY_FILE=/path/to/master-age-key.txt bash scripts/nebula-import-secrets.sh
