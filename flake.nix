@@ -132,26 +132,25 @@
               ja-punctuation = {
                 enable = true;
                 name = "ja-punctuation";
-                description = "Check Japanese docs use ，． instead of 、。";
+                description = "Replace 、。 with ，． in Japanese docs";
                 files = "\\.md$";
                 entry = "${
                   pkgs.writeShellApplication {
-                    name = "check-ja-punctuation";
+                    name = "fix-ja-punctuation";
                     text = ''
                       export LC_ALL=C.UTF-8
                       status=0
                       for f in "$@"; do
-                        lines=$(sed -n '/[、。]/p' "$f")
-                        if [ -n "$lines" ]; then
-                          echo "ERROR: $f uses 、。; use ，． instead:"
-                          echo "$lines"
+                        if grep -q '[、。]' "$f"; then
+                          echo "FIXED: $f replaced 、。 with ，．"
+                          sed -i 's/、/，/g; s/。/．/g' "$f"
                           status=1
                         fi
                       done
                       exit "$status"
                     '';
                   }
-                }/bin/check-ja-punctuation";
+                }/bin/fix-ja-punctuation";
               };
             };
 
