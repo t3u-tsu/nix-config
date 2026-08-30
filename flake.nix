@@ -129,6 +129,30 @@
               nixfmt.enable = true;
               statix.enable = true;
               convco.enable = true;
+              ja-punctuation = {
+                enable = true;
+                name = "ja-punctuation";
+                description = "Check Japanese docs use ，． instead of 、。";
+                files = "\\.md$";
+                entry = "${
+                  pkgs.writeShellApplication {
+                    name = "check-ja-punctuation";
+                    text = ''
+                      export LC_ALL=C.UTF-8
+                      status=0
+                      for f in "$@"; do
+                        lines=$(sed -n '/[、。]/p' "$f")
+                        if [ -n "$lines" ]; then
+                          echo "ERROR: $f uses 、。; use ，． instead:"
+                          echo "$lines"
+                          status=1
+                        fi
+                      done
+                      exit "$status"
+                    '';
+                  }
+                }/bin/check-ja-punctuation";
+              };
             };
 
             devShells.default = pkgs.mkShell {
