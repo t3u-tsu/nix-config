@@ -38,11 +38,10 @@ in
         OverrideFirstRunPage = "";
         OverridePostUpdatePage = "";
         DontCheckDefaultBrowser = true;
-        DisplayBookmarksToolbar = "never"; # or "always"
+        DisplayBookmarksToolbar = "never";
 
-        # Declarative Extensions via Policy (Reliable way)
         ExtensionSettings = {
-          "*".installation_mode = "allowed"; # Allow manual installs too
+          "*".installation_mode = "allowed";
           # uBlock Origin
           "uBlock0@raymondhill.net" = {
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
@@ -98,10 +97,19 @@ in
             install_url = "https://addons.mozilla.org/firefox/downloads/latest/volume-control-boost-volume/latest.xpi";
             installation_mode = "force_installed";
           };
+          # weathercock-detector
+          "weathercock-detector@kwdev" = {
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/weathercock-detector/latest.xpi";
+            installation_mode = "force_installed";
+          };
+          # MetaMask
+          "webextension@metamask.io" = {
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/ether-metamask/latest.xpi";
+            installation_mode = "force_installed";
+          };
         };
       };
 
-      # Create a default profile named after the user
       profiles.${osConfig.my.user.name} = {
         isDefault = true;
 
