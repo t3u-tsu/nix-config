@@ -13,8 +13,7 @@ User-specific desktop environment configurations managed via Home Manager.
 - **`gaming.nix`**: User-level gaming options and tools.
 - **`media.nix`**: Media players and utility apps.
 - **`creative.nix`**: Design and creative tools.
-- **`utils.nix`**: Miscellaneous desktop utilities.
+- **`thunar.nix`**: Thunar file manager settings (system services live in `nixos/services/desktop/thunar.nix`).
 - **`niri/`**: Niri Wayland compositor settings.
-- **`file-manager/`**: Thunar file manager settings.
 - **`dev-tools/`**: Development tools configuration (Neovim, Ghostty).
 - **`default.nix`**: Imports all desktop home modules.

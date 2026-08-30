@@ -16,8 +16,10 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 .
 ├── flake.nix            # flake-parts entrypoint
 ├── flake/               # flake-parts modules
+│   ├── hosts.nix        # nixosConfigurations
+│   ├── lib.nix          # Flake library output
 │   ├── overlays.nix     # Nixpkgs overlays
-│   └── hosts.nix        # nixosConfigurations
+│   └── packages.nix     # Flake package output (VPS installer ISO)
 ├── nixos/               # NixOS system modules
 │   ├── base/            # OS foundation (users, Nix, time)
 │   ├── core/            # OS core settings (i18n)
@@ -25,10 +27,12 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── networking/      # Network settings (hosts, Nebula mesh)
 │   ├── environment/     # System packages
 │   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
+│   ├── dev-tools/       # Development hardware/tooling (WCH-LinkE, Ventoy)
 │   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc, gateway)
-│   └── services/        # System services (backup, Minecraft, deployment, etc.)
+│   ├── services/        # System services (backup, Minecraft, desktop, etc.)
+│   └── virtualisation/  # Virtualisation (distrobox, microvm)
 ├── home/                # Home Manager modules
-│   ├── shell/           # Shell configuration (Zsh, Starship, Atuin)
+│   ├── shell/           # Shell configuration (Zsh, Pure, Atuin)
 │   ├── programs/        # Workstation tools (CLI tools, Git, SSH)
 │   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
 ├── hosts/               # Host-specific configurations
@@ -38,7 +42,9 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── kagutsuchi-sama/ # Tower server (NixOS)
 │   └── sando-kun/       # Tower server (NixOS)
 ├── lib/                 # Helper functions (mkSystem)
-└── secrets/             # SOPS-encrypted secrets
+├── scripts/             # Operational scripts (Nebula CA rotation, secret import)
+├── secrets/             # SOPS-encrypted secrets
+└── terraform/           # OpenTofu: ConoHa VPS infrastructure
 ```
 
 ## Quick Start
@@ -49,7 +55,8 @@ Available configurations (defined in `flake/hosts.nix`):
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
 - **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
-- **`torii-chan-sd-installer`** / **`torii-chan-vps-installer`** — installer images (see `hosts/torii-chan/README.md`)
+- **`torii-chan-sd-installer`** — SD installer image (see `hosts/torii-chan/README.md`)
+- **`torii-chan-vps-iso`** — VPS installer ISO, exposed as a **package** (not a nixosConfiguration): `nix build .#torii-chan-vps-iso`
 
 To apply configurations to the local machine:
 

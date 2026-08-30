@@ -27,11 +27,12 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── networking/      # ネットワーク設定 (hosts, Nebula mesh)
 │   ├── environment/     # システムパッケージ
 │   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
+│   ├── dev-tools/       # 開発用ハードウェア・ツール (WCH-LinkE, Ventoy)
 │   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc, gateway)
-│   ├── services/        # システムサービス (バックアップ, Minecraft, デプロイ等)
+│   ├── services/        # システムサービス (バックアップ, Minecraft, デスクトップ等)
 │   └── virtualisation/  # 仮想化 (distrobox, microvm)
 ├── home/                # Home Manager モジュール
-│   ├── shell/           # シェル環境 (Zsh, Starship, Atuin)
+│   ├── shell/           # シェル環境 (Zsh, Pure, Atuin)
 │   ├── programs/        # 共通ツール (CLI, Git, SSH)
 │   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
 ├── hosts/               # ホスト固有設定（各ホストの README.md を参照）
@@ -43,8 +44,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 ├── lib/                 # ヘルパー関数 (mkSystem)
 ├── scripts/             # 運用スクリプト (Nebula CA ローテーション等)
 ├── secrets/             # SOPS 暗号化シークレット
-├── terraform/           # OpenTofu: ConoHa VPS インフラ管理
-└── docs/                # 一時的な調査メモ・計画・作業ログ（古い可能性あり）
+└── terraform/           # OpenTofu: ConoHa VPS インフラ管理
 ```
 
 ## クイックスタート
@@ -55,7 +55,8 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 - **`shosoin-tan`**、**`kagutsuchi-sama`**、**`sando-kun`** — タワーサーバー
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
 - **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）
-- **`torii-chan-sd-installer`** / **`torii-chan-vps-installer`** — インストーライメージ（`hosts/torii-chan/README.md` 参照）
+- **`torii-chan-sd-installer`** — SD インストーライメージ（`hosts/torii-chan/README.md` 参照）
+- **`torii-chan-vps-iso`** — VPS インストーラ ISO。nixosConfiguration ではなく **package** として公開（`nix build .#torii-chan-vps-iso`）
 
 ローカルマシンの設定を適用する場合：
 

@@ -10,6 +10,7 @@ Hardware-specific system configuration and driver integration.
   - **Sync mode** (`my.hardware.nvidia.prime.sync.enable`): discrete GPU always active for gaming/workstations. **X11-only** — it has no effect under Wayland compositors (e.g. niri); use `WLR_DRM_DEVICES` to pick the primary renderer instead.
   - `my.hardware.nvidia.open`: use the open-source NVIDIA kernel modules (Turing or newer, e.g. RTX 30-series). Requires a package that provides an `.open` attribute.
   - `my.hardware.nvidia.powerManagement`: systemd suspend/resume integration (`enable`) and Runtime D3 power gating (`finegrained`). Note the nixpkgs assertions: `finegrained` requires PRIME offload and is incompatible with sync mode.
+- **`pc-tools.nix`**: Hardware-specific tools for physical PCs/servers (`nvme-cli`, `smartmontools`) behind `my.hardware.pc-tools.enable`.
 - **`default.nix`**: Imports the hardware modules.
 
 ## Configuration Example
