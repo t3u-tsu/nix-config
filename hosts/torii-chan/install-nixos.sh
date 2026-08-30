@@ -27,7 +27,7 @@
 #   - Do not hardcode credentials or private keys (public keys only)
 #   - This script is a minimal template for the target config. To install the
 #     repo's flake config, include the closure in the ISO (isoImage.storeContents)
-#     or use nixos-install --flake (see docs/conoha-vps-installer-iso.md)
+#     or use nixos-install --flake (see hosts/torii-chan/README.md)
 set -euo pipefail
 
 IFACE="${IFACE:-eth0}"
@@ -238,7 +238,7 @@ Environment variables (all optional; defaults shown):
   NIXOS_HOSTNAME   target hostname (default: conoha-vps)
   SSH_PUBLIC_KEYS  public keys to register in authorizedKeys (one key per line)
 
-Details: docs/conoha-vps-installer-iso.md
+Details: hosts/torii-chan/README.md
 HELP
     ;;
   *)

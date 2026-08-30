@@ -38,7 +38,11 @@ A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu
 
 ## Plugin Management (nvfetcher)
 
-Plugins (ViaVersion, ViaBackwards) are managed in the `plugins/` directory using **nvfetcher**. This allows automatic fetching of latest hashes and declarative version management.
+Plugins are managed in the `plugins/` directory using **nvfetcher** (declarative version management with automatic hash fetching):
+
+- `viaversion` (ViaVersion), `viabackwards` (ViaBackwards) — protocol translation
+- `gsit` (GSit) — sitting/posing plugin
+- `lunachat` (LunaChat) — Japanese chat formatting
 
 - **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:

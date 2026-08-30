@@ -33,7 +33,7 @@ Platform-specific wiring is split into two thin layers:
 - `torii-chan-sd`: production on the physical SBC (root on SD card).
 - `torii-chan-hdd`: production on the physical SBC (root on HDD).
 - `torii-chan-vps`: same role on a failover VPS (x86_64).
-- `torii-chan-vps-installer`: SSH-operable NixOS installer ISO for the VPS (x86_64).
+- `torii-chan-vps-iso`: SSH-operable NixOS installer ISO for the VPS (x86_64), exposed as a **package** (not a nixosConfiguration): `nix build .#torii-chan-vps-iso`.
 
 ## VPS Failover
 > **⚠️ NOT VERIFIED**: The VPS failover path (`vps.nix`, installer ISO, DDNS

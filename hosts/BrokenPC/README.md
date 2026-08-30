@@ -24,20 +24,41 @@ NixOS desktop machine with a hybrid GPU configuration. This host is a "Victus by
 ### Phase 1: Disk Preparation
 1. **Boot from NixOS Installer USB.**
 2. **Setup Network:** Connect to Wi-Fi/Ethernet.
-3. **Run Disko:** 
+3. **Partition the disks** (layout defined in `hardware.nix`; verify device names with `lsblk`):
    ```bash
-   nix build .#nixosConfigurations.BrokenPC.config.system.build.diskoScript
-   sudo ./result --mode zap_create_mount
+   # 512GB NVMe (system): /boot (vfat), swap, / (ext4)
+   sudo parted /dev/nvme0n1 -- mklabel gpt
+   sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
+   sudo parted /dev/nvme0n1 -- set 1 esp on
+   sudo parted /dev/nvme0n1 -- mkpart primary linux-swap 512MiB 8GiB
+   sudo parted /dev/nvme0n1 -- mkpart primary ext4 8GiB 100%
+   sudo mkfs.fat -F 32 /dev/nvme0n1p1
+   sudo mkswap /dev/nvme0n1p2
+   sudo mkfs.ext4 /dev/nvme0n1p3
+
+   # 1TB NVMe (data): /data (ext4)
+   sudo parted /dev/nvme1n1 -- mklabel gpt
+   sudo parted /dev/nvme1n1 -- mkpart primary ext4 1MiB 100%
+   sudo mkfs.ext4 /dev/nvme1n1p1
+   ```
+4. **Mount the partitions:**
+   ```bash
+   sudo mount /dev/nvme0n1p3 /mnt
+   sudo mkdir -p /mnt/boot /mnt/data
+   sudo mount /dev/nvme0n1p1 /mnt/boot
+   sudo swapon /dev/nvme0n1p2
+   sudo mount /dev/nvme1n1p1 /mnt/data
    ```
 
-### Phase 2: System Installation
-```bash
-sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#BrokenPC
-```
-
-### Phase 3: Transfer Secret Key (Important)
-To ensure user passwords work on first boot, your age key needs to be at /mnt/var/lib/sops-nix/key.txt.
+### Phase 2: Transfer Secret Key (Important)
+`sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
+so the age key must be in place **before** installing:
 ```bash
 sudo mkdir -p /mnt/var/lib/sops-nix
 # Copy your age key to /mnt/var/lib/sops-nix/key.txt
+```
+
+### Phase 3: System Installation
+```bash
+sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#BrokenPC
 ```

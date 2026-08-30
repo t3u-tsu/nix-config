@@ -15,14 +15,32 @@ This host is a general-purpose tower server equipped with an Intel Core i7-860 a
 Since this host uses older hardware, we use the following high-reliability installation procedure (similar to `shosoin-tan`) to minimize CPU load and ensure compatibility.
 
 ### Phase 1: Prepare Disks
-1. **Execute Disko:** Run the following steps from another machine.
+1. **Partition and mount** (layout defined in `hardware.nix`; verify device names with `lsblk`). Legacy BIOS (MBR):
    ```bash
-   nix build .#nixosConfigurations.sando-kun.config.system.build.diskoScript
-   nix copy --to ssh://nixos@<IP> ./result
-   ssh -t nixos@<IP> "sudo ./result --mode destroy,format,mount"
+   # 250GB HDD (system): part1 = swap, part2 = /boot (vfat), part3 = / (ext4)
+   ssh nixos@<IP> "sudo parted /dev/sda -- mklabel msdos && \
+     sudo parted /dev/sda -- mkpart primary linux-swap 1MiB 8GiB && \
+     sudo parted /dev/sda -- mkpart primary fat32 8GiB 8.5GiB && \
+     sudo parted /dev/sda -- set 2 boot on && \
+     sudo parted /dev/sda -- mkpart primary ext4 8.5GiB 100% && \
+     sudo mkswap /dev/sda1 && sudo swapon /dev/sda1 && \
+     sudo mkfs.fat -F 32 /dev/sda2 && \
+     sudo mkfs.ext4 /dev/sda3 && \
+     sudo mount /dev/sda3 /mnt && \
+     sudo mkdir -p /mnt/boot && \
+     sudo mount /dev/sda2 /mnt/boot"
+
+   # 80GB HDD (scratch): /mnt/scratch (ext4)
+   ssh nixos@<IP> "sudo parted /dev/sdb -- mklabel msdos && \
+     sudo parted /dev/sdb -- mkpart primary ext4 1MiB 100% && \
+     sudo mkfs.ext4 /dev/sdb1 && \
+     sudo mkdir -p /mnt/scratch && \
+     sudo mount /dev/sdb1 /mnt/scratch"
    ```
 
 ### Phase 2: Transfer Secret Key
+`sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
+so the age key must be in place **before** installing:
 ```bash
 ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
 cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"

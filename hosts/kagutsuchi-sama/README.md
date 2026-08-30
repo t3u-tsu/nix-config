@@ -12,16 +12,32 @@ This host is a high-power tower server used for heavy workloads and compute task
 
 ## Installation Guide
 
-Run these commands from the NixOS Installer environment:
+Run these commands from the NixOS Installer environment (via SSH).
 
-1. **Format and Mount Disks:**
+1. **Partition and Mount Disks** (layout defined in `hardware.nix`; verify device names with `lsblk`):
    ```bash
-   ssh -t root@<ip> "nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko -- \
-     --mode destroy,format,mount \
-     --flake github:t3u-tsu/nix-config#kagutsuchi-sama"
+   # 500GB SSD (system): /boot (vfat), / (ext4)
+   ssh root@<ip> "parted /dev/sda -- mklabel gpt && \
+     parted /dev/sda -- mkpart ESP fat32 1MiB 512MiB && \
+     parted /dev/sda -- set 1 esp on && \
+     parted /dev/sda -- mkpart primary ext4 512MiB 100% && \
+     mkfs.fat -F 32 /dev/sda1 && \
+     mkfs.ext4 /dev/sda2 && \
+     mount /dev/sda2 /mnt && \
+     mkdir -p /mnt/boot && \
+     mount /dev/sda1 /mnt/boot"
+
+   # 3TB HDD (data): /mnt/data (ext4)
+   ssh root@<ip> "parted /dev/sdb -- mklabel gpt && \
+     parted /dev/sdb -- mkpart primary ext4 1MiB 100% && \
+     mkfs.ext4 /dev/sdb1 && \
+     mkdir -p /mnt/data && \
+     mount /dev/sdb1 /mnt/data"
    ```
 
 2. **Place SOPS Key:** (CRITICAL for password management)
+   `sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
+   so the age key must be in place **before** installing:
    ```bash
    ssh root@<ip> "mkdir -p /mnt/var/lib/sops-nix"
    cat ~/.config/sops/age/keys.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"
