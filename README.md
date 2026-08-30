@@ -74,6 +74,13 @@ The `sandbox false` / `filter-syscalls false` flags are required because the
 Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` support (see the
 troubleshooting section in `hosts/torii-chan/README.md`).
 
+## Adding a New Host
+
+Copy the skeleton in [`hosts/_template/`](hosts/_template) and follow the
+step-by-step guide in [`hosts/README.md`](hosts/README.md) — it covers
+registration in `flake/hosts.nix`, SOPS key setup and Nebula certificate
+signing/import, validation, deployment, and the PR flow.
+
 For more specific deployment details, check the respective README.md files in `hosts/`, `nixos/` and `home/`.
 
 ## CI/CD and Automation

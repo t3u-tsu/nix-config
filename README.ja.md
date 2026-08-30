@@ -74,6 +74,10 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 `user_namespaces` / `seccomp BPF` に対応していないため必要です
 （`hosts/torii-chan/README.md` のトラブルシューティング参照）．
 
+## 新規ホストの追加
+
+[`hosts/_template/`](hosts/_template) の雛形をコピーし，[`hosts/README.md`](hosts/README.md)（英語）のステップバイステップ手順に従ってください．`flake/hosts.nix` への登録，SOPS の鍵設定，Nebula 証明書の署名・import，検証，デプロイ，PR フローまでを扱っています．
+
 より詳細なデプロイ・運用方法については，`hosts/`，`nixos/`，`home/` 配下の各 `README.md`（英語）を参照してください．
 
 ## CI/CD と自動化

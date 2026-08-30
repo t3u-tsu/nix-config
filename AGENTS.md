@@ -161,9 +161,15 @@ hosts/<name>/default.nix（各ホストのエントリ）
 
 ### 新ホストを追加するとき
 
-1. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` を追加する（`profile` は必ず指定）
-2. `hosts/<name>/` に `default.nix` を作成する（必要に応じて `hardware.nix` / `services/` も）
-3. 検証する: `nix flake check` → `nixos-rebuild dry-activate --flake .#<name>`
+詳細手順書は `hosts/README.md`（SOPS / Nebula 含むエンドツーエンド）を参照し，「ユーザー承認」を必ず得ること．テンプレートは `hosts/_template/` をコピーして使う．
+
+1. `git checkout -b feat/add-<hostname>`
+2. `cp -r hosts/_template hosts/<hostname>` し，`HOSTNAME` プレースホルダ・`hardware.nix`（fileSystems/swap）・`services/nebula.nix`（IP/groups）を実機に合わせて編集
+3. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` を追加する（`profile` は必ず指定）
+4. SOPS: `.sops.yaml` に age 鍵を登録し `secrets/hosts/<hostname>.yaml` を作成，`sops updatekeys`（詳細は `hosts/README.md` / `secrets/README.md`）
+5. Nebula: 既存 CA で `nebula-cert sign` → `scripts/nebula-import-secrets.sh` の `HOSTS` 配列に追記して import（master 鍵が必要）
+6. 検証: `nix flake check` → `nixos-rebuild dry-activate --flake .#<name>`（dry-activate はユーザーが実行）
+7. 適用・PR は通常フロー（ユーザー承認必須）
 
 ### 新プロファイルを追加するとき
 
