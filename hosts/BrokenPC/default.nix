@@ -76,7 +76,6 @@
         amdgpuBusId = "PCI:7:0:0";
       };
     };
-    virtualisation.distrobox.enable = true;
     virtualisation.microvm.enable = true;
   };
 

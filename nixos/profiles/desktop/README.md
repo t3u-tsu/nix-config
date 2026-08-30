@@ -4,6 +4,7 @@ A role-based preset that bridges system-level services and user-level home confi
 
 ## Features
 
-- **Integrated Environment**: Combines Niri, Fcitx5, PipeWire, and common GUI apps.
+- **Integrated Environment**: Combines Niri, PipeWire, NetworkManager, gaming, and common GUI apps.
+- **Aggregate Flags**: `my.services.desktop.enable` and `my.home.desktop.enable` enable the whole desktop stack; individual sub-flags default to `true` and can be disabled per host.
 - **Declarative User Sync**: Automatically configures the primary user's environment (Home Manager) when the profile is enabled.
-- **Modular Enablement**: All desktop sub-categories (browsers, dev-tools, etc.) are enabled by default through this profile.
+- **Container Backing**: `my.virtualisation.distrobox.enable` (rootless podman) is enabled to support the Unity-via-Distrobox workflow.

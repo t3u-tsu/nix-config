@@ -11,4 +11,6 @@ This directory manages system-wide services and hardware integration for the des
 - **`thunar.nix`**: Thunar file manager with gvfs/tumbler/xfconf system services.
 - **`gaming.nix`**: Steam, GameMode, and performance-related gaming tools.
 - **`unity.nix`**: Unity Hub & Editor via Distrobox (system side: podman + rootless podman).
-- **`default.nix`**: Master index for importing all desktop-related services.
+- **`graphics.nix`**: Redistributable firmware and 32-bit GPU support.
+- **`networkmanager.nix`**: NetworkManager for desktop network management.
+- **`default.nix`**: Master index for importing all desktop-related services; defines the aggregate `my.services.desktop.enable` flag.
