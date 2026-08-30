@@ -45,7 +45,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/nebula-lib.sh"
 
 CA_NAME="t3u-home-ca"
-DURATION="8760h" # 1y, matches the existing CA convention
+DURATION="87600h" # 10y, avoids frequent CA rotations (node certs stay at whatever sign -duration says)
 
 # Union of every group used in the fleet; the CA must permit all of them.
 CA_GROUPS="$(for entry in "${FLEET[@]}"; do
