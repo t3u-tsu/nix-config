@@ -59,13 +59,20 @@ done
 # --- verify ----------------------------------------------------------------
 echo
 echo "All Nebula secrets imported. Verifying..."
+verify_failed=0
 for entry in "${FLEET[@]}"; do
   name="${entry%%|*}"
   file="$(host_secrets_file "$name")"
   prefix="$(host_key "$name")"
-  if sops --decrypt "$file" | grep -q "${prefix}_nebula_cert"; then
-    echo "  OK: $file (${prefix}_nebula_cert)"
+  if decrypted="$(sops --decrypt "$file" 2>/dev/null)"; then
+    if grep -q "${prefix}_nebula_cert" <<< "$decrypted"; then
+      echo "  OK: $file (${prefix}_nebula_cert)"
+    else
+      echo "  MISSING: $file (${prefix}_nebula_cert)" >&2
+      verify_failed=1
+    fi
   else
-    echo "  MISSING: $file (${prefix}_nebula_cert)" >&2
+    echo "  SKIP verify: $file (no decryption key available)" >&2
   fi
 done
+exit "$verify_failed"
