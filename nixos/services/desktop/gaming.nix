@@ -9,11 +9,16 @@
 with lib;
 let
   cfg = config.my.services.desktop.gaming;
+
+  # aagl's nixosModules.default == { imports = [ ./module ]; nixpkgs.overlays = [ self.overlays.default ]; }.
+  # Import the module unconditionally so it defines the
+  # programs.anime-game-launcher options, but only attach its overlay while
+  # gaming is enabled, so lightweight desktops do not evaluate the aagl
+  # package set. Mirrors the Chaotic-Nyx gating in the desktop profile.
+  aaglModule = inputs.aagl.nixosModules.default;
 in
 {
-  imports = [
-    inputs.aagl.nixosModules.default
-  ];
+  inherit (aaglModule) imports;
 
   options.my.services.desktop.gaming = {
     enable = mkEnableOption "System-wide gaming services (Steam, GameMode, aagl)";
@@ -30,6 +35,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Attach the aagl package overlay only while gaming is enabled (see
+    # aaglModule note above).
+    nixpkgs.overlays = aaglModule.nixpkgs.overlays;
+
     programs = {
       steam = {
         enable = true;
