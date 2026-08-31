@@ -60,7 +60,20 @@
   # - AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is only
   #   activated on demand via `nvidia-offload` (games/compute).
   # - `nvidia` is added to videoDrivers by the module (mkBefore).
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services = {
+    xserver.videoDrivers = [ "amdgpu" ];
+
+    # BrokenPC keeps using power-profiles-daemon (moved out of the desktop core
+    # so other hosts can opt into TLP instead).
+    power-profiles-daemon.enable = true;
+
+    # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
+    logind.settings.Login = {
+      HandleLidSwitch = "suspend";
+      HandleLidSwitchExternalPower = "lock";
+      HandleLidSwitchDocked = "ignore";
+    };
+  };
 
   my = {
     # Full desktop stack (gaming, Unity/Distrobox, creative, media, office)
@@ -104,13 +117,6 @@
       Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-path/pci-0000:01:00.0-card"
     '';
 
-  };
-
-  # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
-  services.logind.settings.Login = {
-    HandleLidSwitch = "suspend";
-    HandleLidSwitchExternalPower = "lock";
-    HandleLidSwitchDocked = "ignore";
   };
 
   networking.hostName = "BrokenPC";
