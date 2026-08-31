@@ -11,8 +11,6 @@
     ./hardware.nix
     ./services
     ../../nixos
-    # Generic laptop/SSD tuning from nixos-hardware (no-op where already
-    # configured: TLP is skipped while power-profiles-daemon is active).
     inputs.nixos-hardware.nixosModules.common-pc-laptop
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
@@ -63,8 +61,6 @@
   services = {
     xserver.videoDrivers = [ "amdgpu" ];
 
-    # BrokenPC keeps using power-profiles-daemon (moved out of the desktop core
-    # so other hosts can opt into TLP instead).
     power-profiles-daemon.enable = true;
 
     # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
@@ -76,7 +72,6 @@
   };
 
   my = {
-    # Full desktop stack (gaming, Unity/Distrobox, creative, media, office)
     desktop.full.enable = true;
 
     hardware.nvidia = {
@@ -98,7 +93,6 @@
     };
     virtualisation.microvm.enable = true;
 
-    # bluez experimental features (LE Audio); daemon is in the desktop core.
     services.desktop.bluetooth.experimental = true;
   };
 
