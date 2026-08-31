@@ -59,7 +59,6 @@ in
     services = {
       dbus.enable = true;
       upower.enable = true;
-      power-profiles-daemon.enable = true;
     };
 
     # Enable brightness and volume control via dbus/logind for non-root access
