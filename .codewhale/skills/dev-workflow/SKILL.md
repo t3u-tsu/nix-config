@@ -1,13 +1,13 @@
 ---
 name: dev-workflow
-description: このリポジトリで変更を適用する一連の手順．ブランチ作成から実装，検証，nixos-rebuild switch，コミット，PR 作成・マージまで．変更作業を開始するとき，または PR を出すときに使用する．
+description: このリポジトリで設定変更を適用するときの手順．ブランチ作成から検証，nixos-rebuild switch，コミット，PR 作成・マージまで．変更作業を開始するとき，または PR を出すときに使用する．
 ---
 
 # 変更・適用手順
 
 1. **ブランチ作成**: 大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は `git checkout -b feat/topic-name` でブランチを作成してから実装する．パッケージ1つ追加のような小さな変更は `main` で直接作業してよい．
 
-2. **実装**: 必要な Nix ファイルや設定ファイルを編集する．
+2. **実装**: 必要な Nix ファイルや設定ファイルを編集する．秘密情報を変更する場合は `sops` で編集する（`sops secrets/secrets.yaml`，詳細は `secrets/README.md`）．
 
 3. **検証**
    ```bash
@@ -19,12 +19,16 @@ description: このリポジトリで変更を適用する一連の手順．ブ�
    sudo nixos-rebuild dry-activate --flake .#BrokenPC
    ```
 
-4. **適用（ユーザー承認必須）**: 適用前にユーザーへ確認し，承認を得てから実行する．
+4. **適用**: ユーザー承認を得てから実行する．
    ```bash
    sudo nixos-rebuild switch --flake .#BrokenPC
    ```
+   torii-chan へのリモートデプロイ（手動/SBC用）:
+   ```bash
+   nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+   ```
 
-5. **コミットとプッシュ**
+5. **コミットとプッシュ**（コミットメッセージは英語，Conventional Commits 準拠）
    ```bash
    git add -A
    git commit -m "feat: topic description"
@@ -47,8 +51,3 @@ description: このリポジトリで変更を適用する一連の手順．ブ�
    git checkout main
    git pull origin main
    ```
-
-## 注意
-
-- `main` へのマージ，リモート `main` へのプッシュ，`nixos-rebuild switch` はすべてユーザー承認が必要．
-- コミットメッセージは英語，Conventional Commits 準拠．

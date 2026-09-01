@@ -14,4 +14,4 @@
 
 ## 手順
 
-変更・適用の一連の手順は `dev-workflow` スキル，パッケージ・モジュールの追加場所は `editing-guide` スキル，新ホスト追加は `new-host` スキル（詳細は `hosts/README.md`），キャッシュ設定は `nix-cache-optimization` スキル，コマンド集は `useful-commands` スキルを参照．設計リファレンスは `docs/architecture.md`．
+変更・適用の一連の手順は `dev-workflow` スキル，パッケージ・モジュールの追加場所は `editing-guide` スキル，新ホスト追加は `new-host` スキル（詳細は `hosts/README.md`），キャッシュ設定は `nix-cache-optimization` スキルを参照．秘密情報の扱いは `secrets/README.md`．設計リファレンスは `docs/architecture.md`．
