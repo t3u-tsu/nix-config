@@ -5,7 +5,7 @@
 ## 基本ルール
 
 - **ブランチ**: 大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は `feat/`・`fix/`・`refactor/`・`docs/`・`chore/` のブランチで行う．パッケージ1つ追加のような小さな変更は `main` に直接コミット・push してよい．GitHub Actions の auto-update が `nvfetcher` と `flake.lock` を `main` へ直接コミットするのは例外．
-- **ブランチ名**: Conventional Commits の型に合わせる．新たな型を追加する場合は `.github/workflows/nix-check.yml` の push 対象と `flake.nix` の pre-commit hooks（convco）を同時に更新する．
+- **ブランチ名**: Conventional Commits の型に合わせる．新たな型を追加する場合は `.github/workflows/nix-check.yml` の push 対象と `flake/dev.nix` の pre-commit hooks（convco）を同時に更新する．
 - **言語**: ユーザーへの報告は日本語．コードコメントとコミットメッセージは英語．エージェント運用ドキュメント（本ファイル・`docs/`・`.codewhale/`）は日本語．ルートの `README.md` / `README.ja.md` は常に同期して更新し，サブディレクトリの `README.md` は英語のみ．
 - **コメント**: コード内コメントは基本的に付けない．後から参照したときに，コードのみでは意図を読めず困る場合のみ1〜2行程度付ける．
 - **コミット**: Conventional Commits 準拠．変更の詳細はコミットメッセージと PR の説明に書く．
