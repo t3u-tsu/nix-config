@@ -25,9 +25,9 @@ The steps below cover the full path from skeleton to merged PR.
 
 ### 1. Branch
 
-```bash
-git checkout -b feat/add-<hostname>   # or fix/…, chore/…, docs/…
-```
+Use `feat/add-<hostname>` (or `fix/…`, `chore/…`, `docs/…`) as the branch
+name. Branch, commit, push, PR, and merge follow the standard workflow in
+`AGENTS.md` / `.codewhale/skills/dev-workflow/`.
 
 ### 2. Skeleton
 
@@ -154,13 +154,9 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 
 ### 8. Commit & PR
 
-```bash
-git add -A
-git commit -m "feat: add <hostname> host"
-git push origin feat/add-<hostname>
-# PR via gh (body via --body-file, see AGENTS.md), CI check, merge, then:
-git checkout main && git pull origin main
-```
+Commit, push, PR via `gh` (body via `--body-file`), CI check, merge, and
+main sync follow the standard workflow — see `AGENTS.md` /
+`.codewhale/skills/dev-workflow/`.
 
 ## Notes
 

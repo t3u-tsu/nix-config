@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "branch_policy": "大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は feat/ fix/ refactor/ docs/ chore/ のブランチで行う．パッケージ1つ追加のような小さな変更は main へ直接コミット・push してよい．main へのマージ・リモート main へのプッシュはユーザー承認を得たうえで行う．",
+  "protected_invariants": [
+    {
+      "text": "secrets/ と .sops.yaml は sops コマンドでのみ編集する．直接の書き込みは承認を求める．",
+      "paths": ["secrets/**", ".sops.yaml"],
+      "action": "ask"
+    }
+  ],
+  "escalate_when": [
+    "main へのマージまたはリモート main へのプッシュ",
+    "nixos-rebuild switch の適用",
+    "新ホストの追加（SOPS / Nebula 設定を含む）",
+    "シークレット・認証情報の変更"
+  ],
+  "verification_policy": {
+    "before_claiming_done": [
+      "nix flake check で pre-commit（nixfmt / statix / convco）が通ること",
+      "nix build .#nixosConfigurations.BrokenPC.config.system.build.toplevel でビルド確認ができること",
+      "git status と diff を確認し，意図しない変更が含まれていないこと"
+    ]
+  }
+}
