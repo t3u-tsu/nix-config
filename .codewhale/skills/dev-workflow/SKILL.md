@@ -5,7 +5,7 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 # 変更・適用手順
 
-1. **ブランチ作成**: 大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は `git checkout -b feat/topic-name` でブランチを作成してから実装する．パッケージ1つ追加のような小さな変更は `main` で直接作業してよい．
+1. **ブランチ作成**: どの作業でブランチを切るかは AGENTS.md の基本ルールに従う．ブランチを切る場合は `git checkout -b feat/topic-name` を実行する．
 
 2. **実装**: 必要な Nix ファイルや設定ファイルを編集する．秘密情報を変更する場合は `sops` で編集する（`sops secrets/secrets.yaml`，詳細は `secrets/README.md`）．
 
