@@ -2,7 +2,12 @@ result
 result-*
 
 .antigravitycli
-.codewhale
+
+# codewhale: constitution.json と skills/ のみ git 管理する
+.codewhale/*
+!.codewhale/constitution.json
+!.codewhale/skills/
+
 .deepseek
 
 # direnv
