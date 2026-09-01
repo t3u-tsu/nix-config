@@ -1,6 +1,6 @@
 ---
 name: new-host
-description: 新ホストを追加するときの手順．テンプレートのコピーから SOPS・Nebula 設定，flake/hosts.nix への登録，検証まで．詳細は hosts/README.md を参照．
+description: 新ホストを追加するときの手順．
 ---
 
 # 新ホストを追加するとき

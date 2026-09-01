@@ -1,6 +1,6 @@
 ---
 name: nix-cache-optimization
-description: 外部 Flake パッケージ導入時の follows 制約と，extra-substituters の priority 設定について．ビルドがキャッシュから取得できず重いコンパイルが走るときに参照する．
+description: 外部 Flake パッケージ導入時の follows 制約と，extra-substituters の priority 設定について．外部 Flake や extra-substituters 等を追加するときや，ビルドがキャッシュから取得できず重いコンパイルが走るときに参照する．
 ---
 
 # Nix キャッシュ最適化

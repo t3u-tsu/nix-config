@@ -1,6 +1,6 @@
 ---
 name: dev-workflow
-description: このリポジトリで設定変更を適用するときの手順．ブランチ作成から検証，nixos-rebuild switch，コミット，PR 作成・マージまで．変更作業を開始するとき，または PR を出すときに使用する．
+description: このリポジトリで設定変更を適用するときの手順．変更作業を開始するとき使用する．
 ---
 
 # 変更・適用手順
@@ -15,15 +15,17 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
    pre-commit の nixfmt / statix / convco を通すこと．statix W:20 を避けるため，同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．
 
+   設定がビルドできることを確認する場合:
    ```bash
-   sudo nixos-rebuild dry-activate --flake .#BrokenPC
+   nix build .#nixosConfigurations.BrokenPC.config.system.build.toplevel
    ```
 
-4. **適用**: ユーザー承認を得てから実行する．
+4. **適用**: `sudo` を要する操作はエージェントが実行できないため，ユーザーが実行する．
    ```bash
+   sudo nixos-rebuild dry-activate --flake .#BrokenPC
    sudo nixos-rebuild switch --flake .#BrokenPC
    ```
-   torii-chan へのリモートデプロイ（手動/SBC用）:
+   torii-chan へのリモートデプロイ（手動/SBC用，ユーザー実行）:
    ```bash
    nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
    ```
@@ -45,7 +47,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    EOF
    gh pr create --title "feat: topic description" --body-file /tmp/pr-body.md
    ```
-   マージ前に `gh pr checks` で `nix flake check` の結果を確認するのが推奨．CI が重いため，即マージを優先するなら CI 完了を待たず進めてもよいが，リスクを避けたい場合は `PASS` を待つのを推奨．どちらの運用にするかはその都度ユーザーと合意する．
+   マージ前に `gh pr checks` で `nix flake check` の結果を確認することを推奨．即マージを優先するなら CI 完了を待たず進めてもよいが，リスクを避けたい場合は `PASS` を待つのを推奨．どちらの運用にするかはその都度ユーザーと合意する．
    ```bash
    gh pr merge --merge --delete-branch
    git checkout main
