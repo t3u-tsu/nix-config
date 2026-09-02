@@ -53,6 +53,9 @@
   # → dGPU core fault (texture upload path), not VRAM, not driver-only.
   # Workaround: nvidiaOffload is DISABLED; run games on the AMD iGPU.
   # Re-enable nvidiaOffload after the dGPU is repaired/replaced.
+  # Note: CUDA inference (llama.cpp etc.) still works on the dGPU.
+  # CUDA-enabled package builds target the RTX 3050 Ti (SM 8.6).
+  nixpkgs.config.cudaCapabilities = [ "8.6" ];
 
   # GPU Configuration (Battery-first: PRIME offload)
   # - AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is only
