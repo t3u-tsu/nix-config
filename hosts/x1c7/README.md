@@ -77,9 +77,9 @@ nix-shell -p ssh-to-age --command 'ssh-to-age -i /mnt/etc/ssh/ssh_host_ed25519_k
 ### 4. Partition & mount
 ```bash
 sudo parted /dev/nvme0n1 -- mklabel gpt
-sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
+sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 2GiB
 sudo parted /dev/nvme0n1 -- set 1 esp on
-sudo parted /dev/nvme0n1 -- mkpart primary ext4 512MiB 100%
+sudo parted /dev/nvme0n1 -- mkpart primary ext4 2GiB 100%
 sudo mkfs.fat -F 32 /dev/nvme0n1p1
 sudo mkfs.ext4 /dev/nvme0n1p2
 sudo mount /dev/nvme0n1p2 /mnt
