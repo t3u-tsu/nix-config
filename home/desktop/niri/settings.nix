@@ -23,7 +23,7 @@
       };
 
       cursor = {
-        theme = "Dracula-cursors";
+        theme = "Bibata-Modern-Amber";
         size = 24;
       };
 
