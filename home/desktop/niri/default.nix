@@ -1,4 +1,3 @@
-# home/desktop/niri/default.nix - Niri WM + Noctalia shell configuration
 {
   config,
   lib,
@@ -18,11 +17,8 @@ in
 
   config = mkIf cfg.enable {
     programs.niri.settings = {
-      # Ask apps to use server-side decorations (strips CSD title bars;
-      # companion to button-layout removal in theme.nix)
       prefer-no-csd = true;
 
-      # Default new window width: half the screen (niri's stock default)
       layout = {
         default-column-width = {
           proportion = 0.5;
@@ -65,7 +61,6 @@ in
         }
       ];
 
-      # Window appearance
       window-rules = [
         {
           geometry-corner-radius = {
@@ -86,14 +81,14 @@ in
             fixed = 920;
           };
         }
-        # Zen Browser (beta) opens at full column width
+        # Zen Browser
         {
           matches = [ { app-id = "^zen(-beta)?$"; } ];
           default-column-width = {
             proportion = 1.0;
           };
         }
-        # Vesktop opens at full column width
+        # Vesktop
         {
           matches = [ { app-id = "^(vesktop|Vesktop)$"; } ];
           default-column-width = {
@@ -102,7 +97,7 @@ in
         }
       ];
 
-      # Backdrop integration
+      # Backdrop
       layer-rules = [
         {
           matches = [ { namespace = "^noctalia-backdrop"; } ];
@@ -115,10 +110,9 @@ in
         honor-xdg-activation-with-invalid-serial = true;
       };
 
-      # Niri Navigation & Window Management Keybindings (Standard Defaults)
       binds = {
         # Help Menu
-        "Mod+Shift+Slash".action.show-hotkey-overlay = { };
+        "Mod+Slash".action.show-hotkey-overlay = { };
 
         # Core Applications
         "Mod+Return".action.spawn = [ "ghostty" ];
@@ -207,24 +201,24 @@ in
         "Mod+Alt+K".action.move-window-up = { };
 
         # Focus Monitor
-        "Mod+Shift+Left".action.focus-monitor-left = { };
-        "Mod+Shift+Right".action.focus-monitor-right = { };
-        "Mod+Shift+Down".action.focus-monitor-down = { };
-        "Mod+Shift+Up".action.focus-monitor-up = { };
-        "Mod+Shift+H".action.focus-monitor-left = { };
-        "Mod+Shift+L".action.focus-monitor-right = { };
-        "Mod+Shift+J".action.focus-monitor-down = { };
-        "Mod+Shift+K".action.focus-monitor-up = { };
+        "Mod+Ctrl+Left".action.focus-monitor-left = { };
+        "Mod+Ctrl+Right".action.focus-monitor-right = { };
+        "Mod+Ctrl+Down".action.focus-monitor-down = { };
+        "Mod+Ctrl+Up".action.focus-monitor-up = { };
+        "Mod+Ctrl+H".action.focus-monitor-left = { };
+        "Mod+Ctrl+L".action.focus-monitor-right = { };
+        "Mod+Ctrl+J".action.focus-monitor-down = { };
+        "Mod+Ctrl+K".action.focus-monitor-up = { };
 
         # Move Column to Monitor
-        "Mod+Alt+Shift+Left".action.move-column-to-monitor-left = { };
-        "Mod+Alt+Shift+Right".action.move-column-to-monitor-right = { };
-        "Mod+Alt+Shift+Down".action.move-column-to-monitor-down = { };
-        "Mod+Alt+Shift+Up".action.move-column-to-monitor-up = { };
-        "Mod+Alt+Shift+H".action.move-column-to-monitor-left = { };
-        "Mod+Alt+Shift+L".action.move-column-to-monitor-right = { };
-        "Mod+Alt+Shift+J".action.move-column-to-monitor-down = { };
-        "Mod+Alt+Shift+K".action.move-column-to-monitor-up = { };
+        "Mod+Alt+Ctrl+Left".action.move-column-to-monitor-left = { };
+        "Mod+Alt+Ctrl+Right".action.move-column-to-monitor-right = { };
+        "Mod+Alt+Ctrl+Down".action.move-column-to-monitor-down = { };
+        "Mod+Alt+Ctrl+Up".action.move-column-to-monitor-up = { };
+        "Mod+Alt+Ctrl+H".action.move-column-to-monitor-left = { };
+        "Mod+Alt+Ctrl+L".action.move-column-to-monitor-right = { };
+        "Mod+Alt+Ctrl+J".action.move-column-to-monitor-down = { };
+        "Mod+Alt+Ctrl+K".action.move-column-to-monitor-up = { };
 
         # Workspace switching (1-9)
         "Mod+1".action.focus-workspace = 1;
@@ -244,15 +238,15 @@ in
         "Mod+Page_Up".action.focus-workspace-up = { };
 
         # Move Column to Workspace (1-9)
-        "Mod+Shift+1".action.move-column-to-workspace = 1;
-        "Mod+Shift+2".action.move-column-to-workspace = 2;
-        "Mod+Shift+3".action.move-column-to-workspace = 3;
-        "Mod+Shift+4".action.move-column-to-workspace = 4;
-        "Mod+Shift+5".action.move-column-to-workspace = 5;
-        "Mod+Shift+6".action.move-column-to-workspace = 6;
-        "Mod+Shift+7".action.move-column-to-workspace = 7;
-        "Mod+Shift+8".action.move-column-to-workspace = 8;
-        "Mod+Shift+9".action.move-column-to-workspace = 9;
+        "Mod+Ctrl+1".action.move-column-to-workspace = 1;
+        "Mod+Ctrl+2".action.move-column-to-workspace = 2;
+        "Mod+Ctrl+3".action.move-column-to-workspace = 3;
+        "Mod+Ctrl+4".action.move-column-to-workspace = 4;
+        "Mod+Ctrl+5".action.move-column-to-workspace = 5;
+        "Mod+Ctrl+6".action.move-column-to-workspace = 6;
+        "Mod+Ctrl+7".action.move-column-to-workspace = 7;
+        "Mod+Ctrl+8".action.move-column-to-workspace = 8;
+        "Mod+Ctrl+9".action.move-column-to-workspace = 9;
 
         # Move Column to Workspace (Down/Up)
         "Mod+Alt+U".action.move-column-to-workspace-down = { };
@@ -261,10 +255,10 @@ in
         "Mod+Alt+Page_Up".action.move-column-to-workspace-up = { };
 
         # Move Workspace (Down/Up)
-        "Mod+Shift+U".action.move-workspace-down = { };
-        "Mod+Shift+I".action.move-workspace-up = { };
-        "Mod+Shift+Page_Down".action.move-workspace-down = { };
-        "Mod+Shift+Page_Up".action.move-workspace-up = { };
+        "Mod+Ctrl+U".action.move-workspace-down = { };
+        "Mod+Ctrl+I".action.move-workspace-up = { };
+        "Mod+Ctrl+Page_Down".action.move-workspace-down = { };
+        "Mod+Ctrl+Page_Up".action.move-workspace-up = { };
 
         # Consume/Expel windows to/from column
         "Mod+BracketLeft".action.consume-or-expel-window-left = { };
@@ -272,21 +266,22 @@ in
 
         # Resize modes & Preset sizes
         "Mod+R".action.switch-preset-column-width = { };
-        "Mod+Shift+R".action.switch-preset-column-width-back = { };
+        "Mod+Ctrl+R".action.switch-preset-column-width-back = { };
         "Mod+M".action.maximize-column = { };
         "Mod+Shift+F".action.fullscreen-window = { };
         "Mod+C".action.center-column = { };
+        "Mod+W".action.toggle-column-tabbed-display = { };
 
         # Manual resizing
         "Mod+Minus".action.set-column-width = "-10%";
         "Mod+Equal".action.set-column-width = "+10%";
         "Mod+Shift+Minus".action.set-window-height = "-10%";
         "Mod+Shift+Equal".action.set-window-height = "+10%";
-        "Mod+Ctrl+R".action.reset-window-height = { };
+        "Mod+Shift+R".action.reset-window-height = { };
 
         # Floating window settings
         "Mod+V".action.toggle-window-floating = { };
-        "Mod+Shift+V".action.switch-focus-between-floating-and-tiling = { };
+        "Mod+Ctrl+V".action.switch-focus-between-floating-and-tiling = { };
 
         # Screenshots
         "Print".action.screenshot = {
