@@ -45,7 +45,6 @@ in
             builtin_ids = [ "ghostty" ];
             enable_community_templates = true;
             community_ids = [
-              "neovim"
               "discord"
               "lazygit"
               "obs"
