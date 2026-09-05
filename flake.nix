@@ -41,8 +41,6 @@
     # niri / noctalia / noctalia-greeter / ghostty: no follows to keep the
     # upstream Cachix binary cache hash-matching.
     niri.url = "github:sodiboo/niri-flake";
-    # Official Niri compositor package source (via overlays.default).
-    niri-wm.url = "github:niri-wm/niri";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
     ghostty.url = "github:ghostty-org/ghostty";

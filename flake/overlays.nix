@@ -4,14 +4,8 @@
     # Minecraft server overlay
     inputs.nix-minecraft.overlay
 
-    # nixos-26.05 keeps libdisplay-info 0.3.0 under the unversioned name;
-    # niri-wm's package expression expects the libdisplay-info_0_3 attr.
-    (final: prev: {
-      libdisplay-info_0_3 = prev.libdisplay-info;
-    })
-
-    # Niri compositor (official package, from niri-wm/niri)
-    inputs.niri-wm.overlays.default
+    # Niri compositor (from niri-flake)
+    inputs.niri.overlays.niri
 
     # Ghostty terminal
     (final: prev: {
