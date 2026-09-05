@@ -38,13 +38,12 @@ in
           community_palette = "Vesper";
           pure_black_dark = false;
 
-          # Sync the shell palette into other apps.
+          # Sync the shell palette into other apps. Templates known to fail on
+          # this setup (flatpak-based or read-only config dirs) are omitted.
           templates = {
             enable_builtin_templates = true;
             builtin_ids = [
               "ghostty"
-              "gtk3"
-              "gtk4"
               "qt"
             ];
             enable_community_templates = true;
@@ -53,15 +52,7 @@ in
               "discord"
               "lazygit"
               "zen-browser"
-              "fcitx5"
               "spicetify"
-              "libreoffice"
-              "gimp"
-              "blender"
-              "obs"
-              "steam"
-              "heroiclauncher"
-              "prismlauncher"
             ];
           };
         };
@@ -87,25 +78,26 @@ in
             recursive = true;
           };
 
-          # Wallpaper+theme presets from the picker's Favorites.
+          # Wallpaper presets from the picker's Favorites. All presets keep
+          # the Vesper palette so picking a wallpaper never changes the theme.
           favorite = [
             {
               path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/114631433_p0.jpg";
               theme_mode = "dark";
-              palette_source = "builtin";
-              builtin_palette = "Dracula";
+              palette_source = "community";
+              community_palette = "Vesper";
             }
             {
               path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/117227185_p0.jpg";
               theme_mode = "dark";
-              palette_source = "wallpaper";
-              wallpaper_scheme = "m3-content";
+              palette_source = "community";
+              community_palette = "Vesper";
             }
             {
               path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/123276015_p0.jpg";
               theme_mode = "dark";
-              palette_source = "builtin";
-              builtin_palette = "Catppuccin";
+              palette_source = "community";
+              community_palette = "Vesper";
             }
           ];
         };

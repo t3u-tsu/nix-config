@@ -20,10 +20,13 @@ in
       dracula-icon-theme
     ];
 
-    # GTK: cursor & icons stay Dracula; GTK/Qt color now comes from
-    # Noctalia app-theming templates (gtk3/gtk4/qt).
+    # GTK theme stays Dracula (Noctalia gtk templates do not apply on this setup).
     gtk = {
       enable = true;
+      theme = {
+        name = "Dracula";
+        package = pkgs.dracula-theme;
+      };
       iconTheme = {
         name = "Dracula";
         package = pkgs.dracula-icon-theme;
