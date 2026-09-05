@@ -15,6 +15,12 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
    pre-commit の nixfmt / statix / convco を通すこと．statix W:20 を避けるため，同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．
 
+   nixfmt を直接実行する場合は**ファイル単位**で指定する（`nix fmt` はフレーク全体を対象にするため使わない）:
+   ```bash
+   nixfmt --check <file>
+   nixfmt <file>
+   ```
+
    設定がビルドできることを確認する場合:
    ```bash
    nix build .#nixosConfigurations.BrokenPC.config.system.build.toplevel
