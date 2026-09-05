@@ -11,7 +11,7 @@ keys:
   - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
   - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
   - &brokenpc        age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk
-  - &x1c7            age1zyeeewu0fm5d92ljwn4xxwlj8cagxgkyyrp3pyjskz7gqj6vkyvqyckaf9
+  - &x1c7            age1q2gscmkrdze86dyllp3h8x7j4t7duu903d3mt3p44jnq4c6ujcrq96nu37
 
 creation_rules:
   # 1. Host-specific secrets: [Master, Target Host]
