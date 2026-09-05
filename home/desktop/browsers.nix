@@ -231,25 +231,7 @@ in
         };
 
         # Noctalia Dynamic Theming Integration
-        userChrome = ''
-          /* Import Noctalia-generated colors */
-          @import url("file://${config.home.homeDirectory}/.cache/noctalia/colors.css");
-
-          :root {
-            --zen-primary-color: var(--noctalia-primary) !important;
-            --zen-secondary-color: var(--noctalia-secondary) !important;
-          }
-
-          /* Match Zen UI with Noctalia colors */
-          #zen-sidebar-content {
-            background-color: var(--noctalia-surface) !important;
-          }
-
-          .tab-content[selected="true"] {
-            background-color: var(--noctalia-primary-container) !important;
-            color: var(--noctalia-on-primary-container) !important;
-          }
-        '';
+        # Noctalia zen-browser template owns userChrome/userContent colors.
       };
     };
   };

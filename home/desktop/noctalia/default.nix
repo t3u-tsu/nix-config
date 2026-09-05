@@ -41,12 +41,27 @@ in
           # Sync the shell palette into other apps.
           templates = {
             enable_builtin_templates = true;
-            builtin_ids = [ "ghostty" ];
+            builtin_ids = [
+              "ghostty"
+              "gtk3"
+              "gtk4"
+              "qt"
+            ];
             enable_community_templates = true;
             community_ids = [
               "neovim"
               "discord"
               "lazygit"
+              "zen-browser"
+              "fcitx5"
+              "spicetify"
+              "libreoffice"
+              "gimp"
+              "blender"
+              "obs"
+              "steam"
+              "heroiclauncher"
+              "prismlauncher"
             ];
           };
         };

@@ -18,18 +18,12 @@ in
     home.packages = with pkgs; [
       dracula-theme
       dracula-icon-theme
-      dracula-qt5-theme
-      libsForQt5.qtstyleplugin-kvantum
-      kdePackages.qtstyleplugin-kvantum
     ];
 
-    # GTK Appearance (Dracula)
+    # GTK: cursor & icons stay Dracula; GTK/Qt color now comes from
+    # Noctalia app-theming templates (gtk3/gtk4/qt).
     gtk = {
       enable = true;
-      theme = {
-        name = "Dracula";
-        package = pkgs.dracula-theme;
-      };
       iconTheme = {
         name = "Dracula";
         package = pkgs.dracula-icon-theme;
@@ -62,13 +56,6 @@ in
       "org/gnome/desktop/wm/preferences" = {
         button-layout = ":";
       };
-    };
-
-    # Qt Appearance Integration via Kvantum (Superior for Dracula/Noctalia)
-    qt = {
-      enable = true;
-      platformTheme.name = "kvantum";
-      style.name = "kvantum";
     };
 
     # Cursor Theme (Dracula)

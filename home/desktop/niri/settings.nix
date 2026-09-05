@@ -12,6 +12,14 @@
         default-column-width = {
           proportion = 0.5;
         };
+        focus-ring = {
+          active = {
+            color = "#FFC799";
+          };
+          inactive = {
+            color = "#505050";
+          };
+        };
       };
 
       cursor = {
