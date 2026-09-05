@@ -102,6 +102,11 @@ hotkey-overlay {
 clipboard { disable-primary; }
 binds {
     Alt+Print { screenshot-window show-pointer=false; }
+    Mod+Ctrl+Shift+F { toggle-windowed-fullscreen; }
+    Mod+P repeat=false { spawn-sh "wl-mirror $(niri msg --json focused-output | jq -r .name)"; }
+    Mod+Shift+D { set-dynamic-cast-monitor; }
+    Mod+Shift+S { set-dynamic-cast-window; }
+    Mod+Shift+X { clear-dynamic-cast-target; }
     Alt+Tab { spawn "noctalia" "msg" "window-switcher"; }
     Ctrl+Alt+Delete { quit; }
     Ctrl+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
@@ -248,6 +253,20 @@ window-rule {
 window-rule {
     match app-id="^(org\\.xfce\\.thunar|thunar|Thunar)$"
     default-column-display "tabbed"
+}
+window-rule {
+    match is-window-cast-target=true
+    focus-ring {
+        active-color "#ff8080"
+        inactive-color "#7d0d2d"
+    }
+    border {
+        inactive-color "#7d0d2d"
+    }
+    tab-indicator {
+        active-color "#ff8080"
+        inactive-color "#7d0d2d"
+    }
 }
 layer-rule {
     match namespace="^noctalia-backdrop"
