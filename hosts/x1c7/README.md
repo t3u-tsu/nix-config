@@ -44,19 +44,70 @@ sudo nixos-rebuild switch --flake .#x1c7
 
 ## Installation (clean install)
 
-`hardware.nix` is generated on the machine with
-`nixos-generate-config --root /mnt --dir /tmp/nixos`; copy its
-`fileSystems` / `swapDevices` into `hosts/x1c7/hardware.nix`.
+This host is installed from the live USB. The steps below are the ones used to
+install x1c7.
 
-Boot the NixOS live USB, partition (GPT: ESP + root), mount, then:
+### 0. Boot & connect
+Boot the NixOS installer and connect to a network (Wi-Fi):
+```bash
+nmcli device wifi connect "<SSID>" password "<pass>"
+```
 
+### 1. Identify the disk
+```bash
+lsblk -o NAME,SIZE,PATH,TRAN
+```
+Expect a single NVMe device (`/dev/nvme0n1`).
+
+### 2. Fetch the repo
+```bash
+git clone -b feat/add-x1c7 https://github.com/t3u-tsu/nix-config.git /tmp/nix-config
+cd /tmp/nix-config
+```
+
+### 3. Pre-generate the SSH host key (SOPS age identity)
+The SOPS age identity is derived from the SSH host key, so generate it and print
+the age public key to register in `.sops.yaml`:
+```bash
+sudo mkdir -p /mnt/etc/ssh /mnt/var/lib/sops-nix
+sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+nix-shell -p ssh-to-age --command 'ssh-to-age -i /mnt/etc/ssh/ssh_host_ed25519_key.pub'
+```
+
+### 4. Partition & mount
+```bash
+sudo parted /dev/nvme0n1 -- mklabel gpt
+sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
+sudo parted /dev/nvme0n1 -- set 1 esp on
+sudo parted /dev/nvme0n1 -- mkpart primary ext4 512MiB 100%
+sudo mkfs.fat -F 32 /dev/nvme0n1p1
+sudo mkfs.ext4 /dev/nvme0n1p2
+sudo mount /dev/nvme0n1p2 /mnt
+sudo mkdir -p /mnt/boot
+sudo mount /dev/nvme0n1p1 /mnt/boot
+```
+
+### 5. Put the age secret in place
+```bash
+nix-shell -p ssh-to-age --command 'ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key' \
+  | sudo tee /mnt/var/lib/sops-nix/key.txt >/dev/null
+sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
+```
+
+### 6. Hardware config & install
+Generate `hardware.nix` on the machine and copy its `fileSystems` / `swapDevices`
+into `hosts/x1c7/hardware.nix`:
+```bash
+nixos-generate-config --root /mnt --dir /tmp/nixos
+```
+Then install:
 ```bash
 sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
 ```
 
-Before install, register the host's SSH-derived age key in SOPS (see
-`hosts/README.md`). The age secret must be reachable at install time, so derive
-it from the SSH host key the installed system will reuse.
+Register the host's SSH-derived age key in SOPS **before** install (see
+`hosts/README.md`); the age secret placed at `/mnt/var/lib/sops-nix/key.txt` must
+match the identity used to encrypt `secrets/hosts/x1c7.yaml`.
 
 See `hosts/README.md` for the full add-a-host workflow (SOPS / Nebula).
 
