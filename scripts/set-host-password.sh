@@ -38,8 +38,9 @@ us=$(mkpasswd -m sha-512 "$upass")
 rs=$(mkpasswd -m sha-512 "$rpass")
 unset upass rpass
 
-# For a new host, create an empty sops file (with metadata) first.
-if [[ ! -f "$file" ]]; then
+# Ensure the file exists and is a valid sops file (has sops metadata);
+# otherwise create it empty and encrypt it so sops set works.
+if [[ ! -f "$file" ]] || ! grep -q "sops:" "$file"; then
   printf '{}\n' > "$file"
   sops encrypt --in-place "$file"
 fi
