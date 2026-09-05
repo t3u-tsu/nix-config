@@ -31,9 +31,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # GTK platform theme so Qt apps (VLC etc.) follow the dark GTK theme.
-    qt.platformTheme = "gtk3";
-
     my = {
       services.desktop = {
         # Lightweight core: any desktop machine
