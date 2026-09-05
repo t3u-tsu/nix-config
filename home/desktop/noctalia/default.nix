@@ -49,6 +49,13 @@ in
               "qucs-s"
               "thunderbird"
             ];
+            show_app_actions = true;
+            sort_by_usage = true;
+          };
+
+          panel = {
+            transparency_mode = "glass";
+            list_item_background = true;
           };
         };
 
@@ -62,7 +69,11 @@ in
           # apply on this setup are enabled; Qt/Spicetify showed issues.
           templates = {
             enable_builtin_templates = true;
-            builtin_ids = [ "ghostty" ];
+            builtin_ids = [
+              "ghostty"
+              "starship"
+              "wezterm"
+            ];
             enable_community_templates = true;
             community_ids = [
               "discord"
@@ -192,6 +203,8 @@ in
           enable_daemon = true;
           position = "top_right";
           max_visible = 6;
+          layer = "overlay";
+          history_retention_hours = 168;
         };
 
         control_center = {
