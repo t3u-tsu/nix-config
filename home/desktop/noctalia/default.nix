@@ -37,6 +37,18 @@ in
           source = "community";
           community_palette = "Vesper";
           pure_black_dark = false;
+
+          # Sync the shell palette into other apps.
+          templates = {
+            enable_builtin_templates = true;
+            builtin_ids = [ "ghostty" ];
+            enable_community_templates = true;
+            community_ids = [
+              "neovim"
+              "discord"
+              "lazygit"
+            ];
+          };
         };
 
         wallpaper = {

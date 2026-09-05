@@ -22,7 +22,7 @@ in
 
       extraConfig = ''
         lua << EOF
-        local colors_file = os.getenv("HOME") .. "/.cache/noctalia/neovim-colors.lua"
+        local colors_file = os.getenv("HOME") .. "/.config/nvim/lua/matugen.lua"
         local f = io.open(colors_file, "r")
         if f then
           f:close()
