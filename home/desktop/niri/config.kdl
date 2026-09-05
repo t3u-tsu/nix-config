@@ -5,6 +5,23 @@ blur {
     saturation 1.5
 }
 
+animations {
+    window-open {
+        duration-ms 200
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 150
+        curve "ease-out-expo"
+    }
+    workspace-switch {
+        spring damping-ratio=0.9 stiffness=1000 epsilon=0.0001
+    }
+    overview-open-close {
+        spring damping-ratio=0.9 stiffness=1000 epsilon=0.0001
+    }
+}
+
 input {
     keyboard {
         xkb {
@@ -51,6 +68,13 @@ layout {
         urgent-color "#ff8080"
         active-color "#ffc799"
         inactive-color "#505050"
+    }
+    tab-indicator {
+        on
+        place-within-column
+        width 3
+        gap 4
+        hide-when-single-tab
     }
     default-column-width { proportion 0.500000; }
     preset-column-widths {
@@ -220,6 +244,10 @@ window-rule {
 window-rule {
     match app-id="^(vesktop|Vesktop)$"
     default-column-width { proportion 1.000000; }
+}
+window-rule {
+    match app-id="^(org\\.xfce\\.thunar|thunar)$"
+    default-column-display "tabbed"
 }
 layer-rule {
     match namespace="^noctalia-backdrop"
