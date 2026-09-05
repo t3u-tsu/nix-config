@@ -65,6 +65,22 @@
         "type": "github"
       }
     },
+    "comfy-theme": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1766671408,
+        "narHash": "sha256-sqvmSXJMLE2in/cB8ZIJE/t4J5D0PKRddWECdYJjgX0=",
+        "owner": "Comfy-Themes",
+        "repo": "Spicetify",
+        "rev": "32ff101e27cfd33d85b7cc587f7f95db6b2df8b0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Comfy-Themes",
+        "repo": "Spicetify",
+        "type": "github"
+      }
+    },
     "fenix": {
       "inputs": {
         "nixpkgs": [
@@ -726,6 +742,7 @@
         "aagl": "aagl",
         "chaotic": "chaotic",
         "codewhale": "codewhale",
+        "comfy-theme": "comfy-theme",
         "flake-parts": "flake-parts",
         "ghostty": "ghostty",
         "git-hooks": "git-hooks",

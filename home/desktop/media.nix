@@ -25,8 +25,11 @@ in
     # Noctalia (build-time embedding), so a dark theme is pinned.
     programs.spicetify = {
       enable = true;
-      theme = spicePkgs.themes.catppuccin;
-      colorScheme = "mocha";
+      theme = {
+        name = "Comfy";
+        src = "${inputs.comfy-theme}/Comfy";
+      };
+      colorScheme = "Comfy";
       enabledExtensions = with spicePkgs.extensions; [
         fullAppDisplay
         shuffle
