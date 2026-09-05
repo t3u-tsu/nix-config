@@ -11,6 +11,7 @@ keys:
   - &kagutsuchi_sama age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k
   - &sando_kun       age13cy8xpjuezt3mfkaqmtdf99r4cjywtxxwu4hrq0q875xwu62xvfq24ch6v
   - &brokenpc        age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk
+  - &x1c7            age1zyeeewu0fm5d92ljwn4xxwlj8cagxgkyyrp3pyjskz7gqj6vkyvqyckaf9
 
 creation_rules:
   # 1. Host-specific secrets: [Master, Target Host]
@@ -30,6 +31,9 @@ creation_rules:
   - path_regex: secrets/hosts/BrokenPC\.yaml$
     key_groups:
       - age: [*master_key, *brokenpc]
+  - path_regex: secrets/hosts/x1c7\.yaml$
+    key_groups:
+      - age: [*master_key, *x1c7]
 
   # 2. Service-specific secrets: [Master, User, Relevant Hosts]
   - path_regex: secrets/services/minecraft\.yaml$
@@ -51,4 +55,4 @@ creation_rules:
   # 3. Common secrets: [Master, User, All Hosts]
   - path_regex: secrets/common\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc]
+      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc, *x1c7]
