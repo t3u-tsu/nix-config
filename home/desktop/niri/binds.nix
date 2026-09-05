@@ -33,7 +33,7 @@
         "msg"
         "settings-toggle"
       ];
-      "Super+Alt+L".action.spawn = [
+      "Ctrl+Alt+L".action.spawn = [
         "noctalia"
         "msg"
         "session"
