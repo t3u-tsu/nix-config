@@ -77,8 +77,14 @@
   my = {
     desktop.full.enable = true;
 
-    services.desktop.greetd.greeterOutput = {
-      name = "eDP-1";
+    services = {
+      desktop = {
+        greetd.greeterOutput = {
+          name = "eDP-1";
+        };
+        greetd.greeterWallpaper = "/home/${config.my.user.name}/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
+        bluetooth.experimental = true;
+      };
     };
 
     hardware.nvidia = {
@@ -99,8 +105,6 @@
       };
     };
     virtualisation.microvm.enable = true;
-
-    services.desktop.bluetooth.experimental = true;
   };
 
   # Make the AMD iGPU the primary DRM renderer so the NVIDIA dGPU stays powered
