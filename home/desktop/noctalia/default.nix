@@ -49,6 +49,9 @@ in
               "discord"
               "lazygit"
               "zen-browser"
+              "obs"
+              "prismlauncher"
+              "heroiclauncher"
             ];
           };
         };
