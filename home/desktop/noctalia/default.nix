@@ -116,13 +116,13 @@ in
             ];
             center = [ "clock" ];
             end = [
+              "notifications"
+              "clipboard"
               "group:net_bt"
               "volume"
               "brightness"
               "caffeine"
               "group:power_battery"
-              "notifications"
-              "clipboard"
               "session"
             ];
             capsule_group = [
@@ -167,6 +167,9 @@ in
           };
           volume = {
             show_label = true;
+          };
+          privacy = {
+            hide_inactive = true;
           };
         };
 
