@@ -180,7 +180,13 @@ binds {
     XF86MonBrightnessUp { spawn "noctalia" "msg" "brightness-up"; }
 }
 spawn-at-startup "dbus-update-activation-environment" "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "NIXOS_OZONE_WL"
-window-rule { opacity 0.970000; }
+window-rule {
+    opacity 0.970000
+    background-effect {
+        xray true
+        blur true
+    }
+}
 window-rule {
     geometry-corner-radius 10.000000 10.000000 10.000000 10.000000
     clip-to-geometry true
@@ -197,9 +203,10 @@ window-rule {
     // Don't paint border/focus-ring as an opaque rect behind the window,
     // otherwise it blocks the translucency on unfocused windows.
     draw-border-with-background false
+    // Terminal stays crisp: no blur/xray (background effect on/off per-rule).
     background-effect {
-        xray true
-        blur true
+        xray false
+        blur false
     }
 }
 window-rule {
