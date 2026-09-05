@@ -41,15 +41,15 @@ layout {
         bottom 0
     }
     focus-ring {
-        width 2
+        width 4
         urgent-color "#ff8080"
-        active-color "#ffc79980"
+        active-color "#ffc799"
         inactive-color "#505050"
     }
     border {
-        width 1
+        width 2
         urgent-color "#ff8080"
-        active-color "#ffc79980"
+        active-color "#ffc799"
         inactive-color "#505050"
     }
     default-column-width { proportion 0.500000; }
