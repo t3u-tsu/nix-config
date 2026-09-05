@@ -61,6 +61,14 @@ in
       };
     };
 
+    # Qt follows the GTK (Dracula) theme so Qt apps (VLC etc.) stay dark.
+    qt = {
+      enable = true;
+      platformTheme = {
+        name = "gtk3";
+      };
+    };
+
     # Cursor Theme (Dracula)
     home = {
       pointerCursor = {

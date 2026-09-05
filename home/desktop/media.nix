@@ -21,14 +21,14 @@ in
   ];
 
   config = mkIf cfg.enable {
-    # Spicetify-nix: declarative Spotify customisation; theme color is
-    # supplied by the Noctalia spicetify template (palette stays in sync).
+    # Spicetify: declaratively-patched Spotify. No dynamic theme sync with
+    # Noctalia (build-time embedding), so a dark theme is pinned.
     programs.spicetify = {
       enable = true;
-
+      theme = spicePkgs.themes.default;
       enabledExtensions = with spicePkgs.extensions; [
         fullAppDisplay
-        shuffle # shuffle+
+        shuffle
         hidePodcasts
         adblock
       ];

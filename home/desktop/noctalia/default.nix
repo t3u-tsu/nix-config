@@ -38,21 +38,17 @@ in
           community_palette = "Vesper";
           pure_black_dark = false;
 
-          # Sync the shell palette into other apps. Templates known to fail on
-          # this setup (flatpak-based or read-only config dirs) are omitted.
+          # Sync the shell palette into other apps. Only templates verified to
+          # apply on this setup are enabled; Qt/Spicetify showed issues.
           templates = {
             enable_builtin_templates = true;
-            builtin_ids = [
-              "ghostty"
-              "qt"
-            ];
+            builtin_ids = [ "ghostty" ];
             enable_community_templates = true;
             community_ids = [
               "neovim"
               "discord"
               "lazygit"
               "zen-browser"
-              "spicetify"
             ];
           };
         };
@@ -77,29 +73,6 @@ in
             order = "random";
             recursive = true;
           };
-
-          # Wallpaper presets from the picker's Favorites. All presets keep
-          # the Vesper palette so picking a wallpaper never changes the theme.
-          favorite = [
-            {
-              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/114631433_p0.jpg";
-              theme_mode = "dark";
-              palette_source = "community";
-              community_palette = "Vesper";
-            }
-            {
-              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/117227185_p0.jpg";
-              theme_mode = "dark";
-              palette_source = "community";
-              community_palette = "Vesper";
-            }
-            {
-              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/123276015_p0.jpg";
-              theme_mode = "dark";
-              palette_source = "community";
-              community_palette = "Vesper";
-            }
-          ];
         };
 
         backdrop = {
