@@ -38,15 +38,13 @@ us=$(mkpasswd -m sha-512 "$upass")
 rs=$(mkpasswd -m sha-512 "$rpass")
 unset upass rpass
 
-# Ensure the file exists and is a valid sops file (has sops metadata);
-# otherwise create it empty and encrypt it so sops set works.
-if [[ ! -f "$file" ]] || ! grep -q "sops:" "$file"; then
-  printf '{}\n' > "$file"
-  sops encrypt --in-place "$file"
-fi
-
-sops set "$file" "[\"${hostkey}_t3u_password_hash\"]" "\"$us\""
-sops set "$file" "[\"${hostkey}_root_password_hash\"]" "\"$rs\""
+# Build the plaintext YAML and encrypt it in-place. We can't use `sops set`:
+# it has to decrypt the file first, but the operator side lacks the host-only
+# age identity (host-specific secrets exclude the user key). Encrypting from
+# plaintext only needs the public keys.
+printf '%s_t3u_password_hash: "%s"\n%s_root_password_hash: "%s"\n' \
+  "$hostkey" "$us" "$hostkey" "$rs" > "$file"
+sops encrypt --in-place "$file"
 unset us rs
 
 echo "OK: set ${hostkey}_t3u_password_hash / ${hostkey}_root_password_hash in ${file}"
