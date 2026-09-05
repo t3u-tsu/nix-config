@@ -94,9 +94,10 @@ in
           tint_intensity = 0.3;
         };
 
-        # Top bar: workspaces and launcher on the left; clock centered; network,
-        # bluetooth, volume, brightness, power profile, battery and power on
-        # the right end (right-most is power).
+        # Top bar: launcher, workspaces, clipboard and wallpaper on the left;
+        # clock and notifications centered; network, bluetooth, privacy, volume,
+        # brightness, sysmon, power profile, battery, caffeine, power on the
+        # right end (right-most is power).
         bar = {
           default = {
             position = "top";
@@ -109,14 +110,24 @@ in
             capsule = true;
             start = [
               "launcher"
+              "wallpaper"
               "workspaces"
+              "sysmon"
+              "privacy"
             ];
-            center = [ "clock" ];
+            center = [
+              "spacer"
+              "spacer"
+              "clock"
+              "notifications"
+              "clipboard"
+            ];
             end = [
               "network"
               "bluetooth"
               "volume"
               "brightness"
+              "caffeine"
               "power_profile"
               "battery"
               "session"
