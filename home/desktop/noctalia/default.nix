@@ -34,8 +34,8 @@ in
 
         theme = {
           mode = "dark";
-          source = "builtin";
-          builtin = "Dracula";
+          source = "community";
+          community_palette = "Vesper";
           pure_black_dark = false;
         };
 
@@ -55,7 +55,7 @@ in
           # Rotate through the folder on an interval (slideshow).
           automation = {
             enabled = true;
-            interval_seconds = 900;
+            interval_seconds = 300;
             order = "random";
             recursive = true;
           };
