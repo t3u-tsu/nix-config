@@ -94,17 +94,55 @@ in
           tint_intensity = 0.3;
         };
 
-        # Top bar with launcher / workspaces / clock / session controls.
+        # Top bar: launcher on the left, workspaces centered, status widgets
+        # (clock, session, media, volume, battery, network, bluetooth,
+        # brightness, sysmon) on the right end.
         bar = {
           default = {
             position = "top";
+            thickness = 34;
+            background_opacity = 0.85;
+            padding = 14;
+            widget_spacing = 6;
+            radius = 12;
+            shadow = true;
+            capsule = true;
             start = [ "launcher" ];
             center = [ "workspaces" ];
             end = [
               "clock"
-              "theme_mode"
               "session"
+              "media"
+              "volume"
+              "battery"
+              "network"
+              "bluetooth"
+              "brightness"
+              "sysmon"
             ];
+          };
+        };
+
+        # Per-widget appearance. Two-digit seconds clock, minimal workspace
+        # pills with labels, power-glyph session button, media hidden when
+        # nothing plays, volume shows its label. `type` equals the name for
+        # these built-ins, so it is omitted.
+        widget = {
+          clock = {
+            format = "{:%H:%M:%S}";
+          };
+          workspaces = {
+            style = "minimal";
+            show_labels = true;
+          };
+          session = {
+            glyph = "power";
+          };
+          media = {
+            hide_when_no_media = true;
+          };
+          volume = {
+            show_label = true;
           };
         };
 
