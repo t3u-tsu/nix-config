@@ -88,19 +88,22 @@ sudo mount /dev/nvme0n1p1 /mnt/boot
 ```
 
 ### 5. Put the age secret in place
+The SSH host key was generated with `sudo`, so read it as root:
 ```bash
-nix-shell -p ssh-to-age --command 'ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key' \
+sudo nix-shell -p ssh-to-age --command 'ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key' \
   | sudo tee /mnt/var/lib/sops-nix/key.txt >/dev/null
 sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
 ```
 
 ### 6. Hardware config & install
-Generate `hardware.nix` on the machine and copy its `fileSystems` / `swapDevices`
-into `hosts/x1c7/hardware.nix`:
+Generate the hardware config on the machine; note it writes
+`hardware-configuration.nix`, not `hardware.nix`:
 ```bash
 nixos-generate-config --root /mnt --dir /tmp/nixos
+cat /tmp/nixos/hardware-configuration.nix
 ```
-Then install:
+Copy its `fileSystems` / `swapDevices` / kernel-module lines into
+`hosts/x1c7/hardware.nix`, then install:
 ```bash
 sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
 ```
