@@ -8,10 +8,22 @@
 with lib;
 let
   cfg = config.my.home.desktop.noctalia;
+  wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
+  isMinimal = cfg.wallpaperPreset == "minimal";
 in
 {
   options.my.home.desktop.noctalia = {
     enable = mkEnableOption "Noctalia Wayland shell (bar, launcher, notifications, wallpaper)";
+    wallpaperPreset = mkOption {
+      type = types.enum [
+        "PTITSA"
+        "ka256"
+        "suzushiro"
+        "minimal"
+      ];
+      default = "PTITSA";
+      description = "Wallpaper slideshow preset (subfolder of ~/Pictures/wallpapers, or 'minimal' for a single static image)";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -83,9 +95,6 @@ in
 
         wallpaper = {
           enabled = true;
-          # Slideshow source: PTITSA set under the external Pictures dir.
-          directory = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA";
-          fill_mode = "crop";
           fill_color = "surface";
           transition = [
             "fade"
@@ -96,13 +105,14 @@ in
           transition_on_startup = true;
           edge_smoothness = 0.3;
 
-          default = {
-            path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
-          };
+          # Slideshow preset: point at the matching subfolder for slideshows,
+          # or stay on a single static image for "minimal".
+          directory = if isMinimal then "" else "${wallpaperDir}/${cfg.wallpaperPreset}";
+          fill_mode = if cfg.wallpaperPreset == "ka256" then "fit" else "crop";
+          default.path = "${wallpaperDir}/PTITSA/144133008_p0.jpg";
 
-          # Rotate through the folder on an interval (slideshow).
           automation = {
-            enabled = true;
+            enabled = !isMinimal;
             interval_seconds = 300;
             order = "random";
             recursive = true;
