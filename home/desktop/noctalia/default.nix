@@ -23,6 +23,8 @@ in
         shell = {
           # Launch launcher/dock/taskbar apps as transient systemd services.
           launch_apps_as_systemd_services = true;
+          # Register Noctalia's native polkit auth agent.
+          polkit_agent = true;
           # Keep the live selection alive after its source app closes.
           clipboard_keep_from_closed_apps = true;
           clipboard_history_max_entries = 100;
@@ -60,8 +62,14 @@ in
           # Slideshow source: PTITSA set under the external Pictures dir.
           directory = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA";
           fill_mode = "crop";
-          transition = [ "fade" ];
+          fill_color = "surface";
+          transition = [
+            "fade"
+            "zoom"
+            "wipe"
+          ];
           transition_duration = 1500;
+          transition_on_startup = true;
           edge_smoothness = 0.3;
 
           default = {
@@ -81,6 +89,31 @@ in
           enabled = true;
           blur_intensity = 0.5;
           tint_intensity = 0.3;
+        };
+
+        # Top bar with launcher / workspaces / clock / session controls.
+        bar = {
+          default = {
+            position = "top";
+            start = [ "launcher" ];
+            center = [ "workspaces" ];
+            end = [
+              "clock"
+              "theme_mode"
+              "session"
+            ];
+          };
+        };
+
+        # Notification daemon (currently only internal toasts fire).
+        notification = {
+          enable_daemon = true;
+          position = "top_right";
+          max_visible = 6;
+        };
+
+        control_center = {
+          sidebar = "compact";
         };
       };
     };

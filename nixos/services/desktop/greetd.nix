@@ -21,6 +21,30 @@ in
         session = {
           default = "niri";
         };
+        user = {
+          # Open the password step for this user directly.
+          default = config.my.user.name;
+        };
+        appearance = {
+          # Sync wallpaper/palette/monitor layout from Noctalia when it runs.
+          scheme = "Synced";
+          # Fallback background (colour is readable by the greeter account).
+          wallpaper = {
+            path = "color:#0c0c0c";
+            fill_mode = "crop";
+          };
+          corner_radius_scale = 1.0;
+          password_style = "random";
+          power_buttons_position = "bottom-right";
+        };
+        keyboard = {
+          layout = "us";
+          options = "grp:alt_shift_toggle";
+          numlock = true;
+        };
+        idle = {
+          timeout = 300;
+        };
       };
     };
 

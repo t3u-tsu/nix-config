@@ -22,13 +22,66 @@ in
           inactive = {
             color = palette.low;
           };
+          urgent = {
+            color = palette.err;
+          };
         };
+        # Window borders (prefer-no-csd + corner-radius + clip-to-geometry).
+        border = {
+          enable = true;
+          width = 2;
+          active = {
+            color = palette.primary;
+          };
+          inactive = {
+            color = palette.low;
+          };
+          urgent = {
+            color = palette.err;
+          };
+        };
+        # Preset column widths cycled by Mod+R.
+        preset-column-widths = [
+          { proportion = 0.25; }
+          { proportion = 0.5; }
+          { proportion = 1.0; }
+        ];
+        preset-window-heights = [
+          { proportion = 0.5; }
+          { proportion = 0.75; }
+          { proportion = 1.0; }
+        ];
       };
 
       cursor = {
         theme = "Bibata-Modern-Amber";
         size = 24;
+        hide-when-typing = true;
+        hide-after-inactive-ms = 3000;
       };
+
+      animations = {
+        window-open.enable = true;
+        window-close.enable = true;
+        workspace-switch.enable = true;
+        overview-open-close.enable = true;
+      };
+
+      overview = {
+        zoom = 0.7;
+        backdrop-color = palette.bg;
+      };
+
+      clipboard = {
+        disable-primary = true;
+      };
+
+      hotkey-overlay = {
+        skip-at-startup = true;
+        hide-not-bound = true;
+      };
+
+      screenshot-path = "${config.home.homeDirectory}/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png";
 
       input = {
         keyboard = {
@@ -81,6 +134,17 @@ in
           default-window-height = {
             fixed = 920;
           };
+        }
+        {
+          matches = [ { app-id = "^com.mitchellh.ghostty$"; } ];
+          opacity = 0.95;
+        }
+        # OBS : hide content from screen capture
+        {
+          matches = [
+            { app-id = "^com.obsproject.Studio$"; }
+          ];
+          block-out-from = "screencast";
         }
         # Zen Browser
         {

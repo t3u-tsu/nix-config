@@ -40,6 +40,25 @@
         "lock"
       ];
 
+      # Window switcher (Noctalia; native Alt-Tab arrives in niri 25.11)
+      "Alt+Tab".action.spawn = [
+        "noctalia"
+        "msg"
+        "window-switcher"
+      ];
+
+      # Environment controls via Noctalia
+      "Mod+Ctrl+N".action.spawn = [
+        "noctalia"
+        "msg"
+        "nightlight-toggle"
+      ];
+      "Mod+Ctrl+P".action.spawn = [
+        "noctalia"
+        "msg"
+        "power-cycle"
+      ];
+
       # Audio & Brightness keys (managed by Noctalia)
       "XF86AudioRaiseVolume".action.spawn = [
         "noctalia"
