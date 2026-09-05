@@ -193,7 +193,10 @@ window-rule {
 }
 window-rule {
     match app-id="^com.mitchellh.ghostty$"
-    opacity 0.950000
+    opacity 0.850000
+    // Don't paint border/focus-ring as an opaque rect behind the window,
+    // otherwise it blocks the translucency on unfocused windows.
+    draw-border-with-background false
     background-effect {
         xray true
         blur true
