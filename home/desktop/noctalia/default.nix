@@ -94,9 +94,9 @@ in
           tint_intensity = 0.3;
         };
 
-        # Top bar: launcher on the left, workspaces centered, status widgets
-        # (clock, session, media, volume, battery, network, bluetooth,
-        # brightness, sysmon) on the right end.
+        # Top bar: launcher, power profile and clock on the left; workspaces
+        # centered; power, battery, brightness, volume, bluetooth and network
+        # on the right end.
         bar = {
           default = {
             position = "top";
@@ -107,26 +107,26 @@ in
             radius = 12;
             shadow = true;
             capsule = true;
-            start = [ "launcher" ];
+            start = [
+              "launcher"
+              "power_profile"
+              "clock"
+            ];
             center = [ "workspaces" ];
             end = [
-              "clock"
               "session"
-              "media"
-              "volume"
               "battery"
-              "network"
-              "bluetooth"
               "brightness"
-              "sysmon"
+              "volume"
+              "bluetooth"
+              "network"
             ];
           };
         };
 
         # Per-widget appearance. Two-digit seconds clock, minimal workspace
-        # pills with labels, power-glyph session button, media hidden when
-        # nothing plays, volume shows its label. `type` equals the name for
-        # these built-ins, so it is omitted.
+        # pills with labels, power-glyph session button, volume shows its
+        # label. `type` equals the name for these built-ins, so it is omitted.
         widget = {
           clock = {
             format = "{:%H:%M:%S}";
@@ -137,9 +137,6 @@ in
           };
           session = {
             glyph = "power";
-          };
-          media = {
-            hide_when_no_media = true;
           };
           volume = {
             show_label = true;
