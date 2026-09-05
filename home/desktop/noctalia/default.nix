@@ -84,5 +84,15 @@ in
         };
       };
     };
+
+    # Heroic reads its custom themes from customThemesPath; when unset it does
+    # not scan ~/.config/heroic/themes, so the Noctalia matugen theme stays
+    # invisible. Seed it once (only while empty) so it stays user-editable.
+    home.activation.heroicCustomThemesPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      cfg="$HOME/.config/heroic/config.json"
+      if [ -f "$cfg" ] && grep -q '"customThemesPath": ""' "$cfg"; then
+        sed -i 's|"customThemesPath": ""|"customThemesPath": "${config.home.homeDirectory}/.config/heroic/themes"|' "$cfg"
+      fi
+    '';
   };
 }

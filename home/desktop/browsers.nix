@@ -25,7 +25,18 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = optional cfg.chromium.enable pkgs.chromium;
+    # Chromium package is managed by programs.chromium below; keep the package
+    # list empty here to avoid a duplicate .desktop entry.
+    home.packages = [ ];
+
+    programs.chromium = mkIf cfg.chromium.enable {
+      enable = true;
+      # Suppress the "set as default browser?" and first-run prompts.
+      commandLineArgs = [
+        "--no-first-run"
+        "--no-default-browser-check"
+      ];
+    };
 
     home.file = {
       # Chromium: disable the "set as default browser" prompt on startup.
