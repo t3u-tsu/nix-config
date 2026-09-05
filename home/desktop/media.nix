@@ -40,6 +40,7 @@ in
 
     home.packages = with pkgs; [
       vlc
+      spicetify-cli
     ];
   };
 }
