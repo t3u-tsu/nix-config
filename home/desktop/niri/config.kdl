@@ -1,7 +1,7 @@
 blur {
-    passes 3
+    passes 1
     offset 3.0
-    noise 0.02
+    noise 0.01
     saturation 1.5
 }
 
@@ -181,7 +181,7 @@ binds {
 }
 spawn-at-startup "dbus-update-activation-environment" "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "NIXOS_OZONE_WL"
 window-rule {
-    opacity 0.970000
+    opacity 0.950000
     background-effect {
         xray true
         blur true
