@@ -41,38 +41,44 @@ in
 
         wallpaper = {
           enabled = true;
-          # Wallpapers live outside the repo; user drops images here.
-          directory = "~/Pictures/wallpapers";
+          # Slideshow source: PTITSA set under the external Pictures dir.
+          directory = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA";
           fill_mode = "crop";
           transition = [ "fade" ];
           transition_duration = 1500;
           edge_smoothness = 0.3;
 
           default = {
-            path = "~/Pictures/wallpapers/dracula-dark.png";
+            path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/114631433_p0.jpg";
           };
 
-          # Wallpaper+theme presets, switchable from the Noctalia wallpaper
-          # picker's Favorites. Paths are placeholders: rename to the actual
-          # files you drop into ~/Pictures/wallpapers.
+          # Rotate through the folder on an interval (slideshow).
+          automation = {
+            enabled = true;
+            interval_seconds = 900;
+            order = "random";
+            recursive = true;
+          };
+
+          # Wallpaper+theme presets from the picker's Favorites.
           favorite = [
             {
-              path = "~/Pictures/wallpapers/dracula-dark.png";
+              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/114631433_p0.jpg";
               theme_mode = "dark";
               palette_source = "builtin";
               builtin_palette = "Dracula";
             }
             {
-              path = "~/Pictures/wallpapers/catppuccin.png";
+              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/117227185_p0.jpg";
+              theme_mode = "dark";
+              palette_source = "wallpaper";
+              wallpaper_scheme = "m3-content";
+            }
+            {
+              path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/123276015_p0.jpg";
               theme_mode = "dark";
               palette_source = "builtin";
               builtin_palette = "Catppuccin";
-            }
-            {
-              path = "~/Pictures/wallpapers/tokyo-night.png";
-              theme_mode = "dark";
-              palette_source = "builtin";
-              builtin_palette = "Tokyo-Night";
             }
           ];
         };
