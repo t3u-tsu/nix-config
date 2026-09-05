@@ -36,6 +36,20 @@ in
           ui_scale = 1.0;
           corner_radius_scale = 1.0;
           settings_show_advanced = true;
+
+          animation = {
+            enabled = true;
+            speed = 1.2;
+          };
+
+          launcher = {
+            pinned = [
+              "spotify"
+              "kicad"
+              "qucs-s"
+              "thunderbird"
+            ];
+          };
         };
 
         theme = {
@@ -182,6 +196,26 @@ in
 
         control_center = {
           sidebar = "compact";
+          # Home quick actions: swapped Night Light for Wallpaper.
+          shortcuts = [
+            { type = "wifi"; }
+            { type = "bluetooth"; }
+            { type = "caffeine"; }
+            { type = "notification"; }
+            { type = "wallpaper"; }
+            { type = "power_profile"; }
+          ];
+        };
+
+        weather = {
+          enabled = true;
+          refresh_minutes = 30;
+          unit = "metric";
+          effects = true;
+        };
+
+        location = {
+          auto_locate = true;
         };
       };
     };
