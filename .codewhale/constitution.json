@@ -3,7 +3,7 @@
   "branch_policy": "大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は feat/ fix/ refactor/ docs/ chore/ のブランチで行う．パッケージ1つ追加のような小さな変更は main へ直接コミット・push してよい．main へのマージ・リモート main へのプッシュはユーザー承認を得たうえで行う．",
   "protected_invariants": [
     {
-      "text": "secrets/ と .sops.yaml は sops コマンドでのみ編集する．直接の書き込みは承認を求める．",
+      "text": "secrets/** は sops コマンドでのみ編集する．.sops.yaml は設定ファイル（keys/creation_rules）のため直接編集も可とするが，変更時は承認を求める．",
       "paths": ["secrets/**", ".sops.yaml"],
       "action": "ask"
     }
