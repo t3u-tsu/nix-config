@@ -242,7 +242,6 @@ window-rule {
         xray false
         blur false
     }
-    open-on-workspace "3"
 }
 window-rule {
     match app-id="^com.obsproject.Studio$"
@@ -251,12 +250,10 @@ window-rule {
 window-rule {
     match app-id="^zen(-beta)?$"
     default-column-width { proportion 1.000000; }
-    open-on-workspace "1"
 }
 window-rule {
     match app-id="^(vesktop|Vesktop)$"
     default-column-width { proportion 1.000000; }
-    open-on-workspace "2"
 }
 window-rule {
     match app-id="^(org\\.xfce\\.thunar|thunar|Thunar)$"
@@ -275,18 +272,6 @@ window-rule {
         active-color "#ff8080"
         inactive-color "#7d0d2d"
     }
-}
-window-rule {
-    match app-id="^(kicad|eeschema|pcbnew|pcb_calculator|bitmap2component|gerbview)$"
-    open-on-workspace "4"
-}
-window-rule {
-    match app-id="^(qucs-s|Qucs-S)$"
-    open-on-workspace "4"
-}
-window-rule {
-    match app-id="^spotify$"
-    open-on-workspace "5"
 }
 layer-rule {
     match namespace="^noctalia-backdrop"
