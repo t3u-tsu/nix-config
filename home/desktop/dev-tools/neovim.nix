@@ -22,16 +22,51 @@ in
 
       extraConfig = ''
         lua << EOF
-        local colors_file = os.getenv("HOME") .. "/.config/nvim/lua/matugen.lua"
-        local f = io.open(colors_file, "r")
-        if f then
-          f:close()
-          local colors = dofile(colors_file)
-          -- Simple color application (mocking noctalia.nvim behavior)
-          vim.api.nvim_set_hl(0, "Normal", { fg = colors.on_surface, bg = colors.surface })
-          vim.api.nvim_set_hl(0, "Identifier", { fg = colors.primary })
-          vim.api.nvim_set_hl(0, "Function", { fg = colors.secondary })
-        end
+        -- Vesper palette (Noctalia community Vesper), applied directly so
+        -- Neovim is themed even without lazy.nvim / base16-colorscheme
+        -- (the Noctalia neovim template needs those and a writable init.lua).
+        local v = {
+          bg = "#0c0c0c", bg2 = "#1c1c1c", bg3 = "#262626", dim = "#5e5e5e",
+          fg = "#ffffff", fg2 = "#a0a0a0",
+          primary = "#ffc799", secondary = "#99ffe4", tertiary = "#fbadff",
+          err = "#ff8080",
+        }
+        local hi = function(g, o) vim.api.nvim_set_hl(0, g, o) end
+        hi("Normal", { fg = v.fg, bg = v.bg })
+        hi("NormalFloat", { fg = v.fg, bg = v.bg2 })
+        hi("Comment", { fg = v.fg2 })
+        hi("Identifier", { fg = v.primary })
+        hi("Function", { fg = v.secondary })
+        hi("Keyword", { fg = v.primary })
+        hi("Statement", { fg = v.primary })
+        hi("String", { fg = v.secondary })
+        hi("Type", { fg = v.primary })
+        hi("Constant", { fg = v.tertiary })
+        hi("PreProc", { fg = v.tertiary })
+        hi("Special", { fg = v.secondary })
+        hi("Operator", { fg = v.fg2 })
+        hi("Error", { fg = v.err })
+        hi("LineNr", { fg = v.fg2 })
+        hi("CursorLine", { bg = v.bg2 })
+        hi("CursorLineNr", { fg = v.primary, bg = v.bg2 })
+        hi("Visual", { bg = v.bg3 })
+        hi("StatusLine", { bg = v.bg2, fg = v.fg })
+        hi("StatusLineNC", { bg = v.bg, fg = v.fg2 })
+        hi("WinSeparator", { fg = v.dim })
+        hi("Pmenu", { bg = v.bg2, fg = v.fg })
+        hi("PmenuSel", { bg = v.bg3, fg = v.primary })
+        hi("TabLine", { bg = v.bg2, fg = v.fg2 })
+        hi("TabLineSel", { bg = v.bg, fg = v.primary })
+        hi("Search", { bg = v.primary, fg = "#0c0c0c" })
+        hi("IncSearch", { bg = v.secondary, fg = "#0c0c0c" })
+        hi("TelescopeNormal", { fg = v.fg, bg = v.bg })
+        hi("TelescopeBorder", { fg = v.dim, bg = v.bg })
+        hi("TelescopePromptTitle", { fg = v.bg, bg = v.primary })
+        hi("TelescopePreviewTitle", { fg = v.bg, bg = v.secondary })
+        hi("TelescopeResultsTitle", { fg = v.bg, bg = v.tertiary })
+        hi("TelescopeSelection", { fg = v.fg, bg = v.bg3 })
+        hi("TelescopeMatching", { fg = v.primary, bold = true })
+        hi("NvimTreeNormal", { fg = v.fg, bg = v.bg })
         EOF
       '';
     };
