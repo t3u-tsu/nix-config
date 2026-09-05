@@ -21,8 +21,11 @@ in
 
       settings = {
         shell = {
-          # Launch launcher/dock/taskbar apps as transient systemd services.
-          launch_apps_as_systemd_services = true;
+          # Launch launcher/dock/taskbar apps as systemd services. Noctalia
+          # needs to run in a systemd user session (uwsm/niri-session) for this
+          # to take effect; here niri is started directly from greetd, so it
+          # must stay off.
+          launch_apps_as_systemd_services = false;
           # Register Noctalia's native polkit auth agent.
           polkit_agent = true;
           # Keep the live selection alive after its source app closes.
@@ -73,7 +76,7 @@ in
           edge_smoothness = 0.3;
 
           default = {
-            path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/114631433_p0.jpg";
+            path = "${config.home.homeDirectory}/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
           };
 
           # Rotate through the folder on an interval (slideshow).
