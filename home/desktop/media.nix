@@ -22,14 +22,31 @@ in
 
   config = mkIf cfg.enable {
     # Spicetify: declaratively-patched Spotify. No dynamic theme sync with
-    # Noctalia (build-time embedding), so a dark theme is pinned.
+    # Noctalia (build-time embedding), so the Vesper palette is baked in.
     programs.spicetify = {
       enable = true;
       theme = {
         name = "Comfy";
         src = "${inputs.comfy-theme}/Comfy";
       };
-      colorScheme = "Comfy";
+      colorScheme = "custom";
+      customColorScheme = {
+        text = "ffffff";
+        subtext = "a0a0a0";
+        main = "0c0c0c";
+        sidebar = "0c0c0c";
+        player = "0c0c0c";
+        card = "141414";
+        shadow = "0c0c0c";
+        selected-row = "ffffff";
+        button = "ffc799";
+        button-active = "ffc799";
+        button-disabled = "ffc799";
+        tab-active = "0c0c0c";
+        notification = "fbadff";
+        notification-error = "ff8080";
+        misc = "0c0c0c";
+      };
       enabledExtensions = with spicePkgs.extensions; [
         fullAppDisplay
         shuffle
@@ -40,7 +57,6 @@ in
 
     home.packages = with pkgs; [
       vlc
-      spicetify-cli
     ];
   };
 }

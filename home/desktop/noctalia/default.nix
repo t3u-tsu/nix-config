@@ -49,7 +49,6 @@ in
               "discord"
               "lazygit"
               "zen-browser"
-              "spicetify"
             ];
           };
         };
