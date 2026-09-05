@@ -35,8 +35,8 @@ in
         window-padding-y = 3;
         window-decoration = false;
 
-        # Dynamic color synchronization with Noctalia (Matugen)
-        config-file = "?${config.home.homeDirectory}/.cache/noctalia/ghostty-colors";
+        # Noctalia app-theming: `theme = noctalia` + generated themes file.
+        theme = "noctalia";
       };
     };
     home.file.".terminfo/x/xterm-ghostty".source =

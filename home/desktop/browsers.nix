@@ -10,6 +10,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.browsers;
+  palette = import ./palette.nix;
 in
 {
   options.my.home.desktop.browsers = {
@@ -25,7 +26,48 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = optional cfg.chromium.enable pkgs.chromium;
+    programs.chromium = mkIf cfg.chromium.enable {
+      enable = true;
+      # Suppress the "set as default browser?" and first-run prompts.
+      commandLineArgs = [
+        "--no-first-run"
+        "--no-default-browser-check"
+      ];
+    };
+
+    home.file = {
+      # Zen: apply a Vesper dark UI. The Noctalia zen template rewrites
+      # userChrome/userContent with an @import plus a writable user.js, but
+      # nix-managed Zen profiles are read-only so it fails; own it here.
+      ".config/zen/${osConfig.my.user.name}/chrome/userChrome.css" = mkIf cfg.zen.enable {
+        text = ''
+          /* Vesper dark UI for Zen (home-manager). */
+          @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+          :root {
+            --zen-primary-color: ${palette.primary};
+            --zen-secondary-color: ${palette.secondary};
+            --zen-accent-color: ${palette.primary};
+            --toolbar-bgcolor: ${palette.bg} !important;
+            --toolbar-color: ${palette.fg} !important;
+            --lwt-accent-color: ${palette.bg} !important;
+            --lwt-text-color: ${palette.fg} !important;
+          }
+          #browser, #appcontent { background-color: ${palette.bg} !important; }
+          #zen-sidebar-content, #sidebar-box { background-color: ${palette.bg2} !important; }
+          .tab-background[selected="true"] { background-color: ${palette.bg3} !important; }
+          .tab-label, .tab-text { color: ${palette.fg} !important; }
+          #nav-bar { background-color: ${palette.bg} !important; }
+          #urlbar-background { background-color: ${palette.bg2} !important; }
+          #urlbar, #urlbar-input { color: ${palette.fg} !important; }
+        '';
+      };
+      ".config/zen/${osConfig.my.user.name}/chrome/userContent.css" = mkIf cfg.zen.enable {
+        text = ''
+          /* Vesper userContent: dark fallback. */
+          :root { color-scheme: dark; }
+        '';
+      };
+    };
 
     programs.zen-browser = mkIf cfg.zen.enable {
       enable = true;
@@ -228,28 +270,13 @@ in
 
           # Smooth Scrolling
           "general.smoothScroll" = true;
+
+          # Enable userChrome.css / userContent.css theming
+          "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         };
 
         # Noctalia Dynamic Theming Integration
-        userChrome = ''
-          /* Import Noctalia-generated colors */
-          @import url("file://${config.home.homeDirectory}/.cache/noctalia/colors.css");
-
-          :root {
-            --zen-primary-color: var(--noctalia-primary) !important;
-            --zen-secondary-color: var(--noctalia-secondary) !important;
-          }
-
-          /* Match Zen UI with Noctalia colors */
-          #zen-sidebar-content {
-            background-color: var(--noctalia-surface) !important;
-          }
-
-          .tab-content[selected="true"] {
-            background-color: var(--noctalia-primary-container) !important;
-            color: var(--noctalia-on-primary-container) !important;
-          }
-        '';
+        # Noctalia zen-browser template owns userChrome/userContent colors.
       };
     };
   };

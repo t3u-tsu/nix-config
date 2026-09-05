@@ -15,6 +15,7 @@ User-specific desktop environment configurations managed via Home Manager.
 - **`office.nix`**: LibreOffice office suite.
 - **`creative.nix`**: Design and creative tools.
 - **`thunar.nix`**: Thunar file manager settings (system services live in `nixos/services/desktop/thunar.nix`).
-- **`niri/`**: Niri Wayland compositor settings.
+- **`niri/`**: Niri Wayland compositor settings (core, window rules, keybindings).
+- **`noctalia/`**: Noctalia Wayland shell (bar, launcher, notifications, wallpaper, theme).
 - **`dev-tools/`**: Development tools configuration (Neovim, Ghostty).
 - **`default.nix`**: Imports all desktop home modules.
