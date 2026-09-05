@@ -48,7 +48,6 @@ in
               "neovim"
               "discord"
               "lazygit"
-              "zen-browser"
               "obs"
               "prismlauncher"
               "heroiclauncher"
