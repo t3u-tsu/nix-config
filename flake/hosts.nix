@@ -87,5 +87,12 @@ in
       system = "x86_64-linux";
       profile = "desktop";
     };
+
+    "x1c7" = mkLib.mkSystem {
+      name = "x1c7";
+      username = "t3u";
+      system = "x86_64-linux";
+      profile = "desktop";
+    };
   };
 }
