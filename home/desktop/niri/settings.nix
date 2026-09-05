@@ -3,6 +3,9 @@
   ...
 }:
 
+let
+  palette = import ../palette.nix;
+in
 {
   config = {
     programs.niri.settings = {
@@ -14,10 +17,10 @@
         };
         focus-ring = {
           active = {
-            color = "#FFC799";
+            color = palette.primary;
           };
           inactive = {
-            color = "#505050";
+            color = palette.low;
           };
         };
       };

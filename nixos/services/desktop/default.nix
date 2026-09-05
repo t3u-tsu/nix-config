@@ -20,6 +20,7 @@ in
     ./thunar.nix
     ./graphics.nix
     ./networkmanager.nix
+    ./chromium.nix
   ];
 
   options.my.services.desktop = {
@@ -42,6 +43,7 @@ in
         networkmanager.enable = mkDefault true;
         bluetooth.enable = mkDefault true;
         fonts.enable = mkDefault true;
+        chromium.enable = mkDefault true;
 
         # Heavy extras: opt-in via my.services.desktop.full.enable
         gaming.enable = mkDefault cfg.full.enable;

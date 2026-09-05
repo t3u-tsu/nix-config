@@ -10,6 +10,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.browsers;
+  palette = import ./palette.nix;
 in
 {
   options.my.home.desktop.browsers = {
@@ -25,10 +26,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Chromium package is managed by programs.chromium below; keep the package
-    # list empty here to avoid a duplicate .desktop entry.
-    home.packages = [ ];
-
     programs.chromium = mkIf cfg.chromium.enable {
       enable = true;
       # Suppress the "set as default browser?" and first-run prompts.
@@ -39,41 +36,32 @@ in
     };
 
     home.file = {
-      # Chromium: disable the "set as default browser" prompt on startup.
-      ".config/chromium/policies/managed/noctalia.json" = mkIf cfg.chromium.enable {
-        text = builtins.toJSON {
-          DefaultBrowserSettingEnabled = false;
-          BrowserSignin = 0;
-          SyncDisabled = true;
-        };
-      };
-
       # Zen: apply a Vesper dark UI. The Noctalia zen template rewrites
       # userChrome/userContent with an @import plus a writable user.js, but
       # nix-managed Zen profiles are read-only so it fails; own it here.
-      ".config/zen/t3u/chrome/userChrome.css" = mkIf cfg.zen.enable {
+      ".config/zen/${osConfig.my.user.name}/chrome/userChrome.css" = mkIf cfg.zen.enable {
         text = ''
           /* Vesper dark UI for Zen (home-manager). */
           @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
           :root {
-            --zen-primary-color: #ffc799;
-            --zen-secondary-color: #99ffe4;
-            --zen-accent-color: #ffc799;
-            --toolbar-bgcolor: #0c0c0c !important;
-            --toolbar-color: #ffffff !important;
-            --lwt-accent-color: #0c0c0c !important;
-            --lwt-text-color: #ffffff !important;
+            --zen-primary-color: ${palette.primary};
+            --zen-secondary-color: ${palette.secondary};
+            --zen-accent-color: ${palette.primary};
+            --toolbar-bgcolor: ${palette.bg} !important;
+            --toolbar-color: ${palette.fg} !important;
+            --lwt-accent-color: ${palette.bg} !important;
+            --lwt-text-color: ${palette.fg} !important;
           }
-          #browser, #appcontent { background-color: #0c0c0c !important; }
-          #zen-sidebar-content, #sidebar-box { background-color: #1c1c1c !important; }
-          .tab-background[selected="true"] { background-color: #262626 !important; }
-          .tab-label, .tab-text { color: #ffffff !important; }
-          #nav-bar { background-color: #0c0c0c !important; }
-          #urlbar-background { background-color: #1c1c1c !important; }
-          #urlbar, #urlbar-input { color: #ffffff !important; }
+          #browser, #appcontent { background-color: ${palette.bg} !important; }
+          #zen-sidebar-content, #sidebar-box { background-color: ${palette.bg2} !important; }
+          .tab-background[selected="true"] { background-color: ${palette.bg3} !important; }
+          .tab-label, .tab-text { color: ${palette.fg} !important; }
+          #nav-bar { background-color: ${palette.bg} !important; }
+          #urlbar-background { background-color: ${palette.bg2} !important; }
+          #urlbar, #urlbar-input { color: ${palette.fg} !important; }
         '';
       };
-      ".config/zen/t3u/chrome/userContent.css" = mkIf cfg.zen.enable {
+      ".config/zen/${osConfig.my.user.name}/chrome/userContent.css" = mkIf cfg.zen.enable {
         text = ''
           /* Vesper userContent: dark fallback. */
           :root { color-scheme: dark; }

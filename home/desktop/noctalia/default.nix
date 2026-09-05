@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -86,11 +87,13 @@ in
 
     # Heroic reads its custom themes from customThemesPath; when unset it does
     # not scan ~/.config/heroic/themes, so the Noctalia matugen theme stays
-    # invisible. Seed it once (only while empty) so it stays user-editable.
+    # invisible. Seed it once (only while empty), via jq so we do not depend on
+    # Heroic's JSON whitespace/formatting, and keep it user-editable.
     home.activation.heroicCustomThemesPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       cfg="$HOME/.config/heroic/config.json"
-      if [ -f "$cfg" ] && grep -q '"customThemesPath": ""' "$cfg"; then
-        sed -i 's|"customThemesPath": ""|"customThemesPath": "${config.home.homeDirectory}/.config/heroic/themes"|' "$cfg"
+      if [ -f "$cfg" ] && ${pkgs.jq}/bin/jq -e '.customThemesPath == ""' "$cfg" >/dev/null 2>&1; then
+        tmp="$(mktemp)"
+        ${pkgs.jq}/bin/jq --arg p "${config.home.homeDirectory}/.config/heroic/themes" '.customThemesPath = $p' "$cfg" > "$tmp" && mv "$tmp" "$cfg"
       fi
     '';
   };

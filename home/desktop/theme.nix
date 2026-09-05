@@ -8,17 +8,27 @@
 with lib;
 let
   cfg = config.my.home.desktop.theme;
+  palette = import ./palette.nix;
 
-  # Vesper-flavoured Qt6 palette, in qt6ct color-scheme format (QPalette role
-  # order: Window, WindowText, Base, AlternateBase, ToolTipBase, ToolTipText,
-  # Text, PlaceholderText, Button, ButtonText, BrightText, Link, Highlight,
-  # HighlightedText, LinkVisited, Light, Midlight, Dark, Mid, Shadow, Accent).
-  # Surface #0c0c0c, surfaceVariant #1c1c1c, primary #FFC799, secondary #99FFE4.
+  # qt6ct color-scheme format. QPalette role order: Window, WindowText, Base,
+  # AlternateBase, ToolTipBase, ToolTipText, Text, PlaceholderText, Button,
+  # ButtonText, BrightText, Link, Highlight, HighlightedText, LinkVisited,
+  # Light, Midlight, Dark, Mid, Shadow, Accent.
+  hex = s: "#ff" + (removePrefix "#" s); # opaque Qt color
+  hexA = s: "#80" + (removePrefix "#" s); # translucent Qt color (Accent)
+
+  active =
+    with palette;
+    "${hex bg}, #ffffffff, ${hex bg}, ${hex bg2}, ${hex bg2}, #ffffffff, #ffffffff, ${hex fg2}, ${hex bg2}, #ffffffff, #ffffffff, ${hex secondary}, ${hex primary}, #ff000000, ${hex link}, ${hex low}, ${hex bg2}, ${hex bg}, ${hex bg2}, #ff000000, ${hexA primary}";
+  disabled =
+    with palette;
+    "${hex low}, ${hex fg2}, ${hex low}, ${hex bg2}, ${hex bg2}, ${hex fg2}, ${hex fg2}, ${hex low}, ${hex low}, ${hex fg2}, ${hex fg2}, ${hex secondary}, ${hex primary}, #ff000000, ${hex link}, ${hex low}, ${hex bg2}, ${hex bg}, ${hex bg2}, #ff000000, ${hexA primary}";
+
   qtVesperScheme = ''
     [ColorScheme]
-    active_colors=#ff0c0c0c, #ffffffff, #ff0c0c0c, #ff1c1c1c, #ff1c1c1c, #ffffffff, #ffffffff, #ffa0a0a0, #ff1c1c1c, #ffffffff, #ffffffff, #ff99ffe4, #ffffc799, #ff000000, #ff80b3ff, #ff505050, #ff1c1c1c, #ff0c0c0c, #ff1c1c1c, #ff000000, #80ffc799
-    disabled_colors=#ff505050, #ffa0a0a0, #ff505050, #ff1c1c1c, #ff1c1c1c, #ffa0a0a0, #ffa0a0a0, #ff505050, #ff505050, #ffa0a0a0, #ffa0a0a0, #ff99ffe4, #ffffc799, #ff000000, #ff80b3ff, #ff505050, #ff1c1c1c, #ff0c0c0c, #ff1c1c1c, #ff000000, #80ffc799
-    inactive_colors=#ff0c0c0c, #ffffffff, #ff0c0c0c, #ff1c1c1c, #ff1c1c1c, #ffffffff, #ffffffff, #ffa0a0a0, #ff1c1c1c, #ffffffff, #ffffffff, #ff99ffe4, #ffffc799, #ff000000, #ff80b3ff, #ff505050, #ff1c1c1c, #ff0c0c0c, #ff1c1c1c, #ff000000, #80ffc799
+    active_colors=${active}
+    disabled_colors=${disabled}
+    inactive_colors=${active}
   '';
 in
 {
@@ -114,7 +124,7 @@ in
             [Appearance]
             custom_palette=false
             style=Fusion
-            color_scheme_path=/home/t3u/.config/qt6ct/colors/vesper.conf
+            color_scheme_path=${config.home.homeDirectory}/.config/qt6ct/colors/vesper.conf
             standard_dialogs=default
           '';
         };

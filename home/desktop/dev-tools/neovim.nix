@@ -8,6 +8,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.neovim;
+  palette = import ../palette.nix;
 in
 {
   options.my.home.desktop.dev-tools.neovim = {
@@ -22,14 +23,14 @@ in
 
       extraConfig = ''
         lua << EOF
-        -- Vesper palette (Noctalia community Vesper), applied directly so
-        -- Neovim is themed even without lazy.nvim / base16-colorscheme
-        -- (the Noctalia neovim template needs those and a writable init.lua).
+        -- Vesper palette (Noctalia community Vesper), built from the shared
+        -- palette.nix so a re-theme stays in one place. Applied directly because
+        -- the Noctalia neovim template needs lazy.nvim / base16-colorscheme.
         local v = {
-          bg = "#0c0c0c", bg2 = "#1c1c1c", bg3 = "#262626", dim = "#5e5e5e",
-          fg = "#ffffff", fg2 = "#a0a0a0",
-          primary = "#ffc799", secondary = "#99ffe4", tertiary = "#fbadff",
-          err = "#ff8080",
+          bg = "${palette.bg}", bg2 = "${palette.bg2}", bg3 = "${palette.bg3}", dim = "${palette.dim}",
+          fg = "${palette.fg}", fg2 = "${palette.fg2}",
+          primary = "${palette.primary}", secondary = "${palette.secondary}", tertiary = "${palette.tertiary}",
+          err = "${palette.err}",
         }
         local hi = function(g, o) vim.api.nvim_set_hl(0, g, o) end
         hi("Normal", { fg = v.fg, bg = v.bg })
