@@ -38,6 +38,9 @@ us=$(mkpasswd -m sha-512 "$upass")
 rs=$(mkpasswd -m sha-512 "$rpass")
 unset upass rpass
 
+# sops set needs an existing file; create an empty one for a new host.
+[[ -f "$file" ]] || : > "$file"
+
 sops set "$file" "[\"${hostkey}_t3u_password_hash\"]" "\"$us\""
 sops set "$file" "[\"${hostkey}_root_password_hash\"]" "\"$rs\""
 unset us rs
