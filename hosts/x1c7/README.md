@@ -26,7 +26,7 @@ and replace `__REPLACE_ESP__` / `__REPLACE_ROOT__` with the actual by-id names
 ## Role / Services
 - NixOS desktop (desktop profile, full stack)
 - Nebula mesh member
-  - IP: `10.0.0.5` (group: `mgmt`)
+  - IP: `10.0.0.101` (group: `mgmt`)
 - sshd (key-based) for remote administration over the mesh
 - Intel GPU: `throttled` power management (from nixos-hardware x1-7th-gen)
 
@@ -37,11 +37,18 @@ sudo nixos-rebuild switch --flake .#x1c7
 
 Over the Nebula mesh (from another host):
 ```bash
-nixos-rebuild switch --flake .#x1c7 --target-host t3u@10.0.0.5 --sudo --ask-sudo-password
+nixos-rebuild switch --flake .#x1c7 --target-host t3u@10.0.0.101 --sudo --ask-sudo-password
 ```
 
 ## Installation (clean install)
-1. Boot the NixOS installer, partition disks per `hardware.nix`:
+
+The layout below assumes a single NVMe SSD. Confirm the actual by-id names on
+the live USB with `lsblk -o NAME,PATH,UUID` and update `hardware.nix` before
+building.
+
+### Phase 1 — Live USB & disk prep
+1. Boot the NixOS live USB and connect to Wi-Fi/eEthernet.
+2. Partition (this erases all existing data):
    ```bash
    sudo parted /dev/nvme0n1 -- mklabel gpt
    sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
@@ -50,17 +57,40 @@ nixos-rebuild switch --flake .#x1c7 --target-host t3u@10.0.0.5 --sudo --ask-sudo
    sudo mkfs.fat -F 32 /dev/nvme0n1p1
    sudo mkfs.ext4 /dev/nvme0n1p2
    ```
-2. Mount and copy the SOPS age key:
+3. Mount:
    ```bash
    sudo mount /dev/nvme0n1p2 /mnt
    sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
    sudo mount /dev/nvme0n1p1 /mnt/boot
-   # copy the age key (derived from the SSH host key) to /mnt/var/lib/sops-nix/key.txt
    ```
-3. Register the host key in `.sops.yaml` (see `hosts/README.md`) before install.
-4. Install:
+
+### Phase 2 — SSH host key & SOPS age key (BEFORE install)
+`sops-nix` decrypts during `nixos-install`, so the age identity must be in place
+first. Because the age key is derived from the **SSH host key**, pre-generate
+that key so the installed system reuses it, then register its age public key:
    ```bash
-   sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
+   # generate the SSH host key the installed system will reuse
+   sudo mkdir -p /mnt/etc/ssh
+   sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+
+   # the age public key to register in `.sops.yaml` (give it to the operator):
+   ssh-to-age -i /mnt/etc/ssh/ssh_host_ed25519_key.pub
+
+   # derive the private age key that sops-nix will read on the installed host
+   ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key \
+     | sudo tee /mnt/var/lib/sops-nix/key.txt >/dev/null
+   sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
    ```
+(If `ssh-to-age` is unavailable on the live USB, `nix run nixpkgs#ssh-to-age`.)
+
+### Phase 3 — Install
+```bash
+sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
+```
+
+This host uses GRUB with EFI support; the ESP mounted at `/mnt/boot` (and
+`boot.loader.efi.canTouchEfiVariables`) makes it the boot entry. After the first
+boot, SSH in (or use the console) and rebuild via
+[`nixos-rebuild switch --flake .#x1c7`](#deployment-existing-nixos).
 
 See `hosts/README.md` for the full add-a-host workflow (SOPS / Nebula).

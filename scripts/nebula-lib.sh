@@ -19,6 +19,7 @@ FLEET=(
   "kagutsuchi-sama|3|mgmt"
   "shosoin-tan|4|mgmt,app"
   "BrokenPC|100|mgmt,app"
+  "x1c7|101|mgmt"
 )
 
 # SOPS secret prefix for a host (my.hostKey): lowercase, hyphens -> underscores.

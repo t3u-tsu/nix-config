@@ -3,8 +3,8 @@ _:
 {
   my.networking.nebula = {
     enable = true;
-    # Next free IP in the 10.0.0.0/24 mesh (0.1-0.4 used, 0.100 BrokenPC).
-    ip = "10.0.0.5";
+    # Mesh IP for this host.
+    ip = "10.0.0.101";
 
     # Zone separation. "mgmt" allows SSH etc.; add "app" for app services
     # reachable from the mesh (see nixos/networking/nebula.nix extraInbound).
