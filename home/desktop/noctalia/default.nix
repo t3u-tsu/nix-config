@@ -21,7 +21,7 @@ in
         "suzushiro"
         "minimal"
       ];
-      default = "PTITSA";
+      default = "minimal";
       description = "Wallpaper slideshow preset (subfolder of ~/Pictures/wallpapers, or 'minimal' for a single static image)";
     };
   };
@@ -188,6 +188,10 @@ in
         widget = {
           clock = {
             format = "{:%H:%M:%S}";
+            actions = {
+              # Click the clock to open the control center Home tab.
+              left = "panel-toggle control-center home";
+            };
           };
           workspaces = {
             style = "minimal";

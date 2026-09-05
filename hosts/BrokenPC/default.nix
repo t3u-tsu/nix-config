@@ -109,6 +109,8 @@
   # (so environment.etc cannot create files inside it). We therefore place the
   # drop-in in ~/.config/systemd/user via home-manager instead.
   home-manager.users.${config.my.user.name} = {
+    # Use the PTITSA wallpaper slideshow on this host (option defaults to minimal).
+    my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''
       [Service]
       Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-path/pci-0000:01:00.0-card"
