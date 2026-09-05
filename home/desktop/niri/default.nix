@@ -12,7 +12,6 @@ in
 {
   imports = [
     ./settings.nix
-    ./binds.nix
   ];
 
   options.my.home.desktop.niri = {
