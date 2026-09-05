@@ -108,8 +108,8 @@ in
             shadow = true;
             capsule = true;
             start = [
-              "workspaces"
               "launcher"
+              "workspaces"
             ];
             center = [ "clock" ];
             end = [
