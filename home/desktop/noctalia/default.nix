@@ -112,25 +112,41 @@ in
               "launcher"
               "wallpaper"
               "workspaces"
-              "sysmon"
-              "privacy"
+              "group:sysmon_privacy"
             ];
-            center = [
-              "spacer"
-              "spacer"
-              "clock"
-              "notifications"
-              "clipboard"
-            ];
+            center = [ "clock" ];
             end = [
-              "network"
-              "bluetooth"
+              "group:net_bt"
               "volume"
               "brightness"
               "caffeine"
-              "power_profile"
-              "battery"
+              "group:power_battery"
+              "notifications"
+              "clipboard"
               "session"
+            ];
+            capsule_group = [
+              {
+                id = "sysmon_privacy";
+                members = [
+                  "sysmon"
+                  "privacy"
+                ];
+              }
+              {
+                id = "net_bt";
+                members = [
+                  "network"
+                  "bluetooth"
+                ];
+              }
+              {
+                id = "power_battery";
+                members = [
+                  "power_profile"
+                  "battery"
+                ];
+              }
             ];
           };
         };
