@@ -94,9 +94,9 @@ in
           tint_intensity = 0.3;
         };
 
-        # Top bar: launcher, power profile and clock on the left; workspaces
-        # centered; power, battery, brightness, volume, bluetooth and network
-        # on the right end.
+        # Top bar: workspaces and launcher on the left; clock centered; network,
+        # bluetooth, volume, brightness, power profile, battery and power on
+        # the right end (right-most is power).
         bar = {
           default = {
             position = "top";
@@ -108,18 +108,18 @@ in
             shadow = true;
             capsule = true;
             start = [
+              "workspaces"
               "launcher"
-              "power_profile"
-              "clock"
             ];
-            center = [ "workspaces" ];
+            center = [ "clock" ];
             end = [
-              "session"
-              "battery"
-              "brightness"
-              "volume"
-              "bluetooth"
               "network"
+              "bluetooth"
+              "volume"
+              "brightness"
+              "power_profile"
+              "battery"
+              "session"
             ];
           };
         };
