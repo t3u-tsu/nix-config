@@ -1,0 +1,283 @@
+{ palette, homeDirectory }:
+''
+  blur {
+      passes 1
+      offset 3.0
+      noise 0.01
+      saturation 1.5
+  }
+
+  animations {
+      window-open {
+          duration-ms 200
+          curve "ease-out-expo"
+      }
+      window-close {
+          duration-ms 150
+          curve "ease-out-expo"
+      }
+      workspace-switch {
+          spring damping-ratio=0.9 stiffness=1000 epsilon=0.0001
+      }
+      overview-open-close {
+          spring damping-ratio=0.9 stiffness=1000 epsilon=0.0001
+      }
+  }
+
+  input {
+      keyboard {
+          xkb {
+              layout "us"
+              model ""
+              rules ""
+              variant ""
+              options "ctrl:nocaps"
+          }
+          repeat-delay 300
+          repeat-rate 40
+          track-layout "global"
+      }
+      touchpad {
+          tap
+          dwt
+          natural-scroll
+          scroll-method "two-finger"
+          click-method "clickfinger"
+      }
+  }
+  screenshot-path "${homeDirectory}/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png"
+  prefer-no-csd
+  overview {
+      zoom 0.700000
+      backdrop-color "${palette.bg}"
+  }
+  layout {
+      gaps 16
+      struts {
+          left 0
+          right 0
+          top 0
+          bottom 0
+      }
+      focus-ring {
+          width 4
+          urgent-color "${palette.err}"
+          active-color "${palette.primary}"
+          inactive-color "${palette.low}"
+      }
+      border {
+          width 2
+          urgent-color "${palette.err}"
+          active-color "${palette.primary}"
+          inactive-color "${palette.low}"
+      }
+      tab-indicator {
+          on
+          place-within-column
+          width 3
+          gap 4
+          hide-when-single-tab
+      }
+      default-column-width { proportion 0.500000; }
+      preset-column-widths {
+          proportion 0.250000
+          proportion 0.500000
+          proportion 1.000000
+      }
+      preset-window-heights {
+          proportion 0.500000
+          proportion 0.750000
+          proportion 1.000000
+      }
+      center-focused-column "never"
+  }
+  cursor {
+      xcursor-theme "Bibata-Modern-Amber"
+      xcursor-size 24
+      hide-when-typing
+      hide-after-inactive-ms 3000
+  }
+  hotkey-overlay {
+      skip-at-startup
+      hide-not-bound
+  }
+  clipboard { disable-primary; }
+  gestures {
+      hot-corners {
+          top-left
+      }
+  }
+  binds {
+      Alt+Print { screenshot-window show-pointer=false; }
+      Mod+Ctrl+Shift+F { toggle-windowed-fullscreen; }
+      Mod+P repeat=false { spawn-sh "wl-mirror $(niri msg --json focused-output | jq -r .name)"; }
+      Mod+Shift+D { set-dynamic-cast-monitor; }
+      Mod+Shift+S { set-dynamic-cast-window; }
+      Mod+Shift+X { clear-dynamic-cast-target; }
+      Alt+Tab { spawn "noctalia" "msg" "window-switcher"; }
+      Ctrl+Alt+Delete { quit; }
+      Ctrl+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
+      Ctrl+Print { screenshot-screen show-pointer=false; }
+      Mod+1 { focus-workspace 1; }
+      Mod+2 { focus-workspace 2; }
+      Mod+3 { focus-workspace 3; }
+      Mod+4 { focus-workspace 4; }
+      Mod+5 { focus-workspace 5; }
+      Mod+6 { focus-workspace 6; }
+      Mod+7 { focus-workspace 7; }
+      Mod+8 { focus-workspace 8; }
+      Mod+9 { focus-workspace 9; }
+      Mod+Alt+Ctrl+Down { move-column-to-monitor-down; }
+      Mod+Alt+Ctrl+H { move-column-to-monitor-left; }
+      Mod+Alt+Ctrl+J { move-column-to-monitor-down; }
+      Mod+Alt+Ctrl+K { move-column-to-monitor-up; }
+      Mod+Alt+Ctrl+L { move-column-to-monitor-right; }
+      Mod+Alt+Ctrl+Left { move-column-to-monitor-left; }
+      Mod+Alt+Ctrl+Right { move-column-to-monitor-right; }
+      Mod+Alt+Ctrl+Up { move-column-to-monitor-up; }
+      Mod+Alt+Down { move-window-down; }
+      Mod+Alt+H { move-column-left; }
+      Mod+Alt+I { move-column-to-workspace-up; }
+      Mod+Alt+J { move-window-down; }
+      Mod+Alt+K { move-window-up; }
+      Mod+Alt+L { move-column-right; }
+      Mod+Alt+Left { move-column-left; }
+      "Mod+Alt+Page_Down" { move-column-to-workspace-down; }
+      "Mod+Alt+Page_Up" { move-column-to-workspace-up; }
+      Mod+Alt+Right { move-column-right; }
+      Mod+Alt+U { move-column-to-workspace-down; }
+      Mod+Alt+Up { move-window-up; }
+      Mod+B { spawn "zen-beta"; }
+      Mod+BracketLeft { consume-or-expel-window-left; }
+      Mod+BracketRight { consume-or-expel-window-right; }
+      Mod+C { center-column; }
+      Mod+Comma { spawn "noctalia" "msg" "settings-toggle"; }
+      Mod+Ctrl+1 { move-column-to-workspace 1; }
+      Mod+Ctrl+2 { move-column-to-workspace 2; }
+      Mod+Ctrl+3 { move-column-to-workspace 3; }
+      Mod+Ctrl+4 { move-column-to-workspace 4; }
+      Mod+Ctrl+5 { move-column-to-workspace 5; }
+      Mod+Ctrl+6 { move-column-to-workspace 6; }
+      Mod+Ctrl+7 { move-column-to-workspace 7; }
+      Mod+Ctrl+8 { move-column-to-workspace 8; }
+      Mod+Ctrl+9 { move-column-to-workspace 9; }
+      Mod+Ctrl+Down { focus-monitor-down; }
+      Mod+Ctrl+H { focus-monitor-left; }
+      Mod+Ctrl+I { move-workspace-up; }
+      Mod+Ctrl+J { focus-monitor-down; }
+      Mod+Ctrl+K { focus-monitor-up; }
+      Mod+Ctrl+L { focus-monitor-right; }
+      Mod+Ctrl+Left { focus-monitor-left; }
+      Mod+Ctrl+N { spawn "noctalia" "msg" "nightlight-toggle"; }
+      Mod+Ctrl+P { spawn "noctalia" "msg" "power-cycle"; }
+      "Mod+Ctrl+Page_Down" { move-workspace-down; }
+      "Mod+Ctrl+Page_Up" { move-workspace-up; }
+      Mod+Ctrl+R { switch-preset-column-width-back; }
+      Mod+Ctrl+Right { focus-monitor-right; }
+      Mod+Ctrl+U { move-workspace-down; }
+      Mod+Ctrl+Up { focus-monitor-up; }
+      Mod+Ctrl+V { switch-focus-between-floating-and-tiling; }
+      Mod+D { spawn "vesktop"; }
+      Mod+Down { focus-window-or-workspace-down; }
+      Mod+Equal { set-column-width "+10%"; }
+      Mod+F { spawn "thunar"; }
+      Mod+H { focus-column-left; }
+      Mod+I { focus-workspace-up; }
+      Mod+J { focus-window-or-workspace-down; }
+      Mod+K { focus-window-or-workspace-up; }
+      Mod+L { focus-column-right; }
+      Mod+Left { focus-column-left; }
+      Mod+M { maximize-column; }
+      Mod+Minus { set-column-width "-10%"; }
+      Mod+O { toggle-overview; }
+      "Mod+Page_Down" { focus-workspace-down; }
+      "Mod+Page_Up" { focus-workspace-up; }
+      Mod+Q { close-window; }
+      Mod+R { switch-preset-column-width; }
+      Mod+Return { spawn "ghostty"; }
+      Mod+Right { focus-column-right; }
+      Mod+S { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
+      Mod+Shift+E { quit; }
+      Mod+Shift+Equal { set-window-height "+10%"; }
+      Mod+Shift+F { fullscreen-window; }
+      Mod+Shift+Minus { set-window-height "-10%"; }
+      Mod+Shift+R { reset-window-height; }
+      Mod+Slash { show-hotkey-overlay; }
+      Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
+      Mod+U { focus-workspace-down; }
+      Mod+Up { focus-window-or-workspace-up; }
+      Mod+V { toggle-window-floating; }
+      Mod+W { toggle-column-tabbed-display; }
+      Print { screenshot show-pointer=false; }
+      XF86AudioLowerVolume { spawn "noctalia" "msg" "volume-down"; }
+      XF86AudioMute { spawn "noctalia" "msg" "volume-mute"; }
+      XF86AudioRaiseVolume { spawn "noctalia" "msg" "volume-up"; }
+      XF86MonBrightnessDown { spawn "noctalia" "msg" "brightness-down"; }
+      XF86MonBrightnessUp { spawn "noctalia" "msg" "brightness-up"; }
+  }
+  spawn-at-startup "dbus-update-activation-environment" "--systemd" "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "NIXOS_OZONE_WL"
+  window-rule {
+      opacity 0.950000
+      background-effect {
+          xray true
+          blur true
+      }
+  }
+  window-rule {
+      geometry-corner-radius 10.000000 10.000000 10.000000 10.000000
+      clip-to-geometry true
+  }
+  window-rule {
+      match app-id="dev.noctalia.Noctalia"
+      default-column-width { fixed 1080; }
+      default-window-height { fixed 920; }
+      open-floating true
+  }
+  window-rule {
+      match app-id="^com.mitchellh.ghostty$"
+      opacity 0.850000
+      // Don't paint border/focus-ring as an opaque rect behind the window,
+      // otherwise it blocks the translucency on unfocused windows.
+      draw-border-with-background false
+      // Terminal stays crisp: no blur/xray (background effect on/off per-rule).
+      background-effect {
+          xray false
+          blur false
+      }
+  }
+  window-rule {
+      match app-id="^com.obsproject.Studio$"
+      block-out-from "screencast"
+  }
+  window-rule {
+      match app-id="^zen(-beta)?$"
+      default-column-width { proportion 1.000000; }
+  }
+  window-rule {
+      match app-id="^(vesktop|Vesktop)$"
+      default-column-width { proportion 1.000000; }
+  }
+  window-rule {
+      match app-id="^(org\\.xfce\\.thunar|thunar|Thunar)$"
+      default-column-display "tabbed"
+  }
+  window-rule {
+      match is-window-cast-target=true
+      focus-ring {
+          active-color "${palette.err}"
+          inactive-color "#7d0d2d"
+      }
+      border {
+          inactive-color "#7d0d2d"
+      }
+      tab-indicator {
+          active-color "${palette.err}"
+          inactive-color "#7d0d2d"
+      }
+  }
+  layer-rule {
+      match namespace="^noctalia-backdrop"
+      place-within-backdrop true
+  }
+  debug { honor-xdg-activation-with-invalid-serial true; }
+''

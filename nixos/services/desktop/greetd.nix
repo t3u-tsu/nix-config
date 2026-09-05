@@ -71,7 +71,7 @@ in
         };
         keyboard = {
           layout = "us";
-          options = "grp:alt_shift_toggle";
+          options = "ctrl:nocaps";
           numlock = false;
         };
         idle = {
