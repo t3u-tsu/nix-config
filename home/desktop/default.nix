@@ -18,6 +18,7 @@ in
     ./gpg-signing.nix
     ./media.nix
     ./niri
+    ./noctalia
     ./theme.nix
     ./xdg.nix
     ./locales.nix
@@ -42,6 +43,7 @@ in
       xdg.enable = mkDefault true;
       locales.enable = mkDefault true;
       niri.enable = mkDefault true;
+      noctalia.enable = mkDefault true;
       thunar.enable = mkDefault true;
       gpg-signing.enable = mkDefault true;
       dev-tools.enable = mkDefault true;
