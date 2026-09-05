@@ -30,7 +30,6 @@ in
       grim
       slurp
       adwaita-icon-theme
-      hyprpolkitagent
     ];
   };
 }
