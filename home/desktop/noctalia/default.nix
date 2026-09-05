@@ -45,7 +45,7 @@ in
           launcher = {
             pinned = [
               "spotify"
-              "kicad"
+              "org.kicad.kicad"
               "qucs-s"
               "thunderbird"
             ];
@@ -69,11 +69,7 @@ in
           # apply on this setup are enabled; Qt/Spicetify showed issues.
           templates = {
             enable_builtin_templates = true;
-            builtin_ids = [
-              "ghostty"
-              "starship"
-              "wezterm"
-            ];
+            builtin_ids = [ "ghostty" ];
             enable_community_templates = true;
             community_ids = [
               "discord"
