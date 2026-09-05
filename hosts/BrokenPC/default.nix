@@ -77,6 +77,10 @@
   my = {
     desktop.full.enable = true;
 
+    services.desktop.greetd.greeterOutput = {
+      name = "eDP-1";
+    };
+
     hardware.nvidia = {
       enable = true;
       open = true;
