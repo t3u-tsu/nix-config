@@ -41,6 +41,8 @@
 
   home-manager.users.${config.my.user.name} = {
     my.home.desktop = {
+      noctalia.wallpaperPreset = "PTITSA";
+
       media.enable = true;
       dev-tools.ai-tools.enable = true;
     };
