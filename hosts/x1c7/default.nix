@@ -42,4 +42,12 @@
       };
     };
   };
+
+  # User SSH private key (managed by SOPS), same pattern as BrokenPC.
+  sops.secrets.x1c7_ssh_private_key = {
+    path = "/home/${config.my.user.name}/.ssh/id_ed25519";
+    owner = config.my.user.name;
+    group = "users";
+    mode = "0600";
+  };
 }
