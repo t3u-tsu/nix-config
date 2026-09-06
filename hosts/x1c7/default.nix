@@ -34,12 +34,15 @@
     };
   };
 
-  my = {
-    services = {
-      desktop = {
-        greetd.greeterOutput.name = "eDP-1";
-        bluetooth.experimental = true;
-      };
+  my.services.desktop = {
+    greetd.greeterOutput.name = "eDP-1";
+    bluetooth.experimental = true;
+  };
+
+  home-manager.users.${config.my.user.name} = {
+    my.home.desktop = {
+      media.enable = true;
+      dev-tools.ai-tools.enable = true;
     };
   };
 
