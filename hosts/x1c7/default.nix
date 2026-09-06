@@ -11,6 +11,7 @@
     ./hardware.nix
     ./services
     ../../nixos
+    # throttled / tlp
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];
 
@@ -25,13 +26,12 @@
   networking.hostName = "x1c7";
 
   services = {
+    logind.settings.Login.HandleLidSwitchExternalPower = "lock";
+
     tlp.enable = true;
 
-    logind.settings.Login = {
-      HandleLidSwitch = "suspend";
-      HandleLidSwitchExternalPower = "lock";
-      HandleLidSwitchDocked = "ignore";
-    };
+    fprintd.enable = true;
+    fwupd.enable = true;
   };
 
   my.services.desktop = {
@@ -48,7 +48,6 @@
     };
   };
 
-  # User SSH private key (managed by SOPS), same pattern as BrokenPC.
   sops.secrets.x1c7_ssh_private_key = {
     path = "/home/${config.my.user.name}/.ssh/id_ed25519";
     owner = config.my.user.name;
