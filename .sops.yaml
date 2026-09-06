@@ -1,8 +1,11 @@
 keys:
   # Master key (Keep the private key offline/in password manager)
   - &master_key age1gaalvy9u4634cu6hwnupvk35wu7pxg67xmgvl0zv66jprj4xy5xqgyw3nw
-  # User key (Your daily machine)
-  - &user_t3u  age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy
+
+  # User SSH keys (per desktop machine) — used by home-manager sops-nix,
+  # which derives an age key from ~/.ssh/id_ed25519 via ssh-to-age.
+  - &brokenpc_user age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy  # t3u@BrokenPC
+  - &x1c7_user     age156tpcw4l8kppamvgusqwt3dsdm3ehk094ge5rl99v80yq4d475ks9jhnyu  # x1c7
 
   # Host keys (Public keys converted from SSH host keys via ssh-to-age)
   # Update these with: ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
@@ -35,24 +38,24 @@ creation_rules:
     key_groups:
       - age: [*master_key, *x1c7]
 
-  # 2. Service-specific secrets: [Master, User, Relevant Hosts]
+  # 2. Service-specific secrets: [Master, Relevant Hosts]
   - path_regex: secrets/services/minecraft\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u, *shosoin_tan]
+      - age: [*master_key, *shosoin_tan]
   - path_regex: secrets/services/backup\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u, *shosoin_tan]
+      - age: [*master_key, *shosoin_tan]
   - path_regex: secrets/services/ddns\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u, *torii_chan]
+      - age: [*master_key, *torii_chan]
   - path_regex: secrets/services/signing\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u] # For GPG signing, only user needs it
+      - age: [*master_key, *brokenpc_user, *x1c7_user] # For GPG signing, desktop machines only
   - path_regex: secrets/services/conoha-vps-mcp\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u] # ConoHa VPS MCP (OpenStack credentials)
+      - age: [*master_key, *brokenpc_user, *x1c7_user] # ConoHa VPS MCP (OpenStack credentials)
 
-  # 3. Common secrets: [Master, User, All Hosts]
+  # 3. Common secrets: [Master, All Hosts]
   - path_regex: secrets/common\.yaml$
     key_groups:
-      - age: [*master_key, *user_t3u, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc, *x1c7]
+      - age: [*master_key, *torii_chan, *shosoin_tan, *kagutsuchi_sama, *sando_kun, *brokenpc, *x1c7]
