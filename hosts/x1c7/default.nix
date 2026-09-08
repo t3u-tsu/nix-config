@@ -30,7 +30,9 @@
 
     tlp.enable = true;
 
+    # fingerprint
     fprintd.enable = true;
+    # firmware update
     fwupd.enable = true;
   };
 
@@ -45,6 +47,7 @@
 
       media.enable = true;
       dev-tools.ai-tools.enable = true;
+      dev-tools.hardware.enable = true;
     };
   };
 
