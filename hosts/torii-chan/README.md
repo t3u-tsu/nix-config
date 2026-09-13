@@ -8,7 +8,7 @@ at a time (failover). Both share hostname `torii-chan` and the SAME secrets
 ## Role (shared module)
 
 The gateway role itself is platform-agnostic and lives in
-`nixos/profiles/gateway/default.nix`:
+`nixos/services/gateway/`:
 
 - Nebula mesh: `nebula0` overlay `10.0.0.0/24`, torii-chan = **Lighthouse + Relay** @ `10.0.0.1`
 - NAT + port-forward `25565` → `shosoin-tan (10.0.0.4)` (Minecraft proxy)

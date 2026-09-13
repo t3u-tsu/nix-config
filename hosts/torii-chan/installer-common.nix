@@ -70,8 +70,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    # hosts/torii-chan/default.nix sets my.services.gateway.enable = true, so it
-    # needs mkForce to stay off in the installer (Nebula / DDNS / NAT are not run).
+    # The gateway profile sets my.services.gateway.enable = true, so it needs
+    # mkForce to stay off in the installer (Nebula / DDNS / NAT are not run).
     my.services.gateway.enable = lib.mkForce false;
 
     networking.hostName = cfg.hostName;
