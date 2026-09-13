@@ -21,5 +21,5 @@ The lightweight core is `my.home.desktop.enable`; heavy extras are opted in with
 - **`thunar.nix`**: File manager user settings; system services live in `nixos/services/desktop/thunar.nix`.
 - **`niri/`**: Wayland compositor settings — `config.kdl.nix` renders the KDL config from the palette.
 - **`noctalia/`**: Wayland shell — bar, launcher, notifications, wallpaper and theme templates.
-- [`dev-tools/`](dev-tools/README.md): Development environment — editors, terminals, Nix and AI tooling.
+- [`dev-tools/`](dev-tools/): Development environment — editors, terminals, Nix and AI tooling.
 - **`default.nix`**: Imports all desktop home modules and defines the `enable` / `full.enable` split.
