@@ -48,5 +48,15 @@
     })
 
     inputs.llama-cpp.overlays.default
+
+    # llama.cpp tracks nixpkgs unstable, where CUDA 13.3 renamed
+    # `cudaPackages.cuda_cccl` to `cccl`; the 26.05 pin only has the old name.
+    (final: prev: {
+      llama-cpp = prev.llama-cpp.override {
+        cudaPackages = prev.cudaPackages // {
+          cccl = prev.cudaPackages.cuda_cccl;
+        };
+      };
+    })
   ];
 }
