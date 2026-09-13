@@ -12,27 +12,15 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 ## ディレクトリ構造
 
-```text
-.
-├── flake.nix   # flake-parts エントリポイント
-├── flake/      # flake-parts モジュール (hosts, lib, overlays, packages, dev)
-├── lib/        # mkSystem ヘルパー
-├── nixos/      # 全ホスト共通のシステムモジュール
-├── home/       # home-manager モジュール
-├── hosts/      # マシン固有の設定
-├── secrets/    # SOPS 暗号化シークレット
-├── scripts/    # 運用スクリプト
-└── terraform/  # ConoHa VPS インフラ
-```
-
-各層にはそれぞれ README があります:
-
-- [`nixos/`](nixos/README.md) — 全ホストが読み込むシステムモジュール
-- [`home/`](home/README.md) — home-manager モジュール
-- [`hosts/`](hosts/README.md) — マシン固有の設定と追加手順
-- [`secrets/`](secrets/README.md) — SOPS の配置と鍵モデル
-- [`scripts/`](scripts/README.md) — 運用スクリプト
-- [`terraform/`](terraform/README.md) — ConoHa VPS インフラ
+- [`flake.nix`](flake.nix) — flake-parts エントリポイント
+- [`flake/`](flake/) — flake-parts モジュール (hosts, lib, overlays, packages, dev)
+- [`lib/`](lib/) — mkSystem ヘルパー
+- [`nixos/`](nixos/) — 全ホスト共通のシステムモジュール
+- [`home/`](home/) — home-manager モジュール
+- [`hosts/`](hosts/) — マシン固有の設定
+- [`secrets/`](secrets/) — SOPS 暗号化シークレット
+- [`scripts/`](scripts/) — 運用スクリプト
+- [`terraform/`](terraform/) — ConoHa VPS インフラ
 
 各層の読み込み方は [`docs/architecture.md`](docs/architecture.md) に書いています．
 

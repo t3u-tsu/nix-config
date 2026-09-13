@@ -12,27 +12,15 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ## Directory Structure
 
-```text
-.
-├── flake.nix   # flake-parts entrypoint
-├── flake/      # flake-parts modules (hosts, lib, overlays, packages, dev)
-├── lib/        # mkSystem helper
-├── nixos/      # system-wide modules
-├── home/       # home-manager modules
-├── hosts/      # per-machine configurations
-├── secrets/    # SOPS-encrypted secrets
-├── scripts/    # operational scripts
-└── terraform/  # ConoHa VPS infrastructure
-```
-
-Each layer keeps its own README:
-
-- [`nixos/`](nixos/README.md) — system-wide modules imported by every host
-- [`home/`](home/README.md) — home-manager modules
-- [`hosts/`](hosts/README.md) — per-machine configurations, and how to add one
-- [`secrets/`](secrets/README.md) — SOPS layout and key model
-- [`scripts/`](scripts/README.md) — operational scripts
-- [`terraform/`](terraform/README.md) — ConoHa VPS infrastructure
+- [`flake.nix`](flake.nix) — flake-parts entrypoint
+- [`flake/`](flake/) — flake-parts modules (hosts, lib, overlays, packages, dev)
+- [`lib/`](lib/) — mkSystem helper
+- [`nixos/`](nixos/) — system-wide modules
+- [`home/`](home/) — home-manager modules
+- [`hosts/`](hosts/) — per-machine configurations
+- [`secrets/`](secrets/) — SOPS-encrypted secrets
+- [`scripts/`](scripts/) — operational scripts
+- [`terraform/`](terraform/) — ConoHa VPS infrastructure
 
 [`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded.
 

@@ -18,11 +18,11 @@
 ## 層構成
 
 - `flake/`: flake-parts のモジュール（hosts, lib, overlays, packages, dev）．
-- [`lib/`](../lib/README.md): mkSystem．profile とホストを合成して nixosSystem を作る．
-- [`nixos/`](../nixos/README.md): 全ホスト共通のシステムモジュール．
-- [`home/`](../home/README.md): home-manager モジュール．shell / programs は全ホスト，desktop は desktop プロファイルのみ．
-- [`hosts/`](../hosts/README.md): マシン固有の定義とプラットフォーム層．
-- [`secrets/`](../secrets/README.md)・[`scripts/`](../scripts/README.md)・[`terraform/`](../terraform/README.md): 運用側．
+- [`lib/`](../lib/): mkSystem．profile とホストを合成して nixosSystem を作る．
+- [`nixos/`](../nixos/): 全ホスト共通のシステムモジュール．
+- [`home/`](../home/): home-manager モジュール．shell / programs は全ホスト，desktop は desktop プロファイルのみ．
+- [`hosts/`](../hosts/): マシン固有の定義とプラットフォーム層．
+- [`secrets/`](../secrets/)・[`scripts/`](../scripts/)・[`terraform/`](../terraform/): 運用側．
 
 ## モジュール読み込みフロー
 
