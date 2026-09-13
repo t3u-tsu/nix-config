@@ -10,6 +10,23 @@
 
 Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
 
+## スタック
+
+|                  |                    |
+| ---------------- | ------------------ |
+| **OS**           | NixOS 26.05        |
+| **WM**           | niri               |
+| **バー**         | Noctalia           |
+| **シェル**       | zsh + pure + Atuin |
+| **ターミナル**   | Ghostty            |
+| **エディタ**     | Neovim             |
+| **ブラウザ**     | Zen Browser        |
+| **テーマ**       | Vesper             |
+| **シークレット** | SOPS               |
+| **VPN**          | Nebula             |
+| **バックアップ** | restic             |
+| **IaC**          | OpenTofu           |
+
 ## ディレクトリ構造
 
 - [`flake.nix`](flake.nix) — flake-parts エントリポイント
@@ -28,8 +45,8 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 利用可能な設定（`flake/hosts.nix` で定義）:
 
-- **`BrokenPC`** — ゲーミングラップトップ（ローカルマシン）
 - **`x1c7`** — ラップトップ（ThinkPad X1 Carbon Gen 7）
+- **`BrokenPC`** — ゲーミングラップトップ（HP Victus 16-e1065AX）
 - **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — タワーサーバー
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
 - **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）
