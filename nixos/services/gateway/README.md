@@ -1,6 +1,6 @@
-# Gateway Profile
+# Gateway Service
 
-The **torii-chan** role: a Nebula mesh gateway (Lighthouse + Relay) with DDNS and Minecraft port-forwarding. Enabled via `my.services.gateway.enable`; shared by the physical SBC and the failover VPS.
+The **torii-chan** role: a Nebula mesh gateway (Lighthouse + Relay) with DDNS and Minecraft port-forwarding. Enabled via `my.services.gateway.enable` (set by the gateway profile); shared by the physical SBC and the failover VPS.
 
 ## Modules
 

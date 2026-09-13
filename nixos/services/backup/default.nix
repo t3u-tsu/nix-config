@@ -20,10 +20,16 @@ let
 
   sshHost = if cfg.remoteRepo == null then null else repoHost cfg.remoteRepo;
 
-  sshIdentity = optionalString (cfg.sshKeyFile != null && sshHost != null) ''
-    Host ${sshHost}
-      IdentityFile ${cfg.sshKeyFile}
-  '';
+  sshIdentity =
+    if cfg.sshKeyFile == null || cfg.remoteRepo == null then
+      ""
+    else if sshHost != null then
+      ''
+        Host ${sshHost}
+          IdentityFile ${cfg.sshKeyFile}
+      ''
+    else
+      warn "my.services.backup: sshKeyFile is set but remoteRepo '${cfg.remoteRepo}' has no user@host, so no IdentityFile is emitted" "";
 
   mkBackup = name: repo: {
     ${name} = {

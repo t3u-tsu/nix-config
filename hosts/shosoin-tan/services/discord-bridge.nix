@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  services.minecraft-discord-bridge = {
+  my.services.minecraft-discord-bridge = {
     enable = true;
     settings = {
       discord.admin_guild_id = "SET_VIA_ENV";
