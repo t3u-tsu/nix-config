@@ -1,6 +1,6 @@
 # Tower Server Profile
 
-Common configuration for the tower servers (shosoin-tan / kagutsuchi-sama / sando-kun).
+Common configuration shared by the tower servers.
 
 ## Modules
 

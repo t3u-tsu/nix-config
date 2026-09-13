@@ -14,40 +14,18 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 ```text
 .
-├── flake.nix            # flake-parts entrypoint
-├── flake/               # flake-parts modules
-│   ├── hosts.nix        # nixosConfigurations
-│   ├── lib.nix          # Flake library output
-│   ├── overlays.nix     # Nixpkgs overlays
-│   ├── packages.nix     # Flake package output (VPS installer ISO)
-│   └── dev.nix          # pre-commit hooks / devShells
-├── nixos/               # NixOS system modules
-│   ├── base/            # OS foundation (users, Nix, time)
-│   ├── core/            # OS core settings (i18n)
-│   ├── security/        # Security and secrets (SOPS)
-│   ├── networking/      # Network settings (hosts, Nebula mesh)
-│   ├── environment/     # System packages
-│   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
-│   ├── dev-tools/       # Development hardware/tooling (WCH-LinkE, Ventoy)
-│   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc, gateway)
-│   ├── services/        # System services (backup, Minecraft, desktop, etc.)
-│   └── virtualisation/  # Virtualisation (distrobox, microvm)
-├── home/                # Home Manager modules
-│   ├── shell/           # Shell configuration (Zsh, Pure, Atuin)
-│   ├── programs/        # Workstation tools (CLI tools, Git, SSH)
-│   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
-├── hosts/               # Host-specific configurations
-│   ├── BrokenPC/        # Gaming laptop (Victus by HP)
-│   ├── x1c7/            # Laptop (ThinkPad X1 Carbon Gen 7)
-│   ├── torii-chan/      # VPN gateway role (SBC aarch64 + VPS failover)
-│   ├── shosoin-tan/     # Tower server
-│   ├── kagutsuchi-sama/ # Tower server
-│   └── sando-kun/       # Tower server
-├── lib/                 # Helper functions (mkSystem)
-├── scripts/             # Operational scripts (Nebula CA rotation, secret import)
-├── secrets/             # SOPS-encrypted secrets
-└── terraform/           # OpenTofu: ConoHa VPS infrastructure
+├── flake.nix   # flake-parts entrypoint
+├── flake/      # flake-parts modules (hosts, lib, overlays, packages, dev)
+├── lib/        # mkSystem helper
+├── nixos/      # system-wide modules — see nixos/README.md
+├── home/       # home-manager modules — see home/README.md
+├── hosts/      # per-machine configurations — see hosts/README.md
+├── secrets/    # SOPS-encrypted secrets — see secrets/README.md
+├── scripts/    # operational scripts — see scripts/README.md
+└── terraform/  # ConoHa VPS infrastructure — see terraform/README.md
 ```
+
+[`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded and how the documentation is organised.
 
 ## Quick Start
 
@@ -86,8 +64,8 @@ Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/
 
 ## References
 
-- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: Overall modular architecture and Niri setup.
-- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Declarative Zen Browser configuration.
-- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: Best practices for NixOS and Home-manager.
-- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: Structured module design.
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: Specialized Noctalia configuration and Japanese desktop environment layout.
+- https://github.com/ryan4yin/nix-config
+- https://github.com/natsukium/dotfiles
+- https://github.com/asa1984/dotfiles
+- https://github.com/ms0503/dotfiles
+- https://github.com/mkt3/dotfiles

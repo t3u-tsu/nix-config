@@ -10,7 +10,7 @@ Short description of this machine (role, hardware headline).
   - ... (by-id names, mount points)
 
 ## Role / Services
-- (what this host runs, e.g. Nebula member, Minecraft server, ...)
+- (what this host runs, e.g. Nebula member, game server, build host)
 - Nebula IP: `10.0.0.5` (group: mgmt)
 
 ## Deployment

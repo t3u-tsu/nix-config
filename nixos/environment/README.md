@@ -6,10 +6,10 @@ Pre-defined groups of system-level packages that can be toggled via options.
 
 Each package category can be enabled individually using the `my.packages.<category>.enable = true` option.
 
-- **`base.nix`**: Core essentials (git, vim, tmux, file, which) required for basic system administration. Enabled on all hosts by default.
-- **`monitoring.nix`**: System monitoring tools (btop, fastfetch, lm_sensors) and hardware-specific monitoring tools.
-- **`network-tools.nix`**: Network diagnostic and utility tools (curl, wget, nmap, gping, dnsutils).
-- **`data.nix`**: Data processing and compression tools (jq, yq-go, p7zip, unzip, zip, xz, zstd).
+- **`base.nix`**: CLI essentials required for basic system administration. Enabled on all hosts by default.
+- **`monitoring.nix`**: System and hardware monitoring tools.
+- **`network-tools.nix`**: Network diagnostic and transfer utilities.
+- **`data.nix`**: Data processing and compression tools.
 - **`security.nix`**: Security-related tools and hardening settings.
 - **`default.nix`**: Definition of all `my.packages.*` options.
 
