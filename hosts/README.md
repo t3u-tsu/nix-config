@@ -152,8 +152,8 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 ### 7. Deploy
 
 - **Clean install** — boot the NixOS installer, partition per `hardware.nix`,
-  place the age key at `/mnt/var/lib/sops-nix/key.txt` (see the BrokenPC
-  README for the canonical walkthrough), then:
+  place the age key at `/mnt/var/lib/sops-nix/key.txt` (see
+  [BrokenPC/README.md](BrokenPC/README.md) for the canonical walkthrough), then:
   ```bash
   sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#<hostname>
   ```
@@ -172,7 +172,7 @@ main sync follow the standard workflow — see `AGENTS.md` /
 ## Notes
 
 - **Keep secrets out of the repo**: only `sops`-encrypted values in
-  `secrets/`, never plaintext. See `secrets/README.md` for the key model and
+  `secrets/`, never plaintext. See [`secrets/README.md`](../secrets/README.md) for the key model and
   recovery procedure.
 - **Nebula IPs** are stamped into the signed certificates — changing an IP
   means re-signing (and re-importing) that node's cert.

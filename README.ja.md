@@ -17,15 +17,24 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 ├── flake.nix   # flake-parts エントリポイント
 ├── flake/      # flake-parts モジュール (hosts, lib, overlays, packages, dev)
 ├── lib/        # mkSystem ヘルパー
-├── nixos/      # 全ホスト共通のシステムモジュール — nixos/README.md 参照
-├── home/       # home-manager モジュール — home/README.md 参照
-├── hosts/      # マシン固有の設定 — hosts/README.md 参照
-├── secrets/    # SOPS 暗号化シークレット — secrets/README.md 参照
-├── scripts/    # 運用スクリプト — scripts/README.md 参照
-└── terraform/  # ConoHa VPS インフラ — terraform/README.md 参照
+├── nixos/      # 全ホスト共通のシステムモジュール
+├── home/       # home-manager モジュール
+├── hosts/      # マシン固有の設定
+├── secrets/    # SOPS 暗号化シークレット
+├── scripts/    # 運用スクリプト
+└── terraform/  # ConoHa VPS インフラ
 ```
 
-各層の読み込みとドキュメントの構成は [`docs/architecture.md`](docs/architecture.md) に書いています．
+各層にはそれぞれ README があります:
+
+- [`nixos/`](nixos/README.md) — 全ホストが読み込むシステムモジュール
+- [`home/`](home/README.md) — home-manager モジュール
+- [`hosts/`](hosts/README.md) — マシン固有の設定と追加手順
+- [`secrets/`](secrets/README.md) — SOPS の配置と鍵モデル
+- [`scripts/`](scripts/README.md) — 運用スクリプト
+- [`terraform/`](terraform/README.md) — ConoHa VPS インフラ
+
+各層の読み込み方は [`docs/architecture.md`](docs/architecture.md) に書いています．
 
 ## クイックスタート
 
@@ -36,7 +45,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 - **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — タワーサーバー
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
 - **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）
-- **`torii-chan-sd-installer`** — SD インストーライメージ（`hosts/torii-chan/README.md` 参照）
+- **`torii-chan-sd-installer`** — SD インストーライメージ（[`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）
 - **`torii-chan-vps-iso`** — VPS インストーラ ISO．nixosConfiguration ではなく **package** として公開（`nix build .#torii-chan-vps-iso`）
 
 ローカルマシンの設定を適用する場合：
@@ -51,7 +60,7 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが `user_namespaces` / `seccomp BPF` に対応していないため必要です（`hosts/torii-chan/README.md` 参照）．
+`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが `user_namespaces` / `seccomp BPF` に対応していないため必要です（[`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）．
 
 ## 新規ホストの追加
 
@@ -59,8 +68,8 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## CI/CD と自動化
 
-- **Nix Flake Check** (`nix-check.yml`): `main` / `feat/*` / `fix/*` / `refactor/*` / `docs/*` / `chore/*` へのプッシュとプルリクエストで `nix flake check` を実行．
-- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に `nvfetcher` と `flake.lock` 更新を実行し，`main` へ直接コミット．
+- **Nix Flake Check** (`nix-check.yml`): プッシュとプルリクエストのたびに実行．一方のジョブが `nix flake check`（全ホストの評価と整形・lint フック），もう一方が `convco` によるコミットメッセージの検査を行う．
+- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に Minecraft プラグインのピンと `flake.lock` を更新し，`nix flake check` で検証して `main` へ直接コミット．
 
 ## 参考文献
 

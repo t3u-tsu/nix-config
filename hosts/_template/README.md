@@ -35,4 +35,4 @@ nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.5 --sudo --ask-
    sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#HOSTNAME
    ```
 
-See `hosts/README.md` for the full add-a-host workflow.
+See [`hosts/README.md`](../README.md) for the full add-a-host workflow.

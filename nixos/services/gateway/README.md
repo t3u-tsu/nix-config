@@ -10,4 +10,4 @@ The **torii-chan** role: a Nebula mesh gateway (Lighthouse + Relay) with DDNS an
 - **`ssh.nix`**: OpenSSH with key-only auth, restricted to the Nebula mesh.
 - **`ddns.nix`**: Cloudflare DDNS via `ddclient` for `torii-chan.t3u.uk`, `mc.t3u.uk`, `*.mc.t3u.uk`.
 
-Platform-specific wiring (SBC vs VPS) lives in `hosts/torii-chan/` — see `hosts/torii-chan/README.md`.
+Platform-specific wiring (SBC vs VPS) lives in [`hosts/torii-chan/`](../../../hosts/torii-chan/README.md) — see [`hosts/torii-chan/README.md`](../../../hosts/torii-chan/README.md).
