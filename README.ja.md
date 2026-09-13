@@ -14,40 +14,18 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 ```text
 .
-├── flake.nix            # flake-parts エントリポイント
-├── flake/               # flake-parts モジュール
-│   ├── hosts.nix        # nixosConfigurations 定義
-│   ├── lib.nix          # Flake ライブラリ出力
-│   ├── overlays.nix     # Nixpkgs オーバーレイ
-│   ├── packages.nix     # Flake パッケージ出力
-│   └── dev.nix          # pre-commit hooks / devShells
-├── nixos/               # NixOS システムモジュール
-│   ├── base/            # OS 基盤 (ユーザー, Nix, 時間同期)
-│   ├── core/            # OS 核心設定 (i18n)
-│   ├── security/        # セキュリティと秘密情報 (SOPS)
-│   ├── networking/      # ネットワーク設定 (hosts, Nebula mesh)
-│   ├── environment/     # システムパッケージ
-│   ├── hardware/        # ハードウェア固有設定 (NVIDIA 等)
-│   ├── dev-tools/       # 開発用ハードウェア・ツール (WCH-LinkE, Ventoy)
-│   ├── profiles/        # 役割別プロファイル (desktop, tower-server, sbc, gateway)
-│   ├── services/        # システムサービス (バックアップ, Minecraft, デスクトップ等)
-│   └── virtualisation/  # 仮想化 (distrobox, microvm)
-├── home/                # Home Manager モジュール
-│   ├── shell/           # シェル環境 (Zsh, Pure, Atuin)
-│   ├── programs/        # 共通ツール (CLI, Git, SSH)
-│   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
-├── hosts/               # ホスト固有設定（各ホストの README.md を参照）
-│   ├── BrokenPC/        # ゲーミングラップトップ (Victus by HP)
-│   ├── x1c7/            # ラップトップ (ThinkPad X1 Carbon Gen 7)
-│   ├── torii-chan/      # VPN ゲートウェイ役割 (SBC aarch64 + VPS フェイルオーバー)
-│   ├── shosoin-tan/     # タワーサーバー
-│   ├── kagutsuchi-sama/ # タワーサーバー
-│   └── sando-kun/       # タワーサーバー
-├── lib/                 # ヘルパー関数 (mkSystem)
-├── scripts/             # 運用スクリプト (Nebula CA ローテーション等)
-├── secrets/             # SOPS 暗号化シークレット
-└── terraform/           # OpenTofu: ConoHa VPS インフラ管理
+├── flake.nix   # flake-parts エントリポイント
+├── flake/      # flake-parts モジュール (hosts, lib, overlays, packages, dev)
+├── lib/        # mkSystem ヘルパー
+├── nixos/      # 全ホスト共通のシステムモジュール — nixos/README.md 参照
+├── home/       # home-manager モジュール — home/README.md 参照
+├── hosts/      # マシン固有の設定 — hosts/README.md 参照
+├── secrets/    # SOPS 暗号化シークレット — secrets/README.md 参照
+├── scripts/    # 運用スクリプト — scripts/README.md 参照
+└── terraform/  # ConoHa VPS インフラ — terraform/README.md 参照
 ```
+
+各層の読み込みとドキュメントの構成は [`docs/architecture.md`](docs/architecture.md) に書いています．
 
 ## クイックスタート
 
@@ -86,8 +64,8 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## 参考文献
 
-- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成．
-- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定．
-- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: NixOS および Home-manager 設定のベストプラクティス．
-- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: 構造化されたモジュール設計．
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: 高度な Noctalia 設定と日本語デスクトップ環境．
+- https://github.com/ryan4yin/nix-config
+- https://github.com/natsukium/dotfiles
+- https://github.com/asa1984/dotfiles
+- https://github.com/ms0503/dotfiles
+- https://github.com/mkt3/dotfiles
