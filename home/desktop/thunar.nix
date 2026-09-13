@@ -15,8 +15,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Thunar configuration (Home-manager side)
-    # System-wide services are needed for full functionality (gvfs, tumbler, xfconf)
+    # gvfs / tumbler / xfconf come from the system module
+    # (nixos/services/desktop/thunar.nix).
 
     home = {
       packages = with pkgs; [
@@ -26,10 +26,8 @@ in
         p7zip
       ];
 
-      # Thunar's "Open Terminal Here" custom action. Passing --working-directory
-      # forces ghostty to skip its single-instance mode (which would otherwise
-      # ignore the working directory of a new launch) and open in the browsed
-      # directory. %f is expanded shell-quoted by Thunar.
+      # ghostty's single-instance mode ignores the working directory of a new
+      # launch, so --working-directory is required here. Thunar quotes %f.
       file.".config/Thunar/uca.xml".text = ''
         <?xml version="1.0" encoding="UTF-8"?>
         <actions>
@@ -48,15 +46,13 @@ in
         </actions>
       '';
 
-      # XFCE preferred-application helper. Kept for other integrations that use
-      # exo-open --launch TerminalEmulator.
+      # Read by integrations using `exo-open --launch TerminalEmulator`.
       file.".config/xfce4/helpers.rc".text = ''
         [Default]
         TerminalEmulator=ghostty
       '';
     };
 
-    # Thunar settings via xfconf
     xfconf.settings = {
       thunar = {
         "misc-show-recent" = false;

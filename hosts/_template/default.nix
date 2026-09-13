@@ -19,9 +19,8 @@
   # hostname (hyphens -> underscores), so no per-host key setup is needed here.
   networking.hostName = "HOSTNAME";
 
-  # Host-specific overrides. Evaluation order: profile -> hosts/<name>/default.nix
-  # -> extraModules (later wins, see AGENTS.md), so this file can override profile
-  # defaults with mkForce / mkDefault / mkOrder when needed.
+  # Host-specific overrides. Evaluation order is profile -> hosts/<name> ->
+  # extraModules (later wins, see AGENTS.md), so mkForce/mkDefault work here.
   my = {
     # Enable role-specific functionality, e.g.
     #   services.minecraft.enable = true;

@@ -1,23 +1,17 @@
 #!/usr/bin/env bash
-# ConoHa VPS ISO inject / eject (non-interactive) script
+# Inject/eject a rescue ISO on a ConoHa VPS to boot the NixOS installer.
 #
-# Overview:
-#   Helper script that inserts a rescue-mode CD-ROM (ISO image) into a VPS
-#   created with the ConoHa stock OS (e.g. Debian), boots the NixOS installer,
-#   and overwrites the disk with a fresh install.
-#   It calls the ConoHa public API directly (the terraform provider has no ISO operations).
+# The provider has no ISO operations, so this talks to the ConoHa public API
+# directly (Image API for upload, Compute API rescue/unrescue for insertion).
 #
 # Usage:
 #   ./nixos-iso.sh install <instance_id> <iso_file>   # create ISO -> upload -> insert -> start
 #   ./nixos-iso.sh eject   <instance_id>              # eject ISO (unrescue) -> start
 #   ./nixos-iso.sh status  <instance_id>              # check instance status
 #
-# Environment variables (same as those used by the terraform provider):
-#   CONOHAVPS_USER_ID / CONOHAVPS_PASSWORD / CONOHAVPS_TENANT_ID / CONOHAVPS_REGION
-#   CONOHAVPS_WAIT_TIMEOUT  max wait seconds for state transitions (default 600)
-#   (When CONOHAVPS_REGION is omitted it defaults to c3j1. See ../README.md for SOPS injection examples)
-#
-# Dependencies: curl, jq
+# Env: CONOHAVPS_USER_ID / CONOHAVPS_PASSWORD / CONOHAVPS_TENANT_ID,
+#      CONOHAVPS_REGION (default c3j1), CONOHAVPS_WAIT_TIMEOUT (default 600)
+# Deps: curl, jq
 set -euo pipefail
 
 REGION="${CONOHAVPS_REGION:-c3j1}"
@@ -31,7 +25,7 @@ COMPUTE="https://compute.${REGION}.conoha.io/v2.1"
 : "${CONOHAVPS_PASSWORD:?CONOHAVPS_PASSWORD is not set}"
 : "${CONOHAVPS_TENANT_ID:?CONOHAVPS_TENANT_ID is not set}"
 
-# --- Authentication: obtain X-Subject-Token via Identity API v3 -------------------------
+# Obtains the X-Subject-Token via the Identity API v3.
 get_token() {
   local body
   body=$(jq -n \
@@ -45,21 +39,17 @@ get_token() {
     awk 'tolower($1)=="x-subject-token:"{print $2}' | tr -d '\r'
 }
 
-# --- Get server status: ACTIVE / SHUTOFF / ERROR etc. -------------------------
-# Returns: server status (.server.status). Details are fetched via server_details.
 server_status() {
   local token="$1" id="$2"
   curl -sS --max-time 30 "${COMPUTE}/servers/${id}" -H "X-Auth-Token: ${token}" |
     jq -r '.server.status'
 }
 
-# --- Get server details (for waiting on state transitions / diagnostics) ---------------------------------
 server_details() {
   local token="$1" id="$2"
   curl -sS --max-time 30 "${COMPUTE}/servers/${id}" -H "X-Auth-Token: ${token}"
 }
 
-# --- Poll server status and wait for a specified state ------------------------------
 wait_status() {
   local token="$1" id="$2" want="$3" label="$4"
   local status="" elapsed=0
@@ -78,8 +68,7 @@ wait_status() {
   return 1
 }
 
-# --- Execute a server action ---------------------------------------------------
-# On success: prints the HTTP code. On failure (4xx/5xx): prints the response body and exits.
+# Prints the HTTP code on success; on 4xx/5xx prints the response body and returns 1.
 server_action() {
   local token="$1" id="$2" body="$3"
   local code response
@@ -88,7 +77,6 @@ server_action() {
     -d "$body" "${COMPUTE}/servers/${id}/action")
   code=$(printf '%s' "${response}" | tail -1)
   if [ "${code}" -ge 400 ] 2>/dev/null; then
-    # Print the error response body (strip line breaks)
     printf '  API error (HTTP %s): %s\n' "${code}" \
       "$(printf '%s' "${response}" | sed '$d' | tr -d '\n' | head -c 500)" >&2
     return 1
@@ -96,10 +84,9 @@ server_action() {
   printf '%s' "${code}"
 }
 
-# --- Create the ISO image (created in queued state; the ID is returned) ----------------------
 create_iso_image() {
   local token="$1" name="$2"
-  local response
+  local code response
   response=$(curl -sS --max-time 30 -w "\n%{http_code}" -X POST \
     -H "Content-Type: application/json" -H "X-Auth-Token: ${token}" \
     -d "{\"name\":\"${name}\",\"disk_format\":\"iso\",\"hw_rescue_bus\":\"ide\",\"hw_rescue_device\":\"cdrom\",\"container_format\":\"bare\"}" \
@@ -113,7 +100,6 @@ create_iso_image() {
   printf '%s' "${response}" | sed '$d' | jq -r '.id'
 }
 
-# --- Upload the ISO file body (completes with 204) -----------------------------
 upload_iso() {
   local token="$1" image_id="$2" file="$3"
   curl -sS --max-time 600 -o /dev/null -w "%{http_code}" -X PUT \
@@ -121,9 +107,10 @@ upload_iso() {
     --data-binary "@${file}" "${IMAGE}/images/${image_id}/file"
 }
 
-# --- Put the server into SHUTOFF (idempotent: 409 is tolerated if already stopped) -------------
+# os-stop replies 409 when the server is already stopped.
 stop_server() {
   local token="$1" id="$2"
+  local code
   echo "==> Stopping server"
   if ! code=$(server_action "$token" "$id" '{"os-stop":null}'); then
     return 1
@@ -135,7 +122,6 @@ stop_server() {
   esac
 }
 
-# --- Main -------------------------------------------------------------------
 cmd="${1:-}"
 case "${cmd}" in
   install)
@@ -171,7 +157,6 @@ case "${cmd}" in
     rescue_code=0
     code=$(server_action "$token" "$instance_id" "{\"rescue\":{\"rescue_image_ref\":\"${iso_id}\"}}") || rescue_code=$?
     if [ "${rescue_code}" -ne 0 ]; then
-      # Print the error response details and exit (the message indicates whether rescue mode was already active)
       echo "ERROR: rescue failed. Please check the server status." >&2
       echo "HINT: if already in rescue mode, eject first: $0 eject ${instance_id}" >&2
       exit 1
@@ -179,7 +164,6 @@ case "${cmd}" in
     [ "${code}" = "200" ] || { echo "ERROR: rescue failed (HTTP ${code})" >&2; exit 1; }
     echo "  OK: 200 (booting into rescue mode)"
 
-    # Start the server if it is not yet ACTIVE (rescue mode) after the rescue run
     if [ "$(server_status "$token" "$instance_id")" != "ACTIVE" ]; then
       echo "==> Starting server"
       code=$(server_action "$token" "$instance_id" '{"os-start":null}')

@@ -10,7 +10,7 @@ Short description of this machine (role, hardware headline).
   - ... (by-id names, mount points)
 
 ## Role / Services
-- (what this host runs, e.g. Nebula member, Minecraft server, ...)
+- (what this host runs, e.g. Nebula member, game server, build host)
 - Nebula IP: `10.0.0.5` (group: mgmt)
 
 ## Deployment
@@ -35,4 +35,4 @@ nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.5 --sudo --ask-
    sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#HOSTNAME
    ```
 
-See `hosts/README.md` for the full add-a-host workflow.
+See [`hosts/README.md`](../README.md) for the full add-a-host workflow.

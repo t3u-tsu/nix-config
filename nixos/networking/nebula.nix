@@ -1,14 +1,12 @@
-# Nebula mesh-VPN module
-#   - network  nebula0, subnet 10.0.0.0/24, UDP 4242 (Lighthouse/Relay only)
-#   - torii-chan (10.0.0.1) is the Lighthouse + Relay, advertised via
-#     torii-chan.t3u.uk:4242 (DDNS failover between SBC and VPS).
+# nebula0: subnet 10.0.0.0/24, UDP 4242 on the Lighthouse/Relay (torii-chan).
+# The Lighthouse is advertised as torii-chan.t3u.uk:4242; DDNS failover between the
+# SBC and the VPS lets peers reconnect without reconfiguration.
 
 { config, lib, ... }:
 
 with lib;
 
 let
-  # Lowercased hostname (hyphens -> underscores) used for SOPS key mapping.
   hostKey = config.my.hostKey;
 
   serviceUser = "nebula-nebula0";
@@ -57,8 +55,8 @@ in
       description = ''
         Common tun MTU for ALL nodes. In a P2P mesh the sender's tun MTU sets the
         packet size, so every node must agree. 1320 = min path MTU 1380 - 60 (Nebula).
-        Boundary value; confirm with `ping -M do` on mobile in Phase 2, drop to 1300
-        if unstable.
+        Boundary value: confirm with `ping -M do` over mobile links and drop to
+        1300 if unstable.
       '';
     };
 

@@ -14,7 +14,7 @@ This directory manages the NixOS module for the Go-based [minecraft-discord-brid
 Enable the service in your host configuration (e.g., `shosoin-tan`):
 
 ```nix
-services.minecraft-discord-bridge = {
+my.services.minecraft-discord-bridge = {
   enable = true;
   settings = {
     discord.admin_guild_id = "1457...";

@@ -4,7 +4,7 @@ This directory manages the global backup configuration using Restic.
 
 ## Structure
 
-- **Sender Module (`default.nix`)**: Automates local and remote backups when `my.backup` is enabled on a host.
+- **Sender Module (`default.nix`)**: Automates local and remote backups when `my.services.backup` is enabled on a host.
 - **Receiver Module (`receiver.nix`)**: Configuration for the server receiving backup data (currently `kagutsuchi-sama`). Includes dedicated user and SFTP restrictions.
 
 ## Policy
@@ -57,5 +57,6 @@ sudo restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan snapsh
    ```
 
 ## Notes
-- Remote connections require `programs.ssh.extraConfig` to specify the identity file.
+- Remote identity comes from `sshKeyFile` (emitted as an `IdentityFile` in ssh_config);
+  `programs.ssh.extraConfig` supplies host-key checking.
 - The receiver side (`receiver.nix`) is restricted to SFTP only for security reasons.

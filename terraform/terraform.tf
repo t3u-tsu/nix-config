@@ -3,7 +3,8 @@ terraform {
 
   required_providers {
     conohavps = {
-      source = "registry.terraform.io/gmo-internet/conohavps"
+      source  = "registry.terraform.io/gmo-internet/conohavps"
+      version = "~> 0.1.0"
     }
   }
 }

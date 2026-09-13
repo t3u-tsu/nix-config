@@ -1,4 +1,3 @@
-# home/desktop/xdg.nix - XDG user dirs + MIME associations via handlr
 {
   config,
   lib,
@@ -16,7 +15,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    # XDG User Directories to English names
     xdg.userDirs = {
       enable = true;
       createDirectories = true;
@@ -33,30 +31,23 @@ in
 
     home.packages = [ pkgs.handlr-regex ];
 
-    # Set default application handlers via handlr
     home.activation.setDefaultHandlers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
       HANDLR="${pkgs.handlr-regex}/bin/handlr"
 
-      # Browser (Zen)
       run $HANDLR set text/html zen-beta.desktop
       run $HANDLR set x-scheme-handler/http zen-beta.desktop
       run $HANDLR set x-scheme-handler/https zen-beta.desktop
       run $HANDLR set x-scheme-handler/about zen-beta.desktop
       run $HANDLR set x-scheme-handler/unknown zen-beta.desktop
 
-      # File manager
       run $HANDLR set inode/directory thunar.desktop
 
-      # PDF → Browser
       run $HANDLR set application/pdf zen-beta.desktop
 
-      # Text files → Neovim (wildcard covers all text/*)
       run $HANDLR set 'text/*' nvim-ghostty.desktop
 
-      # Images → Loupe (wildcard covers all image/*)
       run $HANDLR set 'image/*' org.gnome.Loupe.desktop
 
-      # Office documents → LibreOffice
       run $HANDLR set application/vnd.openxmlformats-officedocument.spreadsheetml.sheet calc.desktop
       run $HANDLR set application/vnd.ms-excel calc.desktop
       run $HANDLR set text/csv calc.desktop

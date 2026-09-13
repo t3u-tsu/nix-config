@@ -8,6 +8,9 @@
 }:
 
 {
+  # Builds a nixosConfiguration from a role profile plus ../hosts/<name>/default.nix;
+  # extraModules are appended last so callers can override what the profile set.
+  # Arguments and the returned system are documented in lib/README.md.
   mkSystem =
     {
       name,

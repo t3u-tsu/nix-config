@@ -44,29 +44,22 @@
     loader.efi.canTouchEfiVariables = true;
   };
 
-  # NOTE (2026-08-02): NVIDIA dGPU (RTX 3050 Ti) is FAULTY (hardware).
-  # Minecraft hangs/crashes the GPU under load:
-  #   - OpenGL: SIGSEGV in libnvidia-glcore.so (NULL pointer write)
-  #   - Vulkan: VK semaphore timeout (GPU hang) during texture updates
-  #   - glmark2 and a 90%-VRAM stress test pass; the AMD iGPU (Radeon 680M)
-  #     runs Minecraft stably
-  # → dGPU core fault (texture upload path), not VRAM, not driver-only.
-  # Workaround: nvidiaOffload is DISABLED; run games on the AMD iGPU.
-  # Re-enable nvidiaOffload after the dGPU is repaired/replaced.
-  # Note: CUDA inference (llama.cpp etc.) still works on the dGPU.
-  # CUDA-enabled package builds target the RTX 3050 Ti (SM 8.6).
+  # NOTE (2026-08-02): the RTX 3050 Ti dGPU is FAULTY (hardware). Minecraft hangs
+  # it under load (OpenGL SIGSEGV in libnvidia-glcore.so / Vulkan GPU hang) while
+  # the Radeon 680M iGPU runs it stably; glmark2 and a 90%-VRAM stress test pass,
+  # so it is the dGPU texture-upload path, not VRAM or the driver alone.
+  # nvidiaOffload stays DISABLED (games on the iGPU) until the dGPU is replaced.
+  # CUDA inference (llama.cpp etc.) still works on the dGPU.
   nixpkgs.config.cudaCapabilities = [ "8.6" ];
 
-  # GPU Configuration (Battery-first: PRIME offload)
-  # - AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is only
-  #   activated on demand via `nvidia-offload` (games/compute).
-  # - `nvidia` is added to videoDrivers by the module (mkBefore).
+  # AMD iGPU (Radeon 680M) is the default renderer; the NVIDIA dGPU is activated
+  # on demand via `nvidia-offload` (compute only, see the dGPU note above).
+  # `nvidia` is prepended to videoDrivers by the hardware module (mkBefore).
   services = {
     xserver.videoDrivers = [ "amdgpu" ];
 
     power-profiles-daemon.enable = true;
 
-    # Laptop lid behavior: suspend on battery, lock when on AC, ignore when docked.
     logind.settings.Login = {
       HandleLidSwitch = "suspend";
       HandleLidSwitchExternalPower = "lock";
@@ -75,9 +68,8 @@
   };
 
   my = {
-    desktop.full.enable = true;
-
     services = {
+      desktop.full.enable = true;
       desktop = {
         greetd.greeterOutput = {
           name = "eDP-1";
@@ -90,8 +82,7 @@
     hardware.nvidia = {
       enable = true;
       open = true;
-      # systemd suspend/resume integration + Runtime D3 (RTD3) power gating.
-      # finegrained requires PRIME offload (assertion in nixpkgs module).
+      # finegrained requires PRIME offload (assertion in the nixpkgs module).
       powerManagement = {
         enable = true;
         finegrained = true;
@@ -108,16 +99,14 @@
   };
 
   # Make the AMD iGPU the primary DRM renderer so the NVIDIA dGPU stays powered
-  # down unless explicitly offloaded. by-path keeps this stable across boots
+  # down unless explicitly offloaded; by-path keeps this stable across boots
   # regardless of cardN numbering (AMD = 07:00.0, NVIDIA = 01:00.0).
-  # This is a drop-in for the niri.service provided by the niri package
-  # (via /run/current-system/sw/share/systemd/user, XDG_DATA_DIRS). Defining
-  # systemd.user.services.niri here would REPLACE that unit (and lose its
-  # ExecStart), and /etc/systemd/user is a symlink to the user-units package
-  # (so environment.etc cannot create files inside it). We therefore place the
-  # drop-in in ~/.config/systemd/user via home-manager instead.
+  # This MUST be a home-manager drop-in: defining systemd.user.services.niri
+  # replaces the niri package's unit and loses its ExecStart, and
+  # /etc/systemd/user is a symlink into the store (environment.etc cannot write
+  # inside it).
   home-manager.users.${config.my.user.name} = {
-    # Use the PTITSA wallpaper slideshow on this host (option defaults to minimal).
+    my.home.desktop.full.enable = true;
     my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''
       [Service]
@@ -128,12 +117,10 @@
 
   networking.hostName = "BrokenPC";
 
-  # Ensure /data exists and is owned by the user
   systemd.tmpfiles.rules = [
     "d /data 0755 ${config.my.user.name} users -"
   ];
 
-  # SSH Key for the user (Managed by SOPS)
   sops.secrets.brokenpc_ssh_private_key = {
     path = "/home/${config.my.user.name}/.ssh/id_ed25519";
     owner = config.my.user.name;

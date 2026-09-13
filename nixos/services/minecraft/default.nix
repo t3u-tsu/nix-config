@@ -1,8 +1,6 @@
 {
   config,
-  pkgs,
   lib,
-  inputs,
   ...
 }:
 
@@ -21,6 +19,5 @@
       enable = true;
       eula = true;
     };
-
   };
 }

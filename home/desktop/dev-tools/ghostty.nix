@@ -21,7 +21,6 @@ in
       settings = {
         term = "xterm-256color";
 
-        # Font settings
         font-family = [
           "JetBrainsMono Nerd Font"
           "Noto Sans CJK JP"
@@ -29,13 +28,12 @@ in
         ];
         font-size = 12;
 
-        # Window settings
         background-opacity = 0.95;
         window-padding-x = 3;
         window-padding-y = 3;
         window-decoration = false;
 
-        # Noctalia app-theming: `theme = noctalia` + generated themes file.
+        # `theme = noctalia` reads the themes file Noctalia generates.
         theme = "noctalia";
       };
     };

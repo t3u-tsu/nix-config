@@ -10,7 +10,7 @@ let
   cfg = config.my.services.minecraft;
   common = import ./common.nix { inherit pkgs lib; };
 
-  # Base server.properties settings (password omitted)
+  # rcon.password is appended by the preStart script.
   serverProperties = {
     server-port = 25567;
     max-players = 30;
@@ -49,20 +49,16 @@ in
       };
 
       files = {
-        # Reference LunaChat's settings from the shared config
         "plugins/LunaChat/config.yml".value = common.lunachat.config.lunaChatConfig;
       };
     };
 
     systemd.services.minecraft-server-nitac23s = {
-      # Fix udev warning
       environment.LD_LIBRARY_PATH = common.ldLibraryPath;
 
       preStart = lib.mkAfter ''
-        # 1. Fetch the RCON password
         RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
 
-        # 2. Write server.properties from scratch (overwrite)
         if [ -L server.properties ]; then rm server.properties; fi
 
         cat <<EOF > server.properties

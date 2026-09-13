@@ -1,6 +1,6 @@
 # Minecraft Network Configuration
 
-This directory manages the Minecraft network consisting of a Velocity proxy and Paper backend servers.
+This directory manages the Minecraft network: a proxy in front of the backend servers.
 
 ## Operational Status
 
@@ -13,7 +13,7 @@ This directory manages the Minecraft network consisting of a Velocity proxy and 
 
 ## Overview
 
-- **Proxy (Velocity)**: `proxy.nix`
+- **Proxy**: `proxy.nix`
   - Port: `25565`
   - Domain-based routing:
     - `mc.t3u.uk` -> `lobby`
@@ -38,16 +38,12 @@ A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu
 
 ## Plugin Management (nvfetcher)
 
-Plugins are managed in the `plugins/` directory using **nvfetcher** (declarative version management with automatic hash fetching):
-
-- `viaversion` (ViaVersion), `viabackwards` (ViaBackwards) — protocol translation
-- `gsit` (GSit) — sitting/posing plugin
-- `lunachat` (LunaChat) — Japanese chat formatting
+Plugins are declared in `plugins/` and version-pinned by **nvfetcher**; they cover protocol translation, sitting/posing, and Japanese chat formatting.
 
 - **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:
   ```bash
-  (cd services/minecraft/plugins && nvfetcher -c nvfetcher.toml)
+  (cd nixos/services/minecraft/plugins && nix shell nixpkgs#nvfetcher -c nvfetcher -c nvfetcher.toml)
   ```
 
 ## Lobby Server Specifications

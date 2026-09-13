@@ -18,7 +18,8 @@ Credentials are read from environment variables (never write them in plain text 
 export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' secrets/services/conoha-vps-mcp.yaml)
 export CONOHAVPS_PASSWORD=[redacted]
 export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' secrets/services/conoha-vps-mcp.yaml)
-# Region is optional (default c3j1). The provider also reads CONOHAVPS_REGION.
+# Region is hardcoded to c3j1 in provider.tf. CONOHAVPS_REGION is only read by
+# scripts/nixos-iso.sh and does NOT change the region terraform/OpenTofu uses.
 ```
 
 Required variables (passed via `TF_VAR_*`):
@@ -68,7 +69,10 @@ The state file (`terraform.tfstate`) is stored locally and excluded via `.gitign
 ## NixOS install workflow
 
 ConoHa's standard OS images do not include NixOS, so we use the **rescue ISO injection**
-method to replace the disk with NixOS (nixos-anywhere is not possible on the 512MB plan).
+method to replace the disk with NixOS. Running `nixos-anywhere` directly against a stock
+image is not possible on the 512MB plan; the community-proven alternative (boot the
+`nixos-kexec-installer` from a running Ubuntu, then `nixos-anywhere --phases install`
+with a GPT layout) is documented in [`hosts/torii-chan/README.md`](../hosts/torii-chan/README.md) and is not used here.
 
 ```bash
 # 1. Create the VPS (Debian boot)

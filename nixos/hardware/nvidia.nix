@@ -21,10 +21,12 @@ in
       enable = mkOption {
         type = types.bool;
         default = false;
+        description = "Enable NVIDIA power management (systemd suspend/resume hooks).";
       };
       finegrained = mkOption {
         type = types.bool;
         default = false;
+        description = "Fine-grained power management (Runtime D3); requires PRIME offload.";
       };
     };
     prime = {
@@ -46,21 +48,25 @@ in
       nvidiaBusId = mkOption {
         type = types.str;
         default = "";
+        description = "PCI bus ID of the NVIDIA GPU, e.g. \"PCI:1:0:0\".";
       };
       amdgpuBusId = mkOption {
         type = types.str;
         default = "";
+        description = "PCI bus ID of the AMD GPU, e.g. \"PCI:7:0:0\".";
       };
       intelBusId = mkOption {
         type = types.str;
         default = "";
+        description = "PCI bus ID of the Intel GPU, e.g. \"PCI:0:2:0\".";
       };
     };
   };
 
   config = mkIf cfg.enable {
-    # Note: If AMD is also used, the host configuration should handle the order if necessary.
-    # With PRIME offload the iGPU driver should come first; with sync mode the dGPU is primary.
+    # mkBefore (mkOrder 500, ahead of the default 1000) keeps "nvidia" first so
+    # BrokenPC's [ "amdgpu" ] follows; a host needing the iGPU first must
+    # mkForce [ "amdgpu" "nvidia" ] — mkForce drops this module's entry.
     services.xserver.videoDrivers = mkBefore [ "nvidia" ];
 
     hardware.graphics = {

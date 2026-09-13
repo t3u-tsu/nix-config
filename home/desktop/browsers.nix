@@ -238,56 +238,46 @@ in
         containersForce = true;
 
         settings = {
-          # General UI/UX
           "extensions.autoDisableScopes" = 0;
           "browser.aboutConfig.showWarning" = false;
           "browser.shell.checkDefaultBrowser" = false;
-          "browser.newtabpage.enabled" = false; # Clean new tab
-          "browser.startup.page" = 3; # Resume last session
+          "browser.newtabpage.enabled" = false;
+          "browser.startup.page" = 3; # resume last session
           "browser.toolbars.bookmarks.visibility" = "always";
           "browser.bookmarks.addedImportButton" = false;
 
-          # Disable Built-in Password Manager (Using Bitwarden)
+          # Disable the built-in password manager (Bitwarden is forced in).
           "signon.rememberSignons" = false;
           "signon.autofillForms" = false;
           "signon.generation.enabled" = false;
           "signon.management.page.breach-alerts.enabled" = false;
           "signon.showAutoCompleteFooter" = false;
 
-          # Language & Localization
           "intl.accept_languages" = "ja-jp,ja,en-us,en";
           "intl.locale.requested" = "ja";
 
-          # Zen Specific UI Tweaks
           "zen.view.compact.color-sidebar" = true;
           "zen.theme.content-element-separation" = 0;
           "zen.workspaces.show-workspace-indicator" = true;
           "zen.theme.essentials-favicon-bg" = true;
 
-          # Zen Verified settings
           "zen.welcome-screen.seen" = true;
           "browser.aboutwelcome.enabled" = false;
 
-          # Privacy & Security
           "privacy.trackingprotection.enabled" = true;
           "privacy.trackingprotection.socialtracking.enabled" = true;
           "dom.security.https_only_mode" = true;
           "network.cookie.cookieBehavior" = 0; # Allow all cookies
           "network.cookie.lifetimePolicy" = 0; # Keep until expired
 
-          # Performance
           "gfx.webrender.all" = true;
-          "media.ffmpeg.vaapi.enabled" = true; # Hardware acceleration
+          "media.ffmpeg.vaapi.enabled" = true;
 
-          # Smooth Scrolling
           "general.smoothScroll" = true;
 
-          # Enable userChrome.css / userContent.css theming
+          # Makes Firefox load the userChrome.css / userContent.css above.
           "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         };
-
-        # Noctalia Dynamic Theming Integration
-        # Noctalia zen-browser template owns userChrome/userContent colors.
       };
     };
   };

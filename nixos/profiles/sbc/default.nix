@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+_: {
   config = {
     # Disable Nix sandboxing and seccomp filtering for legacy kernels
     # lacking namespace/BPF support

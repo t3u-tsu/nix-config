@@ -1,22 +1,30 @@
-# Host: BrokenPC (Victus by HP 16-e1xxx)
+# Host: BrokenPC (HP Victus 16-e1065AX)
 
-NixOS gaming laptop with a hybrid GPU configuration. This host is a "Victus by HP" laptop used for daily work and development, managed via Nix Flakes.
+HP Victus gaming laptop with a hybrid AMD iGPU + NVIDIA dGPU. Used for daily work,
+development and gaming, managed via Nix Flakes.
 
 ## Hardware Specs
 - **CPU**: AMD Ryzen 7 6800H (16 threads)
-- **GPU**: 
-  - NVIDIA GeForce RTX 3050 Ti Mobile (Discrete)
-  - AMD Radeon 680M (Integrated)
+- **GPU**:
+  - NVIDIA GeForce RTX 3050 Ti Mobile (discrete, **faulty** — see GPU Configuration)
+  - AMD Radeon 680M (integrated)
 - **RAM**: 16GB DDR5
 - **Storage**:
   - 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`) for OS/Boot
   - 1TB NVMe SSD (`nvme-FIKWOT_FN500_1TB_AA000000000000000188`) mapped to `/data`
 
-## GPU Configuration (Battery-first: PRIME offload)
+## GPU Configuration (dGPU faulty: games on the iGPU)
 
-- The AMD Radeon 680M iGPU is the primary renderer (set via `WLR_DRM_DEVICES` on the niri user service, using PCI by-path so it stays stable across boots).
-- The NVIDIA RTX 3050 Ti runs the **open kernel modules** (`nvidia_cachyos.open`, driver 610.x) with **RTD3 power management** (`finegrained`): it powers down when idle and is only activated on demand.
-- Launch games on the dGPU with `nvidia-offload` (Steam desktop entry "Steam (NVIDIA)" or the `steam-nvidia` alias). For per-game offloading, set the Steam launch option to `nvidia-offload %command%` (optionally wrapped in `gamescope -e --`).
+- The RTX 3050 Ti dGPU is **faulty** (hardware). Minecraft hangs it under load
+  while the AMD Radeon 680M iGPU runs it stably, so
+  `my.services.desktop.gaming.nvidiaOffload` must stay **disabled**
+  (`default.nix`): Steam and every game launched through it run on the iGPU.
+  Re-enable offload only after the dGPU is repaired or replaced.
+- CUDA inference (`llama.cpp`) still works on the dGPU. CUDA package builds
+  target it at SM 8.6.
+- The iGPU is the primary renderer (`WLR_DRM_DEVICES` on the niri user service,
+  PCI by-path so it stays stable across boots). The dGPU otherwise stays powered
+  down via the open kernel modules and RTD3 (`powerManagement.finegrained`).
 - Lid behavior: suspend on battery, lock on AC, ignore when docked (`services.logind.settings.Login`).
 
 ## Installation Guide (Clean Install)
@@ -52,10 +60,13 @@ NixOS gaming laptop with a hybrid GPU configuration. This host is a "Victus by H
 
 ### Phase 2: Transfer Secret Key (Important)
 `sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
-so the age key must be in place **before** installing:
+so the identity at `/mnt/var/lib/sops-nix/key.txt` must decrypt
+`secrets/hosts/BrokenPC.yaml` **before** installing — user keys are excluded
+from host files (see [`secrets/README.md`](../../secrets/README.md)):
 ```bash
 sudo mkdir -p /mnt/var/lib/sops-nix
-# Copy your age key to /mnt/var/lib/sops-nix/key.txt
+# Place the offline master age key, or the host key derived from the SSH host
+# key registered in .sops.yaml, at /mnt/var/lib/sops-nix/key.txt
 ```
 
 ### Phase 3: System Installation

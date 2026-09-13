@@ -16,30 +16,24 @@ in
     defaultSopsFile = hostSecretsFile;
     defaultSopsFormat = "yaml";
 
-    # Use the system's SSH host key for decryption
-    # This matches the 'age' public keys derived from SSH host keys
+    # .sops.yaml registers the age keys derived from the SSH host key, so that
+    # key is this host's decryption identity.
     age = {
       keyFile = "/var/lib/sops-nix/key.txt";
       sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-      # NOTE: keep generateKey = false. sops-nix's generateKey would create a
-      # RANDOM age key (age-keygen), which cannot decrypt secrets encrypted for
-      # the SSH-host-key-derived age identity. The key file is instead derived
-      # from the SSH host key by the "0-sops-key-import" activation script below.
+      # Keep generateKey = false: sops-nix would otherwise create a random age
+      # key that cannot decrypt secrets encrypted for the SSH-derived identity.
+      # "0-sops-key-import" below derives the key file instead.
       generateKey = false;
     };
 
-    # Secrets available on ALL hosts
     secrets."${hostKey}_t3u_password_hash".neededForUsers = true;
     secrets."${hostKey}_root_password_hash".neededForUsers = true;
   };
 
-  # Derive the age key file from the SSH host key (the age identity registered
-  # in .sops.yaml) BEFORE sops-install-secrets runs. Fixes the chicken-and-egg
-  # on freshly flashed images where /var/lib/sops-nix/key.txt does not exist
-  # yet but the SSH host key does (sops-install-secrets fails to read key.txt
-  # even though it imports the SSH key successfully).
-  # The "0-" prefix ensures textClosureMap emits this script before
-  # "setupSecrets" (whose deps are specialfs/users/groups).
+  # Derive the key file from the SSH host key before sops-install-secrets runs:
+  # on a freshly flashed image key.txt does not exist yet and the install fails
+  # even though importing the SSH key succeeded. The "0-" prefix orders it first.
   system.activationScripts."0-sops-key-import" = lib.mkIf (config.sops.age.sshKeyPaths != [ ]) {
     deps = [ "specialfs" ];
     text = ''
