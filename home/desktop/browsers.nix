@@ -28,7 +28,6 @@ in
   config = mkIf cfg.enable {
     programs.chromium = mkIf cfg.chromium.enable {
       enable = true;
-      # Suppress the "set as default browser?" and first-run prompts.
       commandLineArgs = [
         "--no-first-run"
         "--no-default-browser-check"
@@ -59,12 +58,24 @@ in
           #nav-bar { background-color: ${palette.bg} !important; }
           #urlbar-background { background-color: ${palette.bg2} !important; }
           #urlbar, #urlbar-input { color: ${palette.fg} !important; }
+          /* Vesper: text selection inside browser chrome (e.g. urlbar).
+             Without this, Firefox uses the system (GTK) Highlight color. */
+          ::selection {
+            background-color: ${palette.primary} !important;
+            color: #000000 !important;
+          }
         '';
       };
       ".config/zen/${osConfig.my.user.name}/chrome/userContent.css" = mkIf cfg.zen.enable {
         text = ''
           /* Vesper userContent: dark fallback. */
           :root { color-scheme: dark; }
+          /* Vesper: text selection on web pages. Firefox uses the system
+             (GTK) Highlight color here unless overridden. */
+          ::selection {
+            background-color: ${palette.primary} !important;
+            color: #000000 !important;
+          }
         '';
       };
     };

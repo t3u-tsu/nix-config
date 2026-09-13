@@ -77,7 +77,10 @@ ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 # -> age1...
 ```
 
-In `.sops.yaml`:
+`.sops.yaml` is a plain (non-encrypted) config file, so edit it directly (its
+`keys` / `creation_rules` cannot be managed by the `sops` CLI); keep the change
+under review. The encrypted `secrets/*.yaml` data files are edited only with the
+`sops` CLI:
 
 1. Add `&<hostname>  age1...` to `keys:`.
 2. Add a creation rule for `secrets/hosts/<hostname>.yaml`

@@ -97,9 +97,7 @@ in
           enabled = true;
           fill_color = "surface";
           transition = [
-            "fade"
             "zoom"
-            "wipe"
           ];
           transition_duration = 1500;
           transition_on_startup = true;
