@@ -1,4 +1,4 @@
-# Host: BrokenPC (Victus by HP 16-e1xxx)
+# Host: BrokenPC (HP Victus 16-e1065AX)
 
 HP Victus gaming laptop with a hybrid AMD iGPU + NVIDIA dGPU. Used for daily work,
 development and gaming, managed via Nix Flakes.

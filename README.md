@@ -10,6 +10,23 @@
 
 Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
+## Stack
+
+|              |                    |
+| ------------ | ------------------ |
+| **OS**       | NixOS 26.05        |
+| **WM**       | niri               |
+| **Bar**      | Noctalia           |
+| **Shell**    | zsh + pure + Atuin |
+| **Terminal** | Ghostty            |
+| **Editor**   | Neovim             |
+| **Browser**  | Zen Browser        |
+| **Theme**    | Vesper             |
+| **Secrets**  | SOPS               |
+| **VPN**      | Nebula             |
+| **Backup**   | restic             |
+| **IaC**      | OpenTofu           |
+
 ## Directory Structure
 
 - [`flake.nix`](flake.nix) — flake-parts entrypoint
@@ -28,8 +45,8 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 Available configurations (defined in `flake/hosts.nix`):
 
-- **`BrokenPC`** — gaming laptop (local machine)
 - **`x1c7`** — laptop (ThinkPad X1 Carbon Gen 7)
+- **`BrokenPC`** — gaming laptop (HP Victus 16-e1065AX)
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
 - **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
