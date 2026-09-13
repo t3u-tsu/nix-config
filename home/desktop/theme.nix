@@ -40,7 +40,7 @@ in
     home.packages = with pkgs; [
       bibata-cursors
       papirus-icon-theme
-      orchis-theme
+      rose-pine-gtk-theme
       qt6Packages.qt6ct
       # Dependencies of the Noctalia libreoffice template (its apply.sh uses
       # python3 + zip to build the .oxt).
@@ -48,13 +48,13 @@ in
       zip
     ];
 
-    # GTK theme: Orchis Orange Dark (dark fallback; Noctalia gtk templates do
-    # not apply on this setup).
+    # GTK theme: Rosé Pine dark (Vesper-friendly low-contrast palette;
+    # Noctalia gtk templates do not apply on this setup).
     gtk = {
       enable = true;
       theme = {
-        name = "Orchis-Orange-Dark";
-        package = pkgs.orchis-theme;
+        name = "rose-pine";
+        package = pkgs.rose-pine-gtk-theme;
       };
       iconTheme = {
         name = "Papirus-Dark";

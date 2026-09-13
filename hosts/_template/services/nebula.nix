@@ -7,7 +7,7 @@ _: {
     #   10.0.0.3   kagutsuchi-sama
     #   10.0.0.4   shosoin-tan
     #   10.0.0.100 BrokenPC
-    # Static nodes use .5-.99; anything else uses .101-.254.
+    #   10.0.0.101 x1c7
     ip = "10.0.0.5";
 
     # Zone separation. "mgmt" allows SSH etc.; add "app" for app services

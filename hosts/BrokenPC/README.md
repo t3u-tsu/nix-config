@@ -1,6 +1,6 @@
 # Host: BrokenPC (Victus by HP 16-e1xxx)
 
-NixOS desktop machine with a hybrid GPU configuration. This host is a "Victus by HP" gaming laptop used for daily work and development, managed via Nix Flakes.
+NixOS gaming laptop with a hybrid GPU configuration. This host is a "Victus by HP" laptop used for daily work and development, managed via Nix Flakes.
 
 ## Hardware Specs
 - **CPU**: AMD Ryzen 7 6800H (16 threads)

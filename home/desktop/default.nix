@@ -47,12 +47,12 @@ in
       thunar.enable = mkDefault true;
       gpg-signing.enable = mkDefault true;
       dev-tools.enable = mkDefault true;
+      office.enable = mkDefault true;
 
       # Heavy extras: opt-in via my.home.desktop.full.enable
       creative.enable = mkDefault cfg.full.enable;
       gaming.enable = mkDefault cfg.full.enable;
       media.enable = mkDefault cfg.full.enable;
-      office.enable = mkDefault cfg.full.enable;
     };
 
     # dev-tools internals: heavy subsets opt-in via my.home.desktop.full.enable

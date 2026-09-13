@@ -36,11 +36,12 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── programs/        # 共通ツール (CLI, Git, SSH)
 │   └── desktop/         # デスクトップ環境 (Niri, ブラウザ, テーマ等)
 ├── hosts/               # ホスト固有設定（各ホストの README.md を参照）
-│   ├── BrokenPC/        # デスクトップPC (NixOS)
+│   ├── BrokenPC/        # ゲーミングラップトップ (Victus by HP)
+│   ├── x1c7/            # ラップトップ (ThinkPad X1 Carbon Gen 7)
 │   ├── torii-chan/      # VPN ゲートウェイ役割 (SBC aarch64 + VPS フェイルオーバー)
-│   ├── shosoin-tan/     # タワーサーバー (NixOS)
-│   ├── kagutsuchi-sama/ # タワーサーバー (NixOS)
-│   └── sando-kun/       # タワーサーバー (NixOS)
+│   ├── shosoin-tan/     # タワーサーバー
+│   ├── kagutsuchi-sama/ # タワーサーバー
+│   └── sando-kun/       # タワーサーバー
 ├── lib/                 # ヘルパー関数 (mkSystem)
 ├── scripts/             # 運用スクリプト (Nebula CA ローテーション等)
 ├── secrets/             # SOPS 暗号化シークレット
@@ -51,7 +52,8 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 利用可能な設定（`flake/hosts.nix` で定義）:
 
-- **`BrokenPC`** — デスクトップPC（ローカルマシン）
+- **`BrokenPC`** — ゲーミングラップトップ（ローカルマシン）
+- **`x1c7`** — ラップトップ（ThinkPad X1 Carbon Gen 7）
 - **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — タワーサーバー
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
 - **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）

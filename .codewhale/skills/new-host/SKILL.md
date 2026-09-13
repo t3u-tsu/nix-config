@@ -9,7 +9,7 @@ description: 新ホストを追加するときの手順．
 
 1. `cp -r hosts/_template hosts/<hostname>` し，`HOSTNAME` プレースホルダ・`hardware.nix`（fileSystems/swap）・`services/nebula.nix`（IP/groups）を実機に合わせて編集．
 2. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` を追加する（`profile` は必ず指定）．
-3. SOPS: `.sops.yaml` に age 鍵を登録し `secrets/hosts/<hostname>.yaml` を作成，`sops updatekeys`（詳細は `hosts/README.md` / `secrets/README.md`）．
+3. SOPS: `.sops.yaml`（設定ファイル．keys/creation_rules は直接追記し要承認）に `&<hostname> age1...` と creation rule を追加し，`secrets/hosts/<hostname>.yaml` を `sops set` で作成，`sops updatekeys`（詳細は `hosts/README.md` / `secrets/README.md`）．
 4. Nebula: 既存 CA で `nebula-cert sign` → `scripts/nebula-lib.sh` の `FLEET` 配列に追記して import（master 鍵が必要）．
 5. 検証: `nix flake check` → `nixos-rebuild dry-activate --flake .#<name>`（dry-activate はユーザーが実行）．
 6. 適用・PR は通常フロー（ユーザー承認必須）．

@@ -36,11 +36,12 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── programs/        # Workstation tools (CLI tools, Git, SSH)
 │   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
 ├── hosts/               # Host-specific configurations
-│   ├── BrokenPC/        # Desktop PC (NixOS)
+│   ├── BrokenPC/        # Gaming laptop (Victus by HP)
+│   ├── x1c7/            # Laptop (ThinkPad X1 Carbon Gen 7)
 │   ├── torii-chan/      # VPN gateway role (SBC aarch64 + VPS failover)
-│   ├── shosoin-tan/     # Tower server (NixOS)
-│   ├── kagutsuchi-sama/ # Tower server (NixOS)
-│   └── sando-kun/       # Tower server (NixOS)
+│   ├── shosoin-tan/     # Tower server
+│   ├── kagutsuchi-sama/ # Tower server
+│   └── sando-kun/       # Tower server
 ├── lib/                 # Helper functions (mkSystem)
 ├── scripts/             # Operational scripts (Nebula CA rotation, secret import)
 ├── secrets/             # SOPS-encrypted secrets
@@ -51,7 +52,8 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 Available configurations (defined in `flake/hosts.nix`):
 
-- **`BrokenPC`** — desktop PC (local machine)
+- **`BrokenPC`** — gaming laptop (local machine)
+- **`x1c7`** — laptop (ThinkPad X1 Carbon Gen 7)
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
 - **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
