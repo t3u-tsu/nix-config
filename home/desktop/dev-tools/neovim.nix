@@ -23,9 +23,8 @@ in
 
       extraConfig = ''
         lua << EOF
-        -- Vesper palette (Noctalia community Vesper), built from the shared
-        -- palette.nix so a re-theme stays in one place. Applied directly because
-        -- the Noctalia neovim template needs lazy.nvim / base16-colorscheme.
+        -- Vesper palette from palette.nix; Noctalia's neovim template needs
+        -- lazy.nvim / base16-colorscheme, so the highlight groups are set here.
         local v = {
           bg = "${palette.bg}", bg2 = "${palette.bg2}", bg3 = "${palette.bg3}", dim = "${palette.dim}",
           fg = "${palette.fg}", fg2 = "${palette.fg2}",
@@ -58,8 +57,8 @@ in
         hi("PmenuSel", { bg = v.bg3, fg = v.primary })
         hi("TabLine", { bg = v.bg2, fg = v.fg2 })
         hi("TabLineSel", { bg = v.bg, fg = v.primary })
-        hi("Search", { bg = v.primary, fg = "#0c0c0c" })
-        hi("IncSearch", { bg = v.secondary, fg = "#0c0c0c" })
+        hi("Search", { bg = v.primary, fg = v.bg })
+        hi("IncSearch", { bg = v.secondary, fg = v.bg })
         hi("TelescopeNormal", { fg = v.fg, bg = v.bg })
         hi("TelescopeBorder", { fg = v.dim, bg = v.bg })
         hi("TelescopePromptTitle", { fg = v.bg, bg = v.primary })

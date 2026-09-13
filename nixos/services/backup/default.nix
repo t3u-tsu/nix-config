@@ -10,6 +10,21 @@ with lib;
 let
   cfg = config.my.services.backup;
 
+  # "sftp:user@host:/path" -> "host"; null when the URL has no user@host part.
+  repoHost =
+    repo:
+    let
+      m = builtins.match ".*@([^:]+):.*" repo;
+    in
+    if m == null then null else builtins.head m;
+
+  sshHost = if cfg.remoteRepo == null then null else repoHost cfg.remoteRepo;
+
+  sshIdentity = optionalString (cfg.sshKeyFile != null && sshHost != null) ''
+    Host ${sshHost}
+      IdentityFile ${cfg.sshKeyFile}
+  '';
+
   mkBackup = name: repo: {
     ${name} = {
       inherit (cfg)
@@ -67,7 +82,7 @@ in
     sshKeyFile = mkOption {
       type = types.nullOr types.str;
       default = null;
-      description = "Path to SSH private key for remote backup";
+      description = "SSH private key added as an IdentityFile for the remote repository's host.";
     };
 
     backupPrepareCommand = mkOption {
@@ -94,6 +109,10 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = [ pkgs.restic ];
+
+    # restic has no ssh-key option: its SFTP backend shells out to the system ssh
+    # client, so the identity has to arrive through ssh_config.
+    programs.ssh.extraConfig = sshIdentity;
 
     services.restic.backups = mkMerge [
       (mkIf (cfg.localRepo != null) (mkBackup "local-backup" cfg.localRepo))

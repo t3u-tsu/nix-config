@@ -13,10 +13,15 @@ const child = spawn(ENV_BIN, [MCP_CMD, ...MCP_ARGS], { stdio: ['pipe', 'pipe', '
 process.stdin.pipe(child.stdin);
 
 function safePattern(original) {
-  const m = original.match(/\{\s*(\d+)\s*(?:,\s*(\d+)\s*)?\}/);
-  if (m) {
-    return m[2] ? `^.{${m[1]},${m[2]}}$` : `^.{${m[1]}}$`;
-  }
+  const ranged = original.match(/\{\s*(\d+)\s*,\s*(\d+)\s*\}/);
+  if (ranged) return `^.{${ranged[1]},${ranged[2]}}$`;
+
+  const openEnded = original.match(/\{\s*(\d+)\s*,\s*\}/);
+  if (openEnded) return `^.{${openEnded[1]},}$`;
+
+  const exact = original.match(/\{\s*(\d+)\s*\}/);
+  if (exact) return `^.{${exact[1]}}$`;
+
   return '^.{0,255}$';
 }
 

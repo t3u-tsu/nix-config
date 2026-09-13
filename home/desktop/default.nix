@@ -36,7 +36,6 @@ in
 
   config = mkIf cfg.enable {
     my.home.desktop = {
-      # Lightweight core: sane defaults for any desktop machine
       browsers.enable = mkDefault true;
       communication.enable = mkDefault true;
       theme.enable = mkDefault true;
@@ -49,14 +48,11 @@ in
       dev-tools.enable = mkDefault true;
       office.enable = mkDefault true;
 
-      # Heavy extras: opt-in via my.home.desktop.full.enable
       creative.enable = mkDefault cfg.full.enable;
       gaming.enable = mkDefault cfg.full.enable;
       media.enable = mkDefault cfg.full.enable;
     };
 
-    # dev-tools internals: heavy subsets opt-in via my.home.desktop.full.enable
-    # (lightweight subsets default to true inside dev-tools/default.nix)
     my.home.desktop.dev-tools = {
       ai-tools.enable = mkDefault cfg.full.enable;
       hardware.enable = mkDefault cfg.full.enable;

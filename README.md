@@ -19,7 +19,8 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 │   ├── hosts.nix        # nixosConfigurations
 │   ├── lib.nix          # Flake library output
 │   ├── overlays.nix     # Nixpkgs overlays
-│   └── packages.nix     # Flake package output (VPS installer ISO)
+│   ├── packages.nix     # Flake package output (VPS installer ISO)
+│   └── dev.nix          # pre-commit hooks / devShells
 ├── nixos/               # NixOS system modules
 │   ├── base/            # OS foundation (users, Nix, time)
 │   ├── core/            # OS core settings (i18n)
@@ -72,29 +73,18 @@ For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-The `sandbox false` / `filter-syscalls false` flags are required because the
-Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` support (see the
-troubleshooting section in `hosts/torii-chan/README.md`).
+The `sandbox false` / `filter-syscalls false` flags are required: the Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` (see `hosts/torii-chan/README.md`).
 
 ## Adding a New Host
 
-Copy the skeleton in [`hosts/_template/`](hosts/_template) and follow the
-step-by-step guide in [`hosts/README.md`](hosts/README.md) — it covers
-registration in `flake/hosts.nix`, SOPS key setup and Nebula certificate
-signing/import, validation, deployment, and the PR flow.
-
-For more specific deployment details, check the respective README.md files in `hosts/`, `nixos/` and `home/`.
+Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/README.md) for registration, SOPS keys, Nebula certificates, and deployment.
 
 ## CI/CD and Automation
 
-This repository uses GitHub Actions for continuous integration and automated updates:
-
-- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feat/*`/`fix/*`/`refactor/*`/`docs/*`/`chore/*` and on pull requests to ensure that configuration evaluation is clean.
-- **Scheduled Auto Update** (`auto-update.yml`): Runs daily at 04:00 JST. It automatically runs `nvfetcher` to fetch the latest Minecraft plugins and updates `flake.lock` to bump system packages, committing changes directly back to `main`.
+- **Nix Flake Check** (`nix-check.yml`): runs `nix flake check` on pushes to `main`/`feat/*`/`fix/*`/`refactor/*`/`docs/*`/`chore/*` and on pull requests.
+- **Scheduled Auto Update** (`auto-update.yml`): runs daily at 04:00 JST — `nvfetcher` for Minecraft plugins and `flake.lock` updates, committed directly to `main`.
 
 ## References
-
-This configuration was built with inspiration and knowledge from the following repositories:
 
 - **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: Overall modular architecture and Niri setup.
 - **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Declarative Zen Browser configuration.

@@ -10,8 +10,7 @@ let
   cfg = config.my.services.desktop.unity;
 in
 {
-  # Upstream unity-via-distrobox-flake NixOS module:
-  # installs podman + distrobox and enables rootless podman.
+  # Upstream module: installs podman + distrobox and enables rootless podman.
   imports = [
     inputs.unity-via-distrobox.nixosModules.unity
   ];

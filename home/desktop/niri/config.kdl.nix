@@ -1,4 +1,14 @@
-{ palette, homeDirectory }:
+{
+  palette,
+  homeDirectory,
+  cursorTheme,
+  cursorSize,
+}:
+let
+  # Not part of the Vesper palette: the cast-target ring needs a darker shade of
+  # palette.err so it still reads as the same warning while inactive.
+  castInactive = "#7d0d2d";
+in
 ''
   blur {
       passes 1
@@ -92,8 +102,8 @@
       center-focused-column "never"
   }
   cursor {
-      xcursor-theme "Bibata-Modern-Amber"
-      xcursor-size 24
+      xcursor-theme "${cursorTheme}"
+      xcursor-size ${toString cursorSize}
       hide-when-typing
       hide-after-inactive-ms 3000
   }
@@ -265,14 +275,14 @@
       match is-window-cast-target=true
       focus-ring {
           active-color "${palette.err}"
-          inactive-color "#7d0d2d"
+          inactive-color "${castInactive}"
       }
       border {
-          inactive-color "#7d0d2d"
+          inactive-color "${castInactive}"
       }
       tab-indicator {
           active-color "${palette.err}"
-          inactive-color "#7d0d2d"
+          inactive-color "${castInactive}"
       }
   }
   layer-rule {

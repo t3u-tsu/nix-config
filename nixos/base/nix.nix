@@ -53,6 +53,5 @@
     };
   };
 
-  # Enable aarch64 emulation on x86_64 hosts
   boot.binfmt.emulatedSystems = lib.optional pkgs.stdenv.hostPlatform.isx86_64 "aarch64-linux";
 }

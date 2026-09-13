@@ -13,7 +13,7 @@ let
 in
 {
   options.my.services.desktop.greetd = {
-    enable = mkEnableOption "greetd with tuigreet";
+    enable = mkEnableOption "greetd login manager with the Noctalia greeter";
     greeterOutput = mkOption {
       type = types.nullOr types.attrs;
       default = null;
@@ -99,7 +99,6 @@ in
       cfg.greeterWallpaper != null
     ) "C ${greeterWallpaperPath} 0640 greeter greeter - ${cfg.greeterWallpaper}";
 
-    # Unlock gnome-keyring on login
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
   };

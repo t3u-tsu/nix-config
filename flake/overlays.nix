@@ -1,18 +1,15 @@
 { inputs, lib, ... }:
 {
   flake.overlays.default = lib.composeManyExtensions [
-    # Minecraft server overlay
     inputs.nix-minecraft.overlay
 
-    # Niri compositor (from niri-flake)
     inputs.niri.overlays.niri
 
-    # Ghostty terminal
     (final: prev: {
       ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
     })
 
-    # PipeWire i686 workaround (disable broken dependencies on 32-bit)
+    # ffado / libcamera / roc-toolkit are broken on 32-bit, so disable them there.
     (final: prev: {
       pkgsi686Linux = prev.pkgsi686Linux // {
         pipewire = prev.pkgsi686Linux.pipewire.override {
@@ -29,7 +26,6 @@
       };
     })
 
-    # Unstable packages + U-Boot for Orange Pi Zero 3
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {
         inherit (prev.stdenv.hostPlatform) system;
@@ -51,7 +47,6 @@
       };
     })
 
-    # llama.cpp inference server (CUDA)
     inputs.llama-cpp.overlays.default
   ];
 }

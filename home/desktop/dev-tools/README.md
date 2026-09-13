@@ -1,16 +1,16 @@
 # Development Tools
 
-This directory contains user-specific development environment configurations.
+User-specific development environment configuration.
 
 ## Modules
 
-- **`neovim.nix`**: Core Neovim configuration, including aliases (`vi`, `vim`) and a custom desktop entry (`nvim-ghostty`) for file managers.
-- **`git-tools.nix`**: Modern Git TUI tools like `lazygit`.
-- **`nix.nix`**: Nix ecosystem development and management tools (nh, nixfmt, statix, nix-tree).
-- **`ai-tools.nix`**: AI-assisted development tools (e.g., `CodeWhale`, `GitHub Copilot`). Enabled with the desktop full stack (`my.desktop.full.enable`).
-- **`conoha-vps-mcp.nix`**: ConoHa VPS MCP server integration for codewhale (SOPS-injected credentials).
-- **`mcp/`**: ConoHa VPS MCP schema-fix wrapper (conoha-schema-fix.js), used by ai-tools for codewhale integration.
-- **`hardware.nix`**: KiCad, Qucs-S and picocom for hardware development. Also configures system-level udev rules for WCH-LinkE (ch32fun) programming/debugging. Enabled with the desktop full stack.
+- **`neovim.nix`**: Neovim configuration — Vesper highlight groups, `vi`/`vim` aliases and an `nvim-ghostty` desktop entry for file managers.
+- **`git-tools.nix`**: `lazygit`, `gh`, and the Git credential helper.
+- **`nix.nix`**: Nix ecosystem tools — nh, nix-du, nix-output-monitor, nix-tree, nixfmt, statix.
+- **`ai-tools.nix`**: AI-assisted development tools (CodeWhale, Node.js for the ConoHa MCP). Enabled with the desktop full stack (`my.home.desktop.full.enable`).
+- **`conoha-vps-mcp.nix`**: ConoHa VPS MCP server integration for codewhale, with SOPS-injected credentials.
+- **`mcp/`**: ConoHa VPS MCP schema-fix wrapper (`conoha-schema-fix.js`), used by ai-tools.
+- **`hardware.nix`**: KiCad, Qucs-S, picocom and Ventoy. The system-level udev rules for WCH-LinkE (ch32fun) programming live in `nixos/dev-tools/wch-linke.nix`. Enabled with the desktop full stack.
 - **`ghostty.nix`**: Ghostty terminal configuration.
-- **`unity.nix`**: Unity Hub for game development, provided by the standalone [unity-via-distrobox-flake](https://github.com/t3u-tsu/unity-via-distrobox-flake) repository (Distrobox-based Ubuntu 22.04 container).
-- **`default.nix`**: Index module to manage the enablement of development tool categories.
+- **`unity.nix`**: Unity Hub for game development, provided by the standalone [unity-via-distrobox-flake](https://github.com/t3u-tsu/unity-via-distrobox-flake) repository (Distrobox-based Ubuntu 22.04 container). Enabled with the desktop full stack (`my.home.desktop.full.enable`).
+- **`default.nix`**: Index module for the development tool categories.

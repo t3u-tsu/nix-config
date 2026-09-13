@@ -22,7 +22,6 @@ in
         externalInterface = cfg.wanInterface;
         internalInterfaces = lib.mkForce [ ];
         # MASQUERADE return traffic from the Minecraft backend (shosoin-tan).
-        # Replaces the former hand-written iptables POSTROUTING rule.
         internalIPs = [ "10.0.0.4" ];
         forwardPorts = [
           {

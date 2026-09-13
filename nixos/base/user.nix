@@ -11,7 +11,6 @@ let
 in
 {
   options.my = {
-    # Map the hostname to the SOPS secret key prefix (e.g. "torii-chan" -> "torii_chan")
     hostKey = mkOption {
       type = types.str;
       description = "Hostname with hyphens replaced by underscores (SOPS key prefix)";
@@ -55,7 +54,6 @@ in
         description = username;
         extraGroups = config.my.user.extraGroups;
         shell = config.my.user.shell;
-        # Password hashes are managed via SOPS (see nixos/security/sops.nix)
         hashedPasswordFile = config.sops.secrets."${config.my.hostKey}_t3u_password_hash".path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };

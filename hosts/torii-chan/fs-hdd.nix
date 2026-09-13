@@ -13,13 +13,11 @@
     options = [ "noatime" ];
   };
 
-  # Mount the SD card as /boot.
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";
   };
 
-  # --- USB HDD Boot Support ---
   boot = {
     initrd.availableKernelModules = [
       "usb_storage"
@@ -31,6 +29,8 @@
       "phy_sun4i_usb"
     ];
 
+    # The USB-SATA bridge is slow to appear (rootdelay) and its UAS
+    # implementation is unstable: quirks 'u' disables UAS for 152d:0583.
     kernelParams = [
       "rootdelay=10"
       "usb-storage.quirks=152d:0583:u"
@@ -40,10 +40,8 @@
     initrd.systemd.enable = true;
   };
 
-  # --- HDD Lifespan & Monitoring ---
-  # Disable HDD APM (Advanced Power Management) to stop excessive head
-  # load/unload cycles (Load_Cycle_Count). WD Scorpio Blue drives are known
-  # for high LCC, which shortens drive lifespan. 255 = APM fully disabled.
+  # WD Scorpio Blue drives rack up Load_Cycle_Count head load/unload cycles on
+  # APM's defaults, which shortens their life; 255 disables APM entirely.
   systemd.services.hdd-apm = {
     description = "Disable HDD APM for root disk";
     wantedBy = [ "multi-user.target" ];
@@ -58,8 +56,8 @@
   # SMART monitoring to detect disk degradation early.
   services.smartd = {
     enable = true;
-    # Monitor only the explicitly listed device. autodetect would also try
-    # to probe the USB bridge directly, which needs -d sat and may misbehave.
+    # autodetect would probe the USB bridge directly, which needs -d sat and may
+    # misbehave, so monitor only the explicitly listed device.
     autodetect = false;
     devices = [
       {

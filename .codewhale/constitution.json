@@ -4,7 +4,7 @@
   "protected_invariants": [
     {
       "text": "secrets/** は sops コマンドでのみ編集する．変更時は承認を求める．",
-      "paths": ["secrets/**", ".sops.yaml"],
+      "paths": ["secrets/**", ".sops.yaml"]
     }
   ],
   "escalate_when": [
@@ -15,8 +15,8 @@
   ],
   "verification_policy": {
     "before_claiming_done": [
-      "nix flake check で pre-commit（nixfmt / statix / convco）が通ること",
-      "nix build .#nixosConfigurations.<ホスト名>.config.system.build.toplevel でビルド確認ができること",
+      "nix flake check と pre-commit が通ること",
+      "nixos-rebuild build --flake .#<ホスト名> でビルド確認ができること",
       "git status と diff を確認し，意図しない変更が含まれていないこと"
     ]
   }
