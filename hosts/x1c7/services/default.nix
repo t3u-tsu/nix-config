@@ -7,6 +7,7 @@
 
 {
   imports = [
+    ./audio.nix
     ./nebula.nix
   ];
 }
