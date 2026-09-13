@@ -87,13 +87,21 @@ under review. The encrypted `secrets/*.yaml` data files are edited only with the
    (`key_groups: [*master_key, *<hostname>]`).
 3. Append `*<hostname>` to the `common.yaml` rule (CA secret is shared).
 
-Create the host secret file (password hashes):
-`mkpasswd -m sha-512` (or `nix shell nixpkgs#mkpasswd -c mkpasswd -m sha-512`):
+Create the host secret file (password hashes). The host creation rule lists the
+master key plus the host key (the user key is excluded), so any `sops`
+invocation needs the master age key available:
 
 ```bash
+# interactive: reads both passwords with read -s, then encrypts from plaintext
+nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#jq -c bash scripts/set-host-password.sh <hostname>
+
+# or by hand:
+export SOPS_AGE_KEY_FILE=/path/to/master-age-key.txt
 sops set secrets/hosts/<hostname>.yaml '["<hostkey>_t3u_password_hash"]' '"<hash>"'
 sops set secrets/hosts/<hostname>.yaml '["<hostkey>_root_password_hash"]' '"<hash>"'
 ```
+
+(`<hash>` = `mkpasswd -m sha-512`, or `nix shell nixpkgs#mkpasswd -c mkpasswd -m sha-512`.)
 
 Re-encrypt for the new key set:
 
@@ -144,8 +152,9 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 ### 7. Deploy
 
 - **Clean install** — boot the NixOS installer, partition per `hardware.nix`,
-  place the age key at `/mnt/var/lib/sops-nix/key.txt` (see the BrokenPC
-  README for the canonical walkthrough), then:
+  place the master age key (or the host key derived from the SSH host key in
+  `.sops.yaml`) at `/mnt/var/lib/sops-nix/key.txt` — the user key cannot decrypt
+  host secrets, see [secrets/README.md](../secrets/README.md) — then:
   ```bash
   sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#<hostname>
   ```
@@ -164,7 +173,7 @@ main sync follow the standard workflow — see `AGENTS.md` /
 ## Notes
 
 - **Keep secrets out of the repo**: only `sops`-encrypted values in
-  `secrets/`, never plaintext. See `secrets/README.md` for the key model and
+  `secrets/`, never plaintext. See [`secrets/README.md`](../secrets/README.md) for the key model and
   recovery procedure.
 - **Nebula IPs** are stamped into the signed certificates — changing an IP
   means re-signing (and re-importing) that node's cert.

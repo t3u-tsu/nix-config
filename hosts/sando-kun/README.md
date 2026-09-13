@@ -37,18 +37,23 @@ Since this host uses older hardware, we use the following high-reliability insta
      sudo mkdir -p /mnt/scratch && \
      sudo mount /dev/sdb1 /mnt/scratch"
    ```
+   `hardware.nix` declares no `swapDevices`, so part1 is only activated while
+   installing. Add a `swapDevices` entry there if the installed system needs swap.
 
 ### Phase 2: Transfer Secret Key
-`sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
-so the age key must be in place **before** installing:
+`sops-nix` decrypts secrets during `nixos-install`, so the identity at
+`/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/sando-kun.yaml`
+(master + host key; the user key is excluded). Use the offline master age key,
+or the host key derived from the SSH host key registered in `.sops.yaml`
+(see [`hosts/README.md`](../README.md)):
 ```bash
 ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
-cat ~/.config/sops/age/keys.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"
+cat /path/to/master-age-key.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"
 ```
 
 ### Phase 3: Build and Transfer System (Recommended)
 To reduce CPU load on the target, we transfer the pre-built image from the build host.
-1. **Build:** `nix build .#nixosConfigurations.sando-kun.config.system.build.toplevel`
+1. **Build:** `nixos-rebuild build --flake .#sando-kun`
 2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
 3. **Install:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
 

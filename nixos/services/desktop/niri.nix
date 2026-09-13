@@ -26,17 +26,16 @@ in
         package = pkgs.niri;
       };
 
-      dconf.enable = true; # Required for gsettings/dconf integration
+      dconf.enable = true;
     };
 
-    # xfce4-exo provides `exo-open`, used as the xdg-open backend and by other
-    # helper integrations.
+    # exo-open is the xdg-open backend used by niri and other helpers.
     environment.systemPackages = [ pkgs.xfce4-exo ];
 
-    # Necessary for screen sharing, screenshots and other desktop features
     xdg.portal = {
       enable = true;
-      # Use the portals recommended for Niri
+      # gnome supplies the settings daemon most apps need; its file chooser does
+      # not work outside GNOME Shell, so FileChooser is routed to gtk below.
       extraPortals = with pkgs; [
         xdg-desktop-portal-gnome
         xdg-desktop-portal-gtk
@@ -47,13 +46,10 @@ in
             "gnome"
             "gtk"
           ];
-          # xdg-desktop-portal-gnome's file chooser does not work outside GNOME Shell
           "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
           "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
         };
       };
-      # xdg-desktop-portal-gnome is the primary portal for Niri
-      # as it provides the settings daemon needed for many apps.
     };
 
     services = {
@@ -61,7 +57,7 @@ in
       upower.enable = true;
     };
 
-    # Enable brightness and volume control via dbus/logind for non-root access
+    # Brightness/volume keys need polkit for root-free access via logind.
     security.polkit.enable = true;
   };
 }

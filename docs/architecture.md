@@ -1,43 +1,47 @@
 # リポジトリ設計リファレンス
 
-本リポジトリの構造とモジュール評価の仕組み
+この文書は，リポジトリの層構成と，ドキュメント・モジュールがどのように参照され評価されるかを説明する．
 
-## 構成ディレクトリ構造
+## ドキュメントの参照構造
 
-- `nixos/base/`: システム共通インフラ基盤（User, Nix, Time）
-- `nixos/core/`: OS核心動作環境（i18n）
-- `nixos/security/`: セキュリティ・機密管理（SOPS）
-- `nixos/networking/`: ネットワーク・VPN（Nebula, Hosts）
-- `nixos/environment/`: システムパッケージ
-- `nixos/hardware/`: ハードウェア固有設定
-- `nixos/profiles/`: 役割別プロファイル（desktop / sbc / tower-server / gateway）
-- `nixos/services/`: システムサービス
-- `nixos/virtualisation/`: 仮想化（distrobox, microvm）
-- `home/shell/`: ユーザーシェル環境（Zsh, Starship, Atuin）
-- `home/programs/`: 共通ワークステーションツール（CLIツール, Git, SSH）
-- `home/desktop/`: GUI アプリ，WM (Niri/Noctalia)，dev-tools（開発ツール，desktop 限定）
-- `hosts/`: マシン固有の定義（例: torii-chan は SBC + VPS フェイルオーバーを共有）
-- `flake/`: フレーク定義（hosts, overlays）
-- `lib/`: システムビルダー・ヘルパー（mkSystem）
-- `secrets/`: SOPS による機密情報管理
-- `terraform/`: ConoHa VPS インフラ管理（OpenTofu）
+入口は [`README.md`](../README.md) で，そこから各層の README に分岐する．
+
+- [`nixos/README.md`](../nixos/README.md) — システムモジュールの分類と配置ルール
+- [`home/README.md`](../home/README.md) — home-manager モジュールの分類と配置ルール
+- [`hosts/README.md`](../hosts/README.md) — ホストの構成と追加手順
+- [`secrets/README.md`](../secrets/README.md) — SOPS の鍵モデルと編集手順
+- [`scripts/README.md`](../scripts/README.md) — 運用スクリプト
+- [`terraform/README.md`](../terraform/README.md) — ConoHa VPS インフラ
+
+`docs/architecture.md`（この文書）は層構成と読み込みの説明，`.codewhale/skills/` はエージェント向けの手順（`AGENTS.md` から参照）を担当する．各 README は自分の層の責務と配置ルールを説明し，詳細は下位の README かコードに委ねる．
+
+## 層構成
+
+- `flake/`: flake-parts のモジュール（hosts, lib, overlays, packages, dev）．
+- [`lib/`](../lib/): mkSystem．profile とホストを合成して nixosSystem を作る．
+- [`nixos/`](../nixos/): 全ホスト共通のシステムモジュール．
+- [`home/`](../home/): home-manager モジュール．shell / programs は全ホスト，desktop は desktop プロファイルのみ．
+- [`hosts/`](../hosts/): マシン固有の定義とプラットフォーム層．
+- [`secrets/`](../secrets/)・[`scripts/`](../scripts/)・[`terraform/`](../terraform/): 運用側．
 
 ## モジュール読み込みフロー
 
 ```text
 flake.nix
- ├─ imports: flake/lib.nix, flake/overlays.nix, flake/hosts.nix, flake/packages.nix
+ ├─ imports: flake/lib.nix, flake/overlays.nix, flake/hosts.nix,
+ │           flake/packages.nix, flake/dev.nix
  │
- ├─ flake/lib.nix      → flake.lib.mkLib を定義（lib/default.nix を inputs + overlays 付きで import）
+ ├─ flake/lib.nix      → flake.lib.mkLib（lib/default.nix を inputs + overlays 付きで import）
  ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, ghostty, unstable, U-Boot 等）
  ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
  ├─ flake/packages.nix → torii-chan-vps-iso（mkSystem のビルド成果物）
+ ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
  │
  └─ lib/default.nix: mkSystem { name, system, username, profile, extraModules }
       └─ nixpkgs.lib.nixosSystem {
            specialArgs = { inputs };        # 全モジュールから inputs を直接参照可能
            modules = [
-             { my.user.name = username; }    # ユーザー名の伝達
+             { my.user.name = username; }
              sops-nix / nix-minecraft / home-manager /
              nix-index-database / noctalia-greeter のモジュール
              home-manager 共通設定（sharedModules: nix-index, zen-browser, sops, noctalia）
@@ -50,6 +54,8 @@ flake.nix
 
 ## ホストからモジュールへの展開
 
+典型的なホストの例（torii-chan は `./hardware.nix`・`./services` を持たず，`flake/hosts.nix` の `extraModules` で `sbc.nix`/`vps.nix` を import する）:
+
 ```text
 hosts/<name>/default.nix
  ├─ ./hardware.nix            # ハードウェア固有設定
@@ -57,21 +63,18 @@ hosts/<name>/default.nix
  ├─ ../../nixos               # nixos/default.nix が一括 import:
  │                             base（user/nix/time）, core（i18n）, security（SOPS）,
  │                             networking（Nebula/hosts）, environment（パッケージ群）,
- │                             hardware, services, virtualisation, ../home
- │   └─ home/default.nix      # home-manager.users.<user>
- │                             imports: shell/, programs/
- │                             ※ desktop 系はここでは読み込まれない
+ │                             hardware, dev-tools, services, virtualisation, ../home
+ │   └─ home/default.nix      # home-manager.users.<user>（sops.nix, shell/, programs/）
  └─ ../../nixos/profiles/<profile>（mkSystem が自動適用．hosts/<name>/ より前に評価）
-     ├─ desktop/              # services/desktop, fonts, nyx-overlay
-     │                         + home/desktop を home-manager に import（desktop 専用）
+     ├─ desktop/              # services/desktop（niri, greetd, fonts, gaming 等）と
+     │                         nyx-overlay を有効化し，home/desktop を home-manager に import
      ├─ tower-server/         # boot, security, ssh（タワーサーバー共通）
-     ├─ gateway/              # torii-chan ロール（Nebula + DDNS + Minecraft forward）
+     ├─ gateway/              # nixos/services/gateway のロールを有効化
      └─ sbc/                  # 低メモリ SBC（sandbox 無効化等．torii-chan/sbc.nix 経由）
 ```
 
 ## モジュール評価順序
 
-- mkSystem の modules リストは `profile → hosts/<name>/default.nix → extraModules` の順で評価される．
-- ホスト固有設定（hosts/<name>）がプロファイルの設定を上書きできる．
-- `environment.systemPackages` のようなリスト型オプションはマージ順に連結されるため，モジュール構成を変えると順序が変わり drv が変わる（パッケージ集合は不変なので実害は通常ない）．
-- 優先度を明示的に制御したい場合は `mkForce` / `mkDefault` / `mkOrder` を使用する．
+- modules リストは `profile → hosts/<name>/default.nix → extraModules` の順で評価され，後の設定が前を上書きできる．
+- `environment.systemPackages` のようなリスト型オプションは評価順に連結される．モジュール構成を変えると順序が変わり drv も変わる（パッケージ集合が同じなら実害は通常ない）．
+- 優先度を明示的に制御する場合は `mkForce` / `mkDefault` / `mkOrder` を使用する．

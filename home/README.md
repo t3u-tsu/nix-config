@@ -4,8 +4,8 @@ User-specific configurations managed via Home Manager.
 
 ## Modules
 
-- **`shell/`**: Shell configuration (Zsh (`shell.nix`), Pure prompt (`pure.nix`), Atuin (`atuin.nix`)).
-- **`programs/`**: Workstation tools (CLI tools (`cli-tools.nix`), Git (`git.nix`), SSH (`ssh.nix`), llama.cpp inference server (`llama.nix`)).
-- **`desktop/`**: User-specific desktop environment configuration (browsers, wm, themes).
+- [`shell/`](shell/): Interactive shell, prompt and history.
+- [`programs/`](programs/): Workstation tools shared by all hosts.
+- [`desktop/`](desktop/): Desktop environment configuration — lightweight core plus an opt-in full stack.
 - **`sops.nix`**: SOPS age key setup (generates the age private key from the daily SSH key).
 - **`default.nix`**: Imports all base home modules.

@@ -30,8 +30,8 @@ in
   config = mkIf cfg.enable {
     home.language.base = "ja_JP.UTF-8";
 
-    # Force unset IM modules in Wayland session to avoid warnings
-    # Use mkForce to override the default settings from Home Manager's i18n module
+    # Wayland + fcitx5 wants the GTK/Qt IM modules unset to avoid warnings.
+    # mkForce overrides what Home Manager's own i18n module sets.
     home.sessionVariables = {
       GTK_IM_MODULE = mkForce "";
       QT_IM_MODULE = mkForce "";
@@ -40,9 +40,7 @@ in
       GLFW_IM_MODULE = mkForce "ibus";
     };
 
-    # Fcitx5 user profile settings (declaratively enable Mozc)
-    # Reference: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
-    # Disable the system-wide i18n.inputMethod and manage everything here
+    # Fcitx5 profile layout reference: https://zenn.dev/mityu/articles/nixos-fcitx5-mozc
     i18n.inputMethod = mkIf (cfg.inputMethod == "fcitx5") {
       enable = true;
       type = "fcitx5";

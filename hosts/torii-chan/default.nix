@@ -1,12 +1,7 @@
-# Host: torii-chan (Nebula gateway / Lighthouse + DDNS + Minecraft forward)
-#
-# This is the PLATFORM-NEUTRAL orchestrator for the shared "torii-chan" role.
-# The role itself lives in nixos/profiles/gateway and can run on either:
-#   - the physical Orange Pi Zero3 SBC  (platform layer: ./sbc.nix)
-#   - a failover VPS                    (platform layer: ./vps.nix)
-# Only ONE runs at a time (failover). Both share hostname `torii-chan` and the
-# SAME secrets (Nebula certs, DDNS token) so peers keep reaching this host at
-# torii-chan.t3u.uk without reconfiguration.
+# Platform-neutral orchestrator for the shared torii-chan role
+# (nixos/services/gateway). Runs on the Orange Pi Zero3 SBC (./sbc.nix) or on a
+# failover VPS (./vps.nix), never both at once; the two share hostname and
+# secrets, so peers always reach torii-chan.t3u.uk without reconfiguration.
 {
   config,
   pkgs,
@@ -20,8 +15,7 @@
     ../../nixos
   ];
 
-  # The torii-chan role (Nebula gateway + NAT/Minecraft forward + DDNS).
-  # Platform-specific wiring (boot loader, WAN network) is provided by the
-  # matching platform module imported per-host in flake/hosts.nix.
-  my.services.gateway.enable = true;
+  # Platform wiring (boot loader, WAN network) comes from the module imported
+  # per-host in flake/hosts.nix (sbc.nix / vps.nix). The role itself is enabled
+  # by the gateway profile.
 }

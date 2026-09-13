@@ -1,6 +1,6 @@
 # SBC Profile
 
-Profile for low-memory single-board computers (e.g. Orange Pi Zero 3).
+Profile for low-memory single-board computers.
 
 ## Features
 

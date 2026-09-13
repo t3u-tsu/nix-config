@@ -36,11 +36,14 @@ Run these commands from the NixOS Installer environment (via SSH).
    ```
 
 2. **Place SOPS Key:** (CRITICAL for password management)
-   `sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
-   so the age key must be in place **before** installing:
+   `sops-nix` decrypts secrets during `nixos-install`, so the identity at
+   `/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/kagutsuchi-sama.yaml`
+   (master + host key; the user key is excluded). Use the offline master age key,
+   or the host key derived from the SSH host key registered in `.sops.yaml`
+   (see [`hosts/README.md`](../README.md)):
    ```bash
    ssh root@<ip> "mkdir -p /mnt/var/lib/sops-nix"
-   cat ~/.config/sops/age/keys.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"
+   cat /path/to/master-age-key.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"
    ```
 
 3. **Install NixOS:**
@@ -61,9 +64,13 @@ Run these commands from the NixOS Installer environment (via SSH).
 - **SSH Key:** Enabled for `t3u` and `root`.
 
 ## Known Issue: NAT Loopback
-When this host is in the same LAN as the VPN server (`torii-chan`), VPN connection might fail due to the router's lack of NAT Loopback support for the domain `torii-chan.t3u.uk`.
+When this host is on the same LAN as the VPN server (`torii-chan`), the VPN can
+fail because the router does not support NAT loopback for `torii-chan.t3u.uk`.
 
-### Solution
-Set `my.localNetwork.enable = true;` in `configuration.nix` (it is currently commented out by default). This automatically resolves `torii-chan.t3u.uk` to the local IP `192.168.0.128`.
+Set `my.networking.local-network.enable = true;` in
+`hosts/kagutsuchi-sama/default.nix` (commented out by default). It resolves
+`torii-chan.t3u.uk` to the local IP `192.168.0.128`.
 
-**Important:** If this host is moved to an external network outside the local VPN LAN, ensure that `my.localNetwork.enable = false;` (or keep it commented out) so that the host resolves the VPN server from the outside.
+**Important:** if this host moves outside the local VPN LAN, keep
+`my.networking.local-network.enable = false;` (or commented out) so it resolves
+the VPN server from the outside.

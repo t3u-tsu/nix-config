@@ -1,20 +1,7 @@
-# Intel SOF HDA (ThinkPad X1 Carbon 7th) ALSA UCM profile fix.
-#
-# The stock UCM exposes two HiFi profiles that both contain the HDMI outputs:
-#   "HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2"   (priority 10300)
-#   "HDMI1, HDMI2, HDMI3, Mic1, Mic2, Speaker"      (priority 10200)
-# Plugging HDMI makes the HDMI port available, which also makes the Headphones
-# profile available; as it outranks the Speaker profile, PipeWire selects it
-# and the internal Speaker sink disappears entirely, so the built-in speakers
-# can no longer be chosen.
-#
-# Making HDMI and Headphones mutually exclusive keeps the Headphones profile
-# unavailable while only HDMI is plugged in. With the priority ordering below
-# this gives:
-#   jack plugged -> Headphones
-#   HDMI plugged -> HDMI1 + Speaker (Speaker stays the default sink)
-# HDMI2/HDMI3 have no physical connector on this model; they are demoted so
-# that they can never outrank the Headphones profile.
+# Intel SOF HDA (ThinkPad X1 Carbon 7th) ALSA UCM workaround: plugging HDMI makes
+# the Headphones profile available, and it outranks the Speaker profile, so
+# PipeWire drops the internal Speaker sink. HDMI and Headphones are made mutually
+# exclusive so Speaker stays selectable (priorities below decide jack vs HDMI).
 { pkgs, ... }:
 
 let
@@ -40,11 +27,9 @@ let
   });
 in
 {
-  # The UCM profile set is read by the session processes that open the ALSA
-  # card, so both PipeWire and WirePlumber need it in their environment.
-  # Setting it on PipeWire alone is not enough: WirePlumber then still reads
-  # the stock UCM, and the stock profile set is what makes the Speaker sink
-  # disappear while HDMI is plugged in.
+  # Both processes open the ALSA card, so both need the overridden UCM set: with
+  # PipeWire alone, WirePlumber still reads the stock UCM and the Speaker sink
+  # disappears while HDMI is plugged in.
   systemd.user.services.pipewire.environment.ALSA_CONFIG_UCM2 = "${alsaUcmConf}/share/alsa/ucm2";
   systemd.user.services.wireplumber.environment.ALSA_CONFIG_UCM2 = "${alsaUcmConf}/share/alsa/ucm2";
 }

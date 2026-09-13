@@ -19,7 +19,6 @@
         ];
       };
 
-      # Physical PC/server tools (smartmontools, nvme-cli)
       hardware.pc-tools.enable = true;
     };
   };

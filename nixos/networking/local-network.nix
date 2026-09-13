@@ -17,13 +17,12 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Resolve torii-chan.t3u.uk to its LAN IP when in the same network
-    # This bypasses NAT loopback issues.
+    # Router has no NAT loopback, so point the public name at the LAN IP locally.
     networking.hosts = {
       "${cfg.toriiChanIp}" = [ "torii-chan.t3u.uk" ];
     };
 
-    # Prioritize IPv4 over IPv6 in glibc (RFC 3484/6724)
+    # Prefer IPv4 in glibc address sorting (RFC 3484/6724).
     environment.etc."gai.conf".text = ''
       precedence  ::ffff:0:0/96  100
     '';

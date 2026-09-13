@@ -10,54 +10,47 @@
 
 Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
+## Stack
+
+|              |                    |
+| ------------ | ------------------ |
+| **OS**       | NixOS 26.05        |
+| **WM**       | niri               |
+| **Bar**      | Noctalia           |
+| **Shell**    | zsh + pure + Atuin |
+| **Terminal** | Ghostty            |
+| **Editor**   | Neovim             |
+| **Browser**  | Zen Browser        |
+| **Theme**    | Vesper             |
+| **Secrets**  | SOPS               |
+| **VPN**      | Nebula             |
+| **Backup**   | restic             |
+| **IaC**      | OpenTofu           |
+
 ## Directory Structure
 
-```text
-.
-├── flake.nix            # flake-parts entrypoint
-├── flake/               # flake-parts modules
-│   ├── hosts.nix        # nixosConfigurations
-│   ├── lib.nix          # Flake library output
-│   ├── overlays.nix     # Nixpkgs overlays
-│   └── packages.nix     # Flake package output (VPS installer ISO)
-├── nixos/               # NixOS system modules
-│   ├── base/            # OS foundation (users, Nix, time)
-│   ├── core/            # OS core settings (i18n)
-│   ├── security/        # Security and secrets (SOPS)
-│   ├── networking/      # Network settings (hosts, Nebula mesh)
-│   ├── environment/     # System packages
-│   ├── hardware/        # Hardware-specific modules (NVIDIA, etc.)
-│   ├── dev-tools/       # Development hardware/tooling (WCH-LinkE, Ventoy)
-│   ├── profiles/        # Role-based host profiles (desktop, tower-server, sbc, gateway)
-│   ├── services/        # System services (backup, Minecraft, desktop, etc.)
-│   └── virtualisation/  # Virtualisation (distrobox, microvm)
-├── home/                # Home Manager modules
-│   ├── shell/           # Shell configuration (Zsh, Pure, Atuin)
-│   ├── programs/        # Workstation tools (CLI tools, Git, SSH)
-│   └── desktop/         # Desktop environment (Niri, browsers, theme, etc.)
-├── hosts/               # Host-specific configurations
-│   ├── BrokenPC/        # Gaming laptop (Victus by HP)
-│   ├── x1c7/            # Laptop (ThinkPad X1 Carbon Gen 7)
-│   ├── torii-chan/      # VPN gateway role (SBC aarch64 + VPS failover)
-│   ├── shosoin-tan/     # Tower server
-│   ├── kagutsuchi-sama/ # Tower server
-│   └── sando-kun/       # Tower server
-├── lib/                 # Helper functions (mkSystem)
-├── scripts/             # Operational scripts (Nebula CA rotation, secret import)
-├── secrets/             # SOPS-encrypted secrets
-└── terraform/           # OpenTofu: ConoHa VPS infrastructure
-```
+- [`flake.nix`](flake.nix) — flake-parts entrypoint
+- [`flake/`](flake/) — flake-parts modules (hosts, lib, overlays, packages, dev)
+- [`lib/`](lib/) — mkSystem helper
+- [`nixos/`](nixos/) — system-wide modules
+- [`home/`](home/) — home-manager modules
+- [`hosts/`](hosts/) — per-machine configurations
+- [`secrets/`](secrets/) — SOPS-encrypted secrets
+- [`scripts/`](scripts/) — operational scripts
+- [`terraform/`](terraform/) — ConoHa VPS infrastructure
+
+[`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded.
 
 ## Quick Start
 
 Available configurations (defined in `flake/hosts.nix`):
 
-- **`BrokenPC`** — gaming laptop (local machine)
 - **`x1c7`** — laptop (ThinkPad X1 Carbon Gen 7)
+- **`BrokenPC`** — gaming laptop (HP Victus 16-e1065AX)
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
 - **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
-- **`torii-chan-sd-installer`** — SD installer image (see `hosts/torii-chan/README.md`)
+- **`torii-chan-sd-installer`** — SD installer image (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md))
 - **`torii-chan-vps-iso`** — VPS installer ISO, exposed as a **package** (not a nixosConfiguration): `nix build .#torii-chan-vps-iso`
 
 To apply configurations to the local machine:
@@ -72,32 +65,21 @@ For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-The `sandbox false` / `filter-syscalls false` flags are required because the
-Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` support (see the
-troubleshooting section in `hosts/torii-chan/README.md`).
+The `sandbox false` / `filter-syscalls false` flags are required: the Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md)).
 
 ## Adding a New Host
 
-Copy the skeleton in [`hosts/_template/`](hosts/_template) and follow the
-step-by-step guide in [`hosts/README.md`](hosts/README.md) — it covers
-registration in `flake/hosts.nix`, SOPS key setup and Nebula certificate
-signing/import, validation, deployment, and the PR flow.
-
-For more specific deployment details, check the respective README.md files in `hosts/`, `nixos/` and `home/`.
+Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/README.md) for registration, SOPS keys, Nebula certificates, and deployment.
 
 ## CI/CD and Automation
 
-This repository uses GitHub Actions for continuous integration and automated updates:
-
-- **Nix Flake Check** (`nix-check.yml`): Runs `nix flake check` automatically on pushes to `main`/`feat/*`/`fix/*`/`refactor/*`/`docs/*`/`chore/*` and on pull requests to ensure that configuration evaluation is clean.
-- **Scheduled Auto Update** (`auto-update.yml`): Runs daily at 04:00 JST. It automatically runs `nvfetcher` to fetch the latest Minecraft plugins and updates `flake.lock` to bump system packages, committing changes directly back to `main`.
+- **Nix Flake Check** (`nix-check.yml`): on pushes to `main` or any `feat/` `fix/` `refactor/` `docs/` `chore/` branch, and on pull requests to `main` — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
+- **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the Minecraft plugin pins (`nvfetcher`) and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
 
 ## References
 
-This configuration was built with inspiration and knowledge from the following repositories:
-
-- **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: Overall modular architecture and Niri setup.
-- **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Declarative Zen Browser configuration.
-- **[asa1984/dotfiles](https://github.com/asa1984/dotfiles)**: Best practices for NixOS and Home-manager.
-- **[ms0503/dotfiles](https://github.com/ms0503/dotfiles)**: Structured module design.
-- **[mkt3/dotfiles](https://github.com/mkt3/dotfiles)**: Specialized Noctalia configuration and Japanese desktop environment layout.
+- https://github.com/ryan4yin/nix-config
+- https://github.com/natsukium/dotfiles
+- https://github.com/asa1984/dotfiles
+- https://github.com/ms0503/dotfiles
+- https://github.com/mkt3/dotfiles

@@ -16,17 +16,16 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Niri configuration is generated as a KDL string (./config.kdl.nix) so
-    # the shared palette and the home path stay in sync. niri-flake's typed
-    # `programs.niri.settings` does not cover niri v26.04 features such as
-    # `blur` / `background-effect`; `programs.niri.config` fully replaces
-    # `settings`, so the typed attrset must not be set.
+    # niri-flake's typed `programs.niri.settings` does not cover niri v26.04
+    # features such as `blur` / `background-effect`, and `programs.niri.config`
+    # fully replaces it, so the KDL string below is the only source of truth.
     programs.niri.config = import ./config.kdl.nix {
       inherit palette;
       homeDirectory = config.home.homeDirectory;
+      cursorTheme = config.my.home.desktop.theme.cursor.name;
+      cursorSize = config.my.home.desktop.theme.cursor.size;
     };
 
-    # Essential Wayland tooling
     home.packages = with pkgs; [
       xwayland-satellite
       wl-clipboard

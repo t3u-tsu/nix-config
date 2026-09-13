@@ -41,9 +41,9 @@
   };
 
   # SSH configuration for restic backup (kagutsuchi-sama over nebula0).
+  # restic's SSH identity comes from my.services.backup.sshKeyFile.
   programs.ssh.extraConfig = ''
     Host 10.0.0.3
-      IdentityFile ${config.sops.secrets.restic_shosoin_ssh_key.path}
       StrictHostKeyChecking no
       UserKnownHostsFile /dev/null
   '';
