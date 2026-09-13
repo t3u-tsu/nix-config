@@ -68,9 +68,8 @@
   };
 
   my = {
-    desktop.full.enable = true;
-
     services = {
+      desktop.full.enable = true;
       desktop = {
         greetd.greeterOutput = {
           name = "eDP-1";
@@ -107,7 +106,7 @@
   # /etc/systemd/user is a symlink into the store (environment.etc cannot write
   # inside it).
   home-manager.users.${config.my.user.name} = {
-    # PTITSA slideshow (option defaults to minimal).
+    my.home.desktop.full.enable = true;
     my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''
       [Service]

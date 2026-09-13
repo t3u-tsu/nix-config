@@ -1,21 +1,22 @@
 {
+  config,
   pkgs,
   lib,
   inputs,
   ...
-}@moduleArgs:
+}:
 
 with lib;
 
 let
-  cfg = moduleArgs.config.services.minecraft-discord-bridge;
+  cfg = config.my.services.minecraft-discord-bridge;
   format = pkgs.formats.toml { };
   configFile = format.generate "bridge-config.toml" cfg.settings;
 
   bridgePkg = inputs.minecraft-discord-bridge.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
-  options.services.minecraft-discord-bridge = {
+  options.my.services.minecraft-discord-bridge = {
     enable = mkEnableOption "Minecraft Discord Bridge";
 
     settings = mkOption {
