@@ -28,8 +28,7 @@
         # General community cache.
         "https://nix-community.cachix.org?priority=41"
 
-        # CUDA packages for the GPU hosts, and the aagl launcher cache.
-        "https://cuda-maintainers.cachix.org?priority=45"
+        # aagl launcher cache.
         "https://ezkea.cachix.org?priority=45"
 
         # Chaotic-Nyx patches packages that can conflict with others, so it last.
@@ -41,7 +40,6 @@
         "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
         "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
         "ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI="
         "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
       ];

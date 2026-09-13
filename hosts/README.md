@@ -152,8 +152,9 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 ### 7. Deploy
 
 - **Clean install** — boot the NixOS installer, partition per `hardware.nix`,
-  place the age key at `/mnt/var/lib/sops-nix/key.txt` (see
-  [BrokenPC/README.md](BrokenPC/README.md) for the canonical walkthrough), then:
+  place the master age key (or the host key derived from the SSH host key in
+  `.sops.yaml`) at `/mnt/var/lib/sops-nix/key.txt` — the user key cannot decrypt
+  host secrets, see [secrets/README.md](../secrets/README.md) — then:
   ```bash
   sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#<hostname>
   ```

@@ -69,11 +69,11 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## 新規ホストの追加
 
-[`hosts/_template/`](hosts/_template) をコピーし，[`hosts/README.md`](hosts/README.md)（英語）に従ってください．
+[`hosts/_template/`](hosts/_template) をコピーし，[`hosts/README.md`](hosts/README.md)（英語）に従ってください．登録，SOPS の鍵，Nebula 証明書，デプロイの手順を扱っています．
 
 ## CI/CD と自動化
 
-- **Nix Flake Check** (`nix-check.yml`): プッシュとプルリクエストのたびに実行．一方のジョブが `nix flake check`（全ホストの評価と整形・lint フック），もう一方が `convco` によるコミットメッセージの検査を行う．
+- **Nix Flake Check** (`nix-check.yml`): `main` または `feat/` `fix/` `refactor/` `docs/` `chore/` ブランチへのプッシュと，`main` へのプルリクエストで実行．一方のジョブが `nix flake check`（全ホストの評価と整形・lint フック），もう一方が `convco` によるコミットメッセージの検査を行う．
 - **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に Minecraft プラグインのピンと `flake.lock` を更新し，`nix flake check` で検証して `main` へ直接コミット．
 
 ## 参考文献

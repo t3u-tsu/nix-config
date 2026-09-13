@@ -17,7 +17,7 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 
 - **専門枠 (30)**: `ghostty`, `niri`, `noctalia`（公式の `40` より先にヒットさせたいもの）
 - **コミュニティ枠 (41)**: `nix-community`（公式の直後）
-- **特定専門枠 (45)**: `cuda-maintainers`, `nix-gaming`, `ezkea`
+- **特定専門枠 (45)**: `ezkea`（aagl ランチャー）
 - **魔改造枠 (50)**: `chaotic-nyx`（他と競合するリスクがあるため最後尾）
 
 `extra-substituters` と `extra-trusted-public-keys` は並び順を完全に一致させる．どちらも必ず `nixos/base/nix.nix`（全ホスト共通）で管理し，外部フレークの `nixConfig` を `nix.settings = <flake>.nixConfig;` で直接参照しない．同値の substituter URL と trusted-public-keys を手動で base/nix.nix に追加し，優先度と並び順もそこで統一する．

@@ -60,10 +60,13 @@ development and gaming, managed via Nix Flakes.
 
 ### Phase 2: Transfer Secret Key (Important)
 `sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
-so the age key must be in place **before** installing:
+so the identity at `/mnt/var/lib/sops-nix/key.txt` must decrypt
+`secrets/hosts/BrokenPC.yaml` **before** installing — user keys are excluded
+from host files (see [`secrets/README.md`](../../secrets/README.md)):
 ```bash
 sudo mkdir -p /mnt/var/lib/sops-nix
-# Copy your age key to /mnt/var/lib/sops-nix/key.txt
+# Place the offline master age key, or the host key derived from the SSH host
+# key registered in .sops.yaml, at /mnt/var/lib/sops-nix/key.txt
 ```
 
 ### Phase 3: System Installation

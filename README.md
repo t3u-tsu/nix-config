@@ -73,7 +73,7 @@ Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/
 
 ## CI/CD and Automation
 
-- **Nix Flake Check** (`nix-check.yml`): on every push and pull request — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
+- **Nix Flake Check** (`nix-check.yml`): on pushes to `main` or any `feat/` `fix/` `refactor/` `docs/` `chore/` branch, and on pull requests to `main` — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
 - **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the Minecraft plugin pins (`nvfetcher`) and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
 
 ## References
