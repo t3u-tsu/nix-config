@@ -1,33 +1,9 @@
 #!/usr/bin/env bash
-# install-nixos - helper to install NixOS on a ConoHa VPS (512MB)
-#
-# Bundled with the installer ISO (hosts/torii-chan/vps-installer.nix); runs
-# nixos-install non-interactively from an SSH session.
-#
-# Usage (run from the root shell after booting the ISO):
-#   install-nixos network  manually configure networking
-#                          (fallback when the static IP is not baked into the ISO)
-#   install-nixos install  partition -> format -> swap -> nixos-install in one shot
-#                          NOTE: wipes the disk, so INSTALL_YES=1 is mandatory
-#   install-nixos status   show current network / memory / disk state
-#
-# Environment variables (all optional; defaults shown):
-#   IFACE            network interface name (default: eth0)
-#   IPV4             IPv4 address (e.g. 203.0.113.10)
-#   PREFIX           IPv4 prefix length (default: 24)
-#   GATEWAY          default gateway
-#   NAMESERVERS      space-separated DNS (default: 1.1.1.1 8.8.8.8)
-#   DISK             target disk (default: /dev/vda)
-#   SWAP_SIZE        swap file size (default: 1G)
-#   NIXOS_HOSTNAME   target hostname (default: conoha-vps)
-#   SSH_PUBLIC_KEYS  public keys to register in authorizedKeys
-#                    (one key per line; default: t3u's public key)
-#
-# Notes:
-#   - Do not hardcode credentials or private keys (public keys only)
-#   - This script is a minimal template for the target config. To install the
-#     repo's flake config, include the closure in the ISO (isoImage.storeContents)
-#     or use nixos-install --flake (see hosts/torii-chan/README.md)
+# install-nixos - install NixOS on a ConoHa VPS (512MB) over SSH. Shipped in the
+# installer ISO (hosts/torii-chan/vps-installer.nix) and on PATH; see
+# `install-nixos help` for usage and env vars. ConoHa has no DHCP, so `install`
+# bakes IPV4/GATEWAY into the generated config and wipes the disk (INSTALL_YES=1).
+# Only public keys belong here; no credentials or private keys.
 set -euo pipefail
 
 IFACE="${IFACE:-eth0}"
@@ -45,7 +21,7 @@ die() {
   exit 1
 }
 
-# --- network: manually configure a static IP (fallback) -----------------------
+# network: manually configure a static IP (fallback)
 cmd_network() {
   [ -n "$IPV4" ] || die "IPV4 is not set. Example: IPV4=203.0.113.10 GATEWAY=203.0.113.1 install-nixos network"
   [ -n "$GATEWAY" ] || die "GATEWAY is not set."
@@ -79,7 +55,7 @@ cmd_network() {
   echo "==> Network configuration complete"
 }
 
-# --- status: show the current state -------------------------------------------
+# status: show the current state
 cmd_status() {
   echo "==> Interfaces / IP"
   ip -brief addr 2>/dev/null || ip addr
@@ -97,8 +73,13 @@ cmd_status() {
   lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
 }
 
-# --- install: partition -> format -> swap -> nixos-install --------------------
+# install: partition -> format -> swap -> nixos-install
 cmd_install() {
+  # write_configuration bakes both values into configuration.nix, so reject them
+  # here rather than producing an unbootable network config after partitioning.
+  [ -n "$IPV4" ] || die "IPV4 is not set. Example: IPV4=203.0.113.10 GATEWAY=203.0.113.1 install-nixos install"
+  [ -n "$GATEWAY" ] || die "GATEWAY is not set."
+
   [ "${INSTALL_YES:-}" = "1" ] \
     || die "This will wipe $DISK. Set INSTALL_YES=1 to proceed"
 
@@ -143,7 +124,7 @@ cmd_install() {
   echo "       ./terraform/scripts/nixos-iso.sh eject <instance_id>"
 }
 
-# --- generate configuration.nix (called from install) -------------------------
+# generate configuration.nix (called from install)
 write_configuration() {
   # Build the Nix list string of authorizedKeys (one key per line)
   local nix_keys=""
@@ -151,7 +132,6 @@ write_configuration() {
     [ -n "$key" ] && nix_keys="${nix_keys} \"${key}\""
   done <<< "${SSH_PUBLIC_KEYS}"
 
-  # Build the Nix list string of nameservers
   local nix_ns=""
   for ns in $NAMESERVERS; do
     nix_ns="${nix_ns} \"${ns}\""
@@ -175,7 +155,7 @@ write_configuration() {
 
   # ConoHa VPS does not provide DHCP, so use a static IP
   networking.useDHCP = false;
-  networking.interfaces.eth0.ipv4.addresses = [
+  networking.interfaces.${IFACE}.ipv4.addresses = [
     { address = "${IPV4}"; prefixLength = ${PREFIX}; }
   ];
   networking.defaultGateway = "${GATEWAY}";
@@ -204,7 +184,7 @@ EOF
   sed -n '1,60p' /mnt/etc/nixos/configuration.nix
 }
 
-# --- main ----------------------------------------------------------------------
+# main
 cmd="${1:-help}"
 case "${cmd}" in
   network)

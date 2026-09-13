@@ -1,7 +1,6 @@
-# Vesper palette (Noctalia community "Vesper"). Central definition so a single
-# color change does not require touching every app-specific format; each module
-# converts to its own notation (#-prefix, alpha, lowercase, non-# hex, etc.).
-rec {
+# Vesper palette (Noctalia community "Vesper"). Each consumer converts these
+# hex strings to its own notation (alpha, lowercase, non-# hex).
+{
   bg = "#0c0c0c";
   bg2 = "#1c1c1c";
   bg3 = "#262626";

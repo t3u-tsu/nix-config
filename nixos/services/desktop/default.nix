@@ -34,7 +34,6 @@ in
   config = mkIf cfg.enable {
     my = {
       services.desktop = {
-        # Lightweight core: any desktop machine
         niri.enable = mkDefault true;
         greetd.enable = mkDefault true;
         pipewire.enable = mkDefault true;
@@ -45,7 +44,6 @@ in
         fonts.enable = mkDefault true;
         chromium.enable = mkDefault true;
 
-        # Heavy extras: opt-in via my.services.desktop.full.enable
         gaming.enable = mkDefault cfg.full.enable;
         unity.enable = mkDefault cfg.full.enable;
       };
@@ -54,7 +52,6 @@ in
       # unity module only enables podman; subuid/subgid ranges live here).
       virtualisation.distrobox.enable = mkDefault cfg.full.enable;
 
-      # Standard desktop user groups
       user.extraGroups = mkDefault [
         "wheel"
         "networkmanager"

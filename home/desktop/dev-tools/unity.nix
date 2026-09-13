@@ -11,7 +11,7 @@ with lib;
     inputs.unity-via-distrobox.homeModules.unity
   ];
 
-  config = mkIf config.my.home.desktop.dev-tools.enable {
+  config = mkIf config.my.home.desktop.full.enable {
     my.unity = {
       enable = mkDefault true;
       stopOnExit = true;

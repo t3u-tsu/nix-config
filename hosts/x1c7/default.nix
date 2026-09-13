@@ -29,10 +29,7 @@
     logind.settings.Login.HandleLidSwitchExternalPower = "lock";
 
     tlp.enable = true;
-
-    # fingerprint
     fprintd.enable = true;
-    # firmware update
     fwupd.enable = true;
   };
 

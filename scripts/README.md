@@ -14,8 +14,11 @@ Operator-run scripts (not part of the NixOS build).
 - **`set-host-password.sh`**: Interactively read the user (`t3u`) / root
   passwords and write their sha-512 crypt hashes into
   `secrets/hosts/<hostname>.yaml` via sops (uses the `.sops.yaml` creation
-  rules; `mkpasswd` must be on PATH). Passwords are read with `read -s`, so
-  they never appear in argv/history.
+  rules). Passwords are read with `read -s` and hashed through `mkpasswd -s`,
+  so they never appear in argv/history. Updating a file that already exists
+  needs the offline **master age key** (`SOPS_AGE_KEY_FILE`), because sops has
+  to decrypt it first to keep its other keys; `mkpasswd`, `sops` and `jq` must
+  be on PATH.
 - **`nebula-import-secrets.sh`**: Import Nebula CA / node certificates & keys
   into SOPS secrets (`secrets/common.yaml` + `secrets/hosts/*.yaml`). Requires
   the offline **master age key** (`SOPS_AGE_KEY_FILE`). Idempotent — safe to

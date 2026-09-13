@@ -47,7 +47,7 @@ Plugins are managed in the `plugins/` directory using **nvfetcher** (declarative
 - **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:
   ```bash
-  (cd services/minecraft/plugins && nvfetcher -c nvfetcher.toml)
+  (cd nixos/services/minecraft/plugins && nix shell nixpkgs#nvfetcher -c nvfetcher -c nvfetcher.toml)
   ```
 
 ## Lobby Server Specifications

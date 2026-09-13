@@ -108,11 +108,9 @@ Copy its `fileSystems` / `swapDevices` / kernel-module lines into
 sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
 ```
 
-Register the host's SSH-derived age key in SOPS **before** install (see
-`hosts/README.md`); the age secret placed at `/mnt/var/lib/sops-nix/key.txt` must
-match the identity used to encrypt `secrets/hosts/x1c7.yaml`.
-
-See `hosts/README.md` for the full add-a-host workflow (SOPS / Nebula).
+The identity at `/mnt/var/lib/sops-nix/key.txt` must match the key used to
+encrypt `secrets/hosts/x1c7.yaml`, and its public key has to be registered in
+SOPS before the install (see `hosts/README.md`) - otherwise activation fails.
 
 ## Reference
 

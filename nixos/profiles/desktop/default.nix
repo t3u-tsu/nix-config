@@ -21,16 +21,13 @@
     chaotic.nyx.overlay.enable = lib.mkDefault config.my.desktop.full.enable;
 
     my = {
-      # Aggregate system services (lightweight core; full stack via my.desktop.full)
       services.desktop.enable = true;
       services.desktop.full.enable = lib.mkDefault config.my.desktop.full.enable;
 
-      # System-side developer/hardware tooling for user workstations
       hardware.pc-tools.enable = true;
       dev-tools.enable = true;
     };
 
-    # Wire the home-manager desktop modules for the primary user
     home-manager.users.${config.my.user.name} = {
       imports = [
         ../../../home/desktop

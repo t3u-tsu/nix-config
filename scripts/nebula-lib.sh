@@ -1,12 +1,6 @@
-# scripts/nebula-lib.sh — shared fleet data for the Nebula scripts.
-#
-# Single source of truth for the node list. Both nebula-import-secrets.sh and
-# nebula-rotate-ca.sh source this file; add a new host HERE (one line), re-sign
-# its cert, and re-import into SOPS — see hosts/README.md.
-#
-# This file is not executable; it only defines data and helper functions.
-#
 # shellcheck shell=bash
+# Single source of truth for the node list: add a new host here, sign its cert,
+# then re-import it into SOPS (see hosts/README.md).
 
 # Fleet: <name>|<last-octet>|<groups>
 #   name   == hosts/<name>/ dir == secrets/hosts/<name>.yaml == cert basename
@@ -22,13 +16,11 @@ FLEET=(
   "x1c7|101|mgmt,app"
 )
 
-# SOPS secret prefix for a host (my.hostKey): lowercase, hyphens -> underscores.
-# e.g. shosoin-tan -> shosoin_tan, BrokenPC -> brokenpc
+# Must match the SOPS key prefix used elsewhere (my.hostKey).
 host_key() {
   printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | tr '-' '_'
 }
 
-# Path of the per-host secrets file.
 host_secrets_file() {
   printf 'secrets/hosts/%s.yaml\n' "$1"
 }

@@ -1,8 +1,5 @@
-# Host: torii-chan — SBC platform layer (Orange Pi Zero3)
-#
-# Everything specific to running the shared torii-chan role on the physical
-# Orange Pi Zero3: SD/HDD boot chain, extlinux loader, static LAN networking,
-# and the low-RAM SBC profile (swapfile, sandbox disabled, pubkey).
+# SBC platform layer (Orange Pi Zero3): SD/HDD boot chain, extlinux loader and
+# static LAN networking for the shared torii-chan role.
 {
   config,
   lib,
@@ -11,7 +8,6 @@
 
 {
   imports = [
-    # SBC profile: 4GB swapfile, nix sandbox off, authorizedKeys, swappiness
     ../../nixos/profiles/sbc
   ];
 

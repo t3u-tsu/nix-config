@@ -33,14 +33,11 @@ in
 
       settings = {
         shell = {
-          # Launch launcher/dock/taskbar apps as systemd services. Noctalia
-          # needs to run in a systemd user session (uwsm/niri-session) for this
-          # to take effect; here niri is started directly from greetd, so it
+          # Noctalia needs a systemd user session (uwsm/niri-session) to launch
+          # apps as services; niri here is started directly from greetd, so this
           # must stay off.
           launch_apps_as_systemd_services = false;
-          # Register Noctalia's native polkit auth agent.
           polkit_agent = true;
-          # Keep the live selection alive after its source app closes.
           clipboard_keep_from_closed_apps = true;
           clipboard_history_max_entries = 100;
           clipboard_confirm_clear_history = true;
@@ -103,8 +100,6 @@ in
           transition_on_startup = true;
           edge_smoothness = 0.3;
 
-          # Slideshow preset: point at the matching subfolder for slideshows,
-          # or stay on a single static image for "minimal".
           directory = if isMinimal then "" else "${wallpaperDir}/${cfg.wallpaperPreset}";
           fill_mode = if cfg.wallpaperPreset == "ka256" then "fit" else "crop";
           default.path = "${wallpaperDir}/PTITSA/144133008_p0.jpg";
@@ -123,10 +118,6 @@ in
           tint_intensity = 0.3;
         };
 
-        # Top bar: launcher, workspaces, clipboard and wallpaper on the left;
-        # clock and notifications centered; network, bluetooth, privacy, volume,
-        # brightness, sysmon, power profile, battery, caffeine, power on the
-        # right end (right-most is power).
         bar = {
           default = {
             position = "top";
@@ -180,14 +171,11 @@ in
           };
         };
 
-        # Per-widget appearance. Two-digit seconds clock, minimal workspace
-        # pills with labels, power-glyph session button, volume shows its
-        # label. `type` equals the name for these built-ins, so it is omitted.
+        # `type` is omitted: it equals the widget name for these built-ins.
         widget = {
           clock = {
             format = "{:%H:%M:%S}";
             actions = {
-              # Click the clock to open the control center Home tab.
               left = "panel-toggle control-center home";
             };
           };
@@ -206,7 +194,6 @@ in
           };
         };
 
-        # Notification daemon (currently only internal toasts fire).
         notification = {
           enable_daemon = true;
           position = "top_right";
@@ -217,7 +204,6 @@ in
 
         control_center = {
           sidebar = "compact";
-          # Home quick actions: swapped Night Light for Wallpaper.
           shortcuts = [
             { type = "wifi"; }
             { type = "bluetooth"; }
@@ -241,10 +227,9 @@ in
       };
     };
 
-    # Heroic reads its custom themes from customThemesPath; when unset it does
-    # not scan ~/.config/heroic/themes, so the Noctalia matugen theme stays
-    # invisible. Seed it once (only while empty), via jq so we do not depend on
-    # Heroic's JSON whitespace/formatting, and keep it user-editable.
+    # Heroic only reads ~/.config/heroic/themes when customThemesPath is set, so
+    # seed it once while empty; jq avoids depending on Heroic's JSON formatting,
+    # and the file stays user-editable afterwards.
     home.activation.heroicCustomThemesPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       cfg="$HOME/.config/heroic/config.json"
       if [ -f "$cfg" ] && ${pkgs.jq}/bin/jq -e '.customThemesPath == ""' "$cfg" >/dev/null 2>&1; then

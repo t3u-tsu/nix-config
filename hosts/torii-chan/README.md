@@ -1,9 +1,8 @@
 # Host: torii-chan (Nebula Gateway / Lighthouse + DDNS + Minecraft Forward)
 
-This directory configures **torii-chan**, a Nebula mesh gateway that can run on
-EITHER the physical Orange Pi Zero3 SBC **or** a VPS — one at a time (failover).
-Both machines share the same hostname `torii-chan` and the SAME secrets
-(Nebula CA + node certs, DDNS token), so peers keep reaching the host at
+Nebula mesh gateway running on EITHER the Orange Pi Zero3 SBC **or** a VPS, one
+at a time (failover). Both share hostname `torii-chan` and the SAME secrets
+(Nebula CA + node certs, DDNS token), so peers keep reaching
 `torii-chan.t3u.uk:4242` without reconfiguration.
 
 ## Role (shared module)
@@ -99,7 +98,7 @@ ls result-iso/iso/   # nixos-<version>-x86_64-linux.iso
 The custom ISO has sshd enabled with the operator pubkey, static IP support
 (via `conoha.installer.wan`), and the `install-nixos` helper script, so no VNC
 console work is needed. (Static IP must be baked in before building, or set
-manually at boot with `install-nixos.sh network`.)
+manually at boot with `install-nixos network`.)
 The live environment deliberately does NOT contain the production (SOPS-managed)
 password hashes. Two build options:
 
@@ -140,9 +139,10 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
      (`my.services.gateway.restrictAccess = lib.mkForce false;`).
    After `nixos-install`, eject the ISO (`conoha-iso eject <VPS_ID> <ISO_ID>`)
    and reboot.
-5. Alternative path (community-proven): boot the `nixos-kexec-installer` from a
-   running Ubuntu, then `nixos-anywhere --phases install` with a GPT layout
-   (BIOS-boot ef02 + root). See
+5. Alternative path (community-proven), on a plan larger than 512MB: boot the
+   `nixos-kexec-installer` from a running Debian/Ubuntu image, then
+   `nixos-anywhere --phases install` with a GPT layout (BIOS-boot ef02 + root).
+   Not possible on the 512MB plan - see `terraform/README.md`. Reference:
    https://gist.github.com/HelloWorld017/13e9aa366de60f3d9ecfc605e607b8d0
 
 ### Phase 3: SOPS + first deploy
@@ -198,7 +198,7 @@ registered before the first production deploy:
    Commit the changes.
 3. Deploy production (SD root):
    ```bash
-   nixos-rebuild -- switch --flake .#torii-chan-sd --target-host root@192.168.0.128
+   nixos-rebuild switch --flake .#torii-chan-sd --target-host root@192.168.0.128
    ```
    The temporary password is replaced by the SOPS-managed production password
    on this switch.

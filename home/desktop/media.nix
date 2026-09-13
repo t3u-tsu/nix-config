@@ -11,7 +11,7 @@ let
   cfg = config.my.home.desktop.media;
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   palette = import ./palette.nix;
-  nohash = s: removePrefix "#" s; # #ffc799 -> ffc799 (spicetify ini)
+  nohash = s: removePrefix "#" s;
 in
 {
   options.my.home.desktop.media = {

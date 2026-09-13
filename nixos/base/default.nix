@@ -6,10 +6,9 @@
     ./time.nix
   ];
 
-  # Common system-wide settings shared by all hosts
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "26.05";
 
-  # Silence the nixpkgs warning (default flips to false in 26.11); no host uses ZFS pools.
+  # Silence the nixpkgs warning that this option's default changes in 26.11.
   boot.zfs.forceImportRoot = false;
 }

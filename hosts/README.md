@@ -87,13 +87,21 @@ under review. The encrypted `secrets/*.yaml` data files are edited only with the
    (`key_groups: [*master_key, *<hostname>]`).
 3. Append `*<hostname>` to the `common.yaml` rule (CA secret is shared).
 
-Create the host secret file (password hashes):
-`mkpasswd -m sha-512` (or `nix shell nixpkgs#mkpasswd -c mkpasswd -m sha-512`):
+Create the host secret file (password hashes). The host creation rule lists the
+master key plus the host key (the user key is excluded), so any `sops`
+invocation needs the master age key available:
 
 ```bash
+# interactive: reads both passwords with read -s, then encrypts from plaintext
+nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#jq -c bash scripts/set-host-password.sh <hostname>
+
+# or by hand:
+export SOPS_AGE_KEY_FILE=/path/to/master-age-key.txt
 sops set secrets/hosts/<hostname>.yaml '["<hostkey>_t3u_password_hash"]' '"<hash>"'
 sops set secrets/hosts/<hostname>.yaml '["<hostkey>_root_password_hash"]' '"<hash>"'
 ```
+
+(`<hash>` = `mkpasswd -m sha-512`, or `nix shell nixpkgs#mkpasswd -c mkpasswd -m sha-512`.)
 
 Re-encrypt for the new key set:
 

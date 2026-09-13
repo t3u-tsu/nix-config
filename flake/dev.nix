@@ -29,6 +29,7 @@
           name = "ja-punctuation";
           description = "Replace 、。 with ，． in Japanese docs";
           files = "\\.md$";
+          # Rewrites files in place and exits 1 when it changed one, so the fix is re-staged.
           entry = "${
             pkgs.writeShellApplication {
               name = "fix-ja-punctuation";

@@ -19,7 +19,8 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 │   ├── hosts.nix        # nixosConfigurations 定義
 │   ├── lib.nix          # Flake ライブラリ出力
 │   ├── overlays.nix     # Nixpkgs オーバーレイ
-│   └── packages.nix     # Flake パッケージ出力
+│   ├── packages.nix     # Flake パッケージ出力
+│   └── dev.nix          # pre-commit hooks / devShells
 ├── nixos/               # NixOS システムモジュール
 │   ├── base/            # OS 基盤 (ユーザー, Nix, 時間同期)
 │   ├── core/            # OS 核心設定 (i18n)
@@ -72,26 +73,18 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが
-`user_namespaces` / `seccomp BPF` に対応していないため必要です
-（`hosts/torii-chan/README.md` のトラブルシューティング参照）．
+`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが `user_namespaces` / `seccomp BPF` に対応していないため必要です（`hosts/torii-chan/README.md` 参照）．
 
 ## 新規ホストの追加
 
-[`hosts/_template/`](hosts/_template) の雛形をコピーし，[`hosts/README.md`](hosts/README.md)（英語）のステップバイステップ手順に従ってください．`flake/hosts.nix` への登録，SOPS の鍵設定，Nebula 証明書の署名・import，検証，デプロイ，PR フローまでを扱っています．
-
-より詳細なデプロイ・運用方法については，`hosts/`，`nixos/`，`home/` 配下の各 `README.md`（英語）を参照してください．
+[`hosts/_template/`](hosts/_template) をコピーし，[`hosts/README.md`](hosts/README.md)（英語）に従ってください．
 
 ## CI/CD と自動化
 
-GitHub Actions を利用して，構成の継続的インテグレーションと自動更新を行っています．
-
-- **Nix Flake Check** (`nix-check.yml`): `main` や `feat/*`, `fix/*`, `refactor/*`, `docs/*`, `chore/*` ブランチへのプッシュ，およびプルリクエスト時に自動で `nix flake check` を実行し，設定にエラーがないか検証します．
-- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に実行されます．`nvfetcher` による Minecraft プラグインの最新化と，`nix flake update` による `flake.lock` の更新を自動で行い，結果を `main` へコミットします．
+- **Nix Flake Check** (`nix-check.yml`): `main` / `feat/*` / `fix/*` / `refactor/*` / `docs/*` / `chore/*` へのプッシュとプルリクエストで `nix flake check` を実行．
+- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に `nvfetcher` と `flake.lock` 更新を実行し，`main` へ直接コミット．
 
 ## 参考文献
-
-本構成の構築にあたり，多くの知見を以下のリポジトリから参考にさせていただきました．
 
 - **[ryan4yin/nix-config](https://github.com/ryan4yin/nix-config)**: 全体的なモジュール構造と Niri 構成．
 - **[natsukium/dotfiles](https://github.com/natsukium/dotfiles)**: Zen Browser の宣言的な詳細設定．
