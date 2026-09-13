@@ -40,5 +40,11 @@ let
   });
 in
 {
+  # The UCM profile set is read by the session processes that open the ALSA
+  # card, so both PipeWire and WirePlumber need it in their environment.
+  # Setting it on PipeWire alone is not enough: WirePlumber then still reads
+  # the stock UCM, and the stock profile set is what makes the Speaker sink
+  # disappear while HDMI is plugged in.
   systemd.user.services.pipewire.environment.ALSA_CONFIG_UCM2 = "${alsaUcmConf}/share/alsa/ucm2";
+  systemd.user.services.wireplumber.environment.ALSA_CONFIG_UCM2 = "${alsaUcmConf}/share/alsa/ucm2";
 }
