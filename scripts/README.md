@@ -6,7 +6,7 @@ Operator-run scripts (not part of the NixOS build).
 
 - **`nebula-lib.sh`**: source-only helper defining `FLEET` — the single node list
   (`<name>|<last-octet>|<groups>`) — plus the `host_key` / `host_secrets_file`
-  helpers. Add a new host here, then sign and import its cert (see `hosts/README.md`).
+  helpers. Add a new host here, then sign and import its cert (see [`hosts/README.md`](../hosts/README.md)).
 
 ## Scripts
 

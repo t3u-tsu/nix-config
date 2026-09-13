@@ -40,7 +40,7 @@ Run these commands from the NixOS Installer environment (via SSH).
    `/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/kagutsuchi-sama.yaml`
    (master + host key; the user key is excluded). Use the offline master age key,
    or the host key derived from the SSH host key registered in `.sops.yaml`
-   (see `hosts/README.md`):
+   (see [`hosts/README.md`](../README.md)):
    ```bash
    ssh root@<ip> "mkdir -p /mnt/var/lib/sops-nix"
    cat /path/to/master-age-key.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"

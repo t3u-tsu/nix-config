@@ -4,28 +4,25 @@
 
 ## ドキュメントの参照構造
 
-```text
-README.md                 リポジトリの全体像と各層への入口
- ├─ nixos/README.md       システムモジュールの分類と配置ルール
- ├─ home/README.md        home-manager モジュールの分類と配置ルール
- ├─ hosts/README.md       ホストの構成と追加手順
- ├─ secrets/README.md     SOPS の鍵モデルと編集手順
- ├─ scripts/README.md     運用スクリプト
- └─ terraform/README.md   ConoHa VPS インフラ
-docs/architecture.md      この文書（層構成と読み込みの説明）
-.codewhale/skills/        エージェント向けの手順（AGENTS.md から参照）
-```
+入口は [`README.md`](../README.md) で，そこから各層の README に分岐する．
 
-各 README は自分の層の責務と配置ルールを説明し，詳細は下位の README かコードに委ねる．
+- [`nixos/README.md`](../nixos/README.md) — システムモジュールの分類と配置ルール
+- [`home/README.md`](../home/README.md) — home-manager モジュールの分類と配置ルール
+- [`hosts/README.md`](../hosts/README.md) — ホストの構成と追加手順
+- [`secrets/README.md`](../secrets/README.md) — SOPS の鍵モデルと編集手順
+- [`scripts/README.md`](../scripts/README.md) — 運用スクリプト
+- [`terraform/README.md`](../terraform/README.md) — ConoHa VPS インフラ
+
+`docs/architecture.md`（この文書）は層構成と読み込みの説明，`.codewhale/skills/` はエージェント向けの手順（`AGENTS.md` から参照）を担当する．各 README は自分の層の責務と配置ルールを説明し，詳細は下位の README かコードに委ねる．
 
 ## 層構成
 
 - `flake/`: flake-parts のモジュール（hosts, lib, overlays, packages, dev）．
-- `lib/`: mkSystem．profile とホストを合成して nixosSystem を作る．
-- `nixos/`: 全ホスト共通のシステムモジュール．
-- `home/`: home-manager モジュール．shell / programs は全ホスト，desktop は desktop プロファイルのみ．
-- `hosts/`: マシン固有の定義とプラットフォーム層．
-- `secrets/`・`scripts/`・`terraform/`: 運用側．
+- [`lib/`](../lib/README.md): mkSystem．profile とホストを合成して nixosSystem を作る．
+- [`nixos/`](../nixos/README.md): 全ホスト共通のシステムモジュール．
+- [`home/`](../home/README.md): home-manager モジュール．shell / programs は全ホスト，desktop は desktop プロファイルのみ．
+- [`hosts/`](../hosts/README.md): マシン固有の定義とプラットフォーム層．
+- [`secrets/`](../secrets/README.md)・[`scripts/`](../scripts/README.md)・[`terraform/`](../terraform/README.md): 運用側．
 
 ## モジュール読み込みフロー
 

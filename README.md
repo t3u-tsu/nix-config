@@ -17,15 +17,24 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 ├── flake.nix   # flake-parts entrypoint
 ├── flake/      # flake-parts modules (hosts, lib, overlays, packages, dev)
 ├── lib/        # mkSystem helper
-├── nixos/      # system-wide modules — see nixos/README.md
-├── home/       # home-manager modules — see home/README.md
-├── hosts/      # per-machine configurations — see hosts/README.md
-├── secrets/    # SOPS-encrypted secrets — see secrets/README.md
-├── scripts/    # operational scripts — see scripts/README.md
-└── terraform/  # ConoHa VPS infrastructure — see terraform/README.md
+├── nixos/      # system-wide modules
+├── home/       # home-manager modules
+├── hosts/      # per-machine configurations
+├── secrets/    # SOPS-encrypted secrets
+├── scripts/    # operational scripts
+└── terraform/  # ConoHa VPS infrastructure
 ```
 
-[`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded and how the documentation is organised.
+Each layer keeps its own README:
+
+- [`nixos/`](nixos/README.md) — system-wide modules imported by every host
+- [`home/`](home/README.md) — home-manager modules
+- [`hosts/`](hosts/README.md) — per-machine configurations, and how to add one
+- [`secrets/`](secrets/README.md) — SOPS layout and key model
+- [`scripts/`](scripts/README.md) — operational scripts
+- [`terraform/`](terraform/README.md) — ConoHa VPS infrastructure
+
+[`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded.
 
 ## Quick Start
 
@@ -36,7 +45,7 @@ Available configurations (defined in `flake/hosts.nix`):
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
 - **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
-- **`torii-chan-sd-installer`** — SD installer image (see `hosts/torii-chan/README.md`)
+- **`torii-chan-sd-installer`** — SD installer image (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md))
 - **`torii-chan-vps-iso`** — VPS installer ISO, exposed as a **package** (not a nixosConfiguration): `nix build .#torii-chan-vps-iso`
 
 To apply configurations to the local machine:
@@ -51,7 +60,7 @@ For remote machines (e.g. torii-chan on Orange Pi Zero 3):
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-The `sandbox false` / `filter-syscalls false` flags are required: the Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` (see `hosts/torii-chan/README.md`).
+The `sandbox false` / `filter-syscalls false` flags are required: the Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md)).
 
 ## Adding a New Host
 
@@ -59,8 +68,8 @@ Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/
 
 ## CI/CD and Automation
 
-- **Nix Flake Check** (`nix-check.yml`): runs `nix flake check` on pushes to `main`/`feat/*`/`fix/*`/`refactor/*`/`docs/*`/`chore/*` and on pull requests.
-- **Scheduled Auto Update** (`auto-update.yml`): runs daily at 04:00 JST — `nvfetcher` for Minecraft plugins and `flake.lock` updates, committed directly to `main`.
+- **Nix Flake Check** (`nix-check.yml`): on every push and pull request — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
+- **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the Minecraft plugin pins (`nvfetcher`) and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
 
 ## References
 

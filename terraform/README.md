@@ -72,7 +72,7 @@ ConoHa's standard OS images do not include NixOS, so we use the **rescue ISO inj
 method to replace the disk with NixOS. Running `nixos-anywhere` directly against a stock
 image is not possible on the 512MB plan; the community-proven alternative (boot the
 `nixos-kexec-installer` from a running Ubuntu, then `nixos-anywhere --phases install`
-with a GPT layout) is documented in `hosts/torii-chan/README.md` and is not used here.
+with a GPT layout) is documented in [`hosts/torii-chan/README.md`](../hosts/torii-chan/README.md) and is not used here.
 
 ```bash
 # 1. Create the VPS (Debian boot)

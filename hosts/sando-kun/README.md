@@ -45,7 +45,7 @@ Since this host uses older hardware, we use the following high-reliability insta
 `/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/sando-kun.yaml`
 (master + host key; the user key is excluded). Use the offline master age key,
 or the host key derived from the SSH host key registered in `.sops.yaml`
-(see `hosts/README.md`):
+(see [`hosts/README.md`](../README.md)):
 ```bash
 ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
 cat /path/to/master-age-key.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"

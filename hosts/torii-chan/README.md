@@ -142,7 +142,7 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 5. Alternative path (community-proven), on a plan larger than 512MB: boot the
    `nixos-kexec-installer` from a running Debian/Ubuntu image, then
    `nixos-anywhere --phases install` with a GPT layout (BIOS-boot ef02 + root).
-   Not possible on the 512MB plan - see `terraform/README.md`. Reference:
+   Not possible on the 512MB plan - see [`terraform/README.md`](../../terraform/README.md). Reference:
    https://gist.github.com/HelloWorld017/13e9aa366de60f3d9ecfc605e607b8d0
 
 ### Phase 3: SOPS + first deploy

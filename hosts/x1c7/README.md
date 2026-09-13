@@ -110,7 +110,7 @@ sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
 
 The identity at `/mnt/var/lib/sops-nix/key.txt` must match the key used to
 encrypt `secrets/hosts/x1c7.yaml`, and its public key has to be registered in
-SOPS before the install (see `hosts/README.md`) - otherwise activation fails.
+SOPS before the install (see [`hosts/README.md`](../README.md)) - otherwise activation fails.
 
 ## Reference
 
