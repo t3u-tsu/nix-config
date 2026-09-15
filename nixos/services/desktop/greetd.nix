@@ -8,8 +8,29 @@
 with lib;
 let
   cfg = config.my.services.desktop.greetd;
+  palette = import ../../../lib/palette.nix;
   greeterOutput = optionalAttrs (cfg.greeterOutput != null) { output = cfg.greeterOutput; };
   greeterWallpaperPath = "/var/lib/noctalia-greeter/wallpaper.jpg";
+
+  # The greeter expects the complete Vesper set, upper case.
+  greeterPalette = {
+    primary = toUpper palette.primary;
+    on_primary = toUpper palette.on_primary;
+    secondary = toUpper palette.secondary;
+    on_secondary = toUpper palette.on_secondary;
+    tertiary = toUpper palette.tertiary;
+    on_tertiary = toUpper palette.on_tertiary;
+    error = toUpper palette.err;
+    on_error = toUpper palette.on_error;
+    surface = toUpper palette.bg;
+    on_surface = toUpper palette.fg;
+    surface_variant = toUpper palette.bg2;
+    on_surface_variant = toUpper palette.fg2;
+    outline = toUpper palette.low;
+    shadow = toUpper palette.shadow;
+    hover = toUpper palette.hover;
+    on_hover = toUpper palette.on_hover;
+  };
 in
 {
   options.my.services.desktop.greetd = {
@@ -27,7 +48,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    programs.noctalia-greeter = {
+    services.displayManager.noctalia-greeter = {
       enable = true;
       settings = {
         session = {
@@ -39,26 +60,9 @@ in
         appearance = {
           # Noctalia Sync is not used here (prompted flow is noisy and
           # passwordless sync needs greeter >= 1.5.0), so pin the Vesper
-          # dark palette and a matching background colour declaratively.
+          # dark palette the same way the shell receives it.
           scheme = "Synced";
-          palette = {
-            primary = "#FFC799";
-            on_primary = "#000000";
-            secondary = "#99FFE4";
-            on_secondary = "#000000";
-            tertiary = "#FBADFF";
-            on_tertiary = "#000000";
-            error = "#FF8080";
-            on_error = "#000000";
-            surface = "#0C0C0C";
-            on_surface = "#FFFFFF";
-            surface_variant = "#1C1C1C";
-            on_surface_variant = "#A0A0A0";
-            outline = "#505050";
-            shadow = "#000000";
-            hover = "#282828";
-            on_hover = "#FFFFFF";
-          };
+          palette = greeterPalette;
           wallpaper = {
             path = if cfg.greeterWallpaper != null then greeterWallpaperPath else "color:#0C0C0C";
             fill_mode = "crop";
@@ -93,11 +97,19 @@ in
     # available system-wide (not only under the login user's home).
     environment.systemPackages = [ pkgs.bibata-cursors ];
 
-    # Copy the wallpaper into the greeter state dir because the greeter user
-    # cannot traverse the login user's 0700 home (a symlink would not help).
-    systemd.tmpfiles.rules = lib.optional (
-      cfg.greeterWallpaper != null
-    ) "C ${greeterWallpaperPath} 0640 greeter greeter - ${cfg.greeterWallpaper}";
+    # The greeter user cannot traverse the login user's 0700 home, so the image
+    # is copied into the greeter state dir. tmpfiles' C keeps the first copy
+    # forever and would hide a swapped wallpaper, so re-copy on every boot.
+    systemd.services.noctalia-greeter-wallpaper = lib.mkIf (cfg.greeterWallpaper != null) {
+      description = "Copy the Noctalia greeter wallpaper into the greeter state dir";
+      wantedBy = [ "greetd.service" ];
+      before = [ "greetd.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.coreutils}/bin/install -o greeter -g greeter -m 0640 '${cfg.greeterWallpaper}' ${greeterWallpaperPath}";
+      };
+    };
 
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
