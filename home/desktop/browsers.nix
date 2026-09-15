@@ -253,10 +253,10 @@ in
           "zen.welcome-screen.seen" = true;
           "browser.aboutwelcome.enabled" = false;
 
-          # Keep pages on their own palette. Without this Firefox reports the
-          # dark system theme through prefers-color-scheme and sites switch to
-          # their dark design. 0=dark, 1=light, 2=system, 3=browser.
-          "layout.css.prefers-color-scheme.content-override" = 1;
+          # Follow the system dark theme so sites that ship a dark design use
+          # it; sites without one keep their own palette. 0=dark, 1=light,
+          # 2=system, 3=browser.
+          "layout.css.prefers-color-scheme.content-override" = 2;
 
           "privacy.trackingprotection.enabled" = true;
           "privacy.trackingprotection.socialtracking.enabled" = true;
