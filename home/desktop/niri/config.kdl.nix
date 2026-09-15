@@ -262,6 +262,8 @@ in
   window-rule {
       match app-id="^zen(-beta)?$"
       default-column-width { proportion 1.000000; }
+      // Zen already renders its own translucency; niri's washes the pages out.
+      opacity 1.000000
   }
   window-rule {
       match app-id="^(vesktop|Vesktop)$"

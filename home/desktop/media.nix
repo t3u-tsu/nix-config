@@ -10,7 +10,7 @@ with lib;
 let
   cfg = config.my.home.desktop.media;
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  palette = import ./palette.nix;
+  palette = import ../../lib/palette.nix;
   nohash = s: removePrefix "#" s;
 in
 {

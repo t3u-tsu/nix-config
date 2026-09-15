@@ -8,7 +8,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.niri;
-  palette = import ../palette.nix;
+  palette = import ../../../lib/palette.nix;
 in
 {
   options.my.home.desktop.niri = {

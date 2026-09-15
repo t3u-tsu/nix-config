@@ -5,7 +5,7 @@ This directory manages system-wide services and hardware integration for the des
 ## Services
 
 - **`niri.nix`**: Compositor setup and XDG Desktop Portals.
-- **`greetd.nix`**: Login management and the graphical greeter.
+- **`greetd.nix`**: Login management, the Noctalia greeter, and the wallpaper copy into the greeter state dir. Shares `lib/palette.nix` with the home modules.
 - **`pipewire.nix`**: Audio stack and low-latency processing infrastructure.
 - **`bluetooth.nix`**: Bluetooth stack, powered on at boot, with opt-in experimental features (LE Audio).
 - **`fonts.nix`**: System-wide font configuration.
