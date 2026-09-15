@@ -8,8 +8,7 @@ The lightweight core is `my.home.desktop.enable`; heavy extras are opted in with
 ## Modules
 
 - **`browsers.nix`**: Browsers with declarative settings; system-level browser policy lives in `nixos/services/desktop/chromium.nix`.
-- **`palette.nix`**: Shared color palette used by the desktop modules — a data file, not a module, so `default.nix` does not import it.
-- **`theme.nix`**: GTK, Qt and cursor theme configuration.
+- **`theme.nix`**: Cursor, GTK and Qt setup. GTK and Qt colors come from Noctalia's built-in `gtk3` / `gtk4` / `qt` templates; the shared palette lives in [`lib/palette.nix`](../../lib/palette.nix).
 - **`locales.nix`**: Locale and input method settings.
 - **`xdg.nix`**: XDG user directories and default application MIME associations.
 - **`gpg-signing.nix`**: GnuPG agent setup and SOPS-managed signing key import.

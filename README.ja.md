@@ -31,7 +31,7 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 - [`flake.nix`](flake.nix) — flake-parts エントリポイント
 - [`flake/`](flake/) — flake-parts モジュール (hosts, lib, overlays, packages, dev)
-- [`lib/`](lib/) — mkSystem ヘルパー
+- [`lib/`](lib/) — mkSystem ヘルパーと共通カラーパレット
 - [`nixos/`](nixos/) — 全ホスト共通のシステムモジュール
 - [`home/`](home/) — home-manager モジュール
 - [`hosts/`](hosts/) — マシン固有の設定

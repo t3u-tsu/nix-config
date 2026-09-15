@@ -34,7 +34,10 @@
   };
 
   my.services.desktop = {
-    greetd.greeterOutput.name = "eDP-1";
+    greetd = {
+      greeterOutput.name = "eDP-1";
+      greeterWallpaper = "/home/${config.my.user.name}/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
+    };
     bluetooth.experimental = true;
   };
 

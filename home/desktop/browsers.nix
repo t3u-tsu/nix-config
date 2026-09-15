@@ -10,7 +10,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.browsers;
-  palette = import ./palette.nix;
+  palette = import ../../lib/palette.nix;
 in
 {
   options.my.home.desktop.browsers = {
@@ -35,9 +35,10 @@ in
     };
 
     home.file = {
-      # Zen: apply a Vesper dark UI. The Noctalia zen template rewrites
-      # userChrome/userContent with an @import plus a writable user.js, but
-      # nix-managed Zen profiles are read-only so it fails; own it here.
+      # Zen: apply a Vesper dark UI to the browser chrome only. The Noctalia zen
+      # template rewrites userChrome/userContent with an @import plus a writable
+      # user.js, but nix-managed Zen profiles are read-only so it fails.
+      # No userContent.css on purpose: it would restyle web pages.
       ".config/zen/${osConfig.my.user.name}/chrome/userChrome.css" = mkIf cfg.zen.enable {
         text = ''
           /* Vesper dark UI for Zen (home-manager). */
@@ -60,18 +61,6 @@ in
           #urlbar, #urlbar-input { color: ${palette.fg} !important; }
           /* Vesper: text selection inside browser chrome (e.g. urlbar).
              Without this, Firefox uses the system (GTK) Highlight color. */
-          ::selection {
-            background-color: ${palette.primary} !important;
-            color: #000000 !important;
-          }
-        '';
-      };
-      ".config/zen/${osConfig.my.user.name}/chrome/userContent.css" = mkIf cfg.zen.enable {
-        text = ''
-          /* Vesper userContent: dark fallback. */
-          :root { color-scheme: dark; }
-          /* Vesper: text selection on web pages. Firefox uses the system
-             (GTK) Highlight color here unless overridden. */
           ::selection {
             background-color: ${palette.primary} !important;
             color: #000000 !important;
@@ -263,6 +252,11 @@ in
 
           "zen.welcome-screen.seen" = true;
           "browser.aboutwelcome.enabled" = false;
+
+          # Follow the system dark theme so sites that ship a dark design use
+          # it; sites without one keep their own palette. 0=dark, 1=light,
+          # 2=system, 3=browser.
+          "layout.css.prefers-color-scheme.content-override" = 2;
 
           "privacy.trackingprotection.enabled" = true;
           "privacy.trackingprotection.socialtracking.enabled" = true;
