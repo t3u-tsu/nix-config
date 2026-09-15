@@ -31,7 +31,7 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 - [`flake.nix`](flake.nix) — flake-parts entrypoint
 - [`flake/`](flake/) — flake-parts modules (hosts, lib, overlays, packages, dev)
-- [`lib/`](lib/) — mkSystem helper
+- [`lib/`](lib/) — mkSystem helper and the shared color palette
 - [`nixos/`](nixos/) — system-wide modules
 - [`home/`](home/) — home-manager modules
 - [`hosts/`](hosts/) — per-machine configurations

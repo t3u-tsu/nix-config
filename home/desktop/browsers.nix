@@ -10,7 +10,7 @@
 with lib;
 let
   cfg = config.my.home.desktop.browsers;
-  palette = import ./palette.nix;
+  palette = import ../../lib/palette.nix;
 in
 {
   options.my.home.desktop.browsers = {
