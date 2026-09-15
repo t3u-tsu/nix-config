@@ -56,7 +56,7 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    # Comfy Spicetify theme (Comfy/color.ini overwritten by Noctalia).
+    # Comfy Spicetify theme; media.nix bakes the Vesper palette into its color scheme.
     comfy-theme = {
       url = "github:Comfy-Themes/Spicetify";
       flake = false;

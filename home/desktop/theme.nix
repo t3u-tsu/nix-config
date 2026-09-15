@@ -8,26 +8,6 @@
 with lib;
 let
   cfg = config.my.home.desktop.theme;
-  palette = import ./palette.nix;
-
-  # qt6ct color-scheme entries are positional and follow QPalette's color-role
-  # order; reordering them by hand breaks the theme.
-  opaqueHex = s: "#ff" + (removePrefix "#" s);
-  translucentHex = s: "#80" + (removePrefix "#" s);
-
-  active =
-    with palette;
-    "${opaqueHex bg}, #ffffffff, ${opaqueHex bg}, ${opaqueHex bg2}, ${opaqueHex bg2}, #ffffffff, #ffffffff, ${opaqueHex fg2}, ${opaqueHex bg2}, #ffffffff, #ffffffff, ${opaqueHex secondary}, ${opaqueHex primary}, #ff000000, ${opaqueHex link}, ${opaqueHex low}, ${opaqueHex bg2}, ${opaqueHex bg}, ${opaqueHex bg2}, #ff000000, ${translucentHex primary}";
-  disabled =
-    with palette;
-    "${opaqueHex low}, ${opaqueHex fg2}, ${opaqueHex low}, ${opaqueHex bg2}, ${opaqueHex bg2}, ${opaqueHex fg2}, ${opaqueHex fg2}, ${opaqueHex low}, ${opaqueHex low}, ${opaqueHex fg2}, ${opaqueHex fg2}, ${opaqueHex secondary}, ${opaqueHex primary}, #ff000000, ${opaqueHex link}, ${opaqueHex low}, ${opaqueHex bg2}, ${opaqueHex bg}, ${opaqueHex bg2}, #ff000000, ${translucentHex primary}";
-
-  qtVesperScheme = ''
-    [ColorScheme]
-    active_colors=${active}
-    disabled_colors=${disabled}
-    inactive_colors=${active}
-  '';
 in
 {
   options.my.home.desktop.theme = {
@@ -50,21 +30,16 @@ in
     home.packages = with pkgs; [
       bibata-cursors
       papirus-icon-theme
-      rose-pine-gtk-theme
       qt6Packages.qt6ct
-      # Dependencies of the Noctalia libreoffice template (its apply.sh uses
-      # python3 + zip to build the .oxt).
-      python3
-      zip
     ];
 
-    # Rosé Pine dark GTK theme (Vesper-friendly, low contrast); Noctalia's gtk
-    # templates do not apply on this setup.
+    # Neutral Adwaita-shaped base; Noctalia's gtk3/gtk4 templates paint the
+    # Vesper colors on top via ~/.config/gtk-{3,4}.0/gtk.css.
     gtk = {
       enable = true;
       theme = {
-        name = "rose-pine";
-        package = pkgs.rose-pine-gtk-theme;
+        name = "adw-gtk3-dark";
+        package = pkgs.adw-gtk3;
       };
       iconTheme = {
         name = "Papirus-Dark";
@@ -123,18 +98,16 @@ in
       };
 
       file = {
-        # home.file keys are relative to $HOME, so this lands in ~/.config/qt6ct.
+        # qt6ct reads the color scheme Noctalia's "qt" template keeps in
+        # ~/.config/qt6ct/colors/noctalia.conf; only the selector is ours.
         ".config/qt6ct/qt6ct.conf" = {
           text = ''
             [Appearance]
             custom_palette=false
             style=Fusion
-            color_scheme_path=${config.home.homeDirectory}/.config/qt6ct/colors/vesper.conf
+            color_scheme_path=${config.home.homeDirectory}/.config/qt6ct/colors/noctalia.conf
             standard_dialogs=default
           '';
-        };
-        ".config/qt6ct/colors/vesper.conf" = {
-          text = qtVesperScheme;
         };
         # Noctalia's heroiclauncher template writes matugen.css here, but its
         # requires_path check needs the directory to exist first.

@@ -32,6 +32,10 @@ in
       systemd.enable = true;
 
       settings = {
+        accessibility = {
+          ui_scale = 1.0;
+        };
+
         shell = {
           # Noctalia needs a systemd user session (uwsm/niri-session) to launch
           # apps as services; niri here is started directly from greetd, so this
@@ -42,7 +46,6 @@ in
           clipboard_history_max_entries = 100;
           clipboard_confirm_clear_history = true;
           clipboard_auto_paste = "auto";
-          ui_scale = 1.0;
           corner_radius_scale = 1.0;
           settings_show_advanced = true;
 
@@ -74,11 +77,17 @@ in
           community_palette = "Vesper";
           pure_black_dark = false;
 
-          # Sync the shell palette into other apps. Only templates verified to
-          # apply on this setup are enabled; Qt/Spicetify showed issues.
+          # Sync the shell palette into other apps. Qt and GTK are here so the
+          # hand-written qt6ct color scheme and the Rosé Pine GTK theme could be
+          # dropped; both templates render the Vesper palette themselves.
           templates = {
             enable_builtin_templates = true;
-            builtin_ids = [ "ghostty" ];
+            builtin_ids = [
+              "ghostty"
+              "gtk3"
+              "gtk4"
+              "qt"
+            ];
             enable_community_templates = true;
             community_ids = [
               "discord"
