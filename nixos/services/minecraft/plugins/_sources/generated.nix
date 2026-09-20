@@ -8,10 +8,10 @@
 {
   gsit = {
     pname = "gsit";
-    version = "3.6.0";
+    version = "3.7.0";
     src = fetchurl {
-      url = "https://github.com/Gecolay/GSit/releases/download/3.6.0/GSit-3.6.0.jar";
-      sha256 = "sha256-mvTCLMu7SQFJ9n+H6aRVnxObZaBQKKKTgVfaGgbxmo4=";
+      url = "https://github.com/Gecolay/GSit/releases/download/3.7.0/GSit-3.7.0.jar";
+      sha256 = "sha256-kyFMIy/lNaZFethxHLHgXQ5zCkkc4wPjnjDHb4jdLjA=";
     };
   };
   lunachat = {
