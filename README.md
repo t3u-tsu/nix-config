@@ -41,6 +41,13 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 [`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded.
 
+Personal data that must not be public (Zen pins, dashboard URLs, …) lives in the
+private [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)
+repository, read as a `flake = false` input. Every host that evaluates this flake
+needs read access to it: `nixos/base/nix.nix` installs the read-only deploy key
+from `secrets/common.yaml` together with the `github-nix-config-private` ssh
+alias that uses it.
+
 ## Quick Start
 
 Available configurations (defined in `flake/hosts.nix`):
@@ -74,7 +81,7 @@ Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/
 ## CI/CD and Automation
 
 - **Nix Flake Check** (`nix-check.yml`): on pushes to `main` or any `feat/` `fix/` `refactor/` `docs/` `chore/` branch, and on pull requests to `main` — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
-- **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the Minecraft plugin pins (`nvfetcher`) and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
+- **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the pinned sources (`nvfetcher`: the Minecraft plugins and the Zen userscripts) and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
 
 ## References
 
