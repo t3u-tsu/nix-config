@@ -27,6 +27,23 @@ jobs:
           name: niri
           skipPush: true
 
+      # The flake pulls in the private nix-config-private repository, so every
+      # evaluation needs this read-only deploy key. Fork pull requests receive no
+      # secrets and will fail here.
+      - name: Deploy key for the private flake input
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.NIX_CONFIG_PRIVATE_DEPLOY_KEY }}" > ~/.ssh/nix-config-private
+          chmod 600 ~/.ssh/nix-config-private
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          cat >> ~/.ssh/config <<'SSHCONF'
+          Host github-nix-config-private
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/nix-config-private
+            IdentitiesOnly yes
+          SSHCONF
+
       - name: Check Nix Flake
         run: nix flake check --show-trace --accept-flake-config --all-systems
 
