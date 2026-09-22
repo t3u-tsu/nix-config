@@ -1,4 +1,44 @@
 {
+    "aki-boost": {
+        "cargoLock": null,
+        "date": "2025-08-20",
+        "extract": null,
+        "name": "aki-boost",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "rev": "ee14b7d53f334fa408cbcf0aaca31ce79546d65b",
+            "sha256": "sha256-Kfyiv0t9wj+CNM6i+TtEu/vfLZTZf5WTbzSI9wxSOCM=",
+            "sparseCheckout": [],
+            "type": "git",
+            "url": "https://github.com/shapoco/aki-boost.git"
+        },
+        "version": "ee14b7d53f334fa408cbcf0aaca31ce79546d65b"
+    },
+    "danime-plus": {
+        "cargoLock": null,
+        "date": "2025-07-12",
+        "extract": null,
+        "name": "danime-plus",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "rev": "43218883d98f2ecec61b803dc19abc83db060858",
+            "sha256": "sha256-xNFI+SaT/QhyIbNRsFmThydjxfjestyScZXo/bd9lvw=",
+            "sparseCheckout": [],
+            "type": "git",
+            "url": "https://github.com/hamachi25/dAnimePlus.git"
+        },
+        "version": "43218883d98f2ecec61b803dc19abc83db060858"
+    },
     "gsit": {
         "cargoLock": null,
         "date": null,

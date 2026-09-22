@@ -2,7 +2,7 @@
 { pkgs, lib }:
 
 let
-  plugins = pkgs.callPackage ../plugins/_sources/generated.nix { };
+  plugins = pkgs.callPackage ../../../../_sources/generated.nix { };
   lunachat = import ../plugins/lunachat.nix { };
 
   # Fix the udev warning printed by the Paper server.

@@ -1,3 +1,4 @@
+# Minecraft server plugins
 [viaversion]
 src.github = "ViaVersion/ViaVersion"
 fetch.url = "https://github.com/ViaVersion/ViaVersion/releases/download/$ver/ViaVersion-$ver.jar"
@@ -13,3 +14,14 @@ fetch.url = "https://github.com/Gecolay/GSit/releases/download/$ver/GSit-$ver.ja
 [lunachat]
 src.github = "ucchyocean/LunaChat"
 fetch.url = "https://github.com/ucchyocean/LunaChat/releases/download/$ver/LunaChat.jar"
+
+# Zen userscripts
+[aki-boost]
+src.git = "https://github.com/shapoco/aki-boost.git"
+src.branch = "main"
+fetch.git = "https://github.com/shapoco/aki-boost.git"
+
+[danime-plus]
+src.git = "https://github.com/hamachi25/dAnimePlus.git"
+src.branch = "main"
+fetch.git = "https://github.com/hamachi25/dAnimePlus.git"
