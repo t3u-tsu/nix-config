@@ -31,19 +31,18 @@ in
 
     home.packages = [ pkgs.handlr-regex ];
 
+    # Zen claims text/html, the http(s)/about/unknown schemes, text/plain and
+    # application/json through setAsDefaultBrowser, so only the non-browser
+    # handlers belong here.
     home.activation.setDefaultHandlers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
       HANDLR="${pkgs.handlr-regex}/bin/handlr"
-
-      run $HANDLR set text/html zen-beta.desktop
-      run $HANDLR set x-scheme-handler/http zen-beta.desktop
-      run $HANDLR set x-scheme-handler/https zen-beta.desktop
-      run $HANDLR set x-scheme-handler/about zen-beta.desktop
-      run $HANDLR set x-scheme-handler/unknown zen-beta.desktop
 
       run $HANDLR set inode/directory thunar.desktop
 
       run $HANDLR set application/pdf zen-beta.desktop
 
+      run $HANDLR set text/plain nvim-ghostty.desktop
+      run $HANDLR set application/json nvim-ghostty.desktop
       run $HANDLR set 'text/*' nvim-ghostty.desktop
 
       run $HANDLR set 'image/*' org.gnome.Loupe.desktop

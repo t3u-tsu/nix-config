@@ -10,7 +10,7 @@ let
 in
 {
   imports = [
-    ./browsers.nix
+    ./browsers
     ./communication.nix
     ./creative.nix
     ./dev-tools
