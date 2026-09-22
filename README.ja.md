@@ -41,6 +41,12 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 各層の読み込み方は [`docs/architecture.md`](docs/architecture.md) に書いています．
 
+公開したくない個人データ（Zen の pin，ダッシュボードの URL など）は private リポジトリ
+[`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) に置き，
+`flake = false` の input として読み込んでいます．この flake を評価するホストは
+すべて読み取り権限が必要で，`nixos/base/nix.nix` が `secrets/common.yaml` の
+read-only deploy key と，それを指す `github-nix-config-private` という ssh エイリアスを用意します．
+
 ## クイックスタート
 
 利用可能な設定（`flake/hosts.nix` で定義）:
@@ -74,7 +80,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 ## CI/CD と自動化
 
 - **Nix Flake Check** (`nix-check.yml`): `main` または `feat/` `fix/` `refactor/` `docs/` `chore/` ブランチへのプッシュと，`main` へのプルリクエストで実行．一方のジョブが `nix flake check`（全ホストの評価と整形・lint フック），もう一方が `convco` によるコミットメッセージの検査を行う．
-- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に Minecraft プラグインのピンと `flake.lock` を更新し，`nix flake check` で検証して `main` へ直接コミット．
+- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST にピン留めしたソース（`nvfetcher`: Minecraft プラグインと Zen のユーザースクリプト）と `flake.lock` を更新し，`nix flake check` で検証して `main` へ直接コミット．
 
 ## 参考文献
 
