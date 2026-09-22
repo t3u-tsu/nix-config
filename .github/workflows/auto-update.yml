@@ -26,9 +26,25 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run nvfetcher (Minecraft Plugins)
+      # Needed by `nix flake update` (it resolves the private input too) and by
+      # the validation step below.
+      - name: Deploy key for the private flake input
         run: |
-          nix shell nixpkgs#nvfetcher --command bash -c "cd nixos/services/minecraft/plugins && nvfetcher -c nvfetcher.toml"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.NIX_CONFIG_PRIVATE_DEPLOY_KEY }}" > ~/.ssh/nix-config-private
+          chmod 600 ~/.ssh/nix-config-private
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          cat >> ~/.ssh/config <<'SSHCONF'
+          Host github-nix-config-private
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/nix-config-private
+            IdentitiesOnly yes
+          SSHCONF
+
+      - name: Run nvfetcher
+        run: |
+          nix shell nixpkgs#nvfetcher --command nvfetcher
 
       - name: Nix Flake Update
         run: nix flake update
