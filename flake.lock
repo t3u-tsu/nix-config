@@ -504,6 +504,22 @@
         "type": "github"
       }
     },
+    "nix-config-private": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790027787,
+        "narHash": "sha256-ezcftRDTa85PqJ8oecHVNC08i213c//XWrvFyZiPUk4=",
+        "ref": "refs/heads/main",
+        "rev": "a0ba60e5b2182c34ce98fab9ee0aa11ab5cf5be7",
+        "revCount": 2,
+        "type": "git",
+        "url": "ssh://git@github-nix-config-private/t3u-tsu/nix-config-private"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-nix-config-private/t3u-tsu/nix-config-private"
+      }
+    },
     "nix-index-database": {
       "inputs": {
         "nixpkgs": [
@@ -765,6 +781,7 @@
         "microvm": "microvm",
         "minecraft-discord-bridge": "minecraft-discord-bridge",
         "niri": "niri",
+        "nix-config-private": "nix-config-private",
         "nix-index-database": "nix-index-database",
         "nix-minecraft": "nix-minecraft",
         "nixos-hardware": "nixos-hardware",
