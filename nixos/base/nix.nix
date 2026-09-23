@@ -19,8 +19,6 @@
       ];
 
       extra-substituters = [
-        # Ghostty / niri / Noctalia publish their own caches; their flake inputs
-        # declare them and the hashes only match without a nixpkgs follows.
         "https://ghostty.cachix.org?priority=30"
         "https://niri.cachix.org?priority=30"
         "https://noctalia.cachix.org?priority=30"

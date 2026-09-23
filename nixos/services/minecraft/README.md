@@ -38,12 +38,12 @@ A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu
 
 ## Plugin Management (nvfetcher)
 
-Plugins are declared in `plugins/` and version-pinned by **nvfetcher**; they cover protocol translation, sitting/posing, and Japanese chat formatting.
+Plugins are declared in `nvfetcher.toml` at the repository root and version-pinned by **nvfetcher**; they cover protocol translation, sitting/posing, and Japanese chat formatting.
 
 - **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:
   ```bash
-  (cd nixos/services/minecraft/plugins && nix shell nixpkgs#nvfetcher -c nvfetcher -c nvfetcher.toml)
+  nix run nixpkgs#nvfetcher
   ```
 
 ## Lobby Server Specifications
@@ -52,4 +52,3 @@ Plugins are declared in `plugins/` and version-pinned by **nvfetcher**; they cov
 - **Mobs**: Natural spawning and initial placement are completely disabled (Peaceful + Spawn Limits 0).
 - **Mode**: Forced Adventure mode.
 - **Structures**: Disabled.
-

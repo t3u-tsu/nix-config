@@ -38,8 +38,6 @@
     };
 
     # === Desktop Environment ===
-    # niri / noctalia / noctalia-greeter / ghostty: no follows to keep the
-    # upstream Cachix binary cache hash-matching.
     niri.url = "github:sodiboo/niri-flake";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
@@ -56,7 +54,6 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    # Comfy Spicetify theme; media.nix bakes the Vesper palette into its color scheme.
     comfy-theme = {
       url = "github:Comfy-Themes/Spicetify";
       flake = false;
@@ -102,6 +99,14 @@
     # Chaotic-Nyx, imported by the desktop profile's nyx-overlay module.
     chaotic = {
       url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+    };
+
+    # === Private ===
+    # Personal data kept out of this public repository.
+    # Fetched with the deploy key that nixos/base/private-config.nix installs.
+    nix-config-private = {
+      url = "git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private";
+      flake = false;
     };
   };
 

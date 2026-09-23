@@ -18,6 +18,12 @@
         nixfmt.enable = true;
         statix.enable = true;
         convco.enable = true;
+        # nvfetcher writes `_sources/generated.json` without a trailing newline.
+        end-of-file-fixer = {
+          enable = true;
+          excludes = [ "^_sources/generated\\.(json|nix)$" ];
+        };
+        trim-trailing-whitespace.enable = true;
         # shellcheck -x follows the source= directives (nebula-lib.sh).
         shellcheck = {
           enable = true;
