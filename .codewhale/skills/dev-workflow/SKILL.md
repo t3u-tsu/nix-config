@@ -13,7 +13,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```bash
    nix flake check
    ```
-   `nix flake check` は pre-commit hooks（nixfmt / statix / convco / shellcheck / ja-punctuation）も実行する．個別に nixfmt を実行する場合は**ファイル単位**で指定する:
+   `nix flake check` は pre-commit hooks（nixfmt / statix / convco / shellcheck / ja-punctuation / end-of-file-fixer / trim-trailing-whitespace）も実行する．個別に nixfmt を実行する場合は**ファイル単位**で指定する:
    ```bash
    nixfmt --check <file>
    nixfmt <file>
@@ -21,6 +21,8 @@ description: このリポジトリで設定変更を適用するときの手順�
    - statix W:20 を避けるため，同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．
    - shellcheck は `scripts/*.sh` が対象で `-x` 付き（`nebula-lib.sh` の source を追う）．
    - ja-punctuation は `.md` が対象．**日本語文書の句読点は `，．` を使う**（他の句読点はフックが自動置換する）．
+   - end-of-file-fixer は全テキストファイルの末尾改行を揃える．`_sources/generated.{json,nix}` は nvfetcher の生成物なので除外している．
+   - trim-trailing-whitespace は行末の空白を落とす．Markdown の行末スペース2つは改行の意味を持つため，改行したい場合は `<br>` を使う．
 
    設定がビルドできることを確認する場合:
    ```bash

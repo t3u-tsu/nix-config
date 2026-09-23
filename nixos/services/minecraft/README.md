@@ -52,4 +52,3 @@ Plugins are declared in `nvfetcher.toml` at the repository root and version-pinn
 - **Mobs**: Natural spawning and initial placement are completely disabled (Peaceful + Spawn Limits 0).
 - **Mode**: Forced Adventure mode.
 - **Structures**: Disabled.
-
