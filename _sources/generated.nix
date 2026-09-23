@@ -6,6 +6,34 @@
   dockerTools,
 }:
 {
+  aki-boost = {
+    pname = "aki-boost";
+    version = "ee14b7d53f334fa408cbcf0aaca31ce79546d65b";
+    src = fetchgit {
+      url = "https://github.com/shapoco/aki-boost.git";
+      rev = "ee14b7d53f334fa408cbcf0aaca31ce79546d65b";
+      fetchSubmodules = false;
+      deepClone = false;
+      leaveDotGit = false;
+      sparseCheckout = [ ];
+      sha256 = "sha256-Kfyiv0t9wj+CNM6i+TtEu/vfLZTZf5WTbzSI9wxSOCM=";
+    };
+    date = "2025-08-20";
+  };
+  danime-plus = {
+    pname = "danime-plus";
+    version = "43218883d98f2ecec61b803dc19abc83db060858";
+    src = fetchgit {
+      url = "https://github.com/hamachi25/dAnimePlus.git";
+      rev = "43218883d98f2ecec61b803dc19abc83db060858";
+      fetchSubmodules = false;
+      deepClone = false;
+      leaveDotGit = false;
+      sparseCheckout = [ ];
+      sha256 = "sha256-xNFI+SaT/QhyIbNRsFmThydjxfjestyScZXo/bd9lvw=";
+    };
+    date = "2025-07-12";
+  };
   gsit = {
     pname = "gsit";
     version = "3.7.0";

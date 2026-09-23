@@ -4,7 +4,7 @@ This directory manages the NixOS module for the Go-based [minecraft-discord-brid
 
 ## Overview
 
-- **`default.nix`**: 
+- **`default.nix`**:
   - Fetches and builds the source directly from GitHub.
   - Injects secrets via `sops-nix` using environment variables.
   - Configures the Unix domain socket and Systemd service.

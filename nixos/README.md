@@ -4,7 +4,7 @@ System-wide NixOS configuration, imported for all hosts via `nixos/default.nix`.
 
 ## Modules
 
-- [`base/`](base/): OS foundation — users (`user.nix`), Nix settings (`nix.nix`), time sync (`time.nix`).
+- [`base/`](base/): OS foundation — users (`user.nix`), Nix settings (`nix.nix`), the private flake input's credentials (`private-config.nix`), time sync (`time.nix`).
 - [`core/`](core/): OS core settings — i18n / locales (`i18n.nix`).
 - [`security/`](security/): Security and secrets — SOPS integration (`sops.nix`).
 - [`networking/`](networking/): Network settings — Nebula mesh VPN (`nebula.nix`), NAT loopback workaround (`local-network.nix`).
