@@ -75,8 +75,6 @@ in
           schoolSpace = "113f65ea-4930-4b92-b06a-d4ba2a80f5c4";
           devSpace = "15c09d3d-9c81-4945-988d-130f2bca1fd1";
 
-          # Route names and domains say which services and which school are used,
-          # so they live in the private repository alongside the pins.
           spaceRoutes = import (inputs.nix-config-private + "/zen/space-routes.nix");
         in
         {
@@ -199,7 +197,6 @@ in
               position = 3000;
               icon = "💻";
               container = 3;
-              routes = spaceRoutes.dev;
             };
           };
 
