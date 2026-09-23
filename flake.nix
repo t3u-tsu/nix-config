@@ -102,9 +102,8 @@
     };
 
     # === Private ===
-    # Personal data kept out of this public repository (Zen pins, dashboard
-    # URLs, …). Source tree only — no flake.nix of its own, so no lock to
-    # maintain. Fetched with the deploy key that nixos/base/nix.nix installs.
+    # Personal data kept out of this public repository.
+    # Fetched with the deploy key that nixos/base/private-config.nix installs.
     nix-config-private = {
       url = "git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private";
       flake = false;

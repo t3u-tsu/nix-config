@@ -27,9 +27,6 @@ jobs:
           name: niri
           skipPush: true
 
-      # The flake pulls in the private nix-config-private repository, so every
-      # evaluation needs this read-only deploy key. Fork pull requests receive no
-      # secrets and will fail here.
       - name: Deploy key for the private flake input
         run: |
           install -d -m 700 ~/.ssh

@@ -43,7 +43,7 @@ Plugins are declared in `nvfetcher.toml` at the repository root and version-pinn
 - **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
 - **Manual Update**:
   ```bash
-  nix shell nixpkgs#nvfetcher --command nvfetcher
+  nix run nixpkgs#nvfetcher
   ```
 
 ## Lobby Server Specifications

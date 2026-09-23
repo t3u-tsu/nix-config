@@ -3,6 +3,7 @@
   imports = [
     ./user.nix
     ./nix.nix
+    ./private-config.nix
     ./time.nix
   ];
 
