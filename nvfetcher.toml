@@ -25,3 +25,8 @@ fetch.git = "https://github.com/shapoco/aki-boost.git"
 src.git = "https://github.com/hamachi25/dAnimePlus.git"
 src.branch = "main"
 fetch.git = "https://github.com/hamachi25/dAnimePlus.git"
+
+# Others
+[codewhale]
+src.github = "Hmbown/CodeWhale"
+fetch.url = "https://github.com/Hmbown/Codewhale/releases/download/$ver/codewhale-linux-x64"
