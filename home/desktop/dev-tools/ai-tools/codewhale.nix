@@ -9,21 +9,12 @@
 with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
+  sources = pkgs.callPackage ../../../../_sources/generated.nix { };
 
-  version = "0.10.0";
-
-  # Upstream's own flake compiles the Rust workspace, so every lock bump ran a
-  # full cargo build. The release asset is a static-pie musl binary: no loader
-  # or shared-library fixups, and rustc never runs.
   codewhale = pkgs.stdenv.mkDerivation {
     pname = "codewhale";
-    inherit version;
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/Hmbown/Codewhale/releases/download/v${version}/codewhale-linux-x64";
-      # Published as codewhale-artifacts-sha256.txt in the same release.
-      hash = "sha256-xEPCwyx0PdgP9WOXsee7/lWxymMG/1UGW5d7xlXVDtE=";
-    };
+    version = removePrefix "v" sources.codewhale.version;
+    inherit (sources.codewhale) src;
 
     dontUnpack = true;
     dontStrip = true;
