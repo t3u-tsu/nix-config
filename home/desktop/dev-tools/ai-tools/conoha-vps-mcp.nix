@@ -8,20 +8,29 @@
 with lib;
 let
   username = config.home.username;
+
+  conohaMcpWrapper = pkgs.writeScriptBin "conoha-vps-mcp-schema-fix" (
+    builtins.readFile ./conoha-schema-fix.js
+  );
 in
 {
   config = mkIf config.my.home.desktop.dev-tools.ai-tools.enable {
+    home.packages = [
+      pkgs.nodejs # Required to run conoha-vps-mcp
+      conohaMcpWrapper
+    ];
+
     sops.secrets = {
       conoha_vps_mcp_tenant_id = {
-        sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        sopsFile = ../../../../secrets/services/conoha-vps-mcp.yaml;
         key = "OPENSTACK_TENANT_ID";
       };
       conoha_vps_mcp_user_id = {
-        sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        sopsFile = ../../../../secrets/services/conoha-vps-mcp.yaml;
         key = "OPENSTACK_USER_ID";
       };
       conoha_vps_mcp_password = {
-        sopsFile = ../../../secrets/services/conoha-vps-mcp.yaml;
+        sopsFile = ../../../../secrets/services/conoha-vps-mcp.yaml;
         key = "OPENSTACK_PASSWORD";
       };
     };
