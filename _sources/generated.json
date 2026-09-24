@@ -19,6 +19,21 @@
         },
         "version": "ee14b7d53f334fa408cbcf0aaca31ce79546d65b"
     },
+    "codewhale": {
+        "cargoLock": null,
+        "date": null,
+        "extract": null,
+        "name": "codewhale",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-xEPCwyx0PdgP9WOXsee7/lWxymMG/1UGW5d7xlXVDtE=",
+            "type": "url",
+            "url": "https://github.com/Hmbown/Codewhale/releases/download/v0.10.0/codewhale-linux-x64"
+        },
+        "version": "v0.10.0"
+    },
     "danime-plus": {
         "cargoLock": null,
         "date": "2025-07-12",
