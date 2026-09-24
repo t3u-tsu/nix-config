@@ -25,9 +25,7 @@ in
       pkgs.nodejs # Required to run conoha-vps-mcp
       conohaMcpWrapper
 
-      (inputs.codewhale.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
-        doCheck = false;
-      }))
+      (pkgs.callPackage ./codewhale-bin.nix { })
     ];
 
     # hush (github:ro80t/hush, MIT): external skill for codewhale's comment ruleset.
