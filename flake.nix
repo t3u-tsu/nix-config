@@ -75,10 +75,6 @@
     };
 
     # === Developer Tools ===
-    codewhale = {
-      url = "github:Hmbown/CodeWhale";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     # hush: external Agent Skill providing codewhale's comment ruleset. Source tree only.
     hush = {
       url = "github:ro80t/hush";

@@ -17,8 +17,7 @@ in
     ./neovim.nix
     ./git-tools.nix
     ./nix.nix
-    ./ai-tools.nix
-    ./conoha-vps-mcp.nix
+    ./ai-tools
     ./hardware.nix
     ./ghostty.nix
     ./unity.nix

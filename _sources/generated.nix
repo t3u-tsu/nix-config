@@ -20,6 +20,14 @@
     };
     date = "2025-08-20";
   };
+  codewhale = {
+    pname = "codewhale";
+    version = "v0.10.0";
+    src = fetchurl {
+      url = "https://github.com/Hmbown/Codewhale/releases/download/v0.10.0/codewhale-linux-x64";
+      sha256 = "sha256-xEPCwyx0PdgP9WOXsee7/lWxymMG/1UGW5d7xlXVDtE=";
+    };
+  };
   danime-plus = {
     pname = "danime-plus";
     version = "43218883d98f2ecec61b803dc19abc83db060858";
