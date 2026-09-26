@@ -7,7 +7,7 @@ The lightweight core is `my.home.desktop.enable`; heavy extras are opted in with
 
 ## Modules
 
-- **`browsers/`**: Browsers with declarative settings (`chromium.nix`, `zen.nix`, and `userscripts.nix`, which wraps upstream userscripts as extensions); system-level browser policy lives in `nixos/services/desktop/chromium.nix`.
+- **`browsers/`**: Browsers with declarative settings (`chromium.nix`, `zen.nix`, `userscripts.nix`, which wraps upstream userscripts as extensions, and `bitwarden.nix`, which places the native messaging host the extension needs to reach the desktop app); system-level browser policy lives in `nixos/services/desktop/chromium.nix`.
 
   The userscript extensions are unsigned, so `zen.nix` sets `xpinstall.signatures.required = false`. Zen is a self-compiled fork and honours the pref; without it Firefox discards unsigned xpis **without any error or log entry**, which makes the failure hard to diagnose. Zen has to be restarted after a rebuild for the new extension directory to be rescanned.
 
