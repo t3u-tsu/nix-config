@@ -30,7 +30,11 @@ nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.5 --sudo --ask-
    ```bash
    ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub   # register in .sops.yaml first
    ```
-3. Install:
+3. Bootstrap the private flake input — the installer has no
+   `github-nix-config-private` ssh alias yet, so the flake cannot be evaluated
+   without it (see
+   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)).
+4. Install:
    ```bash
    sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#HOSTNAME
    ```

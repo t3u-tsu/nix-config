@@ -70,6 +70,11 @@ sudo mkdir -p /mnt/var/lib/sops-nix
 ```
 
 ### Phase 3: System Installation
+
+> The installer has no `github-nix-config-private` ssh alias yet, so run
+> [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)
+> first — the flake cannot be evaluated without it.
+
 ```bash
 sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#BrokenPC
 ```
