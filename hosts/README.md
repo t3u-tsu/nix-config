@@ -144,6 +144,10 @@ Verify: `sops --decrypt secrets/hosts/<hostname>.yaml | grep <hostkey>_nebula`
 
 ### 6. Validate
 
+A host that has never applied a generation containing
+`nixos/base/private-config.nix` cannot evaluate the flake yet — run
+[Bootstrap the private flake input](#bootstrap-the-private-flake-input) first.
+
 ```bash
 nix flake check
 sudo nixos-rebuild dry-activate --flake .#<hostname>
@@ -169,6 +173,62 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 Commit, push, PR via `gh` (body via `--body-file`), CI check, merge, and
 main sync follow the standard workflow — see `AGENTS.md` /
 `.codewhale/skills/dev-workflow/`.
+
+## Bootstrap the private flake input
+
+The flake reads `nix-config-private` over the `github-nix-config-private` ssh
+alias, but that alias comes from `nixos/base/private-config.nix` — a module
+inside the flake being evaluated. A host that has not applied a generation
+containing it cannot evaluate the flake at all:
+
+```text
+ssh: Could not resolve hostname github-nix-config-private: No address associated with hostname
+error: Failed to fetch git repository 'ssh://git@github-nix-config-private/t3u-tsu/nix-config-private'
+```
+
+Fresh installs and machines that predate the private input (commit `d52012d`)
+hit this. Evaluation runs as root, so give **root** the alias once — CI does the
+same with `NIX_CONFIG_PRIVATE_DEPLOY_KEY` (`.github/workflows/nix-check.yml`):
+
+```bash
+sudo install -d -m 700 /root/.ssh
+sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
+```
+
+Pick one source for `IdentityFile`: the user's GitHub account key
+(`/home/t3u/.ssh/id_ed25519`, deployed from `<hostkey>_ssh_private_key`), or the
+read-only deploy key decrypted with the master age key (on the installer use
+`nix shell nixpkgs#sops -c` and the master key at
+`/mnt/var/lib/sops-nix/key.txt`).
+
+```bash
+# Deploy key:
+sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
+  --extract "[\"nix_config_private_deploy_key\"]" \
+  /home/t3u/nix-config/secrets/common.yaml' \
+  | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
+sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
+```
+
+```bash
+sudo tee /root/.ssh/config >/dev/null <<'EOF'
+Host github-nix-config-private
+  HostName github.com
+  User git
+  IdentityFile /root/.ssh/nix-config-private_deploy_key
+  IdentitiesOnly yes
+EOF
+
+sudo ssh -T git@github-nix-config-private   # expect "Hi t3u-tsu!"
+sudo nixos-rebuild switch --flake .#<hostname>
+```
+
+The resulting generation installs the alias in `/etc/ssh/ssh_config` and the
+deploy key in `/run/secrets`, so the root override is disposable afterwards:
+
+```bash
+sudo rm /root/.ssh/config
+```
 
 ## Notes
 
