@@ -13,6 +13,7 @@ in
     ./chromium.nix
     ./userscripts.nix
     ./zen.nix
+    ./bitwarden.nix
   ];
 
   options.my.home.desktop.browsers = {
@@ -29,5 +30,6 @@ in
 
   config = mkIf (cfg.enable && cfg.zen.enable) {
     my.home.desktop.browsers.userscripts.enable = mkDefault true;
+    my.home.desktop.browsers.bitwarden.enable = mkDefault true;
   };
 }
