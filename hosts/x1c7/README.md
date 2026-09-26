@@ -89,8 +89,30 @@ single processes reaching ~10 GB of anonymous memory.
   `vm.watermark_scale_factor = 125` and `vm.page-cluster = 0`, taken from the
   Arch Wiki's zram tuning. The NixOS defaults, `watermark_scale_factor = 10` in
   particular, begin reclaiming far too late.
-- Hibernation is staged but not yet verified; see
-  [`services/power.nix`](services/power.nix) and [`hardware.nix`](hardware.nix).
+- Hibernation is verified and takes roughly 40 seconds; see the section below
+  and [`services/power.nix`](services/power.nix).
+
+## Hibernation
+
+Hibernation works, writing an image of RAM to the swapfile and resuming from it
+on the next boot.
+
+- **Do not set `boot.resumeDevice`.** It puts `resume=<root partition>` on the
+  kernel command line, and the swap here is a file *inside* that partition
+  rather than the partition itself, so logind refuses with "Specified resume
+  device is missing or is not an active swap device". With a systemd initrd on
+  UEFI, systemd-sleep picks a swap space, records it in the `HibernateLocation`
+  EFI variable, and `systemd-hibernate-resume` reads it back on the next boot.
+  The kernel then reports the swapfile offset in `/sys/power/resume_offset`
+  without any manual `resume_offset`.
+- **zram cannot hold the image** because it is volatile. The disk swapfile in
+  [`hardware.nix`](hardware.nix) exists partly for this, and systemd ignores
+  zram devices when choosing a hibernation target. The swapfile's
+  kernel-assigned priority is negative, keeping zram first in ordinary use.
+- **`lockdown=integrity` would forbid hibernation**, so the kernel parameter is
+  deliberately absent.
+- `services.upower.criticalPowerAction = "Hibernate"` writes the image rather
+  than powering off when the battery runs critically low.
 
 ## Fingerprint
 
