@@ -68,6 +68,11 @@ on battery, with trip temperatures of 90 C and 85 C. `Disable_BDPROCHOT` stays
 Idle with these limits measures around 66-70 C package temperature and a
 4700 RPM fan.
 
+Note that `throttled.service` does not pick up config changes on its own. Its
+`Autoreload` option compares config file mtimes, and NixOS pins store paths to
+the epoch, so the comparison never observes an edit. Run
+`sudo systemctl restart throttled` after changing any value.
+
 ## Memory and swap
 
 NixOS default reclaim timings, combined with up to 8 parallel Nix builds, drove

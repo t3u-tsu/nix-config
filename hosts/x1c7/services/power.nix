@@ -25,6 +25,10 @@
     # nixos-hardware enables throttled but leaves upstream's project defaults,
     # which its README calls "not recommendations for every system". The limits
     # below are resized to this chassis; per-value notes are inline.
+    #
+    # throttled compares config mtimes to honour Autoreload, but NixOS pins
+    # store paths to the epoch, so the comparison never sees a change: restart
+    # throttled.service after editing these values.
     throttled.extraConfig = ''
       [GENERAL]
       Enabled: True
