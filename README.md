@@ -8,79 +8,76 @@
 
 [日本語](README.ja.md)
 
-Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
+A central repository managing desktop environments and various servers using Nix Flakes.
 
-## Stack
+## Tech Stack
 
-|              |                    |
-| ------------ | ------------------ |
-| **OS**       | NixOS 26.05        |
-| **WM**       | niri               |
-| **Bar**      | Noctalia           |
-| **Shell**    | zsh + pure + Atuin |
-| **Terminal** | Ghostty            |
-| **Editor**   | Neovim             |
-| **Browser**  | Zen Browser        |
-| **Theme**    | Vesper             |
-| **Secrets**  | SOPS               |
-| **VPN**      | Nebula             |
-| **Backup**   | restic             |
-| **IaC**      | OpenTofu           |
+|                  |                    |
+| ---------------- | ------------------ |
+| **OS**           | NixOS 26.05        |
+| **WM**           | niri               |
+| **Bar**          | Noctalia           |
+| **Shell**        | zsh + pure + Atuin |
+| **Terminal**     | Ghostty            |
+| **Editor**       | Neovim             |
+| **Browser**      | Zen Browser        |
+| **Theme**        | Vesper             |
+| **Secrets**      | SOPS               |
+| **VPN**          | Nebula             |
+| **Backup**       | restic             |
+| **IaC**          | OpenTofu           |
 
 ## Directory Structure
 
-- [`flake.nix`](flake.nix) — flake-parts entrypoint
-- [`flake/`](flake/) — flake-parts modules (hosts, lib, overlays, packages, dev)
-- [`lib/`](lib/) — mkSystem helper and the shared color palette
-- [`nixos/`](nixos/) — system-wide modules
-- [`home/`](home/) — home-manager modules
-- [`hosts/`](hosts/) — per-machine configurations
-- [`secrets/`](secrets/) — SOPS-encrypted secrets
-- [`scripts/`](scripts/) — operational scripts
-- [`terraform/`](terraform/) — ConoHa VPS infrastructure
+- [`flake.nix`](flake.nix) — Flake-parts entrypoint
+- [`flake/`](flake/) — Flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
+- [`lib/`](lib/) — `mkSystem` helper functions and shared color palette
+- [`nixos/`](nixos/) — Shared NixOS modules across all hosts
+- [`home/`](home/) — Home Manager modules
+- [`hosts/`](hosts/) — Machine-specific configurations
+- [`secrets/`](secrets/) — Encrypted secrets managed via SOPS
+- [`scripts/`](scripts/) — Maintenance and operational utility scripts
+- [`terraform/`](terraform/) — ConoHa VPS infrastructure definitions
 
-[`docs/architecture.md`](docs/architecture.md) explains how these layers are loaded.
+For details on layer evaluation order and dependencies, see [`docs/architecture.md`](docs/architecture.md).
 
-Personal data that must not be public lives in the private [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) repository, which this flake reads.
-Every host that evaluates this flake needs read access to it: `nixos/base/private-config.nix` installs the read-only deploy key
-from `secrets/common.yaml` together with the `github-nix-config-private` ssh alias that uses it. A host that has not applied that
-module yet (a fresh install, or a machine that predates the private input) needs a one-off root ssh override before it can
-evaluate the flake — see [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input).
+Sensitive personal data is isolated in a private repository, [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private), and imported as a flake input.
+Since every host evaluating this flake requires read access to this private repository, `nixos/base/private-config.nix` automatically configures a read-only deploy key (stored in `secrets/common.yaml`) and an SSH alias `github-nix-config-private`. However, on a machine where this module is not yet applied (e.g., fresh OS installations or hosts prior to adding the private input), flake evaluation will fail due to missing authentication. In such cases, root's SSH configuration must be set up manually for the initial bootstrap. Refer to [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input) for step-by-step instructions.
 
 ## Quick Start
 
-Available configurations (defined in `flake/hosts.nix`):
+Available host configurations (defined in `flake/hosts.nix`):
 
-- **`x1c7`** — laptop (ThinkPad X1 Carbon Gen 7)
-- **`BrokenPC`** — gaming laptop (HP Victus 16-e1065AX)
-- **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — tower servers
-- **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on the Orange Pi Zero 3 SBC (SD / HDD root)
-- **`torii-chan-vps`** — same gateway role on the failover VPS (x86_64)
-- **`torii-chan-sd-installer`** — SD installer image (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md))
-- **`torii-chan-vps-iso`** — VPS installer ISO, exposed as a **package** (not a nixosConfiguration): `nix build .#torii-chan-vps-iso`
+- **`x1c7`** — Laptop (ThinkPad X1 Carbon Gen 7)
+- **`BrokenPC`** — Gaming Laptop (HP Victus 16-e1065AX)
+- **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — Home server cluster (tower PCs)
+- **`torii-chan-sd`** / **`torii-chan-hdd`** — VPN gateway on an Orange Pi Zero 3 SBC (booting from SD / HDD root)
+- **`torii-chan-vps`** — Failover gateway on a VPS (x86_64)
+- **`torii-chan-sd-installer`** — SD card installer image (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md))
+- **`torii-chan-vps-iso`** — VPS installer ISO (exposed as a **package**, not a nixosConfiguration: `nix build .#torii-chan-vps-iso`)
 
-To apply configurations to the local machine:
+Apply configuration to the local machine:
 
 ```bash
 sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
-For remote machines (e.g. torii-chan on Orange Pi Zero 3):
+Deploy to a remote machine (e.g., Orange Pi Zero 3 `torii-chan`):
 
 ```bash
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-The `sandbox false` / `filter-syscalls false` flags are required: the Orange Pi kernel lacks `user_namespaces` / `seccomp BPF` (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md)).
+> **Note:** The `--option sandbox false` and `--option filter-syscalls false` flags are required because the Orange Pi kernel does not support `user_namespaces` and `seccomp BPF` (see [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) for details).
 
 ## Adding a New Host
 
-Copy [`hosts/_template/`](hosts/_template) and follow [`hosts/README.md`](hosts/README.md) for registration, SOPS keys, Nebula certificates, and deployment.
+Duplicate [`hosts/_template/`](hosts/_template) and follow the instructions in [`hosts/README.md`](hosts/README.md). It guides you through registering the host, setting up SOPS keys, issuing Nebula certificates, and deployment.
 
-## CI/CD and Automation
+## CI/CD & Automation
 
-- **Nix Flake Check** (`nix-check.yml`): on pushes and on pull requests to `main` — one job runs `nix flake check`, which evaluates every host and runs the formatting and linting hooks; another checks the commit messages with `convco`.
-- **Scheduled Auto Update** (`auto-update.yml`): daily at 04:00 JST — updates the sources via `nvfetcher` and `flake.lock`, validates them with `nix flake check`, and commits directly to `main`.
+- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): Triggers on pushes and pull requests targeting the `main` branch. One job runs `nix flake check` (evaluates all hosts, formatting, and linting hooks), while another verifies commit message conventions using `convco`.
+- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): Runs daily at 04:00 JST. Synchronizes package sources via nvfetcher, updates `flake.lock`, validates changes with `nix flake check`, and automatically commits passing updates to `main`.
 
 ## References
 

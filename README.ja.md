@@ -8,9 +8,9 @@
 
 [English](README.md)
 
-Flakes を用いてデスクトップやサーバー群の設定を一元管理しています．
+Nix Flakes を用いて，デスクトップ環境や各種サーバーの設定を一元管理しています．
 
-## スタック
+## 構成技術スタック
 
 |                  |                    |
 | ---------------- | ------------------ |
@@ -27,37 +27,34 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 | **バックアップ** | restic             |
 | **IaC**          | OpenTofu           |
 
-## ディレクトリ構造
+## ディレクトリ構成
 
-- [`flake.nix`](flake.nix) — flake-parts エントリポイント
-- [`flake/`](flake/) — flake-parts モジュール (hosts, lib, overlays, packages, dev)
-- [`lib/`](lib/) — mkSystem ヘルパーと共通カラーパレット
+- [`flake.nix`](flake.nix) — flake-parts のエントリポイント
+- [`flake/`](flake/) — flake-parts モジュール（hosts，lib，overlays，packages，dev）
+- [`lib/`](lib/) — `mkSystem` ヘルパー関数および共通カラーパレット
 - [`nixos/`](nixos/) — 全ホスト共通のシステムモジュール
-- [`home/`](home/) — home-manager モジュール
+- [`home/`](home/) — Home Manager モジュール
 - [`hosts/`](hosts/) — マシン固有の設定
-- [`secrets/`](secrets/) — SOPS 暗号化シークレット
-- [`scripts/`](scripts/) — 運用スクリプト
-- [`terraform/`](terraform/) — ConoHa VPS インフラ
+- [`secrets/`](secrets/) — SOPS で暗号化したシークレット
+- [`scripts/`](scripts/) — 運用保守用スクリプト
+- [`terraform/`](terraform/) — ConoHa VPS のインフラ定義
 
-各層の読み込み方は [`docs/architecture.md`](docs/architecture.md) に書いています．
+各レイヤーの読み込み順や依存関係の詳細は [`docs/architecture.md`](docs/architecture.md) を参照してください．
 
-公開したくない個人データは private リポジトリ [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) に置き読み込んでいます．
-この flake を評価するホストはすべて読み取り権限が必要で，`nixos/base/private-config.nix` が `secrets/common.yaml` の
-read-only deploy key と，それを指す `github-nix-config-private` という ssh エイリアスを用意します．ただしこの module を
-適用していないホスト（新規インストールや private input 導入前のマシン）は評価自体が失敗するため，一度だけ root の ssh
-設定で入力取得を通す必要があります．手順は [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input) を参照．
+非公開にしたい個人データは，プライベートリポジトリ [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) に分離して読み込んでいます．
+この Flake を評価するすべてのホストで読み取り権限が必要となるため，`nixos/base/private-config.nix` が `secrets/common.yaml` 内の読み取り専用デプロイキーと，それを参照する SSH エイリアス `github-nix-config-private` を自動設定します．ただし，本モジュールが未適用のホスト（OS 新規インストール時や private input 導入前のマシンなど）では Flake の評価自体に失敗するため，初回のみ root の SSH 設定を手動で行い入力ソースを取得できるようにする必要があります．具体的な手順は [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input) を参照してください．
 
 ## クイックスタート
 
-利用可能な設定（`flake/hosts.nix` で定義）:
+利用可能なホスト設定（`flake/hosts.nix` で定義）：
 
-- **`x1c7`** — ラップトップ（ThinkPad X1 Carbon Gen 7）
-- **`BrokenPC`** — ゲーミングラップトップ（HP Victus 16-e1065AX）
-- **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — タワーサーバー
-- **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート）
-- **`torii-chan-vps`** — フェイルオーバー VPS 上の同一ゲートウェイ役割（x86_64）
-- **`torii-chan-sd-installer`** — SD インストーライメージ（[`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）
-- **`torii-chan-vps-iso`** — VPS インストーラ ISO．nixosConfiguration ではなく **package** として公開（`nix build .#torii-chan-vps-iso`）
+- **`x1c7`** — ノート PC（ThinkPad X1 Carbon Gen 7）
+- **`BrokenPC`** — ゲーミングノート PC（HP Victus 16-e1065AX）
+- **`shosoin-tan`**，**`kagutsuchi-sama`**，**`sando-kun`** — 自宅タワーサーバー群
+- **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上の VPN ゲートウェイ（SD / HDD ルート起動）
+- **`torii-chan-vps`** — フェイルオーバー用 VPS 上の同一ゲートウェイ（x86_64）
+- **`torii-chan-sd-installer`** — SD カード用インストーライメージ（[`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）
+- **`torii-chan-vps-iso`** — VPS 用インストーラ ISO（nixosConfiguration ではなく **package** として公開: `nix build .#torii-chan-vps-iso`）
 
 ローカルマシンの設定を適用する場合：
 
@@ -71,16 +68,16 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
 ```
 
-`sandbox false` / `filter-syscalls false` フラグは，Orange Pi のカーネルが `user_namespaces` / `seccomp BPF` に対応していないため必要です（[`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）．
+※ Orange Pi のカーネルが `user_namespaces` および `seccomp BPF` に対応していないため，`--option sandbox false` と `--option filter-syscalls false` フラグの指定が必要です（詳細は [`hosts/torii-chan/README.md`](hosts/torii-chan/README.md) 参照）．
 
 ## 新規ホストの追加
 
-[`hosts/_template/`](hosts/_template) をコピーし，[`hosts/README.md`](hosts/README.md)（英語）に従ってください．登録，SOPS の鍵，Nebula 証明書，デプロイの手順を扱っています．
+[`hosts/_template/`](hosts/_template) を複製し，[`hosts/README.md`](hosts/README.md)（英語）の手順に従ってください．ホストの登録，SOPS 鍵の設定，Nebula 証明書の発行，デプロイまでの流れをまとめています．
 
 ## CI/CD と自動化
 
-- **Nix Flake Check** (`nix-check.yml`): プッシュと `main` へのプルリクエストで実行．一方のジョブが `nix flake check`（全ホストの評価と整形・lint フック），もう一方が `convco` によるコミットメッセージの検査を行う．
-- **Scheduled Auto Update** (`auto-update.yml`): 毎日 04:00 JST に nvfetcher によるソースと `flake.lock` を更新し，`nix flake check` で検証して `main` へ直接コミット．
+- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): `main` ブランチへのプッシュおよびプルリクエスト時に実行されます．1 つのジョブで `nix flake check`（全ホストの評価，コード整形，lint フック）を検証し，もう 1 つのジョブで `convco` によるコミットメッセージの規約検査を行います．
+- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml`)): 毎日 04:00 JST に実行されます．nvfetcher によるパッケージソースの同期と `flake.lock` の更新を行い，`nix flake check` で検証が通った変更を `main` ブランチへ自動コミットします．
 
 ## 参考文献
 
