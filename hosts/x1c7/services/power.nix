@@ -1,4 +1,4 @@
-{ config, ... }:
+_:
 
 {
   services = {
@@ -82,8 +82,9 @@
     upower.criticalPowerAction = "PowerOff";
   };
 
-  # Hibernation target for the swapfile in hardware.nix. UEFI systems normally
-  # resume via the HibernateLocation EFI variable, so no resume_offset is set
-  # yet; append one to boot.kernelParams if a live test fails to resume.
-  boot.resumeDevice = config.fileSystems."/".device;
+  # Hibernation needs no boot.resumeDevice here. On UEFI, systemd-sleep picks a
+  # swap space and records it in the HibernateLocation EFI variable, which
+  # systemd-hibernate-resume reads on the next boot. Naming the root partition
+  # instead adds `resume=` for a device that holds no swap itself (the swap is a
+  # file inside it), and logind then refuses to hibernate.
 }
