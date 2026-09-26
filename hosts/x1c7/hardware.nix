@@ -16,9 +16,8 @@
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
 
-    # Arch Wiki's zram tuning. NixOS defaults (swappiness 60, page-cluster 3,
-    # watermark_scale_factor 10) leave the kernel reclaiming too late, which is
-    # what let rustc/nix/zig builds drive this 16 GiB machine into OOM.
+    # Arch Wiki's zram tuning; the NixOS reclaim defaults are late enough that
+    # rustc/nix builds drove this 16 GiB machine into OOM.
     kernel.sysctl = {
       "vm.swappiness" = 180;
       "vm.watermark_boost_factor" = 0;
@@ -41,8 +40,8 @@
     ];
   };
 
-  # size is in MiB. Matches RAM so a hibernation image fits, and the disk is
-  # the only swap a hibernation image can be written to at all.
+  # size is in MiB; matches RAM so a hibernation image fits (zram cannot hold
+  # one, being volatile).
   swapDevices = [
     {
       device = "/var/lib/swapfile";
@@ -50,13 +49,12 @@
     }
   ];
 
-  # Compressed pages stay in RAM; memoryPercent caps the uncompressed data, not
-  # the memory actually consumed.
+  # memoryPercent caps uncompressed data, not the memory actually used.
   zramSwap = {
     enable = true;
     memoryPercent = 100;
-    # Outranks the swapfile's kernel-assigned (negative) priority so zram fills
-    # first, while systemd skips zram devices when picking a hibernation target.
+    # Above the swapfile's negative kernel priority, so zram fills first while
+    # systemd skips it when picking a hibernation target.
     priority = 100;
   };
 }
