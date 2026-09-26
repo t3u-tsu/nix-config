@@ -76,10 +76,11 @@ _:
       ANALOGIO: 0
     '';
 
-    # HybridSleep writes a hibernation image to swap, and this host had
-    # swapDevices = [] (see hardware.nix), so the action could not run at all.
-    # Promote to "Hibernate" once a hibernation test has passed.
-    upower.criticalPowerAction = "PowerOff";
+    # Writes the image to the swapfile in hardware.nix instead of powering off,
+    # so a critical battery does not lose the session. HybridSleep writes the
+    # same image but then suspends, which this host could never do without swap;
+    # see the README for the hibernation setup that made both possible.
+    upower.criticalPowerAction = "Hibernate";
   };
 
   # Hibernation needs no boot.resumeDevice here. On UEFI, systemd-sleep picks a
