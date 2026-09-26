@@ -248,8 +248,10 @@ Generate the hardware config on the machine; note it writes
 nixos-generate-config --root /mnt --dir /tmp/nixos
 cat /tmp/nixos/hardware-configuration.nix
 ```
-Copy its `fileSystems` / `swapDevices` / kernel-module lines into
-`hosts/x1c7/hardware.nix`, then install:
+Copy its `fileSystems` and kernel-module lines into `hosts/x1c7/hardware.nix`,
+but keep the `swapDevices` entry: it names a swapfile rather than a partition,
+so `nixos-generate-config` reports an empty list that must not replace it. Then
+install:
 ```bash
 sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#x1c7
 ```
