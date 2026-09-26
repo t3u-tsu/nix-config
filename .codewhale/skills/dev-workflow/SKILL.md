@@ -13,7 +13,8 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```bash
    nix flake check
    ```
-   `nix flake check` は pre-commit hooks（nixfmt / statix / convco / shellcheck / ja-punctuation / end-of-file-fixer / trim-trailing-whitespace）も実行する．個別に nixfmt を実行する場合は**ファイル単位**で指定する:
+   `nix flake check` は pre-commit hooks（nixfmt / statix / convco / shellcheck / ja-punctuation / end-of-file-fixer / trim-trailing-whitespace）も実行する．また flake は git 追跡下のものを見るので実行の際は `git add` をする必要がある．
+   個別に nixfmt を実行する場合は**ファイル単位**で指定する:
    ```bash
    nixfmt --check <file>
    nixfmt <file>
@@ -47,7 +48,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
    `main` 直 push は `git push origin main`．
 
-6. **PR（`gh`）**: ユーザー承認のうえ実行する．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
+6. **PR（`gh`）**: ユーザー承認のうえ実行する． git の履歴を残すため，基本的にマージは PR を作成しリモートブランチ上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
    ```bash
    cat > /tmp/pr-body.md <<'EOF'
    feat: topic description
