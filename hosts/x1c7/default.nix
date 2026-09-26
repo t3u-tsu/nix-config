@@ -15,13 +15,17 @@
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];
 
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = true;
-    device = "nodev";
-    useOSProber = true;
+  boot = {
+    kernelPackages = pkgs.linuxPackages_xanmod;
+
+    loader.grub = {
+      enable = true;
+      efiSupport = true;
+      device = "nodev";
+      useOSProber = true;
+    };
+    loader.efi.canTouchEfiVariables = true;
   };
-  boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "x1c7";
 
