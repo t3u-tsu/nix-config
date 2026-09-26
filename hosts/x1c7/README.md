@@ -68,10 +68,9 @@ on battery, with trip temperatures of 90 C and 85 C. `Disable_BDPROCHOT` stays
 Idle with these limits measures around 66-70 C package temperature and a
 4700 RPM fan.
 
-Note that `throttled.service` does not pick up config changes on its own. Its
-`Autoreload` option compares config file mtimes, and NixOS pins store paths to
-the epoch, so the comparison never observes an edit. Run
-`sudo systemctl restart throttled` after changing any value.
+After changing any `throttled` value, run `sudo systemctl restart throttled`: its
+`Autoreload` compares mtimes that the Nix store never changes (the mechanism is
+in [`services/power.nix`](services/power.nix)).
 
 ## Memory and swap
 
@@ -79,10 +78,8 @@ NixOS default reclaim timings, combined with up to 8 parallel Nix builds, drove
 this 16 GB machine into OOM kills of `rustc`, `nix`, `cudafe++` and `zig`, with
 single processes reaching ~10 GB of anonymous memory.
 
-- **zram**: `memoryPercent = 100`, which caps uncompressed data rather than the
-  memory actually consumed, and `priority = 100`. The high priority keeps zram
-  as the first swap in normal use, while systemd skips zram devices when
-  choosing a hibernation target.
+- **zram**: `memoryPercent = 100` and `priority = 100`. [`hardware.nix`](hardware.nix)
+  records why those values, and the Hibernation section covers the interaction.
 - **Swapfile**: 16 GiB at `/var/lib/swapfile`, matching RAM so that a
   hibernation image fits.
 - **sysctls**: `vm.swappiness = 180`, `vm.watermark_boost_factor = 0`,
@@ -164,16 +161,10 @@ an authentication the user did not intend. The CVE covers fprintd through
 
 ### After resume
 
-If the reader stops working after suspend, the Arch Wiki documents three
-countermeasures:
-
-- fprintd can start before the USB device is re-initialised; a udev rule setting
-  `power/persist = 1` for `06cb:00bd` addresses that.
-- fprintd survives a successful login for 30 seconds, and sleeping within that
-  window can break it; a unit running `killall fprintd` before `sleep.target`
-  covers that case.
-- libfprint upstream recommends s2idle over S3 for suspend, while the BIOS here
-  is set to S3.
+If the reader stops working after suspend, the Arch Wiki's Fprint page lists the
+usual causes: fprintd starting before the USB device is re-initialised (fixed by
+keeping `power/persist` on `06cb:00bd`), fprintd surviving a login into a sleep
+window, and s2idle being preferred over S3, which is what this BIOS uses.
 
 ## Configuration
 

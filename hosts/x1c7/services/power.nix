@@ -2,33 +2,26 @@ _:
 
 {
   services = {
-    # TLP owns CPU, PCIe and USB power management; nixos-hardware pulls it in
-    # via common/pc/laptop, which excludes power-profiles-daemon and tuned.
+    # nixos-hardware pulls TLP in via common/pc/laptop, which excludes
+    # power-profiles-daemon and tuned.
     tlp = {
       enable = true;
 
-      # Noctalia's power_profile widget reads net.hadess.PowerProfiles, an
-      # interface only power-profiles-daemon otherwise provides. tlp-pd serves
-      # the same interface backed by TLP, and nixpkgs asserts the two cannot
-      # coexist, so this is the only way to keep TLP and that widget working.
+      # Noctalia's widget needs net.hadess.PowerProfiles, which tlp-pd provides
+      # over TLP; nixpkgs forbids it alongside power-profiles-daemon.
       pd.enable = true;
 
-      # 75/80 trades roughly 20% of runtime for slower capacity loss on a
-      # battery that lives on AC. `sudo tlp fullcharge` lifts it to 100% until
-      # the charger is next unplugged.
+      # Trades ~20% runtime for slower wear on a battery that lives on AC;
+      # `sudo tlp fullcharge` lifts it to 100% until the next unplug.
       settings = {
         START_CHARGE_THRESH_BAT0 = 75;
         STOP_CHARGE_THRESH_BAT0 = 80;
       };
     };
 
-    # nixos-hardware enables throttled but leaves upstream's project defaults,
-    # which its README calls "not recommendations for every system". The limits
-    # below are resized to this chassis; per-value notes are inline.
-    #
-    # throttled compares config mtimes to honour Autoreload, but NixOS pins
-    # store paths to the epoch, so the comparison never sees a change: restart
-    # throttled.service after editing these values.
+    # Restart throttled.service after editing these: Autoreload compares config
+    # mtimes, and NixOS pins store paths to the epoch, so it never fires.
+    # Upstream's 44 W / 95 C defaults are replaced by this chassis' limits.
     throttled.extraConfig = ''
       [GENERAL]
       Enabled: True
@@ -48,8 +41,7 @@ _:
 
       [AC]
       Update_Rate_s: 5
-      # i7-8565U configurable TDP-up; upstream's 44 W is past what one fan
-      # cools, so the CPU held the 95 C trip and lost frequency anyway.
+      # i7-8565U configurable TDP-up
       PL1_Tdp_W: 25
       PL1_Duration_s: 28
       PL2_Tdp_W: 35
@@ -76,16 +68,12 @@ _:
       ANALOGIO: 0
     '';
 
-    # Writes the image to the swapfile in hardware.nix instead of powering off,
-    # so a critical battery does not lose the session. HybridSleep writes the
-    # same image but then suspends, which this host could never do without swap;
-    # see the README for the hibernation setup that made both possible.
+    # Suspending at a critical battery would drain what is left; hibernating
+    # preserves the session in the swapfile and powers off.
     upower.criticalPowerAction = "Hibernate";
   };
 
-  # Hibernation needs no boot.resumeDevice here. On UEFI, systemd-sleep picks a
-  # swap space and records it in the HibernateLocation EFI variable, which
-  # systemd-hibernate-resume reads on the next boot. Naming the root partition
-  # instead adds `resume=` for a device that holds no swap itself (the swap is a
-  # file inside it), and logind then refuses to hibernate.
+  # No boot.resumeDevice: it would put `resume=` on the kernel command line for
+  # a partition that holds no swap itself. systemd-sleep picks the swapfile on
+  # UEFI and records it in the HibernateLocation EFI variable.
 }
