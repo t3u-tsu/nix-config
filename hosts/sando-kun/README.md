@@ -52,6 +52,12 @@ cat /path/to/master-age-key.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix
 ```
 
 ### Phase 3: Build and Transfer System (Recommended)
+
+> The build host evaluates the flake, so it needs the
+> `github-nix-config-private` ssh alias — or the
+> [private flake input bootstrap](../README.md#bootstrap-the-private-flake-input)
+> once.
+
 To reduce CPU load on the target, we transfer the pre-built image from the build host.
 1. **Build:** `nixos-rebuild build --flake .#sando-kun`
 2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
