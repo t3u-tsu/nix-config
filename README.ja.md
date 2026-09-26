@@ -43,7 +43,9 @@ Flakes を用いてデスクトップやサーバー群の設定を一元管理�
 
 公開したくない個人データは private リポジトリ [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) に置き読み込んでいます．
 この flake を評価するホストはすべて読み取り権限が必要で，`nixos/base/private-config.nix` が `secrets/common.yaml` の
-read-only deploy key と，それを指す `github-nix-config-private` という ssh エイリアスを用意します．
+read-only deploy key と，それを指す `github-nix-config-private` という ssh エイリアスを用意します．ただしこの module を
+適用していないホスト（新規インストールや private input 導入前のマシン）は評価自体が失敗するため，一度だけ root の ssh
+設定で入力取得を通す必要があります．手順は [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input) を参照．
 
 ## クイックスタート
 
