@@ -149,7 +149,10 @@ After installation, deploy the real config (`nixos-rebuild switch --flake
 1. Complete the SOPS prerequisites above (add the VPS age key derived from its
    SSH host key; `sops updatekeys`).
 2. Fill in `hosts/torii-chan/vps.nix`: `wanIp`/`wanGateway` from the panel.
-3. Deploy:
+3. Deploy (the deploying machine evaluates the flake, so it needs the
+   `github-nix-config-private` ssh alias — see
+   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)
+   if this is its first run):
    ```bash
    nixos-rebuild switch --flake .#torii-chan-vps --target-host root@<VPS_IP> --sudo --ask-sudo-password
    ```
@@ -196,7 +199,9 @@ registered before the first production deploy:
    sops updatekeys secrets/hosts/torii-chan.yaml secrets/services/ddns.yaml
    ```
    Commit the changes.
-3. Deploy production (SD root):
+3. Deploy production (SD root) — the deploying machine needs the
+   `github-nix-config-private` ssh alias (see
+   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)):
    ```bash
    nixos-rebuild switch --flake .#torii-chan-sd --target-host root@192.168.0.128
    ```

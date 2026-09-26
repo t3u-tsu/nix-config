@@ -46,12 +46,16 @@ Run these commands from the NixOS Installer environment (via SSH).
    cat /path/to/master-age-key.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"
    ```
 
-3. **Install NixOS:**
+3. **Bootstrap the private flake input** on the installer — it has no
+   `github-nix-config-private` ssh alias yet, so the flake cannot be evaluated
+   without it (see
+   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)).
+4. **Install NixOS:**
    ```bash
    ssh root@<ip> "nixos-install --flake github:t3u-tsu/nix-config#kagutsuchi-sama"
    ```
 
-4. **Reboot:**
+5. **Reboot:**
    ```bash
    ssh root@<ip> "reboot"
    ```
