@@ -15,4 +15,5 @@ This directory manages system-wide services and hardware integration for the des
 - **`graphics.nix`**: Redistributable firmware and 32-bit GPU support.
 - **`networkmanager.nix`**: Desktop network management.
 - **`chromium.nix`**: Root-owned browser managed policies (`/etc/chromium/policies/managed`).
+- **`bitwarden.nix`**: Bitwarden desktop app and CLI, installed system-wide so the desktop's polkit action file reaches polkitd (unlock with system authentication, i.e. fingerprint).
 - **`default.nix`**: Master index for importing all desktop-related services; defines the aggregate `my.services.desktop.enable` flag (lightweight core) and `my.services.desktop.full.enable` for the gaming stack.
