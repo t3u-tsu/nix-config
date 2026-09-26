@@ -43,7 +43,9 @@ Centralized NixOS fleet configurations managed declaratively using Nix Flakes.
 
 Personal data that must not be public lives in the private [`nix-config-private`](https://github.com/t3u-tsu/nix-config-private) repository, which this flake reads.
 Every host that evaluates this flake needs read access to it: `nixos/base/private-config.nix` installs the read-only deploy key
-from `secrets/common.yaml` together with the `github-nix-config-private` ssh alias that uses it.
+from `secrets/common.yaml` together with the `github-nix-config-private` ssh alias that uses it. A host that has not applied that
+module yet (a fresh install, or a machine that predates the private input) needs a one-off root ssh override before it can
+evaluate the flake — see [hosts/README.md](hosts/README.md#bootstrap-the-private-flake-input).
 
 ## Quick Start
 
