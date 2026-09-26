@@ -134,8 +134,10 @@ fprintd-list "$USER"                  # list enrolled fingers
 fprintd-delete "$USER"                # start over
 ```
 
-The sensor is touch-based: **press and lift five times** rather than swiping.
-Should verification keep failing, vary how long the finger is held down.
+The sensor is touch-based: **press and lift** rather than swiping. Enrolling a
+finger here took eight `enroll-stage-passed` lines before `enroll-completed`,
+and the device reports itself as "Synaptics Sensors (press)". Should
+verification fail, vary how long the finger is held down.
 
 ### PAM integration
 
