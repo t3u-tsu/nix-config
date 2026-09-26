@@ -11,27 +11,35 @@
     ./hardware.nix
     ./services
     ../../nixos
-    # throttled / tlp
+    # Brings in services.throttled and TLP (configured in services/power.nix).
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];
 
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = true;
-    device = "nodev";
-    useOSProber = true;
+  boot = {
+    kernelPackages = pkgs.linuxPackages_xanmod;
+
+    loader.grub = {
+      enable = true;
+      efiSupport = true;
+      device = "nodev";
+      useOSProber = true;
+    };
+    loader.efi.canTouchEfiVariables = true;
   };
-  boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "x1c7";
 
+  # Power and thermal management lives in services/power.nix.
   services = {
     logind.settings.Login.HandleLidSwitchExternalPower = "lock";
 
-    tlp.enable = true;
     fprintd.enable = true;
     fwupd.enable = true;
   };
+
+  # Enabled ahead of a possible LUKS migration; nothing on this host uses the
+  # TPM yet.
+  security.tpm2.enable = true;
 
   my.services.desktop = {
     greetd = {
