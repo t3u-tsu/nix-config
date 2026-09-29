@@ -52,6 +52,13 @@ excludes power-profiles-daemon and tuned.
   Noctalia's `power_profile` bar widget reads that interface and silently does
   nothing without a provider. nixpkgs asserts that `tlp.pd` and
   power-profiles-daemon cannot coexist, and upstream recommends TLP.
+- **CPU governor and EPP.** TLP defines no intrinsic default for
+  `CPU_SCALING_GOVERNOR_*`, so it leaves the governor alone. XanMod builds with
+  `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y`, and intel_pstate rejects EPP
+  writes with `EBUSY` while the governor is `performance`, which silently
+  discarded TLP's `CPU_ENERGY_PERF_POLICY_ON_BAT=balance_power`. Both governor
+  and EPP are now pinned per power source, the governor first so that the EPP
+  write is accepted.
 
 ### throttled
 
@@ -61,9 +68,9 @@ those as "not recommendations for every system".
 
 The i7-8565U is rated 15 W base and 25 W configurable TDP-up, and this chassis
 has one fan. At 44 W the CPU reaches the trip temperature and loses frequency
-anyway, so the limits are resized to 25 W PL1 / 35 W PL2 on AC and 15 W / 25 W
-on battery, with trip temperatures of 90 C and 85 C. `Disable_BDPROCHOT` stays
-`False` so the embedded controller keeps its own 80 C throttle.
+anyway, so the limits are resized to 15 W PL1 / 25 W PL2 on AC and 10 W / 15 W
+on battery, with an 85 C trip on both. `Disable_BDPROCHOT` stays `False` so the
+embedded controller keeps its own 80 C throttle.
 
 Idle with these limits measures around 66-70 C package temperature and a
 4700 RPM fan.
