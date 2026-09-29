@@ -13,6 +13,7 @@ The lightweight core is `my.home.desktop.enable`; heavy extras are opted in with
 
   The pins and essentials are personal, so they live in the private `nix-config-private` repository (`zen/pins.nix`) and are imported by `zen.nix`. The three space ids stay here because `spaces` and `spaceRouting` use them too.
 
+- **`bitwarden.nix`**: Autostart entry for the Bitwarden desktop app. The app rewrites `~/.config/autostart/bitwarden.desktop` with the store path of whichever build launched it, so an older generation can linger there and later be collected; this installs a writable copy pointing at the current build.
 - **`theme.nix`**: Cursor, GTK and Qt setup. GTK and Qt colors come from Noctalia's built-in `gtk3` / `gtk4` / `qt` templates; the shared palette lives in [`lib/palette.nix`](../../lib/palette.nix).
 - **`locales.nix`**: Locale and input method settings.
 - **`xdg.nix`**: XDG user directories and default application MIME associations.

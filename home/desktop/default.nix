@@ -10,6 +10,7 @@ let
 in
 {
   imports = [
+    ./bitwarden.nix
     ./browsers
     ./communication.nix
     ./creative.nix
@@ -36,6 +37,7 @@ in
 
   config = mkIf cfg.enable {
     my.home.desktop = {
+      bitwarden.enable = mkDefault true;
       browsers.enable = mkDefault true;
       communication.enable = mkDefault true;
       theme.enable = mkDefault true;
