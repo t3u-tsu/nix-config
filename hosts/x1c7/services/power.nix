@@ -16,6 +16,15 @@ _:
       settings = {
         START_CHARGE_THRESH_BAT0 = 75;
         STOP_CHARGE_THRESH_BAT0 = 80;
+
+        # XanMod builds with CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE, and
+        # intel_pstate rejects EPP writes with EBUSY under that governor, so
+        # TLP's own balance_power default never reached battery.
+        CPU_SCALING_GOVERNOR_ON_AC = "performance";
+        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+        CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
+        CPU_ENERGY_PERF_POLICY_ON_SAV = "power";
       };
     };
 
@@ -31,9 +40,9 @@ _:
       [BATTERY]
       Update_Rate_s: 30
       # i7-8565U base TDP
-      PL1_Tdp_W: 15
+      PL1_Tdp_W: 10
       PL1_Duration_s: 28
-      PL2_Tdp_W: 25
+      PL2_Tdp_W: 15
       PL2_Duration_S: 0.002
       Trip_Temp_C: 85
       cTDP: 0
@@ -42,11 +51,11 @@ _:
       [AC]
       Update_Rate_s: 5
       # i7-8565U configurable TDP-up
-      PL1_Tdp_W: 25
+      PL1_Tdp_W: 15
       PL1_Duration_s: 28
-      PL2_Tdp_W: 35
+      PL2_Tdp_W: 25
       PL2_Duration_S: 0.002
-      Trip_Temp_C: 90
+      Trip_Temp_C: 85
       cTDP: 0
       # Keeps the EC's own 80 C throttle; enabling this runs hotter.
       Disable_BDPROCHOT: False
