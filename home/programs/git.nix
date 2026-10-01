@@ -4,6 +4,7 @@
   programs = {
     git = {
       enable = true;
+      lfs.enable = true;
 
       # credential.helper comes from desktop/dev-tools/git-tools.nix; gh is
       # desktop-only because it does not cross-compile for aarch64.
