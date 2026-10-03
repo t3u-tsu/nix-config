@@ -17,14 +17,20 @@ _:
         START_CHARGE_THRESH_BAT0 = 75;
         STOP_CHARGE_THRESH_BAT0 = 80;
 
-        # XanMod builds with CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE, and
-        # intel_pstate rejects EPP writes with EBUSY under that governor, so
-        # TLP's own balance_power default never reached battery.
-        CPU_SCALING_GOVERNOR_ON_AC = "performance";
+        # XanMod builds with CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y.
+        # Under intel_pstate (active mode), governor "performance" forces EPP
+        # to "performance" and rejects EPP writes with EBUSY. Setting "powersave"
+        # on both AC and BAT allows HWP to follow EPP hints properly.
+        CPU_SCALING_GOVERNOR_ON_AC = "powersave";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
         CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
         CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
         CPU_ENERGY_PERF_POLICY_ON_SAV = "power";
+
+        CPU_HWP_DYN_BOOST_ON_AC = 1;
+        CPU_HWP_DYN_BOOST_ON_BAT = 0;
+
+        PCIE_ASPM_ON_BAT = "powersave";
       };
     };
 
