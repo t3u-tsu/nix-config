@@ -39,38 +39,72 @@ Flakes.
 
 Configuration lives in [`services/power.nix`](services/power.nix).
 
+Power and thermal management on ThinkPad with Intel processors operates across
+three cooperating layers:
+1. **Platform Profile (ACPI DYTC)**: Tells the Lenovo Embedded Controller (EC)
+   which fan curve and thermal table to use (`/sys/firmware/acpi/platform_profile`).
+2. **Energy Performance Preference (Intel HWP EPP)**: Biases autonomous CPU
+   frequency scaling between latency and power efficiency
+   (`/sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference`).
+3. **Scaling Governor (intel_pstate)**: Kernel driver operation mode
+   (`/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor`).
+
 ### TLP
 
-nixos-hardware's `common/pc/laptop` enables `services.tlp` and, in doing so,
-excludes power-profiles-daemon and tuned.
+nixos-hardware's `common/pc/laptop` enables `services.tlp` and excludes
+`power-profiles-daemon` and `tuned`.
 
-- **Charge thresholds 75/80.** The battery showed 429 cycles with no measurable
-  capacity loss when this was measured, so this trades roughly 20% of runtime
-  for slower wear rather than fixing an existing problem. `sudo tlp fullcharge`
-  lifts the limit to 100% until the charger is unplugged.
-- **`services.tlp.pd`** exposes the `net.hadess.PowerProfiles` D-Bus interface.
-  Noctalia's `power_profile` bar widget reads that interface and silently does
-  nothing without a provider. nixpkgs asserts that `tlp.pd` and
-  power-profiles-daemon cannot coexist, and upstream recommends TLP.
+- **Charge thresholds 75/80.** Trades ~20% runtime for slower capacity loss on
+  AC (431 cycles with negligible measured wear). `sudo tlp fullcharge`
+  temporarily lifts the threshold to 100% until unplugged.
+- **`services.tlp.pd`** exposes the `net.hadess.PowerProfiles` D-Bus interface
+  backed by TLP so Noctalia's `power_profile` bar widget functions normally.
+- **Governor and EPP.** Per the
+  [Linux Kernel intel_pstate documentation](https://www.kernel.org/doc/html/latest/admin-guide/pm/intel_pstate.html)
+  and [TLP processor settings](https://linrunner.de/tlp/settings/processor.html),
+  active HWP mode requires the `powersave` governor on both AC and battery. A
+  `performance` governor forces EPP to `performance` (0) and rejects EPP writes
+  with `EBUSY`, which would prevent frequency from dropping at idle. Under `powersave`:
+  - **AC**: `CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance"` allows cores
+    to boost to 4.6 GHz under load while idling at 800 MHz. `CPU_HWP_DYN_BOOST_ON_AC = 1`
+    adds dynamic boost for UI responsiveness.
+  - **Battery**: `CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power"` biases frequency
+    transitions toward power efficiency while preserving responsiveness.
+  - **Low Battery**: `CPU_ENERGY_PERF_POLICY_ON_SAV = "power"` minimizes power consumption.
+- **Platform Profile.** Per [TLP platform settings](https://linrunner.de/tlp/settings/platform.html):
+  - `PLATFORM_PROFILE_ON_AC = "balanced"`: Keeps fan curves quiet during ordinary
+    desktop tasks on AC, leaving maximum performance to be selected via Noctalia's
+    widget when heavy sustained workloads occur.
+  - `PLATFORM_PROFILE_ON_BAT = "balanced"`: Balances chassis comfort and fan noise.
+- **PCIe ASPM.** `PCIE_ASPM_ON_BAT = "powersave"` moves PCIe links (NVMe, Intel
+  9560 Wi-Fi, Thunderbolt) into lower-power link states on battery.
 
 ### throttled
 
-nixos-hardware enables `services.throttled` but leaves upstream's project
-defaults: AC PL1/PL2 of 44 W and a 95 C trip. The throttled README describes
-those as "not recommendations for every system".
+[throttled](https://github.com/erpalma/throttled) fixes the Lenovo Linux thermal bug
+where the EC throttles the CPU prematurely
+([ArchWiki](https://wiki.archlinux.org/title/Lenovo_ThinkPad_X1_Carbon_(Gen_7)#Power_management/Throttling_issues)
+and [Issue 150](https://github.com/erpalma/throttled/issues/150)).
 
-The i7-8565U is rated 15 W base and 25 W configurable TDP-up, and this chassis
-has one fan. At 44 W the CPU reaches the trip temperature and loses frequency
-anyway, so the limits are resized to 25 W PL1 / 35 W PL2 on AC and 15 W / 25 W
-on battery, with trip temperatures of 90 C and 85 C. `Disable_BDPROCHOT` stays
-`False` so the embedded controller keeps its own 80 C throttle.
+Upstream defaults of 44 W / 95 C exceed what the single-fan, dual-heatpipe
+chassis can sustainably dissipate. Limits are aligned with the
+[Intel Core i7-8565U specifications](https://www.intel.co.jp/content/www/jp/ja/products/sku/149091/intel-core-i78565u-processor-8m-cache-up-to-4-60-ghz/specifications.html):
+- **AC**:
+  - `PL1_Tdp_W: 25` (28 s duration): Configurable TDP-up limit. Allows all cores
+    to sustain ~3.0 GHz during heavy compilation.
+  - `PL2_Tdp_W: 35` (0.002 s window): Short-term burst headroom. Absorbs brief
+    execution spikes through heatpipe thermal capacity.
+  - `Trip_Temp_C: 90`: Headroom for PL2 bursts below the 100 C TjMax, staying
+    below Windows default (97 C) to maintain chassis comfort.
+- **Battery**:
+  - `PL1_Tdp_W: 15` (28 s duration): Nominal 15 W TDP. Prevents sluggishness under
+    moderate multi-core work while keeping power draw reasonable.
+  - `PL2_Tdp_W: 25` (0.002 s window): Configurable TDP-up burst limit for UI fluidity.
+  - `Trip_Temp_C: 85`: Conservative thermal ceiling for lap use.
 
-Idle with these limits measures around 66-70 C package temperature and a
-4700 RPM fan.
-
-After changing any `throttled` value, run `sudo systemctl restart throttled`: its
-`Autoreload` compares mtimes that the Nix store never changes (the mechanism is
-in [`services/power.nix`](services/power.nix)).
+Voltage offset fields are omitted because firmware locks MSR 0x150 against
+undervolting on Whiskey Lake. After changing `/etc/throttled.conf`, run
+`sudo systemctl restart throttled` because Nix store mtimes do not change.
 
 ## Memory and swap
 
@@ -274,4 +308,9 @@ SOPS before the install (see [`hosts/README.md`](../README.md)) - otherwise acti
 - [TLP FAQ: power-profiles-daemon](https://linrunner.de/tlp/faq/ppd.html)
 - [libfprint supported devices](https://fprint.freedesktop.org/supported-devices.html)
 - [throttled](https://github.com/erpalma/throttled)
+- [throttled issue 150 (X1C7 & TDP tuning)](https://github.com/erpalma/throttled/issues/150)
+- [Intel Core i7-8565U Processor Specifications](https://www.intel.co.jp/content/www/jp/ja/products/sku/149091/intel-core-i78565u-processor-8m-cache-up-to-4-60-ghz/specifications.html)
+- [Linux Kernel intel_pstate documentation](https://www.kernel.org/doc/html/latest/admin-guide/pm/intel_pstate.html)
+- [TLP Documentation: Processor settings](https://linrunner.de/tlp/settings/processor.html)
+- [TLP Documentation: Platform profile settings](https://linrunner.de/tlp/settings/platform.html)
 - [NixOS Wiki: Laptop](https://wiki.nixos.org/wiki/Laptop)
