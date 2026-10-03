@@ -27,60 +27,46 @@ _:
         CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
         CPU_ENERGY_PERF_POLICY_ON_SAV = "power";
 
+        # Dynamic boost raises performance on AC during sudden load spikes.
         CPU_HWP_DYN_BOOST_ON_AC = 1;
         CPU_HWP_DYN_BOOST_ON_BAT = 0;
+
+        # Keep AC fan curve gentle by default; Noctalia's widget can lift it to performance.
+        PLATFORM_PROFILE_ON_AC = "balanced";
+        PLATFORM_PROFILE_ON_BAT = "balanced";
+        PLATFORM_PROFILE_ON_SAV = "low-power";
 
         PCIE_ASPM_ON_BAT = "powersave";
       };
     };
 
-    # Restart throttled.service after editing these: Autoreload compares config
-    # mtimes, and NixOS pins store paths to the epoch, so it never fires.
-    # Upstream's 44 W / 95 C defaults are replaced by this chassis' limits.
+    # Restart throttled.service after editing these: Nix store paths never
+    # change mtimes, so Autoreload never triggers. Full rationale lives in README.md.
     throttled.extraConfig = ''
       [GENERAL]
       Enabled: True
       Sysfs_Power_Path: /sys/class/power_supply/AC*/online
       Autoreload: True
 
-      [BATTERY]
-      Update_Rate_s: 30
-      # i7-8565U base TDP
-      PL1_Tdp_W: 10
-      PL1_Duration_s: 28
-      PL2_Tdp_W: 15
-      PL2_Duration_S: 0.002
-      Trip_Temp_C: 85
-      cTDP: 0
-      Disable_BDPROCHOT: False
-
       [AC]
       Update_Rate_s: 5
-      # i7-8565U configurable TDP-up
+      # Core i7-8565U configurable TDP-up
+      PL1_Tdp_W: 25
+      PL1_Duration_s: 28
+      # Short-term burst limit for UI and build responsiveness
+      PL2_Tdp_W: 35
+      PL2_Duration_S: 0.002
+      # Allows burst headroom below TjMax (100 C)
+      Trip_Temp_C: 90
+
+      [BATTERY]
+      Update_Rate_s: 30
+      # Core i7-8565U nominal TDP
       PL1_Tdp_W: 15
       PL1_Duration_s: 28
       PL2_Tdp_W: 25
       PL2_Duration_S: 0.002
       Trip_Temp_C: 85
-      cTDP: 0
-      # Keeps the EC's own 80 C throttle; enabling this runs hotter.
-      Disable_BDPROCHOT: False
-
-      # Offsets must be negative to undervolt, and firmware locks the voltage
-      # interface on Whiskey Lake, so these stay at 0.
-      [UNDERVOLT.AC]
-      CORE: 0
-      GPU: 0
-      CACHE: 0
-      UNCORE: 0
-      ANALOGIO: 0
-
-      [UNDERVOLT.BATTERY]
-      CORE: 0
-      GPU: 0
-      CACHE: 0
-      UNCORE: 0
-      ANALOGIO: 0
     '';
 
     # Suspending at a critical battery would drain what is left; hibernating
