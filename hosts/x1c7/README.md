@@ -52,13 +52,16 @@ excludes power-profiles-daemon and tuned.
   Noctalia's `power_profile` bar widget reads that interface and silently does
   nothing without a provider. nixpkgs asserts that `tlp.pd` and
   power-profiles-daemon cannot coexist, and upstream recommends TLP.
-- **CPU governor and EPP.** TLP defines no intrinsic default for
-  `CPU_SCALING_GOVERNOR_*`, so it leaves the governor alone. XanMod builds with
-  `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y`, and intel_pstate rejects EPP
-  writes with `EBUSY` while the governor is `performance`, which silently
-  discarded TLP's `CPU_ENERGY_PERF_POLICY_ON_BAT=balance_power`. Both governor
-  and EPP are now pinned per power source, the governor first so that the EPP
-  write is accepted.
+- **CPU governor and EPP.** `intel_pstate` in active mode requires the
+  `powersave` governor on both AC and battery so that HWP respects the
+  `energy_performance_preference` (EPP) hint. XanMod builds with
+  `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y`; under a `performance` governor,
+  `intel_pstate` locks EPP to `performance` and rejects EPP writes with `EBUSY`,
+  which previously discarded TLP's EPP settings and kept cores clocked high even
+  at idle. Pinning `CPU_SCALING_GOVERNOR_ON_AC/BAT = "powersave"` allows TLP to
+  apply `balance_performance` on AC, `balance_power` on battery, and `power` on
+  low battery. In addition, `CPU_HWP_DYN_BOOST_ON_AC = 1` improves responsiveness
+  on AC, and `PCIE_ASPM_ON_BAT = "powersave"` saves power on battery.
 
 ### throttled
 
@@ -71,9 +74,6 @@ has one fan. At 44 W the CPU reaches the trip temperature and loses frequency
 anyway, so the limits are resized to 15 W PL1 / 25 W PL2 on AC and 10 W / 15 W
 on battery, with an 85 C trip on both. `Disable_BDPROCHOT` stays `False` so the
 embedded controller keeps its own 80 C throttle.
-
-Idle with these limits measures around 66-70 C package temperature and a
-4700 RPM fan.
 
 After changing any `throttled` value, run `sudo systemctl restart throttled`: its
 `Autoreload` compares mtimes that the Nix store never changes (the mechanism is
