@@ -31,7 +31,16 @@ description: このリポジトリで設定変更を適用するときの手順�
    nixos-rebuild build --flake .#<hostname>
    ```
 
-4. **適用**: `sudo` を要する操作はエージェントが実行できないため，ユーザーが実行する．
+4. **適用**:
+   デスクトップ環境（Polkit エージェントが動作している x1c7 など）では，事前にユーザーの承認を得たうえで，エージェントが `pkexec` 経由で実行できる:
+   ```bash
+   pkexec --keep-cwd nixos-rebuild dry-activate --flake .#<hostname>
+   pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>
+   ```
+   実行するとデスクトップ上に Polkit の GUI 認証ダイアログ（実行コマンドが表示される）がポップアップし，ユーザーが指紋認証やパスワード入力で承認・認証を行う．
+   特権昇格の保留時間を最小化するため，**必ず事前にビルド（`nixos-rebuild build --flake .#<hostname>` または `nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link`）を完了させてから実行する**．これにより，ユーザーの認証直後に瞬時に切り替えが完了する．
+
+   ヘッドレス環境（torii-chan など）・SSH 経由・Polkit が利用できない場合のフォールバックでは，従来どおりユーザー自身が実行する:
    ```bash
    sudo nixos-rebuild dry-activate --flake .#<hostname>
    sudo nixos-rebuild switch --flake .#<hostname>
