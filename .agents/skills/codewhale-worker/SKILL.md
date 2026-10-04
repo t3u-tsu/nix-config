@@ -58,6 +58,10 @@ Use the helper script or run the command directly:
 codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
 ```
 
+### Helper Script Execution & Log Redirection
+
+The `run.sh` script executes Codewhale with full log redirection to `/tmp/codewhale-<timestamp>.log` to suppress excessive tool logs and terminal output from flooding Antigravity's context window. It captures the exit code safely, outputs only the final model response, prints changed files via `git status --short`, and provides session continuation instructions.
+
 ### Provider & Model Selection Guide
 
 - **Recommended Default**: `provider = "deepseek"`, `model = "deepseek-flash"`
@@ -68,15 +72,19 @@ codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
   - `openrouter`: Configured with access to models like `deepseek/deepseek-v4.1-flash`.
   - `fireworks`: Configured in `~/.codewhale/config.toml` (e.g. `accounts/fireworks/models/deepseek-v4p1-flash`).
 - **Session Continuation**:
-  - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue`).
+  - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` or specify a session explicitly via `SESSION=<id> .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue` / `--resume <id>`).
 
-### Inspecting Available Providers & Models via CLI Helper
+### Inspecting and Updating Providers & Models via CLI Helper
 
-Antigravity or the user can check available providers and search models dynamically before delegation:
+Antigravity or the user can check available providers, refresh model catalogs, and search models dynamically before delegation:
 
 ```bash
 # Show current active route and list all authenticated providers
 .agents/skills/codewhale-worker/scripts/info.sh
+
+# Refresh cached model catalogs across configured providers
+.agents/skills/codewhale-worker/scripts/info.sh update
+# or: .agents/skills/codewhale-worker/scripts/info.sh --update
 
 # Search across all authenticated providers for a model keyword (e.g. v4.1, flash)
 .agents/skills/codewhale-worker/scripts/info.sh search v4.1
