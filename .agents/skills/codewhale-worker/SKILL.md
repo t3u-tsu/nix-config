@@ -65,16 +65,25 @@ codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
   - Avoid switching to `deepseek-v4-pro` assuming it is more powerful; current versioning makes `deepseek-flash` the superior choice.
 - **Configured Providers**:
   - `deepseek` (default): Native DeepSeek API, highly recommended.
-  - `fireworks`: Configured in `~/.codewhale/config.toml` as an alternative route if needed.
+  - `openrouter`: Configured with access to models like `deepseek/deepseek-v4.1-flash`.
+  - `fireworks`: Configured in `~/.codewhale/config.toml` (e.g. `accounts/fireworks/models/deepseek-v4p1-flash`).
 - **Session Continuation**:
   - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue`).
 
-### Inspecting Available Providers & Models via CLI
+### Inspecting Available Providers & Models via CLI Helper
 
-Antigravity can check available providers and models dynamically before delegation:
-- **Check active route**: `codewhale model resolve` (shows the currently resolved provider and model)
-- **Check authenticated providers**: `codewhale auth list` (check which providers have `store` or `env` set to `yes`)
-- **List cached models for a provider**: `codewhale models --provider deepseek`
+Antigravity or the user can check available providers and search models dynamically before delegation:
+
+```bash
+# Show current active route and list all authenticated providers
+.agents/skills/codewhale-worker/scripts/info.sh
+
+# Search across all authenticated providers for a model keyword (e.g. v4.1, flash)
+.agents/skills/codewhale-worker/scripts/info.sh search v4.1
+
+# List all models available under a specific provider
+.agents/skills/codewhale-worker/scripts/info.sh models openrouter
+```
 
 ---
 
