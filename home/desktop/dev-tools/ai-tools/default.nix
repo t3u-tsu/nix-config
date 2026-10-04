@@ -11,5 +11,6 @@ with lib;
     ./codewhale.nix
     ./conoha-vps-mcp.nix
     ./antigravity.nix
+    ./skills.nix
   ];
 }
