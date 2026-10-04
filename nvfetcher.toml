@@ -30,3 +30,9 @@ fetch.git = "https://github.com/hamachi25/dAnimePlus.git"
 [codewhale]
 src.github = "Hmbown/CodeWhale"
 fetch.url = "https://github.com/Hmbown/Codewhale/releases/download/$ver/codewhale-linux-x64"
+
+# Agent skills
+[hush]
+src.git = "https://github.com/ro80t/hush.git"
+src.branch = "main"
+fetch.github = "ro80t/hush"

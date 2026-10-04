@@ -13,7 +13,7 @@
 - [`scripts/README.md`](../scripts/README.md) — 運用スクリプト
 - [`terraform/README.md`](../terraform/README.md) — ConoHa VPS インフラ
 
-`docs/architecture.md`（この文書）は層構成と読み込みの説明，`.codewhale/skills/` はエージェント向けの手順（`AGENTS.md` から参照）を担当する．各 README は自分の層の責務と配置ルールを説明し，詳細は下位の README かコードに委ねる．
+`docs/architecture.md`（この文書）は層構成と読み込みの説明，`.agents/skills/` はエージェント向けの手順（`AGENTS.md` から参照）を担当する．各 README は自分の層の責務と配置ルールを説明し，詳細は下位の README かコードに委ねる．
 
 ## 層構成
 

@@ -69,6 +69,27 @@
         },
         "version": "3.7.0"
     },
+    "hush": {
+        "cargoLock": null,
+        "date": "2026-09-17",
+        "extract": null,
+        "name": "hush",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "ro80t",
+            "repo": "hush",
+            "rev": "a7abe28a348647b7ffc31a7d5dd5fd90d54bbf87",
+            "sha256": "sha256-YU6VfwJbAtmLEPa10HeVJ9asBDrMTLwg2sT/ALpmc7E=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "a7abe28a348647b7ffc31a7d5dd5fd90d54bbf87"
+    },
     "lunachat": {
         "cargoLock": null,
         "date": null,

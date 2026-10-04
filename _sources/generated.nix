@@ -50,6 +50,18 @@
       sha256 = "sha256-kyFMIy/lNaZFethxHLHgXQ5zCkkc4wPjnjDHb4jdLjA=";
     };
   };
+  hush = {
+    pname = "hush";
+    version = "a7abe28a348647b7ffc31a7d5dd5fd90d54bbf87";
+    src = fetchFromGitHub {
+      owner = "ro80t";
+      repo = "hush";
+      rev = "a7abe28a348647b7ffc31a7d5dd5fd90d54bbf87";
+      fetchSubmodules = false;
+      sha256 = "sha256-YU6VfwJbAtmLEPa10HeVJ9asBDrMTLwg2sT/ALpmc7E=";
+    };
+    date = "2026-09-17";
+  };
   lunachat = {
     pname = "lunachat";
     version = "v3.0.16";
