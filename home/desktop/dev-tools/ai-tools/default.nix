@@ -10,5 +10,6 @@ with lib;
   imports = [
     ./codewhale.nix
     ./conoha-vps-mcp.nix
+    ./antigravity.nix
   ];
 }
