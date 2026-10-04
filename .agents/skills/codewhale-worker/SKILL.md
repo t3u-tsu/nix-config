@@ -5,27 +5,19 @@ description: Delegate implementation and coding tasks to Codewhale CLI (OpenRout
 
 # Codewhale Worker
 
-Antigravity orchestrates, Codewhale implements.
+## Design Philosophy
+
+- **Antigravity (Gemini)**: Quota is limited and precious, but excels at natural Japanese, nuanced requirements, architecture design, and clean documentation (Gemini 3.8 Flash / Pro). Use Antigravity for high-signal orchestration, planning, comment pruning (`hush`), and user communication.
+- **Codewhale (Worker)**: Highly cost-effective coding agent with high cache hit rates running inexpensive models (DeepSeek). Offload heavy code exploration, file edits, and refactoring to Codewhale to protect Antigravity's quota.
 
 ## Role Division
 
-- **Antigravity Main**: Requirements, architecture design, overall coordination.
-- **Codewhale**: Code implementation and exploration (default: `openrouter` / `deepseek/deepseek-v4.1-flash`).
-- **Antigravity Subagent**: Comment cleanup per `hush` (`~/.agents/skills/hush/SKILL.md`) and documentation updates (`，．`).
-
-## Delegation Routing
-
-Unless specified otherwise, delegate implementation tasks to Codewhale default automatically.
-
-| User Trigger | Provider / Model | Command Override |
-| :--- | :--- | :--- |
-| Default (unspecified) | `openrouter` / `deepseek/deepseek-v4.1-flash` | `.agents/skills/codewhale-worker/scripts/run.sh "<PROMPT>"` |
-| "deepseek で" | `deepseek` / `deepseek-flash` | `CODEPROVIDER=deepseek CODEMODEL=deepseek-flash ...` |
-| "fireworks で" | `fireworks` | `CODEPROVIDER=fireworks ...` |
-| "直して" / continue | Previous session | `CONTINUE=1 ...` or `SESSION=<id> ...` |
-| "Gemini で" / "直接" | Antigravity Main | Edit directly without Codewhale |
-
-*Tip: Run `.agents/skills/codewhale-worker/scripts/info.sh` to check routes or `info.sh search <keyword>` to locate models.*
+1. **Antigravity Main**: Requirements, architecture design, and coordination.
+2. **Codewhale**: Code implementation and refactoring:
+   - Run: `.agents/skills/codewhale-worker/scripts/run.sh "<PROMPT>"`
+   - Overrides (when requested): `CODEPROVIDER=<provider> CODEMODEL=<model> ...` or `CONTINUE=1 ...`
+   - Inspect: `.agents/skills/codewhale-worker/scripts/info.sh [search <keyword> | update]`
+3. **Antigravity Subagent**: Comment cleanup per `hush` (`~/.agents/skills/hush/SKILL.md`) and documentation updates (`，．`).
 
 ## Prompting Rules for Codewhale
 
