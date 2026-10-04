@@ -17,6 +17,22 @@ This skill defines the workflow for using Codewhale (running DeepSeek models lik
 
 ---
 
+## User Delegation Routing (How to Interpret User Prompts)
+
+When the user specifies how or which agent/model to use, Antigravity routes the task according to these natural language triggers:
+
+| User Prompt Example | Target Agent / Provider / Model | Execution Action |
+| :--- | :--- | :--- |
+| **"Codewhale で実装して"**<br>"ワーカーに任せて" | **Codewhale**<br>(Default: `deepseek-flash`) | Standard delegation using default provider. |
+| **"openrouter の v4.1-flash で"**<br>"Codewhale (openrouter)" | **Codewhale**<br>(`openrouter` / `deepseek/deepseek-v4.1-flash`) | Explicit provider/model invocation. |
+| **"Codewhale のセッションを継続して"**<br>"さっきの文脈で直して" | **Codewhale**<br>(Session continuation) | Use `CONTINUE=1` or `SESSION=<id>` to retain worker memory. |
+| **"AGY のサブエージェントで"**<br>"サブエージェントで調べて" | **Antigravity Subagent**<br>(Gemini 3.8 Flash / Pro) | Use `invoke_subagent` in background. |
+| **"Gemini が直接やって"**<br>"自分で直して" *(or unspecified)* | **Antigravity Main**<br>(Gemini) | Direct tool invocation by Gemini. |
+
+If the user gives an ambiguous model name (e.g. "v4.1"), run `.agents/skills/codewhale-worker/scripts/info.sh search <keyword>` to identify and select the available provider.
+
+---
+
 ## Step 1: Composing the Worker Prompt
 
 DeepSeek excels at code logic and exploration, but struggles with verbose/unnatural Japanese and tends to generate excessive obvious comments. Always adhere to these rules when delegating:
