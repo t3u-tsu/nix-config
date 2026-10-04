@@ -58,9 +58,16 @@ Use the helper script or run the command directly:
 codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
 ```
 
-### Options:
-- **Change Model**: Use `CODEMODEL=deepseek-v4-pro` or `--model deepseek-v4-pro` for tasks requiring higher reasoning capability.
-- **Iterative Refinement**: If the first run needs follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue`).
+### Provider & Model Selection Guide
+
+- **Recommended Default**: `provider = "deepseek"`, `model = "deepseek-flash"`
+  - **Critical**: In the current version, `deepseek-flash` is significantly smarter and more reliable for coding and reasoning than `deepseek-v4-pro`. Always prioritize `deepseek-flash` as the primary worker model.
+  - Avoid switching to `deepseek-v4-pro` assuming it is more powerful; current versioning makes `deepseek-flash` the superior choice.
+- **Configured Providers**:
+  - `deepseek` (default): Native DeepSeek API, highly recommended.
+  - `fireworks`: Configured in `~/.codewhale/config.toml` as an alternative route if needed.
+- **Session Continuation**:
+  - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue`).
 
 ---
 
@@ -69,7 +76,7 @@ codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
 After Codewhale finishes:
 
 1. Run `git status` and `git diff` to review all changes.
-2. Apply the **Hush Rules** (`~/.codewhale/skills/hush/SKILL.md`):
+2. Apply the **Hush Rules** (`~/.agents/skills/hush/SKILL.md`):
    - Remove comments that merely restate variable names, function names, or obvious loop mechanics.
    - Replace comments with descriptive names whenever possible.
    - Keep only critical comments explaining *why* (non-obvious constraints, workarounds, invariants).
