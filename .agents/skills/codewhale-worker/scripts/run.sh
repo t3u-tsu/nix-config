@@ -4,8 +4,8 @@ set -euo pipefail
 # Helper script for delegating tasks to Codewhale with DeepSeek.
 # Usage: ./run.sh "<prompt>"
 # Environment variables:
-#   CODEPROVIDER (default: deepseek)
-#   CODEMODEL    (default: deepseek-flash)
+#   CODEPROVIDER (default: openrouter)
+#   CODEMODEL    (default: deepseek/deepseek-v4.1-flash)
 #   EXTRA_FLAGS  (optional extra flags before exec, e.g. --verbosity concise)
 #   CONTINUE     (set to 1 to continue previous session)
 #   SESSION      (optional session ID to resume directly)
@@ -16,8 +16,8 @@ if [ $# -eq 0 ]; then
 fi
 
 PROMPT="$1"
-PROVIDER="${CODEPROVIDER:-deepseek}"
-MODEL="${CODEMODEL:-deepseek-flash}"
+PROVIDER="${CODEPROVIDER:-openrouter}"
+MODEL="${CODEMODEL:-deepseek/deepseek-v4.1-flash}"
 
 CONTINUE_ARGS=()
 if [ -n "${SESSION:-}" ]; then
