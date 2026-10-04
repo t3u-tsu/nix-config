@@ -69,6 +69,13 @@ codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
 - **Session Continuation**:
   - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue`).
 
+### Inspecting Available Providers & Models via CLI
+
+Antigravity can check available providers and models dynamically before delegation:
+- **Check active route**: `codewhale model resolve` (shows the currently resolved provider and model)
+- **Check authenticated providers**: `codewhale auth list` (check which providers have `store` or `env` set to `yes`)
+- **List cached models for a provider**: `codewhale models --provider deepseek`
+
 ---
 
 ## Step 3: Review and Hush Post-Processing
