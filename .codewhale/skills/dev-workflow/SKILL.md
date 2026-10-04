@@ -10,10 +10,11 @@ description: このリポジトリで設定変更を適用するときの手順�
 2. **実装**: Nix ファイルや設定ファイルを編集する．秘密情報は `sops` で編集する（`secrets/README.md`）．
 
 3. **検証**
+   必要に応じて `nix flake check` 及び `nixos-rebuild build` を行う．それぞれ実行に時間を要するため，明確に不要だと判断できる場合はスキップしたり，実行中に先に報告したりしても良い．また `nixos-rebuild build` はビルドキャッシュを生成するため，ユーザーが `nixos-rebuild switch` を実行する時間を短縮できる．
    ```bash
    nix flake check
    ```
-   `nix flake check` は pre-commit hooks（nixfmt / statix / convco / shellcheck / ja-punctuation / end-of-file-fixer / trim-trailing-whitespace）も実行する．また flake は git 追跡下のものを見るので実行の際は `git add` をする必要がある．
+   `nix flake check` は pre-commit hooks も実行する．また flake は git 追跡下のものを見るので実行の際は `git add` をする必要がある．
    個別に nixfmt を実行する場合は**ファイル単位**で指定する:
    ```bash
    nixfmt --check <file>
