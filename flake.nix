@@ -84,6 +84,10 @@
       url = "github:t3u-tsu/unity-via-distrobox-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
     # === Development Environment ===
     git-hooks = {
