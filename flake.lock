@@ -464,11 +464,11 @@
     "nix-config-private": {
       "flake": false,
       "locked": {
-        "lastModified": 1790587747,
-        "narHash": "sha256-Tae+q7F/HbYesRbggTcWgYGdsdM7Naf1d7uglRQjm4k=",
+        "lastModified": 1791109918,
+        "narHash": "sha256-FL8StzXxOUTwn+c9CvDfBEgkHX49l/+Ed2CvsjiKTyI=",
         "ref": "refs/heads/main",
-        "rev": "2f4582635a79b7c67db827c37342848db1f2edcc",
-        "revCount": 4,
+        "rev": "88593f08ac9af4676056411751f76afa5f28361d",
+        "revCount": 6,
         "type": "git",
         "url": "ssh://git@github-nix-config-private/t3u-tsu/nix-config-private"
       },
