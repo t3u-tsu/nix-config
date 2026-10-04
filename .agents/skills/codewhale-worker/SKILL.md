@@ -23,11 +23,12 @@ When the user specifies how or which agent/model to use, Antigravity routes the 
 
 | User Prompt Example | Target Agent / Provider / Model | Execution Action |
 | :--- | :--- | :--- |
-| **"Codewhale で実装して"**<br>"ワーカーに任せて" | **Codewhale**<br>(Default: `deepseek-flash`) | Standard delegation using default provider. |
-| **"openrouter の v4.1-flash で"**<br>"Codewhale (openrouter)" | **Codewhale**<br>(`openrouter` / `deepseek/deepseek-v4.1-flash`) | Explicit provider/model invocation. |
+| **"Codewhale で実装して"**<br>"ワーカーに任せて" *(or unspecified)* | **Codewhale**<br>(Default: `openrouter` / `deepseek/deepseek-v4.1-flash`) | Standard delegation using default OpenRouter route. |
+| **"公式でやって"**<br>"deepseek 公式で" | **Codewhale**<br>(`deepseek` / `deepseek-flash`) | Explicit DeepSeek official route for high cache hit rates. |
+| **"fireworks で"** | **Codewhale**<br>(`fireworks`) | Uses remaining Fireworks credits. |
 | **"Codewhale のセッションを継続して"**<br>"さっきの文脈で直して" | **Codewhale**<br>(Session continuation) | Use `CONTINUE=1` or `SESSION=<id>` to retain worker memory. |
 | **"AGY のサブエージェントで"**<br>"サブエージェントで調べて" | **Antigravity Subagent**<br>(Gemini 3.8 Flash / Pro) | Use `invoke_subagent` in background. |
-| **"Gemini が直接やって"**<br>"自分で直して" *(or unspecified)* | **Antigravity Main**<br>(Gemini) | Direct tool invocation by Gemini. |
+| **"Gemini が直接やって"**<br>"自分で直して" | **Antigravity Main**<br>(Gemini) | Direct tool invocation by Gemini. |
 
 If the user gives an ambiguous model name (e.g. "v4.1"), run `.agents/skills/codewhale-worker/scripts/info.sh search <keyword>` to identify and select the available provider.
 
@@ -67,11 +68,11 @@ Constraints:
 Use the helper script or run the command directly:
 
 ```bash
-# Using the helper script
+# Using the helper script (defaults to openrouter / deepseek/deepseek-v4.1-flash)
 .agents/skills/codewhale-worker/scripts/run.sh "<PROMPT>"
 
 # Or direct invocation:
-codewhale --provider deepseek --model deepseek-flash exec --auto "<PROMPT>"
+codewhale --provider openrouter --model deepseek/deepseek-v4.1-flash exec --auto "<PROMPT>"
 ```
 
 ### Helper Script Execution & Log Redirection
@@ -80,13 +81,12 @@ The `run.sh` script executes Codewhale with full log redirection to `/tmp/codewh
 
 ### Provider & Model Selection Guide
 
-- **Recommended Default**: `provider = "deepseek"`, `model = "deepseek-flash"`
-  - **Critical**: In the current version, `deepseek-flash` is significantly smarter and more reliable for coding and reasoning than `deepseek-v4-pro`. Always prioritize `deepseek-flash` as the primary worker model.
-  - Avoid switching to `deepseek-v4-pro` assuming it is more powerful; current versioning makes `deepseek-flash` the superior choice.
-- **Configured Providers**:
-  - `deepseek` (default): Native DeepSeek API, highly recommended.
-  - `openrouter`: Configured with access to models like `deepseek/deepseek-v4.1-flash`.
-  - `fireworks`: Configured in `~/.codewhale/config.toml` (e.g. `accounts/fireworks/models/deepseek-v4p1-flash`).
+- **Current Default**: `provider = "openrouter"`, `model = "deepseek/deepseek-v4.1-flash"`
+  - Configured as the primary default in `run.sh` and `~/.codewhale/config.toml`.
+  - Offers low base input pricing and access to the latest v4.1 model.
+- **Explicit Routes (on user request)**:
+  - `deepseek` official (`deepseek-flash`): Use when the user specifies "公式で" or for heavy multi-turn sessions where the 98% prompt cache hit rate offers maximal cost efficiency.
+  - `fireworks`: Use when the user specifies "fireworks で" to consume prepaid credit balance (supports `accounts/fireworks/models/deepseek-v4p1-flash`).
 - **Session Continuation**:
   - If the initial run needs iterative adjustments or follow-up fixes, use `CONTINUE=1 .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` or specify a session explicitly via `SESSION=<id> .agents/skills/codewhale-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"` (or pass `--continue` / `--resume <id>`).
 
