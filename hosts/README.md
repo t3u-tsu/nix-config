@@ -27,7 +27,7 @@ The steps below cover the full path from skeleton to merged PR.
 
 Use `feat/add-<hostname>` (or `fix/…`, `chore/…`, `docs/…`) as the branch
 name. Branch, commit, push, PR, and merge follow the standard workflow in
-`AGENTS.md` / `.codewhale/skills/dev-workflow/`.
+`AGENTS.md` / `.agents/skills/dev-workflow/`.
 
 ### 2. Skeleton
 
@@ -172,7 +172,7 @@ sudo nixos-rebuild dry-activate --flake .#<hostname>
 
 Commit, push, PR via `gh` (body via `--body-file`), CI check, merge, and
 main sync follow the standard workflow — see `AGENTS.md` /
-`.codewhale/skills/dev-workflow/`.
+`.agents/skills/dev-workflow/`.
 
 ## Bootstrap the private flake input
 

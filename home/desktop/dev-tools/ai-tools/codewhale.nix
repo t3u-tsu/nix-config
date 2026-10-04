@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 
@@ -38,8 +37,5 @@ in
 {
   config = mkIf cfg.enable {
     home.packages = [ codewhale ];
-
-    # hush (github:ro80t/hush, MIT): external skill for codewhale's comment ruleset.
-    home.file.".codewhale/skills/hush/SKILL.md".source = "${inputs.hush}/skills/hush/SKILL.md";
   };
 }

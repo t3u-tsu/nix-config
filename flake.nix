@@ -75,11 +75,6 @@
     };
 
     # === Developer Tools ===
-    # hush: external Agent Skill providing codewhale's comment ruleset. Source tree only.
-    hush = {
-      url = "github:ro80t/hush";
-      flake = false;
-    };
     unity-via-distrobox = {
       url = "github:t3u-tsu/unity-via-distrobox-flake";
       inputs.nixpkgs.follows = "nixpkgs";
