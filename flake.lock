@@ -363,22 +363,6 @@
         "type": "github"
       }
     },
-    "hush": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1789614683,
-        "narHash": "sha256-YU6VfwJbAtmLEPa10HeVJ9asBDrMTLwg2sT/ALpmc7E=",
-        "owner": "ro80t",
-        "repo": "hush",
-        "rev": "a7abe28a348647b7ffc31a7d5dd5fd90d54bbf87",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ro80t",
-        "repo": "hush",
-        "type": "github"
-      }
-    },
     "llama-cpp": {
       "inputs": {
         "flake-parts": [
@@ -772,7 +756,6 @@
         "ghostty": "ghostty",
         "git-hooks": "git-hooks",
         "home-manager": "home-manager_3",
-        "hush": "hush",
         "llama-cpp": "llama-cpp",
         "microvm": "microvm",
         "minecraft-discord-bridge": "minecraft-discord-bridge",
