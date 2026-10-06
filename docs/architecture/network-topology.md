@@ -49,9 +49,9 @@ flowchart TD
     Torii <-.->|メッシュシグナリング & Relay| BrokenPC
     Torii <-.->|メッシュシグナリング & Relay| X1C7
 
-    BrokenPC <==>|Direct P2P (Nebula)| Shosoin
-    X1C7 <==>|Direct P2P (Nebula)| Shosoin
-    Shosoin ==>|Restic SFTP (Nebula)| Kagutsuchi
+    BrokenPC <-->|"Direct P2P (Nebula)"| Shosoin
+    X1C7 <-->|"Direct P2P (Nebula)"| Shosoin
+    Shosoin -->|"Restic SFTP (Nebula)"| Kagutsuchi
 
     Router -.->|局所解決| HomeLAN
     Torii -.->|障害時切替| VPS

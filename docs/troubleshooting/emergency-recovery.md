@@ -60,9 +60,9 @@ flowchart TD
     USB["インストーラ USB で起動"] --> Identify["lsblk / blkid でパーティション確認"]
     Identify --> Type{ホストのストレージ種別}
 
-    Type -- "UEFI + GPT<br>(BrokenPC, x1c7, kagutsuchi)" --> MountA["mount root /mnt<br>mount efi /mnt/boot"]
-    Type -- "Legacy BIOS + ZFS<br>(shosoin-tan, sando-kun)" --> MountB["mount root SSD /mnt<br>mount boot /mnt/boot<br>zpool import -f -R /mnt tank-1tb"]
-    Type -- "SBC (SD + HDD)<br>(torii-chan)" --> MountC["mount NIXOS_HDD /mnt<br>mount NIXOS_SD /mnt/boot"]
+    Type -->|"UEFI + GPT<br>(BrokenPC, x1c7, kagutsuchi)"| MountA["mount root /mnt<br>mount efi /mnt/boot"]
+    Type -->|"Legacy BIOS + ZFS<br>(shosoin-tan, sando-kun)"| MountB["mount root SSD /mnt<br>mount boot /mnt/boot<br>zpool import -f -R /mnt tank-1tb"]
+    Type -->|"SBC (SD + HDD)<br>(torii-chan)"| MountC["mount NIXOS_HDD /mnt<br>mount NIXOS_SD /mnt/boot"]
 
     MountA --> Enter["nixos-enter --root /mnt"]
     MountB --> Enter

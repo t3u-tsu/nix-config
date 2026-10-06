@@ -21,14 +21,14 @@
 
 ```mermaid
 flowchart TD
-    Start["復号エラー発生"] --> Step1["ホストの age 鍵を確認<br>ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"]
+    Start["復号エラー発生"] --> Step1["ホストの age 鍵を確認<br>ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"]
     Step1 --> Step2{".sops.yaml の登録鍵と一致するか？"}
-    Step2 -- "No (鍵が変わっている)" --> Fix1[".sops.yaml の &hostname 鍵を更新<br>master 鍵で sops updatekeys を実行"]
-    Step2 -- "Yes" --> Step3{"/var/lib/sops-nix/key.txt は存在するか？"}
-    Step3 -- "No / 壊れている" --> Fix2["ssh-to-age で秘密鍵から key.txt を再生成<br>chmod 600 設定"]
-    Step3 -- "Yes" --> Step4{"対象 YAML の recipient に鍵が含まれているか？"}
-    Step4 -- "No" --> Fix3["master 鍵で対象 YAML を sops updatekeys"]
-    Step4 -- "Yes" --> OK["復号テスト成功"]
+    Step2 -->|"No (鍵が変わっている)"| Fix1[".sops.yaml の &hostname 鍵を更新<br>master 鍵で sops updatekeys を実行"]
+    Step2 -->|"Yes"| Step3{"/var/lib/sops-nix/key.txt は存在するか？"}
+    Step3 -->|"No / 壊れている"| Fix2["ssh-to-age で秘密鍵から key.txt を再生成<br>chmod 600 設定"]
+    Step3 -->|"Yes"| Step4{"対象 YAML の recipient に鍵が含まれているか？"}
+    Step4 -->|"No"| Fix3["master 鍵で対象 YAML を sops updatekeys"]
+    Step4 -->|"Yes"| OK["復号テスト成功"]
 ```
 
 #### Step 1: ホストの age 公開鍵を確認
