@@ -35,11 +35,9 @@ graph TD
 ## 2. 秘密情報のファイル構成
 
 - **`secrets/common.yaml`**:
-  全ホストで共有される共通シークレット．Nebula ルート CA 秘密鍵，`nix-config-private` 取得用 GitHub デプロイ鍵，Cloudflare API トークン等を含む．
+  全ホストで共有される共通シークレット．Nebula ルート CA 公開証明書（`nebula_ca`），`nix-config-private` 取得用 GitHub デプロイ鍵，Cloudflare API トークン等を含む．
 - **`secrets/hosts/<hostname>.yaml`**:
   ホスト個別のシークレット．ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵等を含む．
-- **`secrets/nebula/ca.crt`**:
-  Nebula メッシュのルート CA 公開証明書（暗号化不要のリポジトリ公開ファイル）．
 
 ---
 
@@ -58,14 +56,17 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/hosts/<hostname>.yaml
 
 ## 4. 年次証明書更新（Nebula 証明書ローテーション）
 
-Nebula のルート CA 証明書（`secrets/nebula/ca.crt`）は 10 年間有効だが，**各ノードに発行された証明書は 1 年間のみ有効** である（次回更新目安: 2027年8月）．
+Nebula のルート CA（`~/.nebula-ca/ca.crt`）は 10 年間有効だが，**各ノードに発行された証明書は 1 年間のみ有効** である（次回更新目安: 2027年8月）．
 
-### 一括更新手順
-クラスタ内の全ノード証明書を一括で再発行・更新するスクリプトが用意されている:
+### ノード証明書の年次更新手順
+管理者のオフライン CA ディレクトリで各ノードの証明書を再署名し，シークレットへ取り込む:
 ```bash
-# 全ホストのノード証明書を再発行して secrets/hosts/*.yaml にインポート
-scripts/nebula-rotate-ca.sh --nodes-only
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+
+# 各ノードの証明書を再署名後，SOPS へ一括インポート
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
 ```
+※CA 自体を更新する場合は，`bash scripts/nebula-rotate-ca.sh` を実行して全ノードを再発行する．
 更新後は `git commit` し，各ホストにデプロイを適用することでダウンタイムなしに新しい証明書へ切り替わる．
 
 ---

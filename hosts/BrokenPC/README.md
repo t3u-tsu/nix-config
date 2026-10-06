@@ -1,6 +1,6 @@
 # Host: BrokenPC (HP Victus 16-e1065AX)
 
-Primary workstation and gaming laptop featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
+Secondary portable laptop based at Base A and taken off-site, featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
 
 ## Hardware Specs
 - **CPU:** AMD Ryzen 7 6800H (Zen 3+, 8C/16T, up to 4.7 GHz)
@@ -14,12 +14,13 @@ Primary workstation and gaming laptop featuring a hybrid AMD iGPU and faulty NVI
 ## GPU Separation & Local LLM Service
 - **Display Renderer Isolation:** The dGPU suffers from a hardware-level 3D texture/rendering pipeline defect. All desktop display (Niri) and gaming rendering (Steam) are strictly locked to the stable AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload = false`.
 - **CUDA & Local LLM (`llama.cpp`):** Matrix compute (GEMM) circuits remain fully functional. The dGPU is utilized as a dedicated CUDA inference accelerator for `llama-server` (`services/llama.nix`, targeting SM 8.6).
-- **Power Management:** When idle, the dGPU is completely powered down via open kernel modules and RTD3 (`powerManagement.finegrained = true`).
+- **Power Management:** When idle, the dGPU is completely powered down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), minimizing battery drain when used portably.
 - For in-depth technical analysis and preset configurations, see [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md).
 
 ## Configuration Summary
 - **Profile:** `desktop`
 - **Nebula Mesh:** `10.0.0.100` (groups: `mgmt`, `app`)
+- **Mobility & Networking:** Operates both at Base A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
 - **Key Modules:**
   - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
   - Services: Local LLM (`my.services.llama`), SOPS secrets

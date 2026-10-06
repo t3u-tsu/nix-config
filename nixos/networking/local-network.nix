@@ -7,7 +7,7 @@ let
 in
 {
   options.my.networking.local-network = {
-    enable = mkEnableOption "Enable local network optimizations (e.g. DNS overrides for NAT loopback)";
+    enable = mkEnableOption "Enable local network optimizations (DNS override for direct LAN connection to torii-chan)";
 
     toriiChanIp = mkOption {
       type = types.str;
@@ -17,7 +17,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Router has no NAT loopback, so point the public name at the LAN IP locally.
+    # Point public name directly at local IP when collocated on the same router.
     networking.hosts = {
       "${cfg.toriiChanIp}" = [ "torii-chan.t3u.uk" ];
     };

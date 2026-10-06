@@ -6,7 +6,7 @@ This directory contains machine-specific definitions for all physical and virtua
 
 | Host | Profile | Architecture | Nebula IP | Hardware Model | Primary Roles |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[`BrokenPC`](BrokenPC/)** | `desktop` | `x86_64-linux` | `10.0.0.100` | HP Victus 16-e1065AX | Main workstation, local LLM inference |
+| **[`BrokenPC`](BrokenPC/)** | `desktop` | `x86_64-linux` | `10.0.0.100` | HP Victus 16-e1065AX | Secondary portable laptop (Base A / mobile), local LLM inference |
 | **[`x1c7`](x1c7/)** | `desktop` | `x86_64-linux` | `10.0.0.101` | ThinkPad X1 Carbon Gen 7 | Mobile laptop, low-latency UI |
 | **[`shosoin-tan`](shosoin-tan/)** | `tower-server` | `x86_64-linux` | `10.0.0.4` | Core i7-870 Tower | Minecraft server, Discord Bridge, ZFS Mirror |
 | **[`kagutsuchi-sama`](kagutsuchi-sama/)** | `tower-server` | `x86_64-linux` | `10.0.0.3` | Xeon E5-2650 v2 Tower | Compute server, Restic backup receiver |

@@ -1,109 +1,69 @@
 # ネットワーク障害トラブルシューティング
 
-本ドキュメントは，Nebula メッシュ VPN の不通障害，ルータの NAT Loopback 非対応による LAN 内アクセス遮断，および SSH 遮断発生時の物理コンソール経由での復旧手順を記述する．
+本ドキュメントは，Nebula メッシュ VPN の不通障害，および SSH 遮断発生時の物理コンソール経由での復旧手順を記述する．
 
 ---
 
-## 1. Nebula メッシュ不通時の調査
+## 1. Nebula メッシュ不通時の調査と復旧
 
 ### 現象・エラーメッセージ
-- `nebula0` 仮想ネットワークインターフェースが存在しない，またはリンクが down している．
-- 他のノード（`10.0.0.x`）や Lighthouse（`10.0.0.1`）宛ての ping / SSH がタイムアウトする．
-- `journalctl -u nebula@nebula0.service` に以下のエラーが記録される:
-  - `Handshake message received was invalid`
-  - `Certificate has expired`
-  - `Cannot authenticate: certificate expired or not yet valid`
-  - `Failed to listen on udp/4242: address already in use`
+- クラスター内ホストへの SSH 接続がタイムアウトする（例: `ssh t3u@10.0.0.X` で反応がない）．
+- ping 疎通が通らない（`ping 10.0.0.X` で `Destination Host Unreachable`）．
 
-### 原因
-1. **証明書の有効期限切れ**: ルート CA は 10 年有効だが，各ノードの証明書は **1 年有効** である．有効期限を過ぎるとハンドシェイクが即座に拒否される．
-2. **Lighthouse（`torii-chan`）のポート不通**: UDP 4242 番ポートがルータのポートフォワード未設定，ConoHa セキュリティグループの制限，または DDNS（`torii-chan.t3u.uk`）の解決先誤りによって遮断されている．
-3. **証明書メタデータの不一致**: `scripts/nebula-lib.sh` の `FLEET` 定義（IP，グループ）と異なる内容で証明書が署名されている．
-4. **MTU 不一致**: 回線経路（モバイル回線等）の制約によりパケットが断片化・ドロップしている（本環境の標準 MTU は 1320）．
+### 原因の切り分け
 
-### 切り分け・復旧手順
-
-#### Step 1: サービス状態とログの確認
-```bash
-systemctl status nebula@nebula0.service
-journalctl -u nebula@nebula0.service -e --no-pager
+```mermaid
+flowchart TD
+    Start["障害検知 (Nebula 疎通不可)"] --> CheckService{"nebula サービス稼働?"}
+    CheckService -- No --> RestartService["systemctl restart nebula@nebula0.service"]
+    CheckService -- Yes --> CheckCert{"証明書の有効期限切れ?"}
+    CheckCert -- Yes --> RefreshCert["nebula-cert sign & 再配布"]
+    CheckCert -- No --> CheckFirewall{"UDP 4242 受信許可?"}
+    CheckFirewall -- No --> FixFW["nftables / ルータの UDP 4242 開放"]
+    CheckFirewall -- Yes --> CheckLighthouse{"Lighthouse (torii-chan) 稼働?"}
+    CheckLighthouse -- No --> RescueLighthouse["torii-chan 復旧 または VPS フェイルオーバー"]
+    CheckLighthouse -- Yes --> OtherNet["物理 NIC / ルーティング障害調査"]
 ```
 
-#### Step 2: 証明書の検証（`nebula-cert print`）
-配備されている証明書の内容と有効期限を確認する:
-```bash
-sudo nebula-cert print -path /run/secrets/<hostkey>_nebula_cert
-sudo nebula-cert print -path /run/secrets/nebula_ca
-```
-- `Not After`: 有効期限が切れていないか確認．
-- `Ips`: [`docs/architecture/network-topology.md`](../architecture/network-topology.md) の IP 割当と一致しているか確認．
-- `Groups`: 必要な通信グループ（`mgmt`, `app` 等）が付与されているか確認．
+### 復旧手順
 
-#### Step 3: Lighthouse の外部疎通確認
-クライアント側から Lighthouse の名前解決と UDP ポート疎通を確認する:
+#### Step 1: サービス稼働状況の確認
+対象ホストで Nebula systemd ユニットの状態とログを確認する:
 ```bash
-# DDNS の A レコード確認
-dig +short torii-chan.t3u.uk
-
-# UDP 4242 番ポートの疎通確認
-nc -zvu torii-chan.t3u.uk 4242
+sudo systemctl status nebula@nebula0.service
+sudo journalctl -u nebula@nebula0.service -e --no-pager
 ```
 
-#### Step 4: 証明書の再署名と再配布
-証明書の期限切れまたは不整合が原因の場合，管理端末の CA 鍵（`~/.nebula-ca/`）から再署名を行う:
+#### Step 2: 証明書有効期限の検証
+Nebula ノード証明書は **1年更新** であるため，期限切れによるハンドシェイク拒否を確認する:
 ```bash
-# 1. 単一ノード証明書の再署名
-nix shell nixpkgs#nebula -c nebula-cert sign \
+# 証明書の詳細確認（有効期限 Not After を検証）
+nebula-cert print -path /etc/nebula/host.crt
+```
+期限切れの場合は，管理端末で証明書を再署名してシークレットを更新する:
+```bash
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+
+# ノード証明書の再発行
+nebula-cert sign \
   -name "<hostname>" \
-  -networks "10.0.0.<octet>/24" \
-  -groups "<groups>" \
-  -ca-crt ~/.nebula-ca/ca.crt \
-  -ca-key ~/.nebula-ca/ca.key \
-  -out-crt ~/.nebula-ca/<hostname>.crt \
-  -out-key ~/.nebula-ca/<hostname>.key
+  -ip "10.0.0.X/24" \
+  -groups "mgmt,..." \
+  -ca-crt "$CA_DIR/ca.crt" \
+  -ca-key "$CA_DIR/ca.key" \
+  -out-crt "$CA_DIR/<hostname>.crt" \
+  -out-key "$CA_DIR/<hostname>.key"
 
-# 2. SOPS へのインポート（master 鍵を使用）
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh
+# SOPS へのインポート
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
 
-# 3. コミットと各ホストへのデプロイ
-git add secrets/
+git add secrets/hosts/<hostname>.yaml
 git commit -m "fix(nebula): refresh certificate for <hostname>"
 ```
 
 ---
 
-## 2. 実家ルータの NAT loopback 非対応による LAN 内アクセス不能と local-network.nix
-
-### 現象・エラーメッセージ
-実家 LAN（`192.168.0.0/24`）の Wi-Fi や有線 LAN に接続された端末から，パブリックドメイン（`torii-chan.t3u.uk` や `mc.t3u.uk`）へアクセスしようとすると接続がタイムアウトまたは拒否される．一方，外部インターネット（自宅回線やモバイル回線等）からは正常にアクセスできる．
-
-### 原因
-実家に設置されているルータ（`192.168.0.1`）が **NAT Loopback（ヘアピン NAT）** に対応していない．このため，実家 LAN 内のノードから自ルータの WAN 側グローバル IP 宛てに送られたパケットが，実家 LAN 内のエッジゲートウェイ（`torii-chan`: `192.168.0.128`）へ正しく転送されずルータ内部で破棄される．
-
-### 対策・復旧手順
-
-#### 対策 1: `local-network.nix` モジュールの有効化
-実家 LAN に常設される端末や実家滞在時のホストにおいて，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) を有効化する:
-
-```nix
-# hosts/<hostname>/default.nix
-my.networking.local-network.enable = true;
-```
-
-これにより，システム内の `/etc/hosts` に `192.168.0.128 torii-chan.t3u.uk` が静的に登録され，ルータを経由せず実家 LAN 内直接通信が行われる．また `/etc/gai.conf` で IPv4 優先接続が設定される．
-
-#### 対策 2: 一時的な hosts 上書き（手動）
-設定反映前の緊急対応として，一時的に手動で解決エントリを追加する:
-```bash
-sudo sh -c 'echo "192.168.0.128 torii-chan.t3u.uk" >> /etc/hosts'
-```
-
-> [!NOTE]
-> 自宅（`192.168.42.0/24`）にあるサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun` 等）やモバイル端末は，外部インターネット / Nebula 経由で `torii-chan.t3u.uk` に接続するため，このモジュールを有効化する必要はない（無効またはコメントアウトのままとする）．
-
----
-
-## 3. SSH 接続が拒否された場合の物理コンソール・ローカル接続手順
+## 2. SSH 接続が拒否された場合の物理コンソール・ローカル接続手順
 
 ### 現象・エラーメッセージ
 物理 LAN 内の別端末から SSH 接続を試行した際，以下のエラーとなり接続できない:
@@ -133,7 +93,7 @@ sequenceDiagram
     Admin->>PC: sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
     Note over PC,FW: 一時的に LAN ポート 22 を開放
     Admin->>Term: 作業端末へ戻る
-    Term->>PC: ssh t3u@192.168.0.X (LAN 経由ログイン成功)
+    Term->>PC: ssh t3u@192.168.x.x (LAN 経由ログイン成功)
     Term->>PC: nebula@nebula0 障害調査・修復
     Term->>PC: sudo nixos-rebuild switch --flake .#hostname
     Note over PC,FW: ファイアウォールが安全な状態へ復元
@@ -152,10 +112,10 @@ sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
 ```
 
 #### Step 3: 作業端末からのリモート復旧
-作業端末から LAN IP（`192.168.0.X`）宛てに SSH 接続し，Nebula サービスを修復する:
+作業端末から LAN IP（`192.168.x.x`）宛てに SSH 接続し，Nebula サービスを修復する:
 ```bash
 # 作業端末から実行
-ssh t3u@192.168.0.X
+ssh t3u@192.168.x.x
 
 # Nebula ログ確認と再起動
 sudo systemctl restart nebula@nebula0.service
@@ -175,5 +135,4 @@ sudo nixos-rebuild switch --flake .#<hostname>
 - [VPS フェイルオーバー手順](../operations/vps-failover.md)
 - [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md)
 - [Nebula モジュール実装](../../nixos/networking/nebula.nix)
-- [NAT Loopback 対策モジュール](../../nixos/networking/local-network.nix)
 - [タワーサーバー セキュリティ設定](../../nixos/profiles/tower-server/security.nix)

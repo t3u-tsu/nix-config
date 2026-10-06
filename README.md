@@ -49,7 +49,7 @@ Sensitive data is isolated in a private repository ([`nix-config-private`](https
 Available host configurations (defined in `flake/hosts.nix`):
 
 - **`x1c7`** — Laptop (ThinkPad X1 Carbon Gen 7)
-- **`BrokenPC`** — Workstation / Gaming Laptop (HP Victus 16-e1065AX)
+- **`BrokenPC`** — Secondary portable laptop (HP Victus 16-e1065AX)
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — Tower server cluster
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Edge VPN gateway on an Orange Pi Zero 3 SBC (SD / HDD boot)
 - **`torii-chan-vps`** — Failover gateway on ConoHa VPS (x86_64)

@@ -16,7 +16,7 @@ flowchart LR
     end
 
     subgraph LocalBackup["ローカルバックアップ (同一ホスト)"]
-        ZFS["ZFS Mirror プール<br>/mnt/tank-1tb/backups/restic"]
+        ZFS["ZFS Mirror プール<br>/mnt/tank-1tb/backups/minecraft"]
     end
 
     subgraph RemoteBackup["リモートバックアップ (Nebula 経由)"]
@@ -30,11 +30,11 @@ flowchart LR
 
 ### バックアップ仕様
 - **実行頻度**: 2 時間ごと（`systemd.timers`）
-- **暗号化**: Restic 固有の暗号化パスワード（`secrets/hosts/shosoin-tan.yaml` 内に格納）
+- **暗号化**: Restic 固有の暗号化パスワード（`secrets/services/backup.yaml` 内の `restic_password`）
 - **保持世代ポリシー**:
   - `keep-daily: 7`（直近 7 日分）
   - `keep-weekly: 4`（直近 4 週分）
-  - `keep-monthly: 12`（直近 12 ヶ月分）
+  - `keep-monthly: 6`（直近 6 ヶ月分）
 
 ---
 
@@ -43,11 +43,11 @@ flowchart LR
 新しいバックアップ先を構築する際，またはリポジトリを初期化する際の手順である．
 
 1. **シークレット確認**:
-   パスワードが `secrets/hosts/shosoin-tan.yaml` の `restic.password` に登録されていることを確認する．
+   パスワードが `secrets/services/backup.yaml` の `restic_password` に登録されていることを確認する．
 2. **リポジトリの初期化**:
    ```bash
    # ローカルリポジトリの初期化
-   sudo -u restic restic -r /mnt/tank-1tb/backups/restic init
+   sudo -u restic restic -r /mnt/tank-1tb/backups/minecraft init
 
    # リモート SFTP リポジトリの初期化 (kagutsuchi-sama 宛て)
    sudo -u restic restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan init
@@ -60,16 +60,16 @@ flowchart LR
 ### バックアップ状況の確認
 ```bash
 # shosoin-tan 上で実行
-systemctl status restic-backups-local.service
-systemctl status restic-backups-remote.service
+systemctl status restic-backups-local-backup.service
+systemctl status restic-backups-remote-backup.service
 ```
 
 ### スナップショット一覧の表示
 ```bash
 # パスワード環境変数を読み込んでスナップショット一覧を確認
-export RESTIC_PASSWORD=$(sudo sops -d --extract '["restic"]["password"]' /var/lib/sops-nix/secrets.yaml)
+export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
 
-restic -r /mnt/tank-1tb/backups/restic snapshots
+restic -r /mnt/tank-1tb/backups/minecraft snapshots
 ```
 
 ---
