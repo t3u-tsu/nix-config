@@ -82,12 +82,7 @@ Follow the comprehensive step-by-step runbook in [`docs/operations/adding-a-host
 
 ## Documentation
 
-Comprehensive architecture designs, operational runbooks, hardware guides, and troubleshooting procedures are documented in [`docs/`](docs/):
-
-- [Documentation Hub: `docs/README.md`](docs/README.md)
-- [Architecture & Layer Evaluation: `docs/architecture/overview.md`](docs/architecture/overview.md)
-- [Network Topology & Mesh VPN: `docs/architecture/network-topology.md`](docs/architecture/network-topology.md)
-- [Adding a New Host: `docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md)
+Comprehensive architecture designs, operational runbooks, hardware guides, and troubleshooting procedures are documented in [`docs/README.md`](docs/README.md).
 
 ## References
 
