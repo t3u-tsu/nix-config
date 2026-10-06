@@ -14,7 +14,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```bash
    nix flake check
    ```
-   `nix flake check` は pre-commit hooks も実行する．また flake は git 追跡下のものを見るので実行の際は `git add` をする必要がある．
+   `nix flake check` は pre-commit hooks（nixfmt, statix, shellcheck, ja-punctuation, convco 等）も実行する．また Flake は git 追跡下のファイルのみを参照するため，新規作成・変更ファイルは事前に `git add -A`（または `git add -N`）しておく必要がある．
    個別に nixfmt を実行する場合は**ファイル単位**で指定する:
    ```bash
    nixfmt --check <file>
@@ -23,12 +23,13 @@ description: このリポジトリで設定変更を適用するときの手順�
    - statix: 同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．引数が空の場合は `{ ... }:` ではなく `_:` を使用する．
    - shellcheck は `scripts/*.sh` が対象で `-x` 付き（`nebula-lib.sh` の source を追う）．
    - ja-punctuation は `.md` が対象．**日本語文書の句読点は `，．` を使う**（他の句読点はフックが自動置換する）．
+   - convco はコミットメッセージの Conventional Commits 準拠を検証する．
    - end-of-file-fixer は全テキストファイルの末尾改行を揃える．`_sources/generated.{json,nix}` は nvfetcher の生成物なので除外している．
    - trim-trailing-whitespace は行末の空白を落とす．Markdown の行末スペース2つは改行の意味を持つため，改行したい場合は `<br>` を使う．
 
-   設定がビルドできることを確認する場合:
+   設定がビルドできることを確認する場合（事前ビルド）:
    ```bash
-   nixos-rebuild build --flake .#<hostname>
+   nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link
    ```
 
 4. **適用**:
@@ -38,7 +39,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>
    ```
    実行するとデスクトップ上に Polkit の GUI 認証ダイアログ（実行コマンドが表示される）がポップアップし，ユーザーが指紋認証やパスワード入力で承認・認証を行う．
-   特権昇格の保留時間を最小化するため，**必ず事前にビルド（`nixos-rebuild build --flake .#<hostname>` または `nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link`）を完了させてから実行する**．これにより，ユーザーの認証直後に瞬時に切り替えが完了する．
+   特権昇格の保留時間を最小化するため，**必ず事前にビルド（`nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link`）を完了させてから実行する**．これにより，ユーザーの認証直後に瞬時に切り替えが完了する．
 
    ヘッドレス環境（torii-chan など）・SSH 経由・Polkit が利用できない場合のフォールバックでは，従来どおりユーザー自身が実行する:
    ```bash
@@ -58,7 +59,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
    `main` 直 push は `git push origin main`．
 
-6. **PR（`gh`）**: ユーザー承認のうえ実行する． git の履歴を残すため，基本的にマージは PR を作成しリモートブランチ上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
+6. **PR（`gh`）**: ユーザー承認のうえ実行する．Git デフォルトのローカルマージコミットメッセージ（`Merge branch ...`）は `convco` フックで拒否されるため，マージは必ず GitHub PR を作成してリモート上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
    ```bash
    cat > /tmp/pr-body.md <<'EOF'
    feat: topic description
@@ -69,4 +70,5 @@ description: このリポジトリで設定変更を適用するときの手順�
    gh pr merge --merge --delete-branch
    git checkout main
    git pull origin main
+   git branch -d feat/topic-name  # ローカルブランチの後始末
    ```
