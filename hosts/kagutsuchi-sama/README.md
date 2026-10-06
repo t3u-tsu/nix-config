@@ -1,80 +1,37 @@
-# Host: kagutsuchi-sama (Xeon E5 Compute Server)
+# Host: kagutsuchi-sama (Compute Server & Backup Receiver)
 
-This host is a high-power tower server used for heavy workloads and compute tasks. It previously served as the Minecraft server and Update Producer, roles that have since been migrated to `shosoin-tan`.
+High-power tower server used for compute workloads and serving as the primary remote backup receiver for `shosoin-tan`.
 
 ## Hardware Specs
-- **CPU:** Xeon E5-2650 v2 (8C/16T)
-- **GPU:** GTX 980 Ti (Maxwell)
-- **RAM:** 16GB
+- **CPU:** Intel Xeon E5-2650 v2 (8C/16T, 2.60 GHz)
+- **GPU:** NVIDIA GeForce GTX 980 Ti (Maxwell)
+- **RAM:** 16 GB DDR3
 - **Storage:**
-  - 500GB SSD (Root/Boot)
-  - 3TB HDD (Data)
+  - 500 GB SSD (Root / Boot, ext4 / vfat)
+  - 3 TB HDD (`/mnt/data`, ext4)
 
-## Installation Guide
+## Configuration Summary
+- **Profile:** `tower-server`
+- **Roles:**
+  - **Compute Server:** GPU compute and heavy compilation workloads.
+  - **Remote Backup Receiver:** Hosts SFTP receiver account `restic-shosoin` saving encrypted Restic snapshots to `/mnt/data/backups/shosoin-tan` (see [`docs/operations/backup-and-restore.md`](../../docs/operations/backup-and-restore.md)).
+- **Nebula Mesh:** `10.0.0.3` (groups: `server`, `mgmt`, `backup-receiver`)
+- **SSH Access:** Restricted to `nebula0` (Nebula mesh only).
 
-Run these commands from the NixOS Installer environment (via SSH).
+## Installation
+Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
 
-1. **Partition and Mount Disks** (layout defined in `hardware.nix`; verify device names with `lsblk`):
-   ```bash
-   # 500GB SSD (system): /boot (vfat), / (ext4)
-   ssh root@<ip> "parted /dev/sda -- mklabel gpt && \
-     parted /dev/sda -- mkpart ESP fat32 1MiB 512MiB && \
-     parted /dev/sda -- set 1 esp on && \
-     parted /dev/sda -- mkpart primary ext4 512MiB 100% && \
-     mkfs.fat -F 32 /dev/sda1 && \
-     mkfs.ext4 /dev/sda2 && \
-     mount /dev/sda2 /mnt && \
-     mkdir -p /mnt/boot && \
-     mount /dev/sda1 /mnt/boot"
+Disk partition layout:
+- `/dev/sda`: 500 GB SSD (`/boot` 512M fat32, `/` ext4)
+- `/dev/sdb`: 3 TB HDD (`/mnt/data` ext4)
 
-   # 3TB HDD (data): /mnt/data (ext4)
-   ssh root@<ip> "parted /dev/sdb -- mklabel gpt && \
-     parted /dev/sdb -- mkpart primary ext4 1MiB 100% && \
-     mkfs.ext4 /dev/sdb1 && \
-     mkdir -p /mnt/data && \
-     mount /dev/sdb1 /mnt/data"
-   ```
+## Quick Operations
+```bash
+# Rebuild remotely over Nebula
+nixos-rebuild switch --flake .#kagutsuchi-sama --target-host t3u@10.0.0.3 --sudo --ask-sudo-password
+```
 
-2. **Place SOPS Key:** (CRITICAL for password management)
-   `sops-nix` decrypts secrets during `nixos-install`, so the identity at
-   `/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/kagutsuchi-sama.yaml`
-   (master + host key; the user key is excluded). Use the offline master age key,
-   or the host key derived from the SSH host key registered in `.sops.yaml`
-   (see [`hosts/README.md`](../README.md)):
-   ```bash
-   ssh root@<ip> "mkdir -p /mnt/var/lib/sops-nix"
-   cat /path/to/master-age-key.txt | ssh root@<ip> "cat > /mnt/var/lib/sops-nix/key.txt"
-   ```
-
-3. **Bootstrap the private flake input** on the installer — it has no
-   `github-nix-config-private` ssh alias yet, so the flake cannot be evaluated
-   without it (see
-   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)).
-4. **Install NixOS:**
-   ```bash
-   ssh root@<ip> "nixos-install --flake github:t3u-tsu/nix-config#kagutsuchi-sama"
-   ```
-
-5. **Reboot:**
-   ```bash
-   ssh root@<ip> "reboot"
-   ```
-
-## Access
-- **Management IP:** `10.0.0.3` (Nebula mesh)
-- **SSH Restriction:** SSH is restricted to the Nebula (`nebula0`) mesh ONLY.
-- **User:** `t3u` (with wheel/sudo privileges)
-- **Password:** Defined in `secrets/hosts/kagutsuchi-sama.yaml` (managed via sops-nix).
-- **SSH Key:** Enabled for `t3u` and `root`.
-
-## Known Issue: NAT Loopback
-When this host is on the same LAN as the VPN server (`torii-chan`), the VPN can
-fail because the router does not support NAT loopback for `torii-chan.t3u.uk`.
-
-Set `my.networking.local-network.enable = true;` in
-`hosts/kagutsuchi-sama/default.nix` (commented out by default). It resolves
-`torii-chan.t3u.uk` to the local IP `192.168.0.128`.
-
-**Important:** if this host moves outside the local VPN LAN, keep
-`my.networking.local-network.enable = false;` (or commented out) so it resolves
-the VPN server from the outside.
+## References
+- Backup architecture & DR: [`docs/operations/backup-and-restore.md`](../../docs/operations/backup-and-restore.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

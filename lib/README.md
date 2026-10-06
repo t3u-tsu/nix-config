@@ -17,3 +17,7 @@ Used by `flake/hosts.nix` for every `nixosConfigurations` entry.
 Vesper color palette as hex strings, shared by the home modules and by
 `nixos/services/desktop/greetd.nix`. Consumers convert the values to their own
 notation.
+
+## References
+- Flake & module architecture: [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)
+- Evaluation overview: [`docs/architecture/overview.md`](../docs/architecture/overview.md)

@@ -92,3 +92,8 @@ groups (see `hosts/torii-chan/vps.nix`).
   so register the new key in `.sops.yaml` after flashing.
 - Keep `sops.age.generateKey = false`; a random age key cannot decrypt
   host-key-encrypted secrets.
+
+## References
+- Secret lifecycle & rotation guide: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
+- Secrets & authentication troubleshooting: [`docs/troubleshooting/secrets-and-auth.md`](../docs/troubleshooting/secrets-and-auth.md)
+- Adding a new host runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)

@@ -14,3 +14,7 @@ System-wide NixOS configuration, imported for all hosts via `nixos/default.nix`.
 - [`profiles/`](profiles/): Role-based host profiles (desktop, gateway, sbc, tower-server).
 - [`services/`](services/): System services — backups, Minecraft network, desktop services, Discord bridge.
 - [`virtualisation/`](virtualisation/): Virtualisation — container environments and microVM guests.
+
+## References
+- System evaluation architecture: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
+- Custom module options (`my.*`): [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)
