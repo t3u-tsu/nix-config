@@ -114,3 +114,7 @@ Edge cases:
 - **Cost**: the 512MB plan costs ¥459/month. `apply` starts billing immediately
 - **admin_pass changes recreate the instance** (force new), so settle it before applying
 - **On destroy**: volumes, security groups, and keypairs are also deleted (watch out for leftover resources after instance deletion)
+
+## References
+- VPS failover & recovery runbook: [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md)
+- Network topology: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)

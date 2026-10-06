@@ -287,3 +287,9 @@ swapfile at boot).
 
 ### Firewall Log Suppression
 `logRefusedConnections = false` suppresses noise on this internet-exposed host.
+
+## References
+- SBC hardware & U-Boot guide: [`docs/hardware/orange-pi-zero3.md`](../../docs/hardware/orange-pi-zero3.md)
+- VPS failover & recovery runbook: [`docs/operations/vps-failover.md`](../../docs/operations/vps-failover.md)
+- Network topology & NAT forwarding: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Adding a host runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

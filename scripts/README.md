@@ -22,3 +22,8 @@ Operator-run scripts (not part of the NixOS build).
 
 Both Nebula scripts read `FLEET` from `nebula-lib.sh`; cert basenames and SOPS key
 prefixes are derived from it.
+
+## References
+- Secret & certificate lifecycle: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
+- Adding a new host runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
+- Network topology & IP allocation: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)
