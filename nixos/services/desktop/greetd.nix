@@ -57,6 +57,9 @@ in
         user = {
           default = config.my.user.name;
         };
+        auth = {
+          allow_empty_password = true;
+        };
         appearance = {
           # Noctalia Sync is not used here (prompted flow is noisy and
           # passwordless sync needs greeter >= 1.5.0), so pin the Vesper
