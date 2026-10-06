@@ -15,7 +15,7 @@ Lenovo ThinkPad X1 Carbon Gen 7 (20QES11500) running NixOS with Niri (Wayland), 
 ## Configuration Summary
 - **Profile:** `desktop`
 - **Kernel:** `pkgs.linuxPackages_xanmod` (low latency, high interactive responsiveness)
-- **Nebula Mesh:** `10.0.0.101` (groups: `client`, `mgmt`)
+- **Nebula Mesh:** `10.0.0.101` (groups: `mgmt`, `app`)
 - **Key Modules & Tuning:**
   - **Power & Thermals:** TLP battery charge thresholds (75/80%), `throttled` PL1/PL2 power envelope management, Noctalia power-profile D-Bus widget integration.
   - **Memory & Swap:** zram (100% RAM) + 16 GiB swapfile with `vm.watermark_scale_factor = 125` to eliminate OOM spikes during parallel builds.

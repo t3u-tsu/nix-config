@@ -13,7 +13,7 @@ General-purpose legacy tower server equipped with an Intel Core i7-860, 250 GB s
 ## Configuration Summary
 - **Profile:** `tower-server`
 - **Bootloader:** Legacy BIOS (MBR), `boot.loader.grub.efiSupport = false`
-- **Nebula Mesh:** `10.0.0.5` (groups: `server`, `mgmt`)
+- **Nebula Mesh:** `10.0.0.2` (groups: `server`, `mgmt`)
 - **SSH Access:** Restricted to `nebula0` (Nebula mesh only).
 
 ## Installation
@@ -26,7 +26,7 @@ Disk layout (MBR / msdos):
 ## Quick Operations
 ```bash
 # Rebuild remotely over Nebula
-nixos-rebuild switch --flake .#sando-kun --target-host t3u@10.0.0.5 --sudo --ask-sudo-password
+nixos-rebuild switch --flake .#sando-kun --target-host t3u@10.0.0.2 --sudo --ask-sudo-password
 ```
 
 ## References

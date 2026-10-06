@@ -19,7 +19,7 @@ Primary workstation and gaming laptop featuring a hybrid AMD iGPU and faulty NVI
 
 ## Configuration Summary
 - **Profile:** `desktop`
-- **Nebula Mesh:** `10.0.0.6` (groups: `workstation`, `mgmt`)
+- **Nebula Mesh:** `10.0.0.100` (groups: `mgmt`, `app`)
 - **Key Modules:**
   - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
   - Services: Local LLM (`my.services.llama`), SOPS secrets

@@ -72,25 +72,25 @@ git commit -m "fix(nebula): refresh certificate for <hostname>"
 
 ---
 
-## 2. ルータの NAT loopback 非対応による LAN 内アクセス不能と local-network.nix
+## 2. 実家ルータの NAT loopback 非対応による LAN 内アクセス不能と local-network.nix
 
 ### 現象・エラーメッセージ
-宅内 LAN の Wi-Fi や有線 LAN に接続された端末から，パブリックドメイン（`torii-chan.t3u.uk` や `mc.t3u.uk`）へアクセスしようとすると接続がタイムアウトまたは拒否される．一方，外部インターネット（LTE / テザリング等）からは正常にアクセスできる．
+実家 LAN（`192.168.0.0/24`）の Wi-Fi や有線 LAN に接続された端末から，パブリックドメイン（`torii-chan.t3u.uk` や `mc.t3u.uk`）へアクセスしようとすると接続がタイムアウトまたは拒否される．一方，外部インターネット（自宅回線やモバイル回線等）からは正常にアクセスできる．
 
 ### 原因
-宅内に設置されているルータが **NAT Loopback（ヘアピン NAT）** に対応していない．このため，LAN 内のノードから自ルータの WAN 側グローバル IP 宛てに送られたパケットが，LAN 内のエッジゲートウェイ（`torii-chan`: `192.168.0.128`）へ正しく転送されずルータ内部で破棄される．
+実家に設置されているルータ（`192.168.0.1`）が **NAT Loopback（ヘアピン NAT）** に対応していない．このため，実家 LAN 内のノードから自ルータの WAN 側グローバル IP 宛てに送られたパケットが，実家 LAN 内のエッジゲートウェイ（`torii-chan`: `192.168.0.128`）へ正しく転送されずルータ内部で破棄される．
 
 ### 対策・復旧手順
 
 #### 対策 1: `local-network.nix` モジュールの有効化
-宅内 LAN に常設されるサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun` 等）の `hosts/<hostname>/default.nix` において，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) を有効化する:
+実家 LAN に常設される端末や実家滞在時のホストにおいて，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) を有効化する:
 
 ```nix
 # hosts/<hostname>/default.nix
 my.networking.local-network.enable = true;
 ```
 
-これにより，システム内の `/etc/hosts` に `192.168.0.128 torii-chan.t3u.uk` が静的に登録され，ルータを経由せず LAN 内直接通信が行われる．また `/etc/gai.conf` で IPv4 優先接続が設定される．
+これにより，システム内の `/etc/hosts` に `192.168.0.128 torii-chan.t3u.uk` が静的に登録され，ルータを経由せず実家 LAN 内直接通信が行われる．また `/etc/gai.conf` で IPv4 優先接続が設定される．
 
 #### 対策 2: 一時的な hosts 上書き（手動）
 設定反映前の緊急対応として，一時的に手動で解決エントリを追加する:
@@ -98,17 +98,17 @@ my.networking.local-network.enable = true;
 sudo sh -c 'echo "192.168.0.128 torii-chan.t3u.uk" >> /etc/hosts'
 ```
 
-> [!WARNING]
-> モバイルラップトップ（`x1c7`）などの外出先へ持ち出す端末では，宅外で `torii-chan.t3u.uk` に接続できなくなるため，`local-network.enable` を有効化してはならない．
+> [!NOTE]
+> 自宅（`192.168.42.0/24`）にあるサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun` 等）やモバイル端末は，外部インターネット / Nebula 経由で `torii-chan.t3u.uk` に接続するため，このモジュールを有効化する必要はない（無効またはコメントアウトのままとする）．
 
 ---
 
 ## 3. SSH 接続が拒否された場合の物理コンソール・ローカル接続手順
 
 ### 現象・エラーメッセージ
-LAN 内の別端末から SSH 接続を試行した際，以下のエラーとなり接続できない:
+物理 LAN 内の別端末から SSH 接続を試行した際，以下のエラーとなり接続できない:
 ```text
-ssh: connect to host 192.168.0.X port 22: Connection refused
+ssh: connect to host 192.168.x.x port 22: Connection refused
 ```
 
 ### 原因

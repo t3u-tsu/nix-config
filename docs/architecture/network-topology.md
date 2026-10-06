@@ -1,12 +1,12 @@
 # ネットワークアーキテクチャ
 
-本ドキュメントは，本リポジトリで管理されている全ホスト間のオーバーレイネットワーク（Nebula），WAN/LAN 接続経路，ポートフォワーディング，およびセキュリティ境界の設計仕様を記述する．
+本ドキュメントは，本リポジトリで管理されている全ホスト間のオーバーレイネットワーク（Nebula），拠点間（実家・自宅・クラウド）の物理・論理トポロジ，WAN/LAN 接続経路，ポートフォワーディング，およびセキュリティ境界の設計仕様を記述する．
 
 ---
 
-## 1. ネットワーク全体トポロジ
+## 1. マルチサイト・ネットワーク全体トポロジ
 
-全ホストは **Nebula メッシュ VPN**（`10.0.0.0/24`, MTU 1320）によって相互接続されている．外部インターネット（WAN）からの公開トラフィックは，エッジゲートウェイ（`torii-chan`）経由で安全に内部サーバーへルーティングされる．
+本環境は **実家**（エッジゲートウェイ・Lighthouse），**自宅**（サーバークラスタ・メイン端末群），および **クラウド**（待機系 VPS）の複数拠点に分散しており，これらを **Nebula メッシュ VPN**（`10.0.0.0/24`, MTU 1320）でシームレスに相互接続している．
 
 ```mermaid
 flowchart TD
@@ -15,90 +15,95 @@ flowchart TD
         CF["Cloudflare DNS (DDNS)"]
     end
 
-    subgraph Edge["エッジゲートウェイ (10.0.0.1)"]
-        Torii["torii-chan (Orange Pi Zero 3)<br>・Nebula Lighthouse & Relay<br>・Cloudflare DDNS 更新<br>・nftables NAT / ポートフォワード"]
+    subgraph ParentsHome["【実家】 (LAN: 192.168.0.0/24)"]
+        PRouter["実家ルータ (192.168.0.1)<br>※ NAT Loopback 非対応"]
+        Torii["torii-chan (10.0.0.1 / 192.168.0.128)<br>Orange Pi Zero 3 SBC<br>・Nebula Lighthouse & Relay<br>・Cloudflare DDNS 更新<br>・nftables ポートフォワード (:25565)"]
+        PRouter --- Torii
     end
 
-    subgraph Failover["フェイルオーバー (10.0.0.10)"]
-        VPS["torii-chan-vps (ConoHa VPS)<br>・待機系 Lighthouse & Relay<br>・SBC 障害時に切替"]
+    subgraph Failover["【クラウド】 (待機系 VPS)"]
+        VPS["torii-chan-vps (10.0.0.10)<br>ConoHa VPS (x86_64)<br>・待機系 Lighthouse & Relay<br>・SBC 障害時にフェイルオーバー"]
     end
 
-    subgraph HomeLAN["自宅 LAN (192.168.0.0/24)"]
-        direction TB
-        Router["宅内ルータ (192.168.0.1)<br>※ NAT Loopback 非対応"]
+    subgraph MyHome["【自宅】 (LAN: 192.168.42.0/24)"]
+        HRouter["自宅ルータ (192.168.42.1)"]
 
-        subgraph Servers["サーバーゾーン (Nebula: 10.0.0.0/24)"]
+        subgraph Servers["サーバー群 (Nebula: 10.0.0.0/24)"]
             Shosoin["shosoin-tan (10.0.0.4)<br>・Minecraft サーバー (:25565)<br>・Discord Bridge DB<br>・ZFS Mirror"]
             Kagutsuchi["kagutsuchi-sama (10.0.0.3)<br>・Restic バックアップレシーバー<br>・計算サーバー"]
-            Sando["sando-kun (10.0.0.5)<br>・サブサーバー"]
+            Sando["sando-kun (10.0.0.2)<br>・汎用タワーサーバー"]
         end
 
-        subgraph Clients["クライアントゾーン"]
-            BrokenPC["BrokenPC (10.0.0.6)<br>デスクトップ / LLM サーバー"]
-            X1C7["x1c7 (10.0.0.2)<br>ThinkPad ラップトップ"]
+        subgraph Clients["クライアント群"]
+            BrokenPC["BrokenPC (10.0.0.100)<br>メインデスクトップ / LLM サーバー"]
+            X1C7["x1c7 (10.0.0.101)<br>ThinkPad ラップトップ"]
         end
+
+        HRouter --- Servers
+        HRouter --- Clients
     end
 
     User -->|WAN 接続| CF
     CF -->|DDNS IP| Torii
-    Torii -->|DNAT :25565| Shosoin
+    Torii -->|"DNAT :25565 (Nebula経由)"| Shosoin
 
-    Torii <-.->|メッシュシグナリング & Relay| Shosoin
-    Torii <-.->|メッシュシグナリング & Relay| Kagutsuchi
-    Torii <-.->|メッシュシグナリング & Relay| Sando
-    Torii <-.->|メッシュシグナリング & Relay| BrokenPC
-    Torii <-.->|メッシュシグナリング & Relay| X1C7
+    Torii <-.->|"メッシュシグナリング & Relay"| Shosoin
+    Torii <-.->|"メッシュシグナリング & Relay"| Kagutsuchi
+    Torii <-.->|"メッシュシグナリング & Relay"| Sando
+    Torii <-.->|"メッシュシグナリング & Relay"| BrokenPC
+    Torii <-.->|"メッシュシグナリング & Relay"| X1C7
 
-    BrokenPC <-->|"Direct P2P (Nebula)"| Shosoin
-    X1C7 <-->|"Direct P2P (Nebula)"| Shosoin
-    Shosoin -->|"Restic SFTP (Nebula)"| Kagutsuchi
+    BrokenPC <-->|"Direct P2P (Nebula / 自宅LAN)"| Shosoin
+    X1C7 <-->|"Direct P2P (Nebula / 自宅LAN)"| Shosoin
+    Shosoin -->|"Restic SFTP (Nebula: 10.0.0.3)"| Kagutsuchi
 
-    Router -.->|局所解決| HomeLAN
-    Torii -.->|障害時切替| VPS
+    Torii -.->|"障害時切替"| VPS
 ```
 
 ---
 
 ## 2. Nebula IP アロケーション台帳
 
-全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置されている．
+全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置されている（正本: [`scripts/nebula-lib.sh`](../../scripts/nebula-lib.sh) の `FLEET` 定義）．
 
-| ホスト名 | Nebula IP | ロール / グループ | 役割・用途 |
-| :--- | :--- | :--- | :--- |
-| **`torii-chan`** | `10.0.0.1` | `lighthouse`, `relay`, `gateway` | プライマリ Lighthouse & Relay，WAN NAT ゲートウェイ |
-| **`x1c7`** | `10.0.0.2` | `client`, `mgmt` | モバイルラップトップ（ThinkPad X1C7） |
-| **`kagutsuchi-sama`** | `10.0.0.3` | `server`, `mgmt`, `backup-receiver` | 計算サーバー，Restic リモートバックアップ保管庫 |
-| **`shosoin-tan`** | `10.0.0.4` | `server`, `mgmt`, `app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
-| **`sando-kun`** | `10.0.0.5` | `server`, `mgmt` | サブサーバー |
-| **`BrokenPC`** | `10.0.0.6` | `workstation`, `mgmt` | メインワークステーション，ローカル LLM サーバー |
-| **`torii-chan-vps`** | `10.0.0.10` | `lighthouse`, `relay`, `vps` | ConoHa VPS 上の待機系フェイルオーバーゲートウェイ |
+| ホスト名 | Nebula IP | 物理拠点 / 内部 LAN | ロール / グループ | 役割・用途 |
+| :--- | :--- | :--- | :--- | :--- |
+| **`torii-chan`** | `10.0.0.1` | **実家** (`192.168.0.128`) | `mgmt` | プライマリ Lighthouse & Relay，WAN ポートフォワードゲートウェイ |
+| **`sando-kun`** | `10.0.0.2` | **自宅** (`192.168.42.x`) | `mgmt` | 汎用タワーサーバー（レガシー BIOS） |
+| **`kagutsuchi-sama`** | `10.0.0.3` | **自宅** (`192.168.42.x`) | `mgmt` | 計算サーバー，Restic リモートバックアップ保管庫 |
+| **`shosoin-tan`** | `10.0.0.4` | **自宅** (`192.168.42.x`) | `mgmt,app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
+| **`BrokenPC`** | `10.0.0.100` | **自宅** (`192.168.42.x`) | `mgmt,app` | メインワークステーション，ローカル LLM サーバー |
+| **`x1c7`** | `10.0.0.101` | **自宅** / モバイル | `mgmt,app` | モバイルラップトップ（ThinkPad X1C7） |
+| **`torii-chan-vps`** | `10.0.0.10` | **クラウド** (ConoHa VPS) | `mgmt` | 待機系フェイルオーバーゲートウェイ |
 
 ---
 
 ## 3. 主要なネットワーク機構
 
-### 3.1 P2P メッシュ通信と Relay
-- **Lighthouse**: `torii-chan`（10.0.0.1）がパブリックな固定ポート（UDP 4242）を監視し，ノード間のディスカバリを行う．
-- **Direct P2P**: 同一 LAN 内（または直接疎通可能な WAN 間）のノード同士は，UDP ホールパンチングにより Lighthouse を介さず直接暗号化通信（P2P）を行う．
-- **Relay**: 直接通信が困難な NAT 背後のノード同士は，`torii-chan` を中継局（Relay）としてトラフィックを転送する．
+### 3.1 拠点間 P2P メッシュ通信と Relay
+- **Lighthouse**: 実家に常設された `torii-chan`（`10.0.0.1`）がパブリック固定ポート（UDP 4242）を待ち受け，全ノード間の接続仲介（シグナリング）を行う．
+- **Direct P2P**: 自宅 LAN 内（`192.168.42.0/24`）にあるノード同士（例: `BrokenPC` と `shosoin-tan`）は，UDP ホールパンチングにより同一 LAN 内の直接通信（Direct P2P）を行い，Lighthouse を経由せず超高速・低レイテンシで暗号化パケットを送受信する．
+- **Relay**: 自宅と実家間など，NAT 背後同士で直接 P2P 疎通が困難な場合は，`torii-chan` が中継局（Relay）として機能する．
 
-### 3.2 Cloudflare DDNS と ポートフォワーディング
-- `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコードを自動更新する．
-- `nixos/services/gateway/default.nix`（nftables）により，外部から受信した Minecraft ポート（TCP 25565）は LAN 内の `shosoin-tan`（`10.0.0.4:25565`）へ透過的に DNAT 転送される．
+### 3.2 外部公開とポートフォワーディング
+- 実家の `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード（`torii-chan.t3u.uk`, `mc.t3u.uk` 等）を自動更新する．
+- 外部から実家ルータ経由で `torii-chan` に届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の nftables により Nebula トンネルを経由して自宅の `shosoin-tan`（`10.0.0.4:25565`）へ安全に DNAT 転送される．
 
-### 3.3 NAT Loopback 回避 (`local-network.nix`)
-- 自宅 LAN の上位ルータが NAT Loopback（ヘアピン NAT）に対応していないため，LAN 内端末から外部ドメインへアクセスすると接続が遮断される．
-- これを解決するため，LAN 内ノードは `nixos/networking/local-network.nix` を介して，自宅向けドメインを LAN 内の直接 IP（`192.168.0.128`）へ静的に名前解決（hosts 登録）する．
+### 3.3 実家ルータの NAT Loopback 回避 (`local-network.nix`)
+- **背景**: 実家に設置されている上位ルータ（`192.168.0.1`）は **NAT Loopback（ヘアピン NAT）** に対応していない．
+- **課題**: そのため，実家 LAN（`192.168.0.0/24`）内の端末から外部ドメイン（`torii-chan.t3u.uk`）宛てに通信しようとすると，ルータ側でドロップして接続不能となる．
+- **解決策**: 実家 LAN 内で稼働するホスト向けに [`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) が用意されており，有効化すると `/etc/hosts` に `192.168.0.128 torii-chan.t3u.uk` を静的に登録してルータのヘアピンをバイパスする．
+- **自宅ノードでの扱い**: 自宅（`192.168.42.0/24`）にあるサーバー群（`shosoin-tan`, `kagutsuchi-sama` 等）からは外部インターネット経由で `torii-chan.t3u.uk` へアクセスするため，このモジュールは**無効（コメントアウト）** になっている．
 
 ---
 
 ## 4. セキュリティ境界（Security Boundary）
 
 1. **SSH の Nebula 閉じ込め**:
-   - サーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）の SSH ポートは，物理 LAN や WAN から遮断され，**`nebula0` インターフェース（`10.0.0.0/24`）からのみリッスン・接続を許可** している．
-   - これにより，外部からの不正アクセスや LAN 内の他デバイスからの不要な侵入リスクを最小化している．
-2. **ゾーン分離**:
-   - Nebula 証明書に含まれるグループ（`groups`）に基づき，ファイアウォールルールでアクセス制限を実施している（例: 管理用トラフィックは `mgmt` のみ許可）．
+   - 自宅のサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）の SSH ポート 22 は，物理 LAN や外部 WAN からは遮断され，**`nebula0` インターフェース（`10.0.0.0/24`）経由のみ** リッスン・接続を許可している．
+2. **ゾーン分離（Groups）**:
+   - `mgmt`: 全ノードに付与される基本管理グループ．
+   - `app`: アプリケーション通信（Minecraft，Discord Bridge，デスクトップ作業）を許可するグループ．
 3. **証明書の有効期限と年次更新**:
    - Nebula ルート CA は 10年有効だが，各ノードの証明書は **1年有効** である．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
 
