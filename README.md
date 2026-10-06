@@ -81,10 +81,17 @@ Follow the comprehensive step-by-step runbook in [`docs/operations/adding-a-host
 - **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): Evaluates all hosts, executes pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco`.
 - **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates `flake.lock`, validates changes, and automatically pushes updates to `main`.
 
-## References
+## Documentation
+
+Comprehensive architecture designs, operational runbooks, hardware guides, and troubleshooting procedures are documented in [`docs/`](docs/):
 
 - [Documentation Hub: `docs/README.md`](docs/README.md)
-- [Agent Workflow Guide: `AGENTS.md`](AGENTS.md)
+- [Architecture & Layer Evaluation: `docs/architecture/overview.md`](docs/architecture/overview.md)
+- [Network Topology & Mesh VPN: `docs/architecture/network-topology.md`](docs/architecture/network-topology.md)
+- [Adding a New Host: `docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md)
+
+## References
+
 - https://github.com/ryan4yin/nix-config
 - https://github.com/natsukium/dotfiles
 - https://github.com/asa1984/dotfiles
