@@ -64,8 +64,8 @@ Linux カーネルのバージョンが更新された場合，完全な適用�
    ```
 2. **適用**:
    ```bash
-   # デスクトップ機
-   pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>
+   # ローカルマシン
+   sudo nixos-rebuild switch --flake .#<hostname>
 
    # リモート機（再起動前に boot エントリを更新）
    nixos-rebuild boot --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password

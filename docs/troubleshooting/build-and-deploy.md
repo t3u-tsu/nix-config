@@ -102,17 +102,17 @@ nix flake check
 
 ---
 
-## 3. pkexec 認証失敗時のフォールバック
+## 3. エージェント適用時（pkexec）の認証失敗とフォールバック
 
 ### 現象・エラーメッセージ
-- `pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>` を実行した際，GUI 認証ダイアログが表示されずエラーとなる:
+- AI エージェントが特権昇格のために `pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>` を実行した際，GUI 認証ダイアログが表示されずエラーとなる:
   - `Cannot run program: No such file or directory`
   - `pkexec: must be run as root`
   - `Error executing command as another user: Not authorized`
   - プロンプトが表示されずセッションがタイムアウトする．
 
 ### 原因
-`pkexec` はデスクトップ環境で常駐する Polkit 認証エージェントに依存する．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，あるいは非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．
+`pkexec` はデスクトップ環境で常駐する Polkit 認証エージェントに依存する（エージェントがユーザーに GUI 承認を求めるために使用）．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，あるいは非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．人間が直接作業する場合は通常の `sudo` を使用する．
 
 ### 切り分け・フォールバック手順
 

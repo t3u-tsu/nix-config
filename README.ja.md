@@ -58,8 +58,7 @@ Nix Flakes を用いてデスクトップ環境，タワーサーバー，およ
 
 ローカルマシンへの設定適用:
 ```bash
-# デスクトップ機（Polkit GUI 認証）
-pkexec --keep-cwd nixos-rebuild switch --flake .#BrokenPC
+sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
 Nebula 経由でのリモートサーバーへのデプロイ:
