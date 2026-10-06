@@ -40,16 +40,16 @@ Nix Flakes を用いてデスクトップ環境，タワーサーバー，およ
 - [`terraform/`](terraform/) — ConoHa VPS インフラの OpenTofu 定義
 - [`docs/`](docs/) — 設計仕様，運用ランブック，ハードウェア解説，障害復旧手順（SSOT）
 
-レイヤ評価順序や詳細なシステム構成は [`docs/architecture/overview.md`](docs/architecture/overview.md) を参照してください．運用手順や各ガイドの全目次は [`docs/README.md`](docs/README.md) に集約されています．
+レイヤ評価順序や詳細なシステム構成は [`docs/architecture/overview.md`](docs/architecture/overview.md) を参照．運用手順や各ガイドの全目次は [`docs/README.md`](docs/README.md) に集約されている．
 
-機密設定はプライベートリポジトリ（[`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)）に分離して Flake 入力として参照しています．新規マシンのセットアップや初回認証ブートストラップは [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) を参照してください．
+機密設定はプライベートリポジトリ（[`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)）に分離して Flake 入力として参照している．新規マシンのセットアップや初回認証ブートストラップは [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) を参照する．
 
 ## クイックスタート
 
 利用可能なホスト構成（`flake/hosts.nix` で定義）:
 
 - **`x1c7`** — ラップトップ（ThinkPad X1 Carbon Gen 7）
-- **`BrokenPC`** — メインワークステーション / ゲーミング（HP Victus 16-e1065AX）
+- **`BrokenPC`** — サブ機（可搬ノートPC）（HP Victus 16-e1065AX）
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — タワーサーバークラスタ
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ（SD / HDD ブート）
 - **`torii-chan-vps`** — ConoHa VPS 上の待機系フェイルオーバーゲートウェイ（x86_64）
@@ -73,16 +73,16 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## 新規ホストの追加
 
-[`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) の統一手順書に従ってください．[`hosts/_template/`](hosts/_template) の複製，SOPS age 鍵の登録，Nebula 証明書の発行，デプロイ検証までの全工程が解説されています．
+[`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) の統一手順書に従う．[`hosts/_template/`](hosts/_template) の複製，SOPS age 鍵の登録，Nebula 証明書の発行，デプロイ検証までの全工程が解説されている．
 
 ## CI/CD & 自動化
 
-- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価と pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`），および `convco` による Conventional Commits コミット規約の検証を実施します．
-- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に自動実行．nvfetcher による外部パッケージ追従，`flake.lock` の更新，CI 検証を経て自動で `main` に反映します．
+- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価と pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`），および `convco` による Conventional Commits コミット規約の検証を実施する．
+- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に自動実行．nvfetcher による外部パッケージ追従，`flake.lock` の更新，CI 検証を経て自動で `main` に反映する．
 
 ## ドキュメント
 
-アーキテクチャ設計，運用ランブック，ハードウェア解説，および障害復旧手順は [`docs/README.md`](docs/README.md) を参照してください．
+アーキテクチャ設計，運用ランブック，ハードウェア解説，および障害復旧手順は [`docs/README.md`](docs/README.md) を参照．
 
 ## 参考文献
 

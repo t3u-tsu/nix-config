@@ -1,6 +1,6 @@
 # AMD + NVIDIA ハイブリッド GPU 分離設計ガイド
 
-本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．
+本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．本機は拠点A をベースとしつつ，外出時にも持ち出されるサブ機（可搬ノートPC）としての運用特性を持つ．
 
 ---
 
@@ -10,7 +10,7 @@
 
 | 項目 | 諸元・仕様 |
 | :--- | :--- |
-| **対象ホスト** | `BrokenPC`（HP Victus 16-e1065AX） |
+| **対象ホスト** | `BrokenPC`（HP Victus 16-e1065AX）: サブ機（可搬ノートPC） |
 | **CPU** | AMD Ryzen 7 6800H（Zen 3+，8コア / 16スレッド，基本 3.2 GHz / 最大 4.7 GHz） |
 | **iGPU** | AMD Radeon 680M（Rembrandt，RDNA2，12 CU / 768 シェーダー，PCI `07:00.0`） |
 | **dGPU** | NVIDIA GeForce RTX 3050 Ti Mobile（GA107，Ampere，4 GB GDDR6，PCI `01:00.0`）※**物理障害あり** |
@@ -57,7 +57,7 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 
 ### 省電力制御 (RTD3 & finegrained)
 
-描画から除外された dGPU を常時通電させておくと，無駄な電力消費と発熱が発生する．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用することで，アイドル時に dGPU の電源を完全にオフにしている．
+描画から除外された dGPU を常時通電させておくと，無駄な電力消費と発熱が発生する．特に BrokenPC は外部へ持ち出される可搬ノートPCでもあるため，dGPU の無駄な電力消費はバッテリー駆動時間を著しく損なう．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用することで，アイドル時に dGPU の電源を完全にオフにしている．
 
 ```nix
 # hosts/BrokenPC/default.nix

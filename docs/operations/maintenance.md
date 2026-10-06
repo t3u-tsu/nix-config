@@ -47,8 +47,9 @@ nix-store --optimise
 
 ### 低容量マシン（SBC / ラップトップ）での緊急回収
 ```bash
-# 現在の世代を除く全世代を一括破棄
+# 現在の世代を除く全世代を一括破棄（システムおよびユーザー）
 sudo nix-collect-garbage -d
+nix-collect-garbage -d
 sudo /run/current-system/bin/switch-to-configuration boot
 ```
 
@@ -60,7 +61,7 @@ Linux カーネルのバージョンが更新された場合，完全な適用�
 
 1. **ドライランでカーネル更新の有無を確認**:
    ```bash
-   sudo nixos-rebuild dry-build --flake .#<hostname>
+   nixos-rebuild dry-build --flake .#<hostname>
    ```
 2. **適用**:
    ```bash

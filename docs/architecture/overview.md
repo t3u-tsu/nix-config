@@ -54,39 +54,38 @@ flake.nix
 
 ## 3. ホストからモジュールへの展開
 
-各ホスト（`hosts/<name>/default.nix`）は，必要なハードウェア設定やローカルサービスを import しつつ，共通モジュール層を展開する．
+`lib/default.nix` の `mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールが合成される．
 
 ```text
-hosts/<name>/default.nix
- ├─ ./hardware.nix            # ハードウェア固有設定（fileSystems, swap, カーネルモジュール）
- ├─ ./services/               # ホスト固有サービス（該当する場合）
- ├─ ../../nixos/              # nixos/default.nix が一括 import:
- │                             base（user, nix, time, private-config）
- │                             core（i18n, fonts）
- │                             security（SOPS）
- │                             networking（Nebula, local-network）
- │                             environment（基本パッケージ群）
- │                             hardware, dev-tools, services, virtualisation
- │                             ../../home/default.nix（Home Manager 共通展開）
- └─ ../../nixos/profiles/<profile>/
-     ├─ desktop/              # services/desktop（niri, greetd, fonts, gaming 等）を有効化し
-     │                         nyx-overlay を適用，home/desktop を import
-     ├─ tower-server/         # boot, security, ssh（タワーサーバー共通基盤）
-     ├─ gateway/              # nixos/services/gateway のルータ・ゲートウェイロールを有効化
-     └─ sbc/                  # 低メモリ SBC 向け制約緩和（sandbox 無効化等．sbc.nix 経由）
+mkLib.mkSystem によるモジュール合成
+ ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
+ │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），nyx，home/desktop
+ │   ├─ tower-server/         # 常時稼働サーバー共通基盤（boot, security, ssh）
+ │   ├─ gateway/              # ルータ・ゲートウェイロール（torii-chan）
+ │   └─ sbc/                  # 低スペックSBC制約緩和（sbc.nix 経由で適用）
+ │
+ ├─ hosts/<name>/default.nix  # ホスト固有定義
+ │   ├─ ./hardware.nix        # ハードウェア固有設定（fileSystems, swap, カーネル）
+ │   ├─ ./services/           # ホスト固有サービス（該当する場合）
+ │   └─ ../../nixos/          # システム共通モジュール群（一括 import）:
+ │       ├─ base, core, security (SOPS), dev-tools, environment
+ │       ├─ networking        # Nebula メッシュ VPN，ファイアウォール
+ │       └─ ../../home/       # Home Manager 共通設定
+ │
+ └─ extraModules              # ホスト固有の追加モジュール（例: sbc.nix, fs-hdd.nix）
 ```
 
 ---
 
 ## 4. モジュール評価順序と優先度制御
 
-1. **評価順序**:
-   - `modules` リストは `profile → hosts/<name>/default.nix → extraModules` の順序でリストに配置される．
-   - モジュール内の設定値は，デフォルトでは後から評価されたものが前を上書きする．
-2. **リスト型オプションの結合**:
-   - `environment.systemPackages` などのリスト型オプションは評価順に連結される．
-3. **明示的優先度制御**:
-   - プラットフォーム層やホスト固有の特殊要件で競合が発生する場合，`lib.mkForce`，`lib.mkDefault`，`lib.mkOrder` を使用して優先度を明示的に制御する．
+1. **構成モジュールの注入順序**:
+   - `modules` リストは `profile → hosts/<name>/default.nix → extraModules` の順序で渡される．
+   - プロファイルで基本設定（または `lib.mkDefault`）を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する設計となっている．
+2. **優先度制御（Priority System）**:
+   - 単純なスカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
+3. **コレクション型オプションの結合**:
+   - `environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．
 
 ---
 

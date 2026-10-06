@@ -46,7 +46,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 ### Step 3: パスワード初期化と SOPS 鍵の登録
 1. **初期パスワードの生成**:
    ```bash
-   scripts/set-host-password.sh <hostname>
+   nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#jq -c bash scripts/set-host-password.sh <hostname>
    ```
 2. **ホスト age 公開鍵の取得**:
    新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）を age 鍵へ変換する:
@@ -73,25 +73,26 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 ### Step 4: Nebula 証明書の発行と登録
 1. **証明書の署名**:
+   管理者のオフライン CA（通常 `~/.nebula-ca`）を用いてノード証明書を発行する:
    ```bash
+   CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
    nebula-cert sign \
      -name "<hostname>" \
      -ip "10.0.0.X/24" \
      -groups "mgmt,..." \
-     -ca-crt secrets/nebula/ca.crt \
-     -ca-key <(sops -d --extract '["nebula"]["ca_key"]' secrets/common.yaml) \
-     -out-crt /tmp/<hostname>.crt \
-     -out-key /tmp/<hostname>.key
+     -ca-crt "$CA_DIR/ca.crt" \
+     -ca-key "$CA_DIR/ca.key" \
+     -out-crt "$CA_DIR/<hostname>.crt" \
+     -out-key "$CA_DIR/<hostname>.key"
    ```
 2. **クラスタ管理スクリプトへの登録**:
-   `scripts/nebula-lib.sh` の `FLEET` 配列に新しいホストを追加する:
+   `scripts/nebula-lib.sh` の `FLEET` 配列にエントリ（`<name>|<octet>|<groups>`）を追加する:
    ```bash
-   "<hostname>:10.0.0.X:mgmt,..."
+   "<hostname>|X|mgmt,..."
    ```
 3. **シークレットへのインポート**:
    ```bash
-   scripts/nebula-import-secrets.sh <hostname> /tmp/<hostname>.crt /tmp/<hostname>.key
-   rm /tmp/<hostname>.crt /tmp/<hostname>.key
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
    ```
 
 ### Step 5: プライベート Flake 入力のブートストラップ

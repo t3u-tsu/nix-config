@@ -45,6 +45,7 @@ mkLib.mkSystem {
 | オプション階層 | 配置場所 | 役割と具体例 |
 | :--- | :--- | :--- |
 | **`my.user.name`** | `nixos/base/user.nix` | プライマリユーザー名の定義（全モジュールで参照） |
+| **`my.networking.<name>`** | `nixos/networking/` | ネットワークおよびメッシュ機能（例: `my.networking.nebula`） |
 | **`my.services.<name>`** | `nixos/services/` | システムレベルの共有サービス（例: `my.services.minecraft`, `my.services.gateway`） |
 | **`my.packages.<category>`** | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.gui`, `my.packages.development`） |
 | **`my.hardware.<name>`** | `nixos/hardware/` | ハードウェア機能の抽象化（例: `my.hardware.bluetooth`, `my.hardware.audio`） |
