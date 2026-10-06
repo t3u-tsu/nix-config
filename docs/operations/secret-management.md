@@ -15,7 +15,7 @@ graph TD
     UserKey["ユーザー鍵 (User age keys)<br>~/.ssh/id_ed25519 から導出"]
 
     CommonSecret["secrets/common.yaml<br>全ホスト共通シークレット<br>(Nebula CA, deploy key 等)"]
-    HostSecret["secrets/hosts/<hostname>.yaml<br>当該ホスト専用シークレット<br>(ユーザーパスワード, Nebula ノード鍵 等)"]
+    HostSecret["secrets/hosts/[hostname].yaml<br>当該ホスト専用シークレット<br>(ユーザーパスワード, Nebula ノード鍵 等)"]
 
     Master -->|暗号化 / 復号| CommonSecret
     Master -->|暗号化 / 復号| HostSecret
