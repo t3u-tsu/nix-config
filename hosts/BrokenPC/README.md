@@ -33,8 +33,8 @@ Disk layout:
 
 ## Quick Operations
 ```bash
-# Local rebuild with Polkit authentication
-pkexec --keep-cwd nixos-rebuild switch --flake .#BrokenPC
+# Local rebuild
+sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
 ## References

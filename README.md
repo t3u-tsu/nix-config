@@ -58,8 +58,7 @@ Available host configurations (defined in `flake/hosts.nix`):
 
 Apply configuration locally:
 ```bash
-# On desktop machines (via Polkit GUI authentication)
-pkexec --keep-cwd nixos-rebuild switch --flake .#BrokenPC
+sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
 Deploy to a remote machine over Nebula:

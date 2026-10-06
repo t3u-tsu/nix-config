@@ -29,8 +29,8 @@ Follow the unified host installation guide in [`docs/operations/adding-a-host.md
 
 ## Quick Operations
 ```bash
-# Local rebuild with Polkit authentication
-pkexec --keep-cwd nixos-rebuild switch --flake .#x1c7
+# Local rebuild
+sudo nixos-rebuild switch --flake .#x1c7
 
 # Temporary full battery charge
 sudo tlp fullcharge

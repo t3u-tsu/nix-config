@@ -123,13 +123,13 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 ```
 
 ### Step 7: 適用
-- **ローカルデスクトップ機（Polkit 対応）**:
-  ユーザー承認のもと，エージェントが `pkexec` で実行:
+- **ローカルマシン**:
   ```bash
-  pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>
+  sudo nixos-rebuild switch --flake .#<hostname>
   ```
+  （※AI エージェントが実行する場合は，デスクトップ環境で承認を得たうえで `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能）
 - **リモートサーバー / ヘッドレス機**:
-  リモートデプロイまたはユーザーによる手動適用:
+  リモートデプロイまたは手動適用:
   ```bash
   nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
   ```
