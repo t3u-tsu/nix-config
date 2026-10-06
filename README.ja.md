@@ -80,16 +80,11 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 - **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価と pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`），および `convco` による Conventional Commits コミット規約の検証を実施します．
 - **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に自動実行．nvfetcher による外部パッケージ追従，`flake.lock` の更新，CI 検証を経て自動で `main` に反映します．
 
-## ドキュメント (Documentation)
+## ドキュメント
 
-アーキテクチャ設計，運用ランブック，ハードウェア解説，および障害復旧手順は [`docs/`](docs/) に集約されています．
+アーキテクチャ設計，運用ランブック，ハードウェア解説，および障害復旧手順は [`docs/README.md`](docs/README.md) を参照してください．
 
-- [ドキュメント目次: `docs/README.md`](docs/README.md)
-- [アーキテクチャ・評価フロー: `docs/architecture/overview.md`](docs/architecture/overview.md)
-- [ネットワークトポロジ・メッシュ VPN: `docs/architecture/network-topology.md`](docs/architecture/network-topology.md)
-- [新ホスト追加手順: `docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md)
-
-## 参考文献 (References)
+## 参考文献
 
 - https://github.com/ryan4yin/nix-config
 - https://github.com/natsukium/dotfiles
