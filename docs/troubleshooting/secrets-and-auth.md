@@ -41,7 +41,7 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 #### Step 2: `.sops.yaml` の登録情報と突合
 リポジトリルートの `.sops.yaml` を開き，Step 1 で得られた公開鍵と一致しているか確認する:
 ```bash
-grep -A 2 "&<hostname>" .sops.yaml
+grep -i -A 2 "&.*<hostname>" .sops.yaml
 ```
 鍵が異なる場合（再インストール等），`.sops.yaml` の鍵記述を新しい公開鍵へ更新する．
 
@@ -61,6 +61,9 @@ export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 # ホスト個別ファイルと共通ファイルの更新
 sops updatekeys secrets/hosts/<hostname>.yaml
 sops updatekeys secrets/common.yaml
+
+# recipients 整合性の検証（対象ホストの公開鍵が recipient に正しく反映されているか確認）
+git diff secrets/common.yaml
 
 # 変更をコミット
 git add .sops.yaml secrets/hosts/<hostname>.yaml secrets/common.yaml
@@ -158,6 +161,13 @@ Give root password for maintenance (or press Control-D to continue):
    ```
 
 #### パターン B: パスワード入力が通らずログイン不能な場合（推奨回避策）
+
+##### 第一選択肢: GRUB メニューからの正常世代ブート
+最優先の復旧手段として，マシンを再起動してブートローダー（GRUB）メニューを表示し，**「NixOS - All configurations」から直前の正常な世代を選択して起動** する．正常世代でログインできた後，問題のあった設定を修正またはロールバックする．
+
+##### 代替手段: `init=/bin/sh` 緊急シェルによる世代切り替え
+GRUB メニューからの通常起動で解決しない場合，カーネルパラメータを変更して緊急シェルから前世代をブート既定に設定する:
+
 1. マシンを強制再起動し，ブートローダー（GRUB）メニューを表示する．
 2. 起動エントリを選択した状態で `e` キーを押し，エントリ編集画面に入る．
 3. `linux /nix/store/.../bzImage` で始まる行の末尾に以下を追記する:
@@ -174,8 +184,8 @@ Give root password for maintenance (or press Control-D to continue):
    ```bash
    # 直前の世代リンクを確認
    ls -l /nix/var/nix/profiles/system-*-link
-   # 前世代の切り替えスクリプトを実行
-   /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration switch
+   # 前世代のブートスクリプトを実行（init=/bin/sh 環境では systemd がないため switch ではなく boot を指定）
+   /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration boot
    reboot -f
    ```
 

@@ -12,7 +12,7 @@ Secondary portable laptop based at Base A and taken off-site, featuring a hybrid
   - 1 TB NVMe SSD (`FIKWOT_FN500`): Fast scratch & LLM storage (`/data`)
 
 ## GPU Separation & Local LLM Service
-- **Display Renderer Isolation:** The dGPU suffers from a hardware-level 3D texture/rendering pipeline defect. All desktop display (Niri) and gaming rendering (Steam) are strictly locked to the stable AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload = false`.
+- **Display Renderer Isolation:** The dGPU suffers from a hardware-level 3D texture/rendering pipeline defect. All desktop display (Niri) and gaming rendering (Steam) are strictly locked to the stable AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and keeping `my.services.desktop.gaming.nvidiaOffload.enable = false` (default disabled).
 - **CUDA & Local LLM (`llama.cpp`):** Matrix compute (GEMM) circuits remain fully functional. The dGPU is utilized as a dedicated CUDA inference accelerator for `llama-server` (`services/llama.nix`, targeting SM 8.6).
 - **Power Management:** When idle, the dGPU is completely powered down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), minimizing battery drain when used portably.
 - For in-depth technical analysis and preset configurations, see [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md).

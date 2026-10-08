@@ -55,10 +55,10 @@ tofu apply
 ./hosts/torii-chan/build-vps-iso.sh
 
 # レスキュー ISO のアタッチ・起動
-./scripts/nixos-iso.sh install <instance_id> ./result-iso/iso/nixos-*.iso
+./terraform/scripts/nixos-iso.sh install <instance_id> ./result-iso/iso/nixos-*.iso
 
 # VNC コンソールで NixOS インストール後，ISO をイジェクト
-./scripts/nixos-iso.sh eject <instance_id>
+./terraform/scripts/nixos-iso.sh eject <instance_id>
 ```
 
 ### Step 3: DNS 切替

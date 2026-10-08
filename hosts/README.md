@@ -12,7 +12,7 @@ This directory contains machine-specific definitions for all physical and virtua
 | **[`kagutsuchi-sama`](kagutsuchi-sama/)** | `tower-server` | `x86_64-linux` | `10.0.0.3` | Xeon E5-2650 v2 Tower | Compute server, Restic backup receiver |
 | **[`sando-kun`](sando-kun/)** | `tower-server` | `x86_64-linux` | `10.0.0.2` | Core i7-860 Tower | General-purpose tower server |
 | **[`torii-chan`](torii-chan/)** | `gateway` / `sbc` | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway |
-| **`torii-chan-vps`** | `gateway` | `x86_64-linux` | `10.0.0.10` | ConoHa VPS (512MB) | Failover Lighthouse & Relay (OpenTofu) |
+| **`torii-chan-vps`** | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | ConoHa VPS (512MB) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
 
 ## Directory Structure
 

@@ -18,7 +18,7 @@ Tower server equipped with an Intel Core i7-870, SSD system drive, and a ZFS Mir
 - **Key Services:**
   - **Minecraft:** Paper server (`/srv/minecraft`, TCP 25565 forwarded from `torii-chan`).
   - **Discord Bridge:** Bot integration with socket at `/run/minecraft-discord-bridge/bridge.sock`.
-  - **Multi-tier Restic Backup:** Runs every 2 hours, backing up both locally to `/mnt/tank-1tb/backups/restic` and remotely over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
+  - **Multi-tier Restic Backup:** Runs every 2 hours, backing up both locally to `/mnt/tank-1tb/backups/minecraft` and remotely over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
 
 ## Installation
 Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).

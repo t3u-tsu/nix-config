@@ -124,16 +124,123 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 ```
 
 ### Step 7: 適用
-- **ローカルマシン**:
-  ```bash
-  sudo nixos-rebuild switch --flake .#<hostname>
-  ```
-  （※AI エージェントが実行する場合は，デスクトップ環境で承認を得たうえで `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能）
-- **リモートサーバー / ヘッドレス機**:
-  リモートデプロイまたは手動適用:
-  ```bash
-  nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
-  ```
+- **新規ベアメタル機への導入**:
+  後述の「[3. 新規ベアメタル導入手順 (Live USB クリーンインストール)](#3-新規ベアメタル導入手順-live-usb-クリーンインストール)」に従い，インストーラ USB からパーティショニング，鍵配置，`nixos-install` を実施する．
+- **既存 NixOS マシンへの適用**:
+  - **ローカルマシン**:
+    ```bash
+    sudo nixos-rebuild switch --flake .#<hostname>
+    ```
+    （※AI エージェントが実行する場合は，デスクトップ環境で承認を得たうえで `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能）
+  - **リモートサーバー / ヘッドレス機**:
+    リモートデプロイまたは手動適用:
+    ```bash
+    nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
+    ```
+
+---
+
+## 3. 新規ベアメタル導入手順 (Live USB クリーンインストール)
+
+新規に物理マシン（ベアメタル）へ NixOS を導入する際，またはディスクを初期化してクリーンインストールを行う際の手順である．本節は各ホストの導入手順に対する **正本 (SSOT)** として機能する．
+
+### 3.1 ライブ環境の起動とディスク準備
+
+1. **インストーラ USB の起動**:
+   NixOS 公式の minimal インストーラ USB で実機を起動し，ネットワーク（有線 LAN または Wi-Fi）を接続する．
+2. **パーティショニング**:
+   対象マシンの `hardware.nix` に合わせてパーティションを作成する（※全データが消去される）．
+   - **UEFI 機の場合 (GPT 例)**:
+     ```bash
+     sudo parted /dev/nvme0n1 -- mklabel gpt
+     sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
+     sudo parted /dev/nvme0n1 -- set 1 esp on
+     sudo parted /dev/nvme0n1 -- mkpart primary ext4 512MiB 100%
+     sudo mkfs.fat -F 32 /dev/nvme0n1p1
+     sudo mkfs.ext4 /dev/nvme0n1p2
+     ```
+   - **Legacy BIOS 機の場合 (MBR 例)**:
+     ```bash
+     sudo parted /dev/sda -- mklabel msdos
+     sudo parted /dev/sda -- mkpart primary linux-swap 1MiB 8GiB
+     sudo parted /dev/sda -- mkpart primary fat32 8GiB 8.5GiB
+     sudo parted /dev/sda -- set 2 boot on
+     sudo parted /dev/sda -- mkpart primary ext4 8.5GiB 100%
+     sudo mkswap /dev/sda1 && sudo swapon /dev/sda1
+     sudo mkfs.fat -F 32 /dev/sda2
+     sudo mkfs.ext4 /dev/sda3
+     ```
+3. **ターゲット領域のマウント**:
+   ```bash
+   sudo mount /dev/nvme0n1p2 /mnt              # ルートパーティション
+   sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
+   sudo mount /dev/nvme0n1p1 /mnt/boot         # ESP / ブートパーティション
+   ```
+
+### 3.2 SSH ホスト鍵と SOPS age 秘密鍵の事前配置
+
+`nixos-install` はシステム activation を実行するため，パスワードハッシュや Nebula 秘密鍵などのシークレット復号が行われる．事前に age 秘密鍵を配置しておかないとインストーラおよび初回起動で失敗する．
+
+```bash
+# 恒久利用する SSH ホスト鍵をターゲット領域に事前生成
+sudo mkdir -p /mnt/etc/ssh
+sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+
+# age 公開鍵を取得して管理者の .sops.yaml に登録・updatekeys
+ssh-to-age -i /mnt/etc/ssh/ssh_host_ed25519_key.pub
+
+# ホスト用の age 秘密鍵を配置 (パーミッション 600 を厳守)
+ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key \
+  | sudo tee /mnt/var/lib/sops-nix/key.txt >/dev/null
+sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
+```
+> [!NOTE]
+> 管理作業機から直接プロビジョニングする場合は，`~/.config/sops/age/keys.txt`（master 鍵）を一時的に `/mnt/var/lib/sops-nix/key.txt` へコピーして代用してもよい（初回起動後にホスト鍵へ置換）．
+
+### 3.3 プライベート Flake 入力用 deploy key の配置
+
+インストーラ環境（ライブ環境の root 権限）からプライベートリポジトリ `nix-config-private` を取得できるよう，一時的な SSH 設定を配備する．
+
+```bash
+# ライブ環境の root SSH ディレクトリを準備
+sudo install -d -m 700 /root/.ssh
+sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
+
+# deploy key を配置 (secrets/common.yaml 内の nix_config_private_deploy_key または作業機の鍵)
+sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null <<'EOF'
+-----BEGIN OPENSSH PRIVATE KEY-----
+... (deploy key 内容) ...
+-----END OPENSSH PRIVATE KEY-----
+EOF
+sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
+
+# 一時 SSH エイリアスを設定
+sudo tee /root/.ssh/config >/dev/null <<'EOF'
+Host github-nix-config-private
+  HostName github.com
+  User git
+  IdentityFile /root/.ssh/nix-config-private_deploy_key
+  IdentitiesOnly yes
+EOF
+
+# 疎通確認
+sudo ssh -T git@github-nix-config-private
+```
+
+### 3.4 システムのインストールと再起動
+
+ターゲットホストの設定をビルド・インストールする:
+
+```bash
+# リポジトリを展開したディレクトリで実行
+sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#<hostname>
+```
+
+インストール完了後，再起動する:
+```bash
+sudo reboot
+```
+初回起動後，Nebula メッシュ接続（`10.0.0.X`）および SSH 経由でのログインを確認する．
 
 ---
 
