@@ -1,80 +1,44 @@
 # Host: BrokenPC (HP Victus 16-e1065AX)
 
-HP Victus gaming laptop with a hybrid AMD iGPU + NVIDIA dGPU. Used for daily work,
-development and gaming, managed via Nix Flakes.
+Secondary portable laptop based at Site A and taken off-site, featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
 
 ## Hardware Specs
-- **CPU**: AMD Ryzen 7 6800H (16 threads)
-- **GPU**:
-  - NVIDIA GeForce RTX 3050 Ti Mobile (discrete, **faulty** — see GPU Configuration)
-  - AMD Radeon 680M (integrated)
-- **RAM**: 16GB DDR5
-- **Storage**:
-  - 512GB NVMe SSD (`nvme-MTFDKBA512TFH-1BC1AABHA_UMDMC01ZRH9LRX`) for OS/Boot
-  - 1TB NVMe SSD (`nvme-FIKWOT_FN500_1TB_AA000000000000000188`) mapped to `/data`
+- **CPU:** AMD Ryzen 7 6800H (Zen 3+, 8C/16T, up to 4.7 GHz)
+- **iGPU:** AMD Radeon 680M (RDNA2, primary display renderer)
+- **dGPU:** NVIDIA GeForce RTX 3050 Ti Mobile (Ampere 4 GB, **hardware rendering defect**)
+- **RAM:** 16 GB DDR5-4800
+- **Storage:**
+  - 512 GB NVMe SSD (`MTFDKBA512TFH`): Root (`/`), Boot (`/boot`), Swap
+  - 1 TB NVMe SSD (`FIKWOT_FN500`): Fast scratch & LLM storage (`/data`)
 
-## GPU Configuration (dGPU faulty: games on the iGPU)
+## GPU Separation & Local LLM Service
+- **Display Renderer Isolation:** The dGPU suffers from a hardware-level 3D texture/rendering pipeline defect. All desktop display (Niri) and gaming rendering (Steam) are strictly locked to the stable AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and keeping `my.services.desktop.gaming.nvidiaOffload.enable = false` (default disabled).
+- **CUDA & Local LLM (`llama.cpp`):** Matrix compute (GEMM) circuits remain fully functional. The dGPU is utilized as a dedicated CUDA inference accelerator for `llama-server` (`services/llama.nix`, targeting SM 8.6).
+- **Power Management:** When idle, the dGPU is completely powered down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), minimizing battery drain when used portably.
+- For in-depth technical analysis and preset configurations, see [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md).
 
-- The RTX 3050 Ti dGPU is **faulty** (hardware). Minecraft hangs it under load
-  while the AMD Radeon 680M iGPU runs it stably, so
-  `my.services.desktop.gaming.nvidiaOffload` must stay **disabled**
-  (`default.nix`): Steam and every game launched through it run on the iGPU.
-  Re-enable offload only after the dGPU is repaired or replaced.
-- CUDA inference (`llama.cpp`) still works on the dGPU. CUDA package builds
-  target it at SM 8.6.
-- The iGPU is the primary renderer (`WLR_DRM_DEVICES` on the niri user service,
-  PCI by-path so it stays stable across boots). The dGPU otherwise stays powered
-  down via the open kernel modules and RTD3 (`powerManagement.finegrained`).
-- Lid behavior: suspend on battery, lock on AC, ignore when docked (`services.logind.settings.Login`).
+## Configuration Summary
+- **Profile:** `desktop`
+- **Nebula Mesh:** `10.0.0.100` (groups: `mgmt`, `app`)
+- **Mobility & Networking:** Operates both at Site A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
+- **Key Modules:**
+  - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
+  - Services: Local LLM (`my.services.llama`), SOPS secrets
 
-## Installation Guide (Clean Install)
+## Installation
+Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
 
-### Phase 1: Disk Preparation
-1. **Boot from NixOS Installer USB.**
-2. **Setup Network:** Connect to Wi-Fi/Ethernet.
-3. **Partition the disks** (layout defined in `hardware.nix`; verify device names with `lsblk`):
-   ```bash
-   # 512GB NVMe (system): /boot (vfat), swap, / (ext4)
-   sudo parted /dev/nvme0n1 -- mklabel gpt
-   sudo parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 512MiB
-   sudo parted /dev/nvme0n1 -- set 1 esp on
-   sudo parted /dev/nvme0n1 -- mkpart primary linux-swap 512MiB 8GiB
-   sudo parted /dev/nvme0n1 -- mkpart primary ext4 8GiB 100%
-   sudo mkfs.fat -F 32 /dev/nvme0n1p1
-   sudo mkswap /dev/nvme0n1p2
-   sudo mkfs.ext4 /dev/nvme0n1p3
+Disk layout:
+- `nvme0n1`: ESP (512M fat32), Swap (8G), Root (ext4)
+- `nvme1n1`: `/data` (1 TB ext4)
 
-   # 1TB NVMe (data): /data (ext4)
-   sudo parted /dev/nvme1n1 -- mklabel gpt
-   sudo parted /dev/nvme1n1 -- mkpart primary ext4 1MiB 100%
-   sudo mkfs.ext4 /dev/nvme1n1p1
-   ```
-4. **Mount the partitions:**
-   ```bash
-   sudo mount /dev/nvme0n1p3 /mnt
-   sudo mkdir -p /mnt/boot /mnt/data
-   sudo mount /dev/nvme0n1p1 /mnt/boot
-   sudo swapon /dev/nvme0n1p2
-   sudo mount /dev/nvme1n1p1 /mnt/data
-   ```
-
-### Phase 2: Transfer Secret Key (Important)
-`sops-nix` decrypts secrets during `nixos-install` (it runs the system activation),
-so the identity at `/mnt/var/lib/sops-nix/key.txt` must decrypt
-`secrets/hosts/BrokenPC.yaml` **before** installing — user keys are excluded
-from host files (see [`secrets/README.md`](../../secrets/README.md)):
+## Quick Operations
 ```bash
-sudo mkdir -p /mnt/var/lib/sops-nix
-# Place the offline master age key, or the host key derived from the SSH host
-# key registered in .sops.yaml, at /mnt/var/lib/sops-nix/key.txt
+# Local rebuild
+sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
-### Phase 3: System Installation
-
-> The installer has no `github-nix-config-private` ssh alias yet, so run
-> [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)
-> first — the flake cannot be evaluated without it.
-
-```bash
-sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#BrokenPC
-```
+## References
+- Hybrid GPU architecture & LLM tuning: [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

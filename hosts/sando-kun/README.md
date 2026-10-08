@@ -1,73 +1,35 @@
 # Host: sando-kun (i7-860 Tower Server)
 
-This host is a general-purpose tower server equipped with an Intel Core i7-860 and an 80GB HDD configuration. It follows the standard configuration established by `shosoin-tan` and `kagutsuchi-sama`.
+General-purpose legacy tower server equipped with an Intel Core i7-860, 250 GB system HDD, and 80 GB scratch HDD.
 
 ## Hardware Specifications
-- **CPU:** Intel Core i7-860 (1st Generation)
-- **GPU:** GeForce 8400 GS (Tesla)
-- **RAM:** 8GB
+- **CPU:** Intel Core i7-860 (Nehalem, 4C/8T, 2.80 GHz)
+- **GPU:** NVIDIA GeForce 8400 GS (Tesla architecture, nouveau driver)
+- **RAM:** 8 GB DDR3
 - **Storage:**
-  - 250GB HDD (OS / Boot)
-  - 80GB HDD (`scratch`)
+  - 250 GB SATA HDD (`ata-ST9250320AS_5SW1VK4F`): OS / Boot (MBR)
+  - 80 GB SATA HDD: `/mnt/scratch` (ext4)
 
-## Installation Guide
+## Configuration Summary
+- **Profile:** `tower-server`
+- **Bootloader:** Legacy BIOS (MBR), `boot.loader.grub.efiSupport = false`
+- **Nebula Mesh:** `10.0.0.2` (groups: `server`, `mgmt`)
+- **SSH Access:** Restricted to `nebula0` (Nebula mesh only).
 
-Since this host uses older hardware, we use the following high-reliability installation procedure (similar to `shosoin-tan`) to minimize CPU load and ensure compatibility.
+## Installation
+Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
 
-### Phase 1: Prepare Disks
-1. **Partition and mount** (layout defined in `hardware.nix`; verify device names with `lsblk`). Legacy BIOS (MBR):
-   ```bash
-   # 250GB HDD (system): part1 = swap, part2 = /boot (vfat), part3 = / (ext4)
-   ssh nixos@<IP> "sudo parted /dev/sda -- mklabel msdos && \
-     sudo parted /dev/sda -- mkpart primary linux-swap 1MiB 8GiB && \
-     sudo parted /dev/sda -- mkpart primary fat32 8GiB 8.5GiB && \
-     sudo parted /dev/sda -- set 2 boot on && \
-     sudo parted /dev/sda -- mkpart primary ext4 8.5GiB 100% && \
-     sudo mkswap /dev/sda1 && sudo swapon /dev/sda1 && \
-     sudo mkfs.fat -F 32 /dev/sda2 && \
-     sudo mkfs.ext4 /dev/sda3 && \
-     sudo mount /dev/sda3 /mnt && \
-     sudo mkdir -p /mnt/boot && \
-     sudo mount /dev/sda2 /mnt/boot"
+Disk layout (MBR / msdos):
+- `/dev/sda`: 250 GB HDD (part1 = swap, part2 = `/boot` 500M vfat, part3 = `/` ext4)
+- `/dev/sdb`: 80 GB HDD (`/mnt/scratch` ext4)
 
-   # 80GB HDD (scratch): /mnt/scratch (ext4)
-   ssh nixos@<IP> "sudo parted /dev/sdb -- mklabel msdos && \
-     sudo parted /dev/sdb -- mkpart primary ext4 1MiB 100% && \
-     sudo mkfs.ext4 /dev/sdb1 && \
-     sudo mkdir -p /mnt/scratch && \
-     sudo mount /dev/sdb1 /mnt/scratch"
-   ```
-   `hardware.nix` declares no `swapDevices`, so part1 is only activated while
-   installing. Add a `swapDevices` entry there if the installed system needs swap.
-
-### Phase 2: Transfer Secret Key
-`sops-nix` decrypts secrets during `nixos-install`, so the identity at
-`/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/sando-kun.yaml`
-(master + host key; the user key is excluded). Use the offline master age key,
-or the host key derived from the SSH host key registered in `.sops.yaml`
-(see [`hosts/README.md`](../README.md)):
+## Quick Operations
 ```bash
-ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
-cat /path/to/master-age-key.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"
+# Rebuild remotely over Nebula
+nixos-rebuild switch --flake .#sando-kun --target-host t3u@10.0.0.2 --sudo --ask-sudo-password
 ```
 
-### Phase 3: Build and Transfer System (Recommended)
-
-> The build host evaluates the flake, so it needs the
-> `github-nix-config-private` ssh alias — or the
-> [private flake input bootstrap](../README.md#bootstrap-the-private-flake-input)
-> once.
-
-To reduce CPU load on the target, we transfer the pre-built image from the build host.
-1. **Build:** `nixos-rebuild build --flake .#sando-kun`
-2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
-3. **Install:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
-
-## Network and Security
-- **Boot Method:** Legacy BIOS (MBR)
-- **Data Storage:** `/mnt/scratch` is mounted automatically.
-- **Management IP:** `10.0.0.2` (Nebula mesh)
-- **SSH Access Restriction:** For enhanced security, SSH access is limited to the Nebula (`nebula0`) mesh.
-
-## Notes
-- **GPU:** The GeForce 8400 GS is extremely old and modern NVIDIA drivers will not work. It runs on the open-source `nouveau` driver or standard kernel drivers.
+## References
+- Legacy BIOS & storage architecture: [`docs/hardware/storage-zfs.md`](../../docs/hardware/storage-zfs.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

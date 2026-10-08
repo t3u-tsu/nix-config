@@ -5,7 +5,7 @@
 - **リモートサーバーのビルド負荷を下げる（shosoin-tan / torii-chan）**: 評価とビルドをメインマシン（BrokenPC）へオフロードするか，リモートビルドを設定する．シェル設定もスリム化し，リソース枯渇（D-Bus タイムアウト等）を防ぐ．
 - **キャッシュサーバーを導入する（Attic 等）**: ホスト間でビルドキャッシュを共有する．ライセンス制限のあるパッケージ用のプライベートキャッシュを運用し，サーバーのビルド負荷を下げる．
 - **デプロイ方式を決める（deploy-rs かキャッシュベースの pull か）**: リモートサーバーでの重いビルドを避ける最適な方法を確定する（`comin` は 2026-08-09 に削除）．
-- **フェイルオーバー VPS を導入する**: torii-chan への接続が切れたとき，従量課金の安価な VPS（Vultr 等）の API で CNAME を切り替える．
+- **ConoHa VPS フェイルオーバーの実機検証と自動切替の整備**: OpenTofu（`terraform/`）と Cloudflare DDNS による構成コード化は完了済み．実 ConoHa VPS 環境でのプロビジョニング検証と，torii-chan 障害時の切替自動化を整備する．
 - **onion ルーティング（Tor）の SSH バックドアを用意する**: 最後の手段として，グローバル IP / VPN が完全に落ちて torii-chan に到達できない場合の SSH 経路を確保する．
 - **BrokenPC のバックアップサーバーを構築する**: BrokenPC のデータを自動かつ安全にバックアップする（例: shosoin-tan へ）．
-- **GPU リソースでローカル LLM サーバーを運用する**: kagutsuchi-sama / shosoin-tan の余剰 GPU でローカル LLM サーバーを動かし，API 等で利用できるようにする．
+- **タワーサーバー群でローカル LLM サーバーを運用・共有する**: BrokenPC での `llama.cpp` サーバー PoC は稼働中．kagutsuchi-sama / shosoin-tan の GPU を活用し，LAN 内で共用できる LLM API サーバーとして常時稼働させる．
