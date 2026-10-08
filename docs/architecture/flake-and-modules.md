@@ -24,8 +24,8 @@
 mkLib.mkSystem {
   name = "hostname";              # ホスト名（必須）
   system = "x86_64-linux";        # アーキテクチャ（必須: x86_64-linux / aarch64-linux）
-  username = "t3u";               # プライマリユーザー名（必須）
-  profile = "desktop";            # プロファイル名（必須: desktop / tower-server / gateway / sbc）
+  username = "t3u";               # プライマリユーザー名（任意，既定値: "t3u"）
+  profile = "desktop";            # プロファイル名（必須: desktop / tower-server / gateway）
   extraModules = [ ... ];         # ホスト固有の追加モジュール（任意）
 }
 ```
@@ -33,7 +33,7 @@ mkLib.mkSystem {
 ### 内部で自動注入される共通機能
 - **`specialArgs.inputs`**: 全モジュール内から `inputs.<name>` を直接参照可能．
 - **`sops-nix` / `home-manager`**: 基盤システムとして自動統合．
-- **プロファイル自動適用**: `nixos/profiles/${profile}` が自動的に評価順の先頭に配置される．
+- **プロファイル自動適用**: `nixos/profiles/${profile}` がホスト個別設定（`hosts/${name}/default.nix`）の直前に自動配置される．
 - **共通オーバーレイ**: `nixpkgs.overlays` が全ホストに均一に適用される．
 
 ---
@@ -47,9 +47,9 @@ mkLib.mkSystem {
 | **`my.user.name`** | `nixos/base/user.nix` | プライマリユーザー名の定義（全モジュールで参照） |
 | **`my.networking.<name>`** | `nixos/networking/` | ネットワークおよびメッシュ機能（例: `my.networking.nebula`） |
 | **`my.services.<name>`** | `nixos/services/` | システムレベルの共有サービス（例: `my.services.minecraft`, `my.services.gateway`） |
-| **`my.packages.<category>`** | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.gui`, `my.packages.development`） |
-| **`my.hardware.<name>`** | `nixos/hardware/` | ハードウェア機能の抽象化（例: `my.hardware.bluetooth`, `my.hardware.audio`） |
-| **`my.home.desktop.<category>.<name>`** | `home/desktop/` | デスクトップ環境のユーザー設定（例: `my.home.desktop.terminals.ghostty`） |
+| **`my.packages.<category>`** | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.core`, `my.packages.network-tools`） |
+| **`my.hardware.<name>`** | `nixos/hardware/` | ハードウェア機能の抽象化（例: `my.hardware.nvidia`, `my.hardware.pc-tools`） |
+| **`my.home.desktop.<category>.<name>`** | `home/desktop/` | デスクトップ環境のユーザー設定（例: `my.home.desktop.dev-tools.ghostty`） |
 
 ### オプション設計の原則
 1. **デフォルト無効**: 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に要求されない限り評価・適用されない．

@@ -68,8 +68,8 @@ mkLib.mkSystem によるモジュール合成
  │   ├─ ./hardware.nix        # ハードウェア固有設定（fileSystems, swap, カーネル）
  │   ├─ ./services/           # ホスト固有サービス（該当する場合）
  │   └─ ../../nixos/          # システム共通モジュール群（一括 import）:
- │       ├─ base, core, security (SOPS), dev-tools, environment
- │       ├─ networking        # Nebula メッシュ VPN，ファイアウォール
+ │       ├─ base, core, security (SOPS), dev-tools, environment, hardware
+ │       ├─ networking, services, virtualisation
  │       └─ ../../home/       # Home Manager 共通設定
  │
  └─ extraModules              # ホスト固有の追加モジュール（例: sbc.nix, fs-hdd.nix）

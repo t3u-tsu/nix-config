@@ -54,16 +54,17 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/hosts/<hostname>.yaml
 
 ---
 
-## 4. 年次証明書更新（Nebula 証明書ローテーション）
+## 4. Nebula 証明書のローテーション
 
-Nebula のルート CA（`~/.nebula-ca/ca.crt`）は 10 年間有効だが，**各ノードに発行された証明書は 1 年間のみ有効** である（次回更新目安: 2027年8月）．
+Nebula のルート CA（`~/.nebula-ca/ca.crt`）は 10 年間有効（`-duration 87600h`）であり，各ノード証明書も CA の有効期間を継承する．
+鍵漏洩時やサブネット変更，あるいは定期的な証明書更新を行う場合は以下の手順に従う．
 
-### ノード証明書の年次更新手順
+### ノード証明書の更新・再インポート手順
 管理者のオフライン CA ディレクトリで各ノードの証明書を再署名し，シークレットへ取り込む:
 ```bash
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
-# 各ノードの証明書を再署名後，SOPS へ一括インポート
+# 各ノードの証明書を署名後，SOPS へ一括インポート
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
 ```
 ※CA 自体を更新する場合は，`bash scripts/nebula-rotate-ca.sh` を実行して全ノードを再発行する．

@@ -34,21 +34,21 @@ sudo systemctl status nebula@nebula0.service
 sudo journalctl -u nebula@nebula0.service -e --no-pager
 ```
 
-#### Step 2: 証明書有効期限の検証
-Nebula ノード証明書は **1年更新** であるため，期限切れによるハンドシェイク拒否を確認する:
+#### Step 2: 証明書有効期限・妥当性の検証
+Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
 ```bash
 # 証明書の詳細確認（有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの）
 sudo nix shell nixpkgs#nebula -c nebula-cert print \
   -path /run/secrets/<hostKey>_nebula_cert
 ```
-期限切れの場合は，管理端末で証明書を再署名してシークレットを更新する:
+再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
 ```bash
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
-# ノード証明書の再発行
+# ノード証明書の再発行（-networks オプションを使用）
 nebula-cert sign \
   -name "<hostname>" \
-  -ip "10.0.0.X/24" \
+  -networks "10.0.0.X/24" \
   -groups "mgmt,..." \
   -ca-crt "$CA_DIR/ca.crt" \
   -ca-key "$CA_DIR/ca.key" \

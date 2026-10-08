@@ -17,7 +17,7 @@ flowchart TD
 
     subgraph SiteT["【拠点T】 (LAN: 192.168.0.0/24)"]
         TRouter["拠点Tルータ (192.168.0.1)"]
-        Torii["torii-chan (10.0.0.1 / 192.168.0.128)<br>Orange Pi Zero 3 SBC<br>・プライマリ Lighthouse & Relay<br>・Cloudflare DDNS 自動更新<br>・nftables ポートフォワード (:25565)"]
+        Torii["torii-chan (10.0.0.1 / 192.168.0.128)<br>Orange Pi Zero 3 SBC<br>・プライマリ Lighthouse & Relay<br>・Cloudflare DDNS 自動更新<br>・ポートフォワード (:25565)"]
         TRouter --- Torii
     end
 
@@ -83,11 +83,11 @@ flowchart TD
 
 ### 3.2 外部公開とポートフォワーディング
 - 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード（`torii-chan.t3u.uk`, `mc.t3u.uk` 等）を自動更新する．
-- 外部から届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の nftables により Nebula トンネルを経由して拠点Aの `shosoin-tan`（`10.0.0.4:25565`）へ安全に DNAT 転送される．
+- 外部から届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の NixOS 標準ファイアウォール（iptables バックエンド，`networking.nat`）により Nebula トンネルを経由して拠点Aの `shosoin-tan`（`10.0.0.4:25565`）へ安全に DNAT 転送される．
 
 ### 3.3 同一 LAN 内での直接接続と名前解決
-- 拠点Tルータはヘアピン NAT（NAT Loopback）に正常対応しており，拠点内外を問わず同一の外部ドメイン（`torii-chan.t3u.uk`）でアクセス可能である．
-- `torii-chan` と同一ルータ内に端末を配置する際，LAN 内のプライベート IP（`192.168.0.128`）で直接接続したい場合のために [`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix)（`/etc/hosts` 上書きオプション）が用意されている（通常運用時は全ホストで無効のままで問題ない）．
+- 拠点Tの LAN 内から外部公開ドメイン（`torii-chan.t3u.uk`）へアクセスする際，ルータのヘアピン NAT（NAT Loopback）対応状況や IPv6 優先挙動によっては通信障害が発生する場合がある．
+- この回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）が用意されている（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
 
 ---
 
@@ -98,8 +98,8 @@ flowchart TD
 2. **ゾーン分離（Groups）**:
    - `mgmt`: 全ノードに付与される基本管理グループ．
    - `app`: アプリケーション通信（Minecraft，Discord Bridge，デスクトップ作業）を許可するグループ．
-3. **証明書の有効期限と年次更新**:
-   - Nebula ルート CA は 10年有効だが，各ノードの証明書は **1年有効** である．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
+3. **証明書の有効期限と管理**:
+   - Nebula ルート CA および各ノード証明書は長期有効（10年）として発行されている．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
 
 ---
 

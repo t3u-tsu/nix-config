@@ -1,6 +1,6 @@
 # Host: torii-chan (Nebula Gateway / Lighthouse & Relay)
 
-Edge gateway node deployed at **Base T** on an Orange Pi Zero 3 SBC (`192.168.0.128`), with failover capability to a ConoHa VPS.
+Edge gateway node deployed at **Site T** on an Orange Pi Zero 3 SBC (`192.168.0.128`), with failover capability to a ConoHa VPS.
 
 ## Role & Architecture
 - **Primary Lighthouse & Relay:** Serves as the central discovery lighthouse and relay for the Nebula mesh (`10.0.0.1:4242`).

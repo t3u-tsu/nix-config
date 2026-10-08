@@ -39,9 +39,9 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 #### Step 2: `.sops.yaml` の登録情報と突合
-リポジトリルートの `.sops.yaml` を開き，Step 1 で得られた公開鍵と一致しているか確認する:
+リポジトリルートの `.sops.yaml` を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
 ```bash
-grep -i -A 2 "&.*<hostname>" .sops.yaml
+grep -i -A 2 "&.*$(echo <hostname> | tr - _)" .sops.yaml
 ```
 鍵が異なる場合（再インストール等），`.sops.yaml` の鍵記述を新しい公開鍵へ更新する．
 
@@ -157,7 +157,9 @@ Give root password for maintenance (or press Control-D to continue):
    ```
 3. 直前の健全な世代へロールバックする:
    ```bash
-   /nix/var/nix/profiles/system-*-link/bin/switch-to-configuration switch
+   # 世代一覧を確認し，直前の健全な世代リンク（例: system-35-link）を指定して切り替える
+   ls -d /nix/var/nix/profiles/system-*-link
+   /nix/var/nix/profiles/system-<世代番号>-link/bin/switch-to-configuration switch
    ```
 
 #### パターン B: パスワード入力が通らずログイン不能な場合（推奨回避策）

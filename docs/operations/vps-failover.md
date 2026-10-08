@@ -44,6 +44,7 @@ export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' ../secrets/
 export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
 export CONOHAVPS_PASSWORD=$(sops -d --extract '["OPENSTACK_PASSWORD"]' ../secrets/services/conoha-vps-mcp.yaml)
 export TF_VAR_ssh_public_key='ssh-ed25519 ...'
+export TF_VAR_admin_password='<管理者パスワード>'  # 必須: 9-70文字，英大文字/小文字/数字/記号を含む
 tofu init
 tofu apply
 ```

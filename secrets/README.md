@@ -52,31 +52,11 @@ SOPS_AGE_KEY_FILE=/path/to/master-key sops secrets/hosts/<hostname>.yaml
 `services/signing.yaml` and `services/conoha-vps-mcp.yaml` open with the default
 identity instead.
 
-### Set a host password hash
+### Key rotation & host onboarding
 
-`scripts/set-host-password.sh` prompts for the t3u and root passwords and writes
-`<hostkey>_t3u_password_hash` / `<hostkey>_root_password_hash`. Pass the master
-key when the file already exists (merging requires decrypting it first):
-
-```bash
-SOPS_AGE_KEY_FILE=/path/to/master-key \
-  nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#jq -c bash scripts/set-host-password.sh <hostname>
-```
-
-### Add a new host
-
-1. Boot the host and derive its age key from its SSH host key:
-   ```bash
-   ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
-   ```
-2. Add the derived key to `.sops.yaml` as `&<hostname>` and list it in the key
-   groups the host needs (`secrets/hosts/<hostname>.yaml`, relevant
-   `secrets/services/*.yaml`).
-3. Re-encrypt with the new key:
-   ```bash
-   SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/hosts/<hostname>.yaml secrets/services/<service>.yaml
-   ```
-4. Commit and deploy.
+For end-to-end secret onboarding and rotation procedures, refer to the canonical runbooks:
+- Adding a new host & registering age keys: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
+- Secret management, password hash setting, and rotation: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
 
 Failover hosts run one machine at a time, but each still needs its own host key —
 there is no shared `<hostname>_vps` entry. `torii-chan`'s VPS key is **not

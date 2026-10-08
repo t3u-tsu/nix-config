@@ -78,7 +78,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
    nebula-cert sign \
      -name "<hostname>" \
-     -ip "10.0.0.X/24" \
+     -networks "10.0.0.X/24" \
      -groups "mgmt,..." \
      -ca-crt "$CA_DIR/ca.crt" \
      -ca-key "$CA_DIR/ca.key" \
