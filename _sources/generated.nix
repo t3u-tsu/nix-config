@@ -22,10 +22,10 @@
   };
   codewhale = {
     pname = "codewhale";
-    version = "v0.10.0";
+    version = "v0.10.1";
     src = fetchurl {
-      url = "https://github.com/Hmbown/Codewhale/releases/download/v0.10.0/codewhale-linux-x64";
-      sha256 = "sha256-xEPCwyx0PdgP9WOXsee7/lWxymMG/1UGW5d7xlXVDtE=";
+      url = "https://github.com/Hmbown/Codewhale/releases/download/v0.10.1/codewhale-linux-x64";
+      sha256 = "sha256-7S2Ds4U96APuOfV0x0XR4cn2+L+Z7TrsODVCXgwmmTs=";
     };
   };
   danime-plus = {
@@ -72,18 +72,18 @@
   };
   viabackwards = {
     pname = "viabackwards";
-    version = "5.12.0";
+    version = "5.12.1";
     src = fetchurl {
-      url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.12.0/ViaBackwards-5.12.0.jar";
-      sha256 = "sha256-GU6SUCJGMidNezwX5BHgMakiPBhjxvUTjVPHIfB6t40=";
+      url = "https://github.com/ViaVersion/ViaBackwards/releases/download/5.12.1/ViaBackwards-5.12.1.jar";
+      sha256 = "sha256-KdlNOibIXIoydXSyMi20B4mSrkV/AXMyVDGhKqw4SRE=";
     };
   };
   viaversion = {
     pname = "viaversion";
-    version = "5.12.0";
+    version = "5.12.1";
     src = fetchurl {
-      url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.12.0/ViaVersion-5.12.0.jar";
-      sha256 = "sha256-csQKanAtZ/Im/JoNitgquhSD/avi5hWbzd2y3AcHULA=";
+      url = "https://github.com/ViaVersion/ViaVersion/releases/download/5.12.1/ViaVersion-5.12.1.jar";
+      sha256 = "sha256-uAM4B+cYLDUAOkWWI1LdZCwekYgMooHaOkPLb0galaI=";
     };
   };
 }
