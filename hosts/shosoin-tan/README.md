@@ -1,86 +1,44 @@
-# Host: shosoin-tan (i7-870 Tower Server)
+# Host: shosoin-tan (Minecraft & General-Purpose Server)
 
-This host is a tower server equipped with an Intel Core i7-870 and a ZFS Mirror configuration, currently serving as the Minecraft server and a general-purpose home server.
+Tower server equipped with an Intel Core i7-870, SSD system drive, and a ZFS Mirror storage pool (`tank-1tb`), hosting the fleet Minecraft server, Discord Bridge, and multi-tier backup.
 
 ## Hardware Specs
-- **CPU:** Intel Core i7-870 (1st Gen)
-- **GPU:** Quadro K2200 (Maxwell)
-- **RAM:** 16GB
+- **CPU:** Intel Core i7-870 (Nehalem, 4C/8T, 2.93 GHz)
+- **GPU:** NVIDIA Quadro K2200 (Maxwell)
+- **RAM:** 16 GB DDR3
 - **Storage:**
-  - 480GB SSD (OS / Boot)
-  - 1TB HDD x2 (ZFS Mirror: `tank-1tb`)
-  - 320GB HDD (ext4, mounted to `/mnt/data-320gb`)
+  - 480 GB SATA SSD: OS / Boot (MBR)
+  - 1 TB SATA HDD x2: ZFS Mirror (`tank-1tb`, mounted at `/mnt/tank-1tb`)
+  - 320 GB SATA HDD: Auxiliary storage (`/mnt/data-320gb`)
 
-## Installation Guide
+## Configuration Summary
+- **Profile:** `tower-server`
+- **Bootloader:** Legacy BIOS (MBR), `boot.loader.grub.efiSupport = false`
+- **Nebula Mesh:** `10.0.0.4` (groups: `server`, `mgmt`, `app`)
+- **Key Services:**
+  - **Minecraft:** Paper server (`/srv/minecraft`, TCP 25565 forwarded from `torii-chan`).
+  - **Discord Bridge:** Bot integration with socket at `/run/minecraft-discord-bridge/bridge.sock`.
+  - **Multi-tier Restic Backup:** Runs every 2 hours, backing up both locally to `/mnt/tank-1tb/backups/minecraft` and remotely over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
 
-Due to older hardware and high build loads, this host uses a specific remote-build installation procedure for stability.
+## Installation
+Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
 
-### Phase 1: Disk Preparation
-1. **Partition and mount** (layout defined in `hardware.nix`; verify device names with `lsblk`). Legacy BIOS (MBR):
-   ```bash
-   # 480GB SSD (system): part1 = swap, part2 = /boot (vfat), part3 = / (ext4)
-   ssh nixos@<IP> "sudo parted /dev/sda -- mklabel msdos && \
-     sudo parted /dev/sda -- mkpart primary linux-swap 1MiB 8GiB && \
-     sudo parted /dev/sda -- mkpart primary fat32 8GiB 8.5GiB && \
-     sudo parted /dev/sda -- set 2 boot on && \
-     sudo parted /dev/sda -- mkpart primary ext4 8.5GiB 100% && \
-     sudo mkswap /dev/sda1 && sudo swapon /dev/sda1 && \
-     sudo mkfs.fat -F 32 /dev/sda2 && \
-     sudo mkfs.ext4 /dev/sda3 && \
-     sudo mount /dev/sda3 /mnt && \
-     sudo mkdir -p /mnt/boot && \
-     sudo mount /dev/sda2 /mnt/boot"
-   ```
-   `hardware.nix` declares no `swapDevices`, so part1 is only activated while
-   installing. Add a `swapDevices` entry there if the installed system needs swap.
-2. **Create the ZFS mirror pool** (`tank-1tb`, 2x 1TB HDD — **destructive**, wipes both disks):
-   ```bash
-   ssh nixos@<IP> "sudo modprobe zfs && \
-     sudo zpool create -m /mnt/tank-1tb tank-1tb mirror /dev/sdb /dev/sdc"
-   ```
-3. **Mount the 320GB HDD** (`/mnt/data-320gb`):
-   ```bash
-   ssh nixos@<IP> "sudo parted /dev/sdd -- mklabel msdos && \
-     sudo parted /dev/sdd -- mkpart primary ext4 1MiB 100% && \
-     sudo mkfs.ext4 /dev/sdd1 && \
-     sudo mkdir -p /mnt/data-320gb && \
-     sudo mount /dev/sdd1 /mnt/data-320gb"
-   ```
+Disk layout:
+- `/dev/sda` (SSD): MBR partition table (`/boot` 500M vfat, `/` ext4)
+- `/dev/sdb` & `/dev/sdc` (HDDs): ZFS Mirror pool `tank-1tb`
+- `/dev/sdd` (HDD): `/mnt/data-320gb` (ext4)
 
-### Phase 2: Transfer Secret Key
-`sops-nix` decrypts secrets during `nixos-install`, so the identity at
-`/mnt/var/lib/sops-nix/key.txt` must decrypt `secrets/hosts/shosoin-tan.yaml`
-(master + host key; the user key is excluded). Use the offline master age key,
-or the host key derived from the SSH host key registered in `.sops.yaml`
-(see [`hosts/README.md`](../README.md)):
+## Quick Operations
 ```bash
-ssh nixos@<IP> "sudo mkdir -p /mnt/var/lib/sops-nix"
-cat /path/to/master-age-key.txt | ssh nixos@<IP> "sudo tee /mnt/var/lib/sops-nix/key.txt > /dev/null"
+# Rebuild remotely over Nebula
+nixos-rebuild switch --flake .#shosoin-tan --target-host t3u@10.0.0.4 --sudo --ask-sudo-password
+
+# Check ZFS pool status
+zpool status tank-1tb
 ```
 
-### Phase 3: Build and Transfer System (Recommended)
-
-> The build host evaluates the flake, so it needs the
-> `github-nix-config-private` ssh alias — or the
-> [private flake input bootstrap](../README.md#bootstrap-the-private-flake-input)
-> once.
-
-To avoid CPU freezes on the target, build the image on a build host and transfer it.
-1. **Build:** `nixos-rebuild build --flake .#shosoin-tan`
-2. **Transfer:** `nix copy --to ssh://nixos@<IP> ./result`
-3. **Install:** `ssh nixos@<IP> "sudo nixos-install --system $(readlink -f ./result)"`
-
-## Network and Security
-- **Boot Method:** Legacy BIOS (MBR)
-- **Automated Update:** Configuration locking and plugins are automatically updated daily at 04:00 JST via GitHub Actions, which commits changes back to the repository.
-- **Minecraft Data:** Located at `/srv/minecraft`.
-- **Minecraft Discord Bridge:** Discord management bot is active. Socket at `/run/minecraft-discord-bridge/bridge.sock`.
-- **Backup:** Runs every 2 hours via `restic`.
-  - Dual setup: Local (`/mnt/tank-1tb/backups/minecraft`) and Remote (`kagutsuchi-sama`).
-- **Management IP:** `10.0.0.4` (Nebula mesh)
-- **MTU Setting:** Nebula MTU is set to `1320` (common across the fleet).
-- **SSH Access Control:** Limited to the Nebula (`nebula0`) mesh ONLY for enhanced security.
-
-## Notes
-- **Overclocking:** CPU overclocking can cause instability (Kernel Oops) during heavy Nix builds. Running at stock speeds is highly recommended.
-- **resolv.conf:** If networking services fail due to signature mismatch after installation, manually delete `/etc/resolv.conf` and restart.
+## References
+- Backup & DR runbook: [`docs/operations/backup-and-restore.md`](../../docs/operations/backup-and-restore.md)
+- ZFS & Legacy BIOS architecture: [`docs/hardware/storage-zfs.md`](../../docs/hardware/storage-zfs.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

@@ -70,9 +70,8 @@ The state file (`terraform.tfstate`) is stored locally and excluded via `.gitign
 
 ConoHa's standard OS images do not include NixOS, so we use the **rescue ISO injection**
 method to replace the disk with NixOS. Running `nixos-anywhere` directly against a stock
-image is not possible on the 512MB plan; the community-proven alternative (boot the
-`nixos-kexec-installer` from a running Ubuntu, then `nixos-anywhere --phases install`
-with a GPT layout) is documented in [`hosts/torii-chan/README.md`](../hosts/torii-chan/README.md) and is not used here.
+image is not supported on the 512MB plan due to memory constraints; we boot the custom
+NixOS installer ISO via ConoHa's rescue mode as documented in [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md).
 
 ```bash
 # 1. Create the VPS (Debian boot)
@@ -86,7 +85,7 @@ ssh -i ~/.ssh/t3u root@<public_ip>
 
 # 4. Operate the NixOS installer via the VNC console in the ConoHa control panel
 #    (set a static IP -> parted/mkfs -> nixos-generate-config -> nixos-install.
-#     See hosts/torii-chan/README.md for details)
+#     See hosts/torii-chan/install-nixos.sh for details)
 
 # 5. After installation, eject the ISO and boot normally
 ./scripts/nixos-iso.sh eject <instance_id>
@@ -114,3 +113,7 @@ Edge cases:
 - **Cost**: the 512MB plan costs ¥459/month. `apply` starts billing immediately
 - **admin_pass changes recreate the instance** (force new), so settle it before applying
 - **On destroy**: volumes, security groups, and keypairs are also deleted (watch out for leftover resources after instance deletion)
+
+## References
+- VPS failover & recovery runbook: [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md)
+- Network topology: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)

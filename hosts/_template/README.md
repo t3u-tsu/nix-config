@@ -1,42 +1,32 @@
 # Host: HOSTNAME
 
-Short description of this machine (role, hardware headline).
+Short description of this machine (role, hardware headline, profile).
 
 ## Hardware Specs
-- **CPU**:
-- **GPU**:
-- **RAM**:
-- **Storage**:
-  - ... (by-id names, mount points)
+- **CPU:** Model, core / thread count
+- **GPU:** Model, driver, role
+- **RAM:** Capacity
+- **Storage:**
+  - `/dev/disk/by-id/...`: mount points, partition layout
 
-## Role / Services
-- (what this host runs, e.g. Nebula member, game server, build host)
-- Nebula IP: `10.0.0.5` (group: mgmt)
+## Configuration Summary
+- **Profile:** `desktop` | `tower-server` | `gateway` | `sbc`
+- **Nebula Mesh:** `10.0.0.X` (groups: `mgmt`, ...)
+- **Key Services:**
+  - `my.services.<name>.enable = true;`
 
-## Deployment
+## Quick Operations
 ```bash
+# Local rebuild
 sudo nixos-rebuild switch --flake .#HOSTNAME
+
+# Remote deploy over Nebula
+nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.X --sudo --ask-sudo-password
 ```
 
-For remote hosts over the Nebula mesh:
-```bash
-nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.5 --sudo --ask-sudo-password
-```
+## Installation
+Follow the comprehensive, step-by-step installation runbook in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
 
-## Installation (clean install)
-1. Boot the NixOS installer, partition disks per `hardware.nix`.
-2. Place the age key: `sudo mkdir -p /mnt/var/lib/sops-nix` and copy
-   `/var/lib/sops-nix/key.txt` (derived from the SSH host key) before install:
-   ```bash
-   ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub   # register in .sops.yaml first
-   ```
-3. Bootstrap the private flake input — the installer has no
-   `github-nix-config-private` ssh alias yet, so the flake cannot be evaluated
-   without it (see
-   [Bootstrap the private flake input](../README.md#bootstrap-the-private-flake-input)).
-4. Install:
-   ```bash
-   sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#HOSTNAME
-   ```
-
-See [`hosts/README.md`](../README.md) for the full add-a-host workflow.
+## References
+- Adding a host runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)

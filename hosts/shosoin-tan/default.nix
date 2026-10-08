@@ -56,7 +56,7 @@
     useDHCP = true;
   };
 
-  # Enable local network optimizations (NAT loopback bypass for torii-chan)
+  # Direct LAN DNS override when collocated on the same router as torii-chan
   # my.networking.local-network.enable = true;
 
   my.hardware.nvidia.enable = true;
