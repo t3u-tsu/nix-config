@@ -126,7 +126,7 @@ BIOS 設定の `Config -> Power -> Sleep State` は **Linux (S3)** に設定し�
 - **S3 (Deep Sleep)**: RAM 以外の給電をカットするためスリープ中のバッテリー消費を最小限に抑えられる．
 - **s2idle (Modern Standby)**: 復帰が極めて高速で，復帰時の指紋センサー初期化の信頼性に優れるが，スリープ中の電力消費が大きい．
 
-本ホストではバッテリー持続時間を優先して S3 を選択している．カーネルパラメータ `mem_sleep_default=deep` によりカーネルのスリープステートを S3 deep に固定する．
+本ホストではバッテリー持続時間を優先して S3 を選択している．スリープステートの S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を **Linux (S3)** に設定することで ACPI レベルで実現される．
 
 ### 運用上の留意事項
 
@@ -187,6 +187,18 @@ in
 - **ConflictingDevice の追加**: HDMI 出力と Headphones デバイスを排他化（競合デバイス指定）することで，HDMI 接続時に Headphones プロファイルが誤発効することを防止する．
 - **PlaybackPriority の逆転**: 内蔵スピーカーの優先度を `200` から `900` へ引き上げ，常に選択可能なプライマリシンクとして維持する．
 - **両プロセスへの環境変数適用**: PipeWire だけでなく WirePlumber も ALSA カードを直接開いて UCM 設定を参照する．PipeWire 側のみに設定した場合，WirePlumber が標準の未パッチ UCM を読み込みスピーカーが再び消失するため，双方の systemd ユーザーサービスへ `ALSA_CONFIG_UCM2` を渡すことが不可欠である．
+
+---
+
+## 6. ファームウェア・BIOS 注意事項
+
+### カスタム Secure Boot 鍵の登録リスク (文鎮化警告)
+
+Lenovo ThinkPad X1 Carbon Gen 7 において，BIOS の Setup Mode を用いてカスタム Secure Boot 鍵（PK/KEK/db）を登録すると，マザーボードが POST に失敗して永久に起動不能（文鎮化 / brick）になるリスクが報告されている（Arch Linux Wiki 警告）．そのため，本機ではカスタム Secure Boot 鍵の自己登録は行わないこと．
+
+### Thunderbolt BIOS Assist Mode の運用方針
+
+BIOS の `Config -> Thunderbolt 3 -> Thunderbolt BIOS Assist Mode` は，Linux カーネル 4.13 以降で Thunderbolt のネイティブ管理がサポートされているため，**Disabled（無効）のまま運用** する．これを有効化すると過去の特定ファームウェアにおける不具合や電力管理の競合，起動障害を引き起こす恐れがあるため，ネイティブ Linux 管理を維持する．
 
 ---
 

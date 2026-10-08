@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Failover["【クラウド】 (待機系 VPS)"]
-        VPS["torii-chan-vps (10.0.0.10)<br>ConoHa VPS (x86_64)<br>・待機系 Lighthouse & Relay<br>・SBC 障害時のフェイルオーバー先"]
+        VPS["torii-chan-vps (10.0.0.1 待機系)<br>ConoHa VPS (x86_64)<br>・待機系 Lighthouse & Relay<br>・SBC 停止時に 10.0.0.1 を引き継ぐ"]
     end
 
     subgraph SiteA["【拠点A】 (LAN: 192.168.42.0/24)"]
@@ -70,7 +70,7 @@ flowchart TD
 | **`shosoin-tan`** | `10.0.0.4` | **拠点A** (`192.168.42.x`) | `mgmt,app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
 | **`BrokenPC`** | `10.0.0.100` | **拠点A** / モバイル | `mgmt,app` | サブ機（可搬ノートPC），ローカル LLM 推論 |
 | **`x1c7`** | `10.0.0.101` | **拠点A** / モバイル | `mgmt,app` | モバイルノートPC（ThinkPad X1C7） |
-| **`torii-chan-vps`** | `10.0.0.10` | **クラウド** (ConoHa VPS) | `mgmt` | 待機系 Lighthouse & Relay（フェイルオーバー用） |
+| **`torii-chan-vps`** | `10.0.0.1` (待機系) | **クラウド** (ConoHa VPS) | `mgmt` | 待機系 Lighthouse & Relay（SBC 停止時に 10.0.0.1 を引き継ぐ） |
 
 ---
 

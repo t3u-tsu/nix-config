@@ -53,7 +53,7 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 ### ゲーム描画における dGPU オフロード無効化
 
 - **ゲーム実行方針**: Steam や各種ゲームを起動する際，PRIME オフロード（`nvidia-offload`）を使用せず，Radeon 680M 上でネイティブ描画を行う．
-- **設定**: `my.services.desktop.gaming.nvidiaOffload = false` を維持し，dGPU の 3D 描画呼び出しによるクラッシュを未然に防止している．
+- **設定**: `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを未然に防止している．
 
 ### 省電力制御 (RTD3 & finegrained)
 

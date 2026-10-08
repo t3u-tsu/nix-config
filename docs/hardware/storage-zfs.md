@@ -52,10 +52,11 @@ boot.loader.grub = {
 
 ### ZFS 必須要件: `networking.hostId`
 
-NixOS で ZFS サポートを有効化する場合，意図しないホストによるプールの多重インポート・データ破壊を防ぐため，**32 ビットの 16 進数ホスト ID** の定義が必須である（未定義の場合は評価時にアサーションエラーとなる）．
+NixOS で ZFS サポートを有効化する場合，意図しないホストによるプールの多重インポート・データ破壊を防ぐため，**32 ビットの 16 進数ホスト ID** の定義が必須である（未定義の場合は評価時にアサーションエラーとなる）．現在クラスタ内で ZFS プールを運用しているホストは `shosoin-tan` のみであり，以下のように定義されている．
 
 - `shosoin-tan`: `networking.hostId = "8425e349";`
-- `sando-kun`: `networking.hostId = "5a4d0001";`
+
+※ `sando-kun` にも `networking.hostId = "5a4d0001";` が定義されているが，ストレージは ext4 / vfat 構成であり ZFS プールは運用していない．
 
 ---
 
@@ -105,6 +106,8 @@ sudo zpool create -m /mnt/tank-1tb tank-1tb mirror /dev/disk/by-id/<DISK1> /dev/
 ## 3. 定期スクラブとデータ整合性検証
 
 ZFS の最大の利点は，全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラの誤動作に伴う **サイレントデータ破損（Bit Rot / ビット化け）を自動検知・自己修復** できる点にある．
+
+現在，コード側（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)）には `services.zfs.autoScrub` による自動スクラブの systemd タイマーは設定されていない．そのため，管理者が定期的に手動でスクラブ（`sudo zpool scrub tank-1tb`）を実行し，整合性を検証する運用としている．
 
 ### 手動スクラブ操作
 

@@ -61,7 +61,7 @@ flowchart TD
     Identify --> Type{ホストのストレージ種別}
 
     Type -->|"UEFI + GPT<br>(BrokenPC, x1c7, kagutsuchi)"| MountA["mount root /mnt<br>mount efi /mnt/boot"]
-    Type -->|"Legacy BIOS + ZFS<br>(shosoin-tan, sando-kun)"| MountB["mount root SSD /mnt<br>mount boot /mnt/boot<br>zpool import -f -R /mnt tank-1tb"]
+    Type -->|"レガシー BIOS 構成<br>(shosoin-tan: SSD + ZFS,<br>sando-kun: HDD)"| MountB["mount root /mnt<br>mount boot /mnt/boot<br>(shosoin-tan のみ: zpool import)"]
     Type -->|"SBC (SD + HDD)<br>(torii-chan)"| MountC["mount NIXOS_HDD /mnt<br>mount NIXOS_SD /mnt/boot"]
 
     MountA --> Enter["nixos-enter --root /mnt"]
@@ -76,14 +76,19 @@ mount /dev/disk/by-id/<root-partition> /mnt
 mount /dev/disk/by-id/<efi-partition> /mnt/boot
 ```
 
-#### 構成 B: レガシー BIOS + ZFS 構成（`shosoin-tan`, `sando-kun`）
-`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ:
+#### 構成 B: レガシー BIOS 構成（`shosoin-tan`: SSD + ZFS，`sando-kun`: HDD）
+`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ．一方，`sando-kun` は HDD（ext4）のみで ZFS は非搭載である:
 ```bash
-# SSD のルートおよび boot をマウント
+# ルートおよび boot のマウント
+# 例: shosoin-tan（SSD）
 mount /dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A-part3 /mnt
 mount /dev/disk/by-id/ata-CT480BX500SSD1_1946E3D7A95A-part2 /mnt/boot
 
-# 必要に応じて ZFS プールを代替ルート指定で強制インポート
+# 例: sando-kun（HDD）
+# mount /dev/disk/by-id/ata-ST9250320AS_5SW1VK4F-part3 /mnt
+# mount /dev/disk/by-id/ata-ST9250320AS_5SW1VK4F-part2 /mnt/boot
+
+# shosoin-tan 固有手順: 必要に応じて ZFS プールを代替ルート指定で強制インポート（sando-kun では不要）
 zpool import -f -R /mnt tank-1tb
 ```
 
@@ -143,12 +148,17 @@ exit
 # 2. マウント解除
 umount -R /mnt
 
-# 3. ZFS をインポートしていた場合のみエクスポート
-# zpool export tank-1tb
+# 3. ZFS をインポートしていた場合のみエクスポート（shosoin-tan 固有）
+zpool export tank-1tb
 
 # 4. システム再起動
 reboot
 ```
+
+> [!CAUTION]
+> **ZFS プール（`tank-1tb`）のエクスポート忘れに注意**
+> `shosoin-tan` で ZFS プールをインポートした場合，レスキュー環境の再起動前に必ず `zpool export tank-1tb` を実行すること．`shosoin-tan` は `boot.zfs.forceImportRoot = false` が設定されているため，レスキュー完了時にエクスポートを怠ると次回起動時に Emergency Mode に陥る．
+
 
 ---
 

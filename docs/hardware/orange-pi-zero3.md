@@ -130,7 +130,9 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
    得られた公開鍵をリポジトリの `.sops.yaml`（`&torii_chan`）へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
 4. **本番 SD 構成への切り替え**:
    ```bash
-   nixos-rebuild switch --flake .#torii-chan-sd --target-host root@192.168.0.128
+   nixos-rebuild switch --flake .#torii-chan-sd \
+     --target-host root@192.168.0.128 \
+     --option sandbox false --option filter-syscalls false
    ```
 5. **HDD へのルート複製と移行**:
    外付け HDD（`/dev/sda`）をフォーマットし，稼働中の SD カードルートを rsync で同期する:
@@ -145,7 +147,10 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
    ```
 6. **本番 HDD 構成の適用と再起動**:
    ```bash
-   nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password
+   nixos-rebuild switch --flake .#torii-chan-hdd \
+     --target-host t3u@10.0.0.1 \
+     --sudo --ask-sudo-password \
+     --option sandbox false --option filter-syscalls false
    sudo reboot
    ```
 
