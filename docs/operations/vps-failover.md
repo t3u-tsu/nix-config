@@ -42,6 +42,7 @@ cd terraform
 # 認証情報を SOPS から注入 (詳細は terraform/README.md 参照)
 export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
 export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
+export CONOHAVPS_PASSWORD=$(sops -d --extract '["OPENSTACK_PASSWORD"]' ../secrets/services/conoha-vps-mcp.yaml)
 export TF_VAR_ssh_public_key='ssh-ed25519 ...'
 tofu init
 tofu apply
@@ -49,8 +50,11 @@ tofu apply
 出力された VPS のインスタンス ID およびパブリック IP アドレスを確認する．
 
 ### Step 2: NixOS の導入 (ISO レスキュー)
-レスキュー ISO をビルドし，ConoHa API 経由でアタッチして起動する:
+リポジトリルートに戻り，レスキュー ISO をビルドして ConoHa API 経由でアタッチ・起動する:
 ```bash
+# リポジトリルートへ復帰
+cd ..
+
 # 一時パスワード付きレスキュー ISO をビルド
 ./hosts/torii-chan/build-vps-iso.sh
 

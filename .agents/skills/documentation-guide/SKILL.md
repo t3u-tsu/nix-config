@@ -82,5 +82,34 @@ docs/
     ├── build-and-deploy.md            # ビルド・評価・キャッシュ・デプロイ失敗時
     ├── secrets-and-auth.md            # SOPS 復号エラー, private input 認証エラー
     ├── network-recovery.md            # Nebula 接続不能, NAT loopback, SSH 遮断復旧
-    └── emergency-recovery.md          # ロールバック, インストーラ USB レスキュー
 ```
+
+---
+
+## 6. ドキュメントレビュー体制
+
+ドキュメントの新規作成や大幅な改修を行った際は，得意領域に応じて Codewhale と Antigravity サブエージェントにレビューを実施させる．
+
+### 技術的正確性のレビュー（Codewhale 委譲）
+- **担当**: Codewhale（DeepSeek）
+- **対象**: 手順書・設計書に記載された技術仕様，シェルコマンド，systemd ユニット名，Nix 設定値，ネットワーク構成．
+- **検証観点**:
+  - 記載されたコマンドが実際のホスト環境・NixOS 仕様に合致しているか．
+  - 参照されているファイルパスやサービス名がリポジトリ内のコードと整合しているか．
+  - 復旧手順や運用ランブックに致命的な手順抜けやエッジケースがないか．
+- **実行方法**:
+  ```bash
+  FILES="docs/operations/backup-and-restore.md" .agents/skills/codewhale-worker/scripts/review.sh "Verify that restic restore commands and systemd unit names match the actual NixOS config."
+  ```
+
+### 自然言語・文章品質のレビュー（Antigravity サブエージェント）
+- **担当**: Antigravity サブエージェント（Gemini）
+- **対象**: ドキュメントの文章，章立て，相互参照，コード内コメント．
+- **検証観点**:
+  - 自然な日本語表現（機械翻訳調の排除，簡潔で論理的な常体）．
+  - 句読点規則の遵守（必ず `，．` を使用しているか）．
+  - SSOT 原則の遵守（他ドキュメントとの不要な重複がないか，正本 `docs/operations/` への参照になっているか）．
+  - 相対リンクおよびアンカーの正確性（リンク切れがないか）．
+  - コード内コメントが `hush` ルールに従っているか（自明なコメントがなく，命名で意図を表現できているか）．
+- **実行方法**:
+  `invoke_subagent` ツールを用いて `research` または `self` サブエージェントを起動し，上記観点を指定してレビューを行わせる．

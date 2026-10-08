@@ -101,15 +101,24 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 新ホスト側（root 権限）で初回ビルド前に一時的な SSH エイリアスを設定する:
 ```bash
-# 新ホスト側で実行
+# 新ホスト側で実行（secrets/common.yaml 内の nix_config_private_deploy_key を一時配置）
 mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+
+# deploy key の配置
+cat > /root/.ssh/nix-config-private_deploy_key <<'EOF'
+... (deploy key 内容) ...
+EOF
+chmod 600 /root/.ssh/nix-config-private_deploy_key
+
 cat >> /root/.ssh/config <<'EOF'
 Host github-nix-config-private
   HostName github.com
   User git
-  IdentityFile /root/.ssh/id_ed25519_deploy  # secrets/common.yaml 内の deploy key を一時配置
+  IdentityFile /root/.ssh/nix-config-private_deploy_key
+  IdentitiesOnly yes
 EOF
-chmod 600 /root/.ssh/config /root/.ssh/id_ed25519_deploy
+chmod 600 /root/.ssh/config
 ```
 ※初回の `nixos-rebuild switch` 完了後は `private-config.nix` が恒久的な設定を配置するため，一時ファイルは自動的に置換または安全に削除できる．
 
@@ -172,9 +181,15 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
      ```
 3. **ターゲット領域のマウント**:
    ```bash
+   # UEFI 機の場合:
    sudo mount /dev/nvme0n1p2 /mnt              # ルートパーティション
    sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
    sudo mount /dev/nvme0n1p1 /mnt/boot         # ESP / ブートパーティション
+
+   # Legacy BIOS 機の場合（例）:
+   # sudo mount /dev/sda3 /mnt                 # ルートパーティション
+   # sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
+   # sudo mount /dev/sda2 /mnt/boot            # ブートパーティション
    ```
 
 ### 3.2 SSH ホスト鍵と SOPS age 秘密鍵の事前配置
@@ -214,8 +229,8 @@ sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null <<'EOF'
 EOF
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 
-# 一時 SSH エイリアスを設定
-sudo tee /root/.ssh/config >/dev/null <<'EOF'
+# 一時 SSH エイリアスを設定（追記）
+sudo tee -a /root/.ssh/config >/dev/null <<'EOF'
 Host github-nix-config-private
   HostName github.com
   User git
@@ -233,7 +248,7 @@ sudo ssh -T git@github-nix-config-private
 
 ```bash
 # リポジトリを展開したディレクトリで実行
-sudo NIXPKGS_ALLOW_UNFREE=1 nixos-install --flake .#<hostname>
+sudo nixos-install --flake .#<hostname>
 ```
 
 インストール完了後，再起動する:

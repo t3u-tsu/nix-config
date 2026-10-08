@@ -32,7 +32,20 @@ description: このリポジトリで設定変更を適用するときの手順�
    nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link
    ```
 
-4. **適用**:
+4. **レビュー**:
+   変更規模や内容に応じて，Codewhale と Antigravity サブエージェントの強みを活かしてレビューを実施する．
+   - **技術レビュー（Codewhale 委譲）**:
+     コードや設定の論理，NixOS イディオム，ドキュメント記載コマンドや systemd ユニット名の正確性，潜在的不具合を検証する．
+     ```bash
+     # 差分全体の技術レビュー
+     DIFF_RANGE="origin/main..HEAD" .agents/skills/codewhale-worker/scripts/review.sh
+     # 特定ファイルの技術レビュー
+     FILES="docs/operations/backup-and-restore.md" .agents/skills/codewhale-worker/scripts/review.sh
+     ```
+   - **自然言語・ドキュメント・コメントレビュー（Antigravity サブエージェント）**:
+     日本語文書の自然さ，句読点 `，．`，SSOT 原則の遵守，相互参照リンクの正確性，および `hush` ルールに基づく自明なコメントの排除をサブエージェントにレビューさせる．
+
+5. **適用**:
    デスクトップ環境（Polkit エージェントが動作している x1c7 など）では，事前にユーザーの承認を得たうえで，エージェントが `pkexec` 経由で実行できる:
    ```bash
    pkexec --keep-cwd nixos-rebuild dry-activate --flake .#<hostname>
@@ -51,7 +64,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
    ```
 
-5. **コミットとプッシュ**（メッセージは英語，Conventional Commits 準拠）
+6. **コミットとプッシュ**（メッセージは英語，Conventional Commits 準拠）
    ```bash
    git add -A
    git commit -m "feat: topic description"
@@ -59,7 +72,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
    `main` 直 push は `git push origin main`．
 
-6. **PR（`gh`）**: ユーザー承認のうえ実行する．Git デフォルトのローカルマージコミットメッセージ（`Merge branch ...`）は `convco` フックで拒否されるため，マージは必ず GitHub PR を作成してリモート上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
+7. **PR（`gh`）**: ユーザー承認のうえ実行する．Git デフォルトのローカルマージコミットメッセージ（`Merge branch ...`）は `convco` フックで拒否されるため，マージは必ず GitHub PR を作成してリモート上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
    ```bash
    cat > /tmp/pr-body.md <<'EOF'
    feat: topic description
