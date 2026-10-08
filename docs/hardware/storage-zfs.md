@@ -46,7 +46,7 @@ boot.loader.grub = {
 
 初期プロビジョニング時，ディスクは `parted` により `msdos`（MBR）ラベルで初期化される．
 
-- **第1パーティション (`part1`)**: `linux-swap`（8 GiB）— メモリ枯渇防止（初期インストール時に swapon）．
+- **第1パーティション (`part1`)**: `linux-swap`（8 GiB）— メモリ枯渇防止（初期インストール時に swapon，定常稼働時の NixOS 設定には swapDevices 未指定）．
 - **第2パーティション (`part2`)**: `fat32`（500 MiB，boot フラグ有効）— `/boot` にマウント．
 - **第3パーティション (`part3`)**: `ext4`（残り全域）— ルート `/` にマウント．
 

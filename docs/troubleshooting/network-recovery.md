@@ -19,7 +19,7 @@ flowchart TD
     CheckService -- Yes --> CheckCert{"証明書の有効期限切れ?"}
     CheckCert -- Yes --> RefreshCert["nebula-cert sign & 再配布"]
     CheckCert -- No --> CheckFirewall{"UDP 4242 受信許可?"}
-    CheckFirewall -- No --> FixFW["nftables / ルータの UDP 4242 開放"]
+    CheckFirewall -- No --> FixFW["ファイアウォール (iptables) / ルータの UDP 4242 開放"]
     CheckFirewall -- Yes --> CheckLighthouse{"Lighthouse (torii-chan) 稼働?"}
     CheckLighthouse -- No --> RescueLighthouse["torii-chan 復旧 または VPS フェイルオーバー"]
     CheckLighthouse -- Yes --> OtherNet["物理 NIC / ルーティング障害調査"]
@@ -195,4 +195,3 @@ getent hosts torii-chan.t3u.uk
 - [ローカルネットワーク最適化モジュール](../../nixos/networking/local-network.nix)
 - [タワーサーバー セキュリティ設定](../../nixos/profiles/tower-server/security.nix)
 - [ゲートウェイ ファイアウォール設定](../../nixos/services/gateway/firewall.nix)
-
