@@ -42,16 +42,18 @@ flowchart LR
 
 新しいバックアップ先を構築する際，またはリポジトリを初期化する際の手順である．
 
-1. **シークレット確認**:
-   パスワードが `secrets/services/backup.yaml` の `restic_password` に登録されていることを確認する．
-2. **リポジトリの初期化**:
-   ```bash
-   # ローカルリポジトリの初期化
-   sudo -u restic restic -r /mnt/tank-1tb/backups/minecraft init
+### 初期化の自動化と手動初期化
+本リポジトリの Restic 設定（`nixos/services/backup/default.nix`）では `initialize = true` が有効化されているため，各サービスユニットの初回実行時にリポジトリは自動的に初期化（`restic init`）される．手動で初期化・検証を行う場合は以下のように実行する:
 
-   # リモート SFTP リポジトリの初期化 (kagutsuchi-sama 宛て)
-   sudo -u restic restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan init
-   ```
+```bash
+export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
+
+# ローカルリポジトリの初期化（手動確認時）
+sudo -E restic -r /mnt/tank-1tb/backups/minecraft init
+
+# リモート SFTP リポジトリの初期化（kagutsuchi-sama 宛て）
+sudo -E restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan init
+```
 
 ---
 
@@ -100,14 +102,15 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    sudo cp -r /tmp/restore/srv/minecraft/* /srv/minecraft/
    sudo chown -R minecraft:minecraft /srv/minecraft
 
-   # Discord Bridge データの復元
+   # Discord Bridge データの復元（サービス実行ユーザーは minecraft）
    sudo mkdir -p /var/lib/minecraft-discord-bridge
    sudo cp -r /tmp/restore/var/lib/minecraft-discord-bridge/* /var/lib/minecraft-discord-bridge/
-   sudo chown -R discord-bridge:discord-bridge /var/lib/minecraft-discord-bridge
+   sudo chown -R minecraft:minecraft /var/lib/minecraft-discord-bridge
    ```
 3. **サービスの起動確認**:
    ```bash
-   sudo systemctl restart minecraft-server.service
+   sudo systemctl restart minecraft-server-lobby.service
+   sudo systemctl restart minecraft-server-nitac23s.service
    sudo systemctl restart minecraft-discord-bridge.service
    ```
 
