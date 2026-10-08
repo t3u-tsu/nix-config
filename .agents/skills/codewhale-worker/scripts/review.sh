@@ -20,7 +20,7 @@ fi
 
 USER_PROMPT="${1:-Review the specified changes or files for technical correctness.}"
 PROVIDER="${CODEPROVIDER:-openrouter}"
-MODEL="${CODEMODEL:-deepseek/deepseek-v4.1-flash}"
+MODEL="${CODEMODEL:-@preset/deepseek-v4.1-flash}"
 
 CONTINUE_ARGS=()
 if [ -n "${SESSION:-}" ]; then
