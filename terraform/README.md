@@ -70,9 +70,8 @@ The state file (`terraform.tfstate`) is stored locally and excluded via `.gitign
 
 ConoHa's standard OS images do not include NixOS, so we use the **rescue ISO injection**
 method to replace the disk with NixOS. Running `nixos-anywhere` directly against a stock
-image is not possible on the 512MB plan; the community-proven alternative (boot the
-`nixos-kexec-installer` from a running Ubuntu, then `nixos-anywhere --phases install`
-with a GPT layout) is documented in [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md) and is not used here.
+image is not supported on the 512MB plan due to memory constraints; we boot the custom
+NixOS installer ISO via ConoHa's rescue mode as documented in [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md).
 
 ```bash
 # 1. Create the VPS (Debian boot)

@@ -41,11 +41,12 @@ NixOS ではビルド生成物や古い世代（generations）が `/nix/store` �
 
 ### 手動での不要世代削除とストア掃除（即時クリーンアップ）
 ```bash
-# 14日以上前の古い世代を手動で削除し，未参照の store パスを回収
+# 14日以上前の古い世代を手動で削除（システム世代およびユーザープロファイル）
+sudo nix-collect-garbage --delete-older-than 14d
 nix-collect-garbage --delete-older-than 14d
 
-# ハードリンクによる重複ブロックの手動最適化
-nix-store --optimise
+# ハードリンクによる重複ブロックの手動最適化（auto-optimise-store = true により通常は自動処理されるため任意）
+sudo nix-store --optimise
 ```
 
 ### 低容量マシン（SBC / ラップトップ）での緊急回収

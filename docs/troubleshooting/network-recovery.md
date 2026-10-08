@@ -37,8 +37,9 @@ sudo journalctl -u nebula@nebula0.service -e --no-pager
 #### Step 2: 証明書有効期限の検証
 Nebula ノード証明書は **1年更新** であるため，期限切れによるハンドシェイク拒否を確認する:
 ```bash
-# 証明書の詳細確認（有効期限 Not After を検証）
-nebula-cert print -path /run/secrets/*_nebula_cert
+# 証明書の詳細確認（有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの）
+sudo nix shell nixpkgs#nebula -c nebula-cert print \
+  -path /run/secrets/<hostKey>_nebula_cert
 ```
 期限切れの場合は，管理端末で証明書を再署名してシークレットを更新する:
 ```bash
@@ -150,7 +151,7 @@ Lighthouse である `torii-chan` と同一ルータ（拠点T の LAN 内）に
 - `ping torii-chan.t3u.uk` では外部グローバル IP（WAN IP）が返るが，応答が得られない．
 
 ### 原因
-多くの民生用ルータは **ヘアピン NAT（NAT Loopback）**（LAN 内端末がルータ自身の外部 WAN IP 宛てに送信したトラフィックを，再び LAN 内の特定ホストへ折り返す機能）に対応していないか，初期設定で無効化されている．この場合，同一 LAN 内の端末が公開 FQDN（`torii-chan.t3u.uk`）を解決してルータの外部 WAN IP へアクセスすると，パケットがルータ側で破棄される．
+多くの民生用ルータは，LAN 内端末が外部 WAN IP 宛てに送信したトラフィックを再び LAN 内の特定ホストへ折り返す **ヘアピン NAT（NAT Loopback）** に対応していないか，初期設定で無効化されている．この場合，同一 LAN 内の端末が公開 FQDN（`torii-chan.t3u.uk`）を解決してルータの外部 WAN IP へアクセスすると，パケットがルータ側で破棄される．
 
 また，デュアルスタック環境において IPv6 アドレス解決や glibc のアドレスソートルール（RFC 3484/6724）の影響で IPv6 宛先が優先され，不通となるケースもある．
 

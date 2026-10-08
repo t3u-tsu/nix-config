@@ -148,8 +148,8 @@ exit
 # 2. マウント解除
 umount -R /mnt
 
-# 3. ZFS をインポートしていた場合のみエクスポート（shosoin-tan 固有）
-zpool export tank-1tb
+# 3. ZFS をインポートしていた場合のみエクスポート（shosoin-tan のみ）
+# zpool export tank-1tb
 
 # 4. システム再起動
 reboot
@@ -157,9 +157,7 @@ reboot
 
 > [!CAUTION]
 > **ZFS プール（`tank-1tb`）のエクスポート忘れに注意**
-> `shosoin-tan` で ZFS プールをインポートした場合，レスキュー環境の再起動前に必ず `zpool export tank-1tb` を実行すること．`shosoin-tan` は `boot.zfs.forceImportRoot = false` が設定されているため，レスキュー完了時にエクスポートを怠ると次回起動時に Emergency Mode に陥る．
-
-
+> `shosoin-tan` で ZFS プールをインポートした場合，レスキュー環境の再起動前に必ず `zpool export tank-1tb` を実行すること．全ホスト共通のベース設定で `boot.zfs.forceImportRoot = false` が有効となっているため，エクスポートを怠ると次回起動時にプールがインポートできず Emergency Mode に陥る．
 ---
 
 ## 関連ドキュメント

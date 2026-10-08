@@ -56,7 +56,7 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 
 - `shosoin-tan`: `networking.hostId = "8425e349";`
 
-※ `sando-kun` にも `networking.hostId = "5a4d0001";` が定義されているが，ストレージは ext4 / vfat 構成であり ZFS プールは運用していない．
+※ 他のサーバーホスト（`sando-kun`: `"5a4d0001"`，`kagutsuchi-sama`: `"c0ffee01"`）にも `networking.hostId` が定義されているが，これらは ext4 / vfat 構成であり ZFS プールは運用していない．
 
 ---
 

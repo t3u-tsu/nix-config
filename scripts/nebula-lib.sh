@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Single source of truth for the node list: add a new host here, sign its cert,
-# then re-import it into SOPS (see hosts/README.md).
+# then re-import it into SOPS (see docs/operations/adding-a-host.md).
 
 # Fleet: <name>|<last-octet>|<groups>
 #   name   == hosts/<name>/ dir == secrets/hosts/<name>.yaml == cert basename

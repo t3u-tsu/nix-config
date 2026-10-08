@@ -81,7 +81,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 `shosoin-tan` のディスクが全損，またはマシン自体が失われた場合，`kagutsuchi-sama` のリモートバックアップから代替マシンへデータを完全復元する手順である．
 
 ### Step 1: 新規ホストの準備
-[`docs/operations/adding-a-host.md`](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
+[新ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
 
 ### Step 2: バックアップの取得・復元
 1. **代替ホスト上で Restic を実行**:
@@ -120,10 +120,10 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 `shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で保護されている．
 
-- **定期スクラブ**: 月 1 回自動実行される（`systemctl status zfs-scrub.timer`）．
+- **定期スクラブ**: 現在自動実行（systemd タイマー）は設定されていないため，定期的に手動でスクラブを実行する（詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照）．
 - **手動スクラブ実行**: `sudo zpool scrub tank-1tb`
 - **ステータス確認**: `zpool status tank-1tb`
-- **ディスク交換・リビルド手順**: 詳細は [`../hardware/storage-zfs.md`](../hardware/storage-zfs.md) を参照．
+- **ディスク交換・リビルド手順**: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
 
 ---
 
