@@ -17,7 +17,7 @@ fi
 
 PROMPT="$1"
 PROVIDER="${CODEPROVIDER:-openrouter}"
-MODEL="${CODEMODEL:-deepseek/deepseek-v4.1-flash}"
+MODEL="${CODEMODEL:-@preset/deepseek-v4.1-flash}"
 
 CONTINUE_ARGS=()
 if [ -n "${SESSION:-}" ]; then
