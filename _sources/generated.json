@@ -28,11 +28,11 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-xEPCwyx0PdgP9WOXsee7/lWxymMG/1UGW5d7xlXVDtE=",
+            "sha256": "sha256-7S2Ds4U96APuOfV0x0XR4cn2+L+Z7TrsODVCXgwmmTs=",
             "type": "url",
-            "url": "https://github.com/Hmbown/Codewhale/releases/download/v0.10.0/codewhale-linux-x64"
+            "url": "https://github.com/Hmbown/Codewhale/releases/download/v0.10.1/codewhale-linux-x64"
         },
-        "version": "v0.10.0"
+        "version": "v0.10.1"
     },
     "danime-plus": {
         "cargoLock": null,
@@ -114,11 +114,11 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-GU6SUCJGMidNezwX5BHgMakiPBhjxvUTjVPHIfB6t40=",
+            "sha256": "sha256-KdlNOibIXIoydXSyMi20B4mSrkV/AXMyVDGhKqw4SRE=",
             "type": "url",
-            "url": "https://github.com/ViaVersion/ViaBackwards/releases/download/5.12.0/ViaBackwards-5.12.0.jar"
+            "url": "https://github.com/ViaVersion/ViaBackwards/releases/download/5.12.1/ViaBackwards-5.12.1.jar"
         },
-        "version": "5.12.0"
+        "version": "5.12.1"
     },
     "viaversion": {
         "cargoLock": null,
@@ -129,10 +129,10 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-csQKanAtZ/Im/JoNitgquhSD/avi5hWbzd2y3AcHULA=",
+            "sha256": "sha256-uAM4B+cYLDUAOkWWI1LdZCwekYgMooHaOkPLb0galaI=",
             "type": "url",
-            "url": "https://github.com/ViaVersion/ViaVersion/releases/download/5.12.0/ViaVersion-5.12.0.jar"
+            "url": "https://github.com/ViaVersion/ViaVersion/releases/download/5.12.1/ViaVersion-5.12.1.jar"
         },
-        "version": "5.12.0"
+        "version": "5.12.1"
     }
 }
