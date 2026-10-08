@@ -198,8 +198,9 @@ an authentication the user did not intend. The CVE covers fprintd through
 If the reader stops working after suspend or during cold boots, the Arch
 Wiki's Fprint page lists the usual causes: fprintd starting before the USB
 device is re-initialised or waking from autosuspend with protocol timeouts.
-A udev rule keeps `power/control` at `on` (disabling autosuspend) and
-`power/persist` at `1` on `06cb:00bd`. S3 sleep is configured in the BIOS.
+TLP's `USB_DENYLIST` keeps `power/control` at `on` (disabling autosuspend),
+and a udev rule keeps `power/persist` at `1` on `06cb:00bd`. S3 sleep is
+configured in the BIOS.
 
 ## Configuration
 
