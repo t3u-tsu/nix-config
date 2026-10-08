@@ -37,6 +37,9 @@ _:
         PLATFORM_PROFILE_ON_SAV = "low-power";
 
         PCIE_ASPM_ON_BAT = "powersave";
+
+        # Synaptics fingerprint reader protocol timeouts on autosuspend.
+        USB_DENYLIST = "06cb:00bd";
       };
     };
 
