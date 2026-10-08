@@ -35,6 +35,11 @@
 
     fprintd.enable = true;
     fwupd.enable = true;
+
+    udev.extraRules = ''
+      # Keep Synaptics fingerprint reader awake and persistent across power events.
+      ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="06cb", ATTR{idProduct}=="00bd", ATTR{power/control}="on", ATTR{power/persist}="1"
+    '';
   };
 
   # Enabled ahead of a possible LUKS migration; nothing on this host uses the
