@@ -31,7 +31,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
   --option sandbox false --option filter-syscalls false
 ```
 > [!NOTE]
-> Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [`hosts/torii-chan/README.md`](../../hosts/torii-chan/README.md) 参照）．
+> Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [`../hardware/orange-pi-zero3.md`](../hardware/orange-pi-zero3.md#カーネル機能の制約とデプロイオプション) 参照）．
 
 #### 対策 2: Swap の確保・一時拡張
 SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が標準定義されている．ディスク移行作業中や swap が無効化されている場合は，手動で一時 swap を有効化する:
@@ -83,7 +83,7 @@ git add -A
 
 ```bash
 # 特定の input のみ更新
-nix flake lock --update-input <input-name>
+nix flake update <input-name>
 ```
 
 #### 手順 3: lockfile の整合性復元

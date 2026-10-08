@@ -1,6 +1,6 @@
 # Host: BrokenPC (HP Victus 16-e1065AX)
 
-Secondary portable laptop based at Base A and taken off-site, featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
+Secondary portable laptop based at Site A and taken off-site, featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
 
 ## Hardware Specs
 - **CPU:** AMD Ryzen 7 6800H (Zen 3+, 8C/16T, up to 4.7 GHz)
@@ -20,7 +20,7 @@ Secondary portable laptop based at Base A and taken off-site, featuring a hybrid
 ## Configuration Summary
 - **Profile:** `desktop`
 - **Nebula Mesh:** `10.0.0.100` (groups: `mgmt`, `app`)
-- **Mobility & Networking:** Operates both at Base A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
+- **Mobility & Networking:** Operates both at Site A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
 - **Key Modules:**
   - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
   - Services: Local LLM (`my.services.llama`), SOPS secrets
