@@ -9,6 +9,8 @@ with lib;
 
   imports = [
     ./codewhale.nix
+    ./pi.nix
+    ./deepseek-harness.nix
     ./conoha-vps-mcp.nix
     ./antigravity.nix
     ./skills.nix
