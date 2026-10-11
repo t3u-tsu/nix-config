@@ -7,28 +7,39 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 1. **ブランチ作成・一時ワークツリー運用**:
    - ブランチを作成するかどうかは AGENTS.md の基本ルールに従う（パッケージ1つ追加のような小さな変更は `main` に直接コミット・push してよい）．
-   - **単一タスク（標準）**: メインツリー（`~/nix-config`）の手元作業と衝突しないよう，最新の `origin/main` を取得したうえで一時ワークツリーを作成して作業する:
-     ```bash
-     git fetch origin main
-     git worktree add -b feat/topic-name .worktrees/topic-name origin/main
-     cd .worktrees/topic-name
+   - **タスク名前空間とワークツリー構造**:
+     メインツリー（`~/nix-config`）の手元作業と衝突しないよう，また作業規模（単一作業か並列・委譲作業か）にかかわらず常に一貫した構造を保つため，タスク名前空間として常に `.worktrees/<topic-name>/` を使用し，その配下に親エージェント（Antigravity Main）の起点・統合・PR用ワークツリーとして `main/`（`.worktrees/<topic-name>/main`）を作成する．
+     ワーカーやサブエージェントに作業を委譲する場合は，同じ名前空間配下にフラットな兄弟ワークツリー（`worker-*`，`subagent-*`）を展開する．
+
+     ```text
+     .worktrees/<topic-name-1>/main         # 親エージェント1（起点・統合・PR用）
+                              /worker-pi    # 兄弟ワークツリー（ワーカー用）
+                              /subagent-*   # 兄弟ワークツリー（サブエージェント用）
+     .worktrees/<topic-name-2>/main         # 親エージェント2（別タスクの親エージェント）
      ```
-     一時ワークツリーを使用しない単独ブランチ運用の場合は `git checkout -b feat/topic-name`．
-   - **並列作業・分業・複数 agy 実行（タスク別グループ運用）**:
-     ワーカー（pi, dsh 等）やサブエージェントを同時稼働させる場合，あるいは別タスクの agy セッションが並行動作する場合は，`.worktrees/<topic-name>/` をタスクごとの独立した名前空間とし，その配下にフラットな兄弟ワークツリーを展開する:
+
+   - **作成手順**:
+     最新の `origin/main` を取得したうえで，まず起点となる `main/` ワークツリーを作成して作業を開始する:
      ```bash
      git fetch origin main
-     # 統合・PR用の親ワークツリー
+     # 起点・統合・PR用の親ワークツリー
      git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
-     # 各ワーカー・サブエージェント用の作業ワークツリー
+     cd .worktrees/topic-name/main
+     ```
+     コーディングワーカーやサブエージェントに作業を委譲する場合は，必要に応じて兄弟ワークツリーを追加する:
+     ```bash
+     # 各ワーカー・サブエージェント用の作業ワークツリー（委譲時に追加）
      git worktree add -b feat/topic-name-worker-pi .worktrees/topic-name/worker-pi origin/main
      git worktree add -b feat/topic-name-subagent-docs .worktrees/topic-name/subagent-docs origin/main
      ```
-     - **利点**:
-       1. ワークツリーのネスト（入れ子）が発生せず，Git の追跡・ステータス・削除で一切干渉しない．
-       2. 各ワーカー・サブエージェントが完全並行で衝突なく作業できる．
-       3. 親エージェント（Antigravity Main）が各ツリーの差分（`git diff`）を見て，`main/` ワークツリーに良い変更だけを取捨選択・統合できる．
-       4. 別の agy セッション（親タスク同士）が並行稼働していても，`.worktrees/<topic-name>/` ごとに完全に分離されて衝突しない．
+     一時ワークツリーを使用しない単独ブランチ運用の場合は `git checkout -b feat/topic-name`．
+
+   - **利点**:
+     1. 作業開始時からディレクトリ階層が一貫しており，単独作業からワーカー委譲への移行時にもパスの再構成が不要．
+     2. ワークツリーのネスト（入れ子）が発生せず，Git の追跡・ステータス・削除で一切干渉しない．
+     3. 各ワーカー・サブエージェントが完全並行で衝突なく作業できる．
+     4. 親エージェント（Antigravity Main）が各ツリーの差分（`git diff`）を見て，`main/` ワークツリーに良い変更だけを取捨選択・統合できる．
+     5. 別の agy セッション（親タスク同士）が並行稼働していても，`.worktrees/<topic-name>/` ごとに完全に分離されて衝突しない．
 
 2. **実装**: Nix ファイルや設定ファイルを編集する．秘密情報は `sops` で編集する（`secrets/README.md`）．
 
@@ -84,8 +95,8 @@ description: このリポジトリで設定変更を適用するときの手順�
      ```
    - **自然言語・ドキュメント・コメント改善（サブエージェント）**:
      日本語ドキュメントやスキルの文章表現，SSOT 整合性，相互参照リンクの正確性は，外部ワーカーではなく Antigravity サブエージェント（`invoke_subagent`）が直接編集して改善する．コード内コメントの `hush` 規約への適合もサブエージェントが精査・直接修正する（句読点 `，．` はコミット時に pre-commit フックが自動置換するため，レビュー観点から除外する）．
-   - **グループ運用時の差分統合と後始末**:
-     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
+   - **兄弟ワークツリーからの差分統合と後始末**:
+     独立した兄弟ワークツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
      そのため `git diff HEAD..feat/...` ではなく，ワーキングツリーの差分を直接取得して統合先（`main/`）へ取り込むか，ワーカーツリー内でコミットしてからマージする:
      ```bash
      # main/ ワークツリーに移動
@@ -103,7 +114,7 @@ description: このリポジトリで設定変更を適用するときの手順�
      git -C ../worker-pi add -A && git -C ../worker-pi commit -m "feat: ..."
      git merge --squash feat/topic-name-worker-pi
 
-     # 検証・統合完了後に作業ワークツリーとブランチを後始末（未コミット変更があっても強制削除）
+     # 検証・統合完了後に兄弟ワークツリーと作業ブランチを後始末（未コミット変更があっても強制削除）
      cd ~/nix-config
      git worktree remove --force .worktrees/topic-name/worker-pi
      git branch -D feat/topic-name-worker-pi 2>/dev/null || true
@@ -158,20 +169,21 @@ description: このリポジトリで設定変更を適用するときの手順�
    リンクされた一時ワークツリーから `gh pr merge --delete-branch` を実行すると，ブランチが当該ワークツリーでチェックアウト中のためローカルブランチを削除できず警告が出ることがある．マージ自体は成功しているため，後始末の `git branch -d ... || true` で削除する．
 
    **メインツリーの同期と後始末**:
-   - **単一ワークツリーの場合**:
-     メインツリーへ戻り一時ワークツリーを削除する（未コミット一時ファイルで失敗する場合は `--force`）:
+   - **一時ワークツリーの後始末**:
+     メインツリーへ戻り，残っている兄弟ワークツリー群（`worker-*`，`subagent-*` 等）があれば `--force` で順次削除して作業ブランチを片付け，統合用の `main` ワークツリーを削除した後，空になった親ディレクトリ（タスク名前空間）を削除する:
      ```bash
      cd ~/nix-config
-     git worktree remove .worktrees/topic-name || git worktree remove --force .worktrees/topic-name
-     ```
-   - **並列グループワークツリーの場合**:
-     残っている子ワークツリー群（`worker-*`，`subagent-*`）を `--force` で順次削除してブランチも片付け，`main` も削除した後，空になったタスクディレクトリを片付ける:
-     ```bash
-     cd ~/nix-config
+     # 兄弟ワークツリーが存在する場合は削除（ブランチも片付ける）
      git worktree remove --force .worktrees/topic-name/worker-pi 2>/dev/null || true
      git branch -D feat/topic-name-worker-pi 2>/dev/null || true
+     git worktree remove --force .worktrees/topic-name/subagent-docs 2>/dev/null || true
+     git branch -D feat/topic-name-subagent-docs 2>/dev/null || true
+
+     # 統合用 main ワークツリーの削除
      git worktree remove --force .worktrees/topic-name/main 2>/dev/null || true
      git branch -D feat/topic-name 2>/dev/null || true
+
+     # タスク名前空間ディレクトリの削除
      rmdir .worktrees/topic-name
      ```
    - **メインツリーの手元同期（安全確認）**:
