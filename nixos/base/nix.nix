@@ -19,7 +19,6 @@
       ];
 
       extra-substituters = [
-        "https://ghostty.cachix.org?priority=30"
         "https://niri.cachix.org?priority=30"
         "https://noctalia.cachix.org?priority=30"
 
@@ -32,7 +31,6 @@
       ];
 
       extra-trusted-public-keys = [
-        "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
         "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
         "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

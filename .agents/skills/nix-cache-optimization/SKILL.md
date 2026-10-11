@@ -15,7 +15,7 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 
 キャッシュ URL には `?priority=` を付け，`nixos/base/nix.nix` で管理する．
 
-- **専門枠 (30)**: `ghostty`, `niri`, `noctalia`（公式の `40` より先にヒットさせたいもの）
+- **専門枠 (30)**: `niri`, `noctalia`（公式の `40` より先にヒットさせたいもの）
 - **コミュニティ枠 (41)**: `nix-community`（公式の直後）
 - **特定専門枠 (45)**: `ezkea`（aagl ランチャー）
 
