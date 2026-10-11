@@ -105,9 +105,9 @@ Linux 環境において，Lenovo の EC ファームウェアが CPU を過剰�
 内蔵指紋リーダーは Synaptics Prometheus（`06cb:00bd`）であり，標準の `libfprint` ドライバで認識される．
 
 - **有効化**: [`services.fprintd.enable = true`](../../hosts/x1c7/default.nix)
-- **PAM 統合**: NixOS は `fprintd` 有効化時に `pam_fprintd.so` を `sufficient` として `sudo`，`su`，`polkit-1`，`greetd`，`swaylock` など 22 の PAM サービスに自動挿入する．指紋認証に失敗した場合は直ちにパスワードプロンプトへフォールバックするため，リーダー故障時にもロックアウトされない．なお，`greetd` ではパスワード入力を優先するため，PAM 順序で `pam_unix` を先に評価するよう設定している（空パスワードで送信した場合は指紋認証へフォールスルーする）．
+- **PAM 統合**: NixOS は `fprintd` 有効化時に `pam_fprintd.so` を `sufficient` として `sudo`，`su`，`polkit-1`，`greetd`，`swaylock` など多数の PAM サービスに自動挿入する．指紋認証に失敗した場合は直ちにパスワードプロンプトへフォールバックするため，リーダー故障時にもロックアウトされない．なお，`greetd` ではパスワード入力を優先するため，PAM 順序で `pam_unix` を先に評価し，`use_first_pass` により空または不一致のパスワード送信時に再プロンプトなしで直ちに指紋認証へフォールスルーするよう設定している．また，Noctalia のロック画面は D-Bus 経由で `net.reactivated.Fprint` を直接利用し，成功時は PAM を介さず解錠するため，ロック画面が使用する `login` PAM サービスからは `fprintd` を除外してパスワード入力時の指紋要求を防止している（これにより TTY コンソールログインでも指紋は無効化される）．
 - **登録手順**:
-  センサーはタッチ式（押して離す動作）である．スワイプ動作では認識されない．
+  センサーはタッチ式である．
   ```bash
   fprintd-enroll                        # 現在のユーザーの右手人差し指を登録
   fprintd-enroll -f left-index-finger   # 特定の指を指定して登録
