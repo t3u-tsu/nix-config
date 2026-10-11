@@ -4,14 +4,14 @@ description: Write, refactor, and execute modern YSH (Oils for Unix) scripts. Us
 license: 0BSD
 compatibility: Requires oils-for-unix (bin/ysh)
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   standard: "agentskills.io"
 ---
 
 # YSH (Oils for Unix) Scripting Skill
 
 ## Overview
-YSH is a modern Unix shell from the Oils project that eliminates common shell pitfalls by providing dynamic typing, Ruby-like block scopes, Python-like data structures, and native JSON handling without external utilities like `jq`.
+YSH is a modern Unix shell from the Oils project providing dynamic typing, Ruby-like block scopes, Python-like data structures, and native JSON handling without external utilities. Idioms verified against Oils 0.37.0.
 
 ---
 
@@ -21,50 +21,65 @@ YSH strictly separates **Command Mode** (running processes) and **Expression Mod
 
 | Context | Example | Variable Lookup |
 | :--- | :--- | :--- |
-| **Command Mode** | `echo $name`, `ls @[files]` | Uses `$var` or `@[list]` |
-| **Expression Mode** | `var total = x + y`, `if (port > 80)` | No `$`, uses direct variable names |
-| **Environment Vars in Expressions** | `var home = ENV.HOME` | Must be accessed via `ENV` dict |
+| **Command Mode** | `echo $name`, `ls @[files]` | `$var`, `@[list]`, `$[expr]` |
+| **Expression Mode** | `var total = x + y`, `if (port > 80)` | Bare variable names |
+| **Environment Vars** | `var home = ENV.HOME` | Access via `ENV` object |
 
-* `$[expr]`: Evaluates an expression and stringifies the result inside command mode.
+* `$[expr]`: Evaluates an expression and stringifies the result into a shell word.
 * `@[list]`: Splices array elements as distinct shell words (prevents unintended word splitting).
+
+### String Interpolation & Quotes
+
+* `$"${dir}/file"`: Interpolates variables/expressions into a double-quoted word.
+  > **Note**: Property/dict access (e.g. `${ENV.HOME}`, `${node.attr}`) is **not supported** inside `$"..."`. Pre-bind to a local variable (`var home = ENV.HOME`) first.
+* `u'\n'`: Explicit Unicode escape. Bare `'\n'` fails with `Ambiguous backslash (OILS-ERR-20)`.
+* `r'C:\path'`: Raw string where backslashes remain literal.
+
+```ysh
+var home = ENV.HOME
+var log_path = $"${home}/logs/app.log"  # Pre-bind before interpolating
+
+var newline = u'\n'                     # Unicode escape
+var winpath = r'C:\Users\me'            # Raw string
+```
 
 ---
 
 ## 2. Variables & Mutability
 
-* **`const`**: Top-level immutable definitions.
-* **`var`**: Typed variable definitions (`Int`, `Float`, `Str`, `Bool`, `Null`, `List`, `Dict`).
-* **`setvar`**: Mutates local/function variables.
-* **`setglobal`**: Mutates global variables from inside procedures.
-* **`call`**: Executes expression statements discarding return values (e.g., calling methods).
+* `const`: Immutable top-level definition.
+* `var`: Typed variable declaration (`Int`, `Float`, `Str`, `Bool`, `Null`, `List`, `Dict`).
+* `setvar`: Mutates local/function variable (`setvar count += 1`).
+* `setglobal`: Mutates global variable from inside a proc.
+* `call`: Evaluates expression statement discarding return value.
+
+### Method Calls: `->` (Mutating) vs `.` (Transforming)
+
+* `->` (mutating): Changes receiver in place; requires `call` on mutable types (`List`, `Dict`).
+* `.` (transforming): Read-only method returning a new value (`Str`, etc.). Receiver remains unchanged.
 
 ```ysh
-const APP_NAME = "my-service"
+var tags = ["web"]
+call tags->append("db")         # Mutating (->)
 
-var count = 0
-var tags = ["web", "db"]
-var config = {
-  host: "127.0.0.1",
-  port: 8080
-}
-
-# Mutation
-setvar count += 1
-call tags->append("prod")
-setvar config.port = 8443
+var s = "Hello-World"
+echo $[s.lower()]               # Transforming (.): "hello-world"
+echo $[s.replace("-", "_")]     # Transforming (.): "Hello_World"
+echo $[s.contains("World")]     # true ($s unchanged)
 ```
 
 ---
 
 ## 3. Procedures (`proc`) vs Functions (`func`)
 
-* **`func`**: Pure functions evaluated in **expression mode**. Returns values via `return (expr)`.
-* **`proc`**: Command-like units evaluated in **command mode**. Exits with status codes.
+| Feature | `proc` | `func` |
+| :--- | :--- | :--- |
+| **Mode** | Command Mode | Expression Mode only |
+| **Returns** | Status code (0–255) | Typed value via `return (expr)` |
+| **Invoked as** | `deploy staging (dry_run=true)` | `var x = add(1, 2; factor=3)` |
+| **Signatures** | `(word... ; typed_pos... ; typed_named... ; &block)` | `(pos...; named...)` |
 
-### Signature Rules
-* **`func`** arguments use Julia style: `(pos_args...; named_args...)`
-* **`proc`** arguments have 4 sections separated by semicolons:
-  `(word_args... ; typed_pos... ; typed_named... ; &block)`
+> **Caution**: A `func` is only callable in expression mode. In command position (e.g., `if is_valid x`), it fails with `Command not found`. Always write `if (is_valid(x))`.
 
 ```ysh
 # Pure function
@@ -73,13 +88,10 @@ func add(a, b; factor=1) {
 }
 var sum = add(10, 20; factor=2)
 
-# Procedure: (word_params ; ; named_params)
+# Procedure
 proc deploy(env; ; dry_run=false) {
   echo "Deploying to: $env (dry_run: $dry_run)"
 }
-
-# Procedure Invocation
-deploy "staging"
 deploy "production" (dry_run=true)
 ```
 
@@ -87,85 +99,95 @@ deploy "production" (dry_run=true)
 
 ## 4. Control Flow
 
-Conditions in `if`, `while`, and `case` take parentheses `(...)` and support modern operators (`===`, `!==`, `<`, `>`, `and`, `or`, `not`).
+Conditions in `if`, `while`, and `case` take parentheses `(...)` and use modern operators (`===`, `!==`, `<`, `>`, `and`, `or`, `not`).
 
 ```ysh
-# if / else
 if (config.port === 8443) {
-  echo "Using secure port"
+  echo "Secure"
 } else {
-  echo "Using standard port"
+  echo "Standard"
 }
 
-# for loop (list and index)
 for i, tag in (tags) {
   echo "[$i] tag: $tag"
 }
 
-# case pattern matching
 case (config.port) {
   (80 | 8080)   { echo "HTTP" }
   (443 | 8443)  { echo "HTTPS" }
-  else          { echo "Other" }
+  (else)        { echo "Other" }
 }
 ```
 
 ---
 
-## 5. Ruby-like Blocks
+## 5. Blocks, Scoping & Traps
 
-Commands such as `cd` and `shvar` accept blocks `{ ... }`. Scope changes are automatically reverted when exiting the block.
+Ruby-like blocks `{ ... }` automatically revert scoped state on exit.
+
+* `cd /dir { ... }`: Directory scope. Inside the block, `$PWD` and `$(pwd)` reflect the target directory; `ENV.PWD` remains stale.
+* `shvar VAR=val { ... }`: Scoped environment/shell variable override.
+* `trap --add SIG { ... }`: YSH uses block syntax for signal traps. String commands (e.g. `trap '...' EXIT`) are invalid.
 
 ```ysh
-echo "Before: $PWD"
+# Scoped directory
 cd /tmp {
-  echo "Inside: $PWD"
-  # Directory is automatically restored when block ends
+  echo "Inside PWD: $PWD"       # /tmp
 }
-echo "After: $PWD"
+echo "Outside PWD: $PWD"        # Restored
+
+# Exit cleanup trap (block syntax only)
+trap --add EXIT {
+  rm -f /tmp/lockfile
+}
 ```
 
 ---
 
-## 6. Built-in JSON Support
+## 6. Built-in JSON & Stream I/O
 
-YSH handles JSON natively without `jq`.
+YSH parses and serializes JSON natively without `jq`.
 
 ```ysh
-var user = {
-  id: 42,
-  roles: ["admin"]
-}
+var user = {id: 42, roles: ["admin"]}
 
-# 1. Output formatted JSON to stdout
+# Write JSON
 json write (user)
 
-# 2. Read from pipe (stored automatically in _reply)
-echo '{"status": "ok", "retries": 3}' | json read
+# Read JSON from pipeline into _reply
+echo '{"status": "ok", "code": 200}' | json read
 echo "Status: $[_reply.status]"
-echo "Retries: $[_reply.retries]"
 
-# 3. Read directly into a target variable reference (&var)
+# Read directly into target variable reference (&var)
 var res = null
 json read (&res) <<< '{"version": "1.0"}'
-echo "Version: $[res.version]"
+
+# Read entire file into string preserving newlines (native jq -Rs / $(cat ...))
+var text = ""
+read --all (&text) < path/to/file.txt
+var json_str = $(json write (text))
 ```
 
 ---
 
 ## 7. Error Handling
 
-YSH enables strict error checking by default (like `set -e`). To handle anticipated errors safely:
+YSH enables strict error checking (`errexit`) by default.
 
-```ysh
-try {
-  # Command that may exit non-zero
-  grep -q "nonexistent" /etc/hosts
-}
-if (_error.code !== 0) {
-  echo "Pattern not found (exit code: $[_error.code])"
-}
-```
+* `try { ... }`: Executes block without aborting; records result in `_error`.
+* `if failed { ... }`: Idiomatic check for non-zero exit (`_error.code !== 0`).
+* Checking `ENV` keys: `ENV` is an `Obj`, not a `Dict` (`in` operator unsupported). Check key existence via `try`:
+  ```ysh
+  try { var _ = ENV.MY_KEY }
+  if failed { echo "MY_KEY not set" }
+  ```
+* Suppress `errexit` stderr noise for caught failures:
+  ```ysh
+  shopt --unset verbose_errexit {
+    try { grep -q "pattern" /etc/hosts }
+  }
+  if failed { echo "Pattern not found" }
+  ```
 
 ---
 
@@ -174,8 +196,13 @@ if (_error.code !== 0) {
 | Anti-Pattern (Bash style) | YSH Idiom | Why |
 | :--- | :--- | :--- |
 | `[ "$a" = "$b" ]` or `[[ ... ]]` | `if (a === b)` | Native typed expressions prevent word splitting errors |
-| `VAR=val` (no declaration) | `var x = val` / `setvar x = val` | Explicit scope and dynamic typing |
-| `var path = $PWD` | `var path = ENV.PWD` | Environment variables live in the `ENV` namespace |
+| `VAR=val` (implicit global) | `var x = val` / `setvar x = val` | Explicit scope and dynamic typing |
+| `$"${node.attr}"` | `var a = node.attr; $"${a}"` | Nested property/dict access unsupported in string interpolation |
+| `if ("KEY" in ENV)` | `try { var _ = ENV.KEY } / if failed` | `ENV` is an `Obj`, not a `Dict` (`in` operator unsupported) |
+| `trap 'rm ...' EXIT` | `trap --add EXIT { rm ... }` | YSH requires block syntax; string commands are invalid |
+| `var path = $PWD` | `var path = ENV.PWD` | Environment variables live in `ENV` object (or `$PWD` after `cd`) |
 | `for item in $(ls)` | `for item in (glob("*.txt"))` | Prevents fragile word splitting |
 | `echo $JSON \| jq .key` | `... \| json read; $[_reply.key]` | Native parsing is faster and dependency-free |
-| `"$@"` | `@[argv]` or `@[list]` | Explicit list splicing syntax |
+| `jq -Rs . < file` | `read --all (&text); $(json write (text))` | Whole-file JSON encoding without `jq` |
+| `$(cat file)` | `read --all (&text)` | Preserves trailing newlines and avoids a subshell |
+| `"$@"` | `@[ARGV]` or `@[list]` | Explicit list splicing; built-in CLI args list is uppercase `ARGV` |

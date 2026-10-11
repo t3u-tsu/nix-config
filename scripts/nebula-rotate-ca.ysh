@@ -1,0 +1,112 @@
+#!/usr/bin/env ysh
+#
+# Rotate the whole Nebula CA. Node IPs live inside the signed certs and are
+# bounded by the CA's -networks, so a subnet change or CA expiry means issuing a
+# new CA and re-signing every node — for a single new host, sign one cert
+# against the existing CA instead. Re-running issues a NEW CA; only the
+# passphrase in $CA_DIR/passphrase (chmod 600) is reused.
+#
+# Usage:
+#   ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
+#
+#   CA_DIR defaults to ~/.nebula-ca-<prefix, dots->hyphens>; --prefix is the first
+#   three octets of the new overlay subnet. The node list comes from
+#   scripts/nebula-lib.ysh (FLEET).
+#
+# Re-importing the new certs into SOPS is a separate step that needs the offline
+# master age key:
+#   SOPS_AGE_KEY_FILE=... ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+
+source $_this_dir/nebula-lib.ysh
+
+const CA_NAME = 't3u-home-ca'
+const DURATION = '87600h'
+
+shopt --unset verbose_errexit
+
+var ca_dir = ''
+var prefix = '10.0.0'
+var i = 0
+while (i < len(ARGV)) {
+  var arg = ARGV[i]
+  if (arg === '--prefix') {
+    if (i + 1 >= len(ARGV)) {
+      echo 'ERROR: --prefix needs a value' >&2
+      exit 2
+    }
+    setvar prefix = ARGV[i + 1]
+    setvar i += 2
+  } else {
+    setvar ca_dir = arg
+    setvar i += 1
+  }
+}
+
+var subnet_dir = prefix.replace('.', '-')
+if (ca_dir === '') {
+  var home = ENV.HOME
+  setvar ca_dir = $"${home}/.nebula-ca-${subnet_dir}"
+}
+var subnet = $"${prefix}.0/24"
+
+var group_set = {}
+for node in (FLEET) {
+  for group in (node.groups) {
+    setvar group_set[group] = true
+  }
+}
+var group_names = @(printf '%s\n' @[keys(group_set)] | sort)
+var ca_groups = join(group_names, ',')
+
+echo '== Nebula CA rotation =='
+echo $"  CA dir : ${ca_dir}"
+echo $"  subnet : ${subnet}"
+echo $"  CA gps : ${ca_groups}"
+
+mkdir -p $ca_dir
+cd $ca_dir
+
+if (not file_exists('passphrase')) {
+  head -c 24 /dev/urandom | base64 > passphrase
+}
+chmod 600 passphrase
+var passphrase = ''
+read --all (&passphrase) < passphrase
+setvar passphrase = passphrase.trim()
+
+# nebula-cert prompts for passphrase; a pty satisfies it.
+proc run_nebula(passphrase, ...cmd) {
+  var cmd_line = 'nix shell nixpkgs#nebula -c ' ++ join(cmd, ' ')
+  printf '%s\n' $passphrase | script -qec $cmd_line /dev/null
+}
+
+echo '== creating CA =='
+run_nebula $passphrase nebula-cert ca \
+  -name $CA_NAME \
+  -networks $subnet \
+  -groups $ca_groups \
+  -duration $DURATION \
+  -encrypt \
+  -out-crt ca.crt \
+  -out-key ca.key
+
+for node in (FLEET) {
+  var name = node.name
+  var octet = node.octet
+  var ip = $"${prefix}.${octet}"
+  var groups = join(node.groups, ',')
+  echo $"== sign ${name} (${ip}/24, ${groups}) =="
+  run_nebula $passphrase nebula-cert sign \
+    -name $name \
+    -networks $"${ip}/24" \
+    -groups $groups \
+    -ca-crt ca.crt \
+    -ca-key ca.key \
+    -out-crt $"${name}.crt" \
+    -out-key $"${name}.key"
+}
+
+echo
+echo $"== done. Certificates written to ${ca_dir} =="
+echo 'Next, re-import into SOPS (needs the offline MASTER key):'
+echo $"  SOPS_AGE_KEY_FILE=/path/to/master-age-key.txt ysh scripts/nebula-import-secrets.ysh ${ca_dir}"

@@ -1,0 +1,36 @@
+#!/usr/bin/env ysh
+#
+# Build the ConoHa VPS installer ISO with an auto-issued temporary password
+# (hash baked in via TORII_INSTALLER_TEMP_PASSWORD_HASH in an --impure build;
+# plaintext in result-iso-temp-password.txt, mode 0600).
+# Reproducible build without a password (SSH key only):
+#   nix build .#torii-chan-vps-iso -o result-iso
+
+cd $_this_dir/../.. {
+  var temp_password = ''
+  try {
+    var preset = ENV.TEMP_PASSWORD
+    if (preset !== '') {
+      setvar temp_password = preset
+    }
+  }
+  if (temp_password === '') {
+    setvar temp_password = $(openssl rand -hex 8)
+  }
+
+  var password_hash = $(printf '%s\n' $temp_password | openssl passwd -6 -stdin)
+
+  var password_file = 'result-iso-temp-password.txt'
+  umask 077
+  printf 'Temporary password (for root / t3u in the live environment): %s\n' $temp_password > $password_file
+  printf 'Keep this file safe even after the ISO build completes, and delete it once no longer needed.\n' >> $password_file
+
+  echo $"==> Temporary password issued: saved to ${password_file}"
+  echo '==> Starting ISO build (--impure)...'
+  TORII_INSTALLER_TEMP_PASSWORD_HASH=$password_hash \
+    nix build --impure .#torii-chan-vps-iso -o result-iso
+
+  echo '==> Build complete'
+  ls -lh result-iso/iso/
+  echo $"Check the temporary password: ${password_file}"
+}

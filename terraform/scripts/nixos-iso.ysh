@@ -1,0 +1,378 @@
+#!/usr/bin/env ysh
+#
+# Inject/eject a rescue ISO on a ConoHa VPS to boot the NixOS installer.
+#
+# The provider has no ISO operations, so this talks to the ConoHa public API
+# directly (Image API for upload, Compute API rescue/unrescue for insertion).
+#
+# Usage:
+#   ./nixos-iso.ysh install <instance_id> <iso_file>   # create ISO -> upload -> insert -> start
+#   ./nixos-iso.ysh eject   <instance_id>              # eject ISO (unrescue) -> start
+#   ./nixos-iso.ysh status  <instance_id>              # check instance status
+#
+# Env: CONOHAVPS_USER_ID / CONOHAVPS_PASSWORD / CONOHAVPS_TENANT_ID,
+#      CONOHAVPS_REGION (default c3j1), CONOHAVPS_WAIT_TIMEOUT (default 600)
+
+shopt --unset verbose_errexit
+
+var region = 'c3j1'
+try {
+  var region_env = ENV.CONOHAVPS_REGION
+  if (region_env !== '') {
+    setvar region = region_env
+  }
+}
+
+var wait_timeout = 600
+try {
+  var timeout_env = ENV.CONOHAVPS_WAIT_TIMEOUT
+  if (timeout_env !== '') {
+    setvar wait_timeout = int(timeout_env)
+  }
+}
+const WAIT_INTERVAL = 10
+
+var identity = $"https://identity.${region}.conoha.io/v3"
+var image = $"https://image-service.${region}.conoha.io/v2"
+var compute = $"https://compute.${region}.conoha.io/v2.1"
+
+try { var _ = ENV.CONOHAVPS_USER_ID }
+if failed {
+  echo 'CONOHAVPS_USER_ID is not set' >&2
+  exit 1
+}
+try { var _ = ENV.CONOHAVPS_PASSWORD }
+if failed {
+  echo 'CONOHAVPS_PASSWORD is not set' >&2
+  exit 1
+}
+try { var _ = ENV.CONOHAVPS_TENANT_ID }
+if failed {
+  echo 'CONOHAVPS_TENANT_ID is not set' >&2
+  exit 1
+}
+
+proc get_token() {
+  var body = {
+    auth: {
+      identity: {
+        methods: ['password'],
+        password: {
+          user: {
+            id: ENV.CONOHAVPS_USER_ID,
+            password: ENV.CONOHAVPS_PASSWORD,
+          },
+        },
+      },
+      scope: {
+        project: {id: ENV.CONOHAVPS_TENANT_ID},
+      },
+    },
+  }
+  var headers = $(curl -sS --max-time 30 -D - -o /dev/null -X POST \
+    -H 'Content-Type: application/json' -H 'Accept: application/json' \
+    -d $(json write (body)) $"${identity}/auth/tokens")
+  for line in (headers.split(u'\n')) {
+    if (line.lower().startsWith('x-subject-token:')) {
+      var parts = line.split(':')
+      echo $[parts[1].trim()]
+      return
+    }
+  }
+  return 1
+}
+
+proc server_status(token, id) {
+  var res = null
+  curl -sS --max-time 30 $"${compute}/servers/${id}" -H $"X-Auth-Token: ${token}" |
+    json read (&res)
+  echo $[res.server.status]
+}
+
+proc server_details(token, id) {
+  curl -sS --max-time 30 $"${compute}/servers/${id}" -H $"X-Auth-Token: ${token}"
+}
+
+proc wait_status(token, id, want, label) {
+  var status = ''
+  var elapsed = 0
+  echo $"  waiting for ${label} ..."
+  while (elapsed < wait_timeout) {
+    setvar status = $(server_status $token $id)
+    if (status === want) {
+      echo $"  OK: ${status}"
+      return
+    }
+    sleep $WAIT_INTERVAL
+    setvar elapsed += WAIT_INTERVAL
+  }
+  echo $"ERROR: timeout waiting for ${want} (last status: ${status})" >&2
+  echo $"HINT: check the current server status: $0 status ${id}" >&2
+  return 1
+}
+
+proc server_action(token, id, payload) {
+  var response = $(curl -sS --max-time 60 -w '\n%{http_code}' -X POST \
+    -H 'Content-Type: application/json' -H $"X-Auth-Token: ${token}" \
+    -d $payload $"${compute}/servers/${id}/action")
+  var lines = response.split(u'\n')
+  if (len(lines) === 0) {
+    setvar lines = ['']
+  }
+  var code = lines[-1]
+  var body = join(lines[0:-1], u'\n')
+  if (code !== '' and int(code) >= 400) {
+    var detail = body[0:500]
+    echo $"  API error (HTTP ${code}): ${detail}" >&2
+    return 1
+  }
+  echo $code
+}
+
+proc create_iso_image(token, name) {
+  var payload = {
+    name: name,
+    disk_format: 'iso',
+    hw_rescue_bus: 'ide',
+    hw_rescue_device: 'cdrom',
+    container_format: 'bare',
+  }
+  var response = $(curl -sS --max-time 30 -w '\n%{http_code}' -X POST \
+    -H 'Content-Type: application/json' -H $"X-Auth-Token: ${token}" \
+    -d $(json write (payload)) $"${image}/images")
+  var lines = response.split(u'\n')
+  if (len(lines) === 0) {
+    setvar lines = ['']
+  }
+  var code = lines[-1]
+  var body = join(lines[0:-1], u'\n')
+  if (code !== '201') {
+    var detail = body[0:500]
+    echo $"ERROR: ISO image creation failed (HTTP ${code}): ${detail}" >&2
+    return 1
+  }
+  var res = null
+  json read (&res) <<< $body
+  echo $[res.id]
+}
+
+proc upload_iso(token, image_id, file) {
+  var code = $(curl -sS --max-time 600 -o /dev/null -w '%{http_code}' -X PUT \
+    -H 'Content-Type: application/octet-stream' -H $"X-Auth-Token: ${token}" \
+    --data-binary $"@${file}" $"${image}/images/${image_id}/file")
+  echo $code
+}
+
+proc stop_server(token, id) {
+  echo '==> Stopping server'
+  var code = ''
+  try {
+    setvar code = $(server_action $token $id $(json write ({'os-stop': null})))
+  }
+  if failed {
+    return 1
+  }
+  case (code) {
+    ('202') {
+      wait_status $token $id SHUTOFF shutdown
+    }
+    ('409') {
+      echo '  (already SHUTOFF, skipping)'
+      return
+    }
+    (else) {
+      echo $"ERROR: os-stop failed (HTTP ${code})" >&2
+      return 1
+    }
+  }
+}
+
+var cmd = ''
+if (len(ARGV) >= 1) {
+  setvar cmd = ARGV[0]
+}
+
+case (cmd) {
+  ('install') {
+    if (len(ARGV) !== 3) {
+      echo $"usage: $0 install <instance_id> <iso_file>" >&2
+      exit 1
+    }
+    var instance_id = ARGV[1]
+    var iso_file = ARGV[2]
+    try { test -f $iso_file }
+    if failed {
+      echo $"ERROR: ISO file not found: ${iso_file}" >&2
+      exit 1
+    }
+
+    echo '==> Authenticating'
+    var token = ''
+    try { setvar token = $(get_token) }
+    if failed {
+      echo 'ERROR: failed to obtain token' >&2
+      exit 1
+    }
+
+    echo '==> Creating ISO image'
+    var iso_base = $(basename $iso_file .iso)
+    var stamp = $(date +%Y%m%d%H%M%S)
+    var iso_name = $"nixos-${iso_base}-${stamp}"
+    var iso_id = ''
+    try { setvar iso_id = $(create_iso_image $token $iso_name) }
+    if failed {
+      echo 'ERROR: ISO image creation failed' >&2
+      exit 1
+    }
+    echo $"  image_id=${iso_id}"
+
+    echo $"==> Uploading ISO (${iso_file})"
+    var upload_code = ''
+    try { setvar upload_code = $(upload_iso $token $iso_id $iso_file) }
+    if failed {
+      echo 'ERROR: ISO upload failed' >&2
+      exit 1
+    }
+    if (upload_code !== '204') {
+      echo $"ERROR: ISO upload failed (HTTP ${upload_code})" >&2
+      exit 1
+    }
+    echo '  OK: 204'
+
+    try { stop_server $token $instance_id }
+    if failed {
+      echo 'ERROR: could not stop the server' >&2
+      exit 1
+    }
+
+    echo '==> Inserting ISO (rescue)'
+    var rescue_code = ''
+    var rescue_payload = {rescue: {rescue_image_ref: iso_id}}
+    try {
+      setvar rescue_code = $(server_action $token $instance_id $(json write (rescue_payload)))
+    }
+    if failed {
+      echo 'ERROR: rescue failed. Please check the server status.' >&2
+      echo $"HINT: if already in rescue mode, eject first: $0 eject ${instance_id}" >&2
+      exit 1
+    }
+    if (rescue_code !== '200') {
+      echo $"ERROR: rescue failed (HTTP ${rescue_code})" >&2
+      exit 1
+    }
+    echo '  OK: 200 (booting into rescue mode)'
+
+    var status = $(server_status $token $instance_id)
+    if (status !== 'ACTIVE') {
+      echo '==> Starting server'
+      var start_code = ''
+      try {
+        setvar start_code = $(server_action $token $instance_id $(json write ({'os-start': null})))
+      }
+      if failed {
+        exit 1
+      }
+      if (start_code !== '202') {
+        echo $"ERROR: os-start failed (HTTP ${start_code})" >&2
+        exit 1
+      }
+    }
+    try { wait_status $token $instance_id ACTIVE 'boot from ISO' }
+    if failed {
+      exit 1
+    }
+
+    echo ''
+    echo '==> Done: booting from ISO. Use the VNC console (ConoHa control panel) to operate the installer.'
+    echo $"    After the installation completes, eject the ISO with $0 eject ${instance_id}."
+  }
+
+  ('eject') {
+    if (len(ARGV) !== 2) {
+      echo $"usage: $0 eject <instance_id>" >&2
+      exit 1
+    }
+    var instance_id = ARGV[1]
+
+    echo '==> Authenticating'
+    var token = ''
+    try { setvar token = $(get_token) }
+    if failed {
+      echo 'ERROR: failed to obtain token' >&2
+      exit 1
+    }
+
+    try { stop_server $token $instance_id }
+    if failed {
+      echo 'ERROR: could not stop the server' >&2
+      exit 1
+    }
+
+    echo '==> Ejecting ISO (unrescue)'
+    var code = ''
+    try {
+      setvar code = $(server_action $token $instance_id $(json write ({unrescue: null})))
+    }
+    if failed {
+      echo 'ERROR: unrescue failed (the server may not be in rescue mode).' >&2
+      echo $"HINT: check the server status with $0 status ${instance_id}." >&2
+      exit 1
+    }
+    if (code !== '200') {
+      echo $"ERROR: unrescue failed (HTTP ${code})" >&2
+      exit 1
+    }
+    echo '  OK: 200'
+
+    echo '==> Starting server'
+    try {
+      setvar code = $(server_action $token $instance_id $(json write ({'os-start': null})))
+    }
+    if failed {
+      exit 1
+    }
+    if (code !== '202') {
+      echo $"ERROR: os-start failed (HTTP ${code})" >&2
+      exit 1
+    }
+    try { wait_status $token $instance_id ACTIVE 'boot from disk' }
+    if failed {
+      exit 1
+    }
+
+    echo '==> Done: back to normal boot.'
+  }
+
+  ('status') {
+    if (len(ARGV) !== 2) {
+      echo $"usage: $0 status <instance_id>" >&2
+      exit 1
+    }
+    var token = ''
+    try { setvar token = $(get_token) }
+    if failed {
+      echo 'ERROR: failed to obtain token' >&2
+      exit 1
+    }
+
+    var id = ARGV[1]
+    var res = null
+    server_details $token $id | json read (&res)
+    var server = res.server
+    json write ({
+      id: server.id,
+      name: server.name,
+      status: server.status,
+      vm_state: server['OS-EXT-STS:vm_state'],
+      task_state: server['OS-EXT-STS:task_state'],
+      addresses: server.addresses,
+      created: server.created,
+      updated: server.updated,
+    })
+  }
+
+  (else) {
+    echo $"usage: $0 {install|eject|status} ..." >&2
+    exit 1
+  }
+}
