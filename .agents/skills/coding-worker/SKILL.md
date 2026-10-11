@@ -12,24 +12,23 @@ disable-model-invocation: true
 
 ## 実行スクリプト仕様
 
-コーディングタスクの委譲には，POSIX/Bash 実装の `scripts/run.sh` およびモダンな YSH 実装の `scripts/run.ysh` が利用できる．両スクリプトは同一のコマンドライン引数，環境変数，および出力スキーマを備えている．`run.ysh` は Oil/YSH 組み込みの JSON パーサーを使用するため，外部ツール（`jq`）への依存がない．
+コーディングタスクの委譲には，モダンな YSH 実装の `scripts/run.ysh` を使用する．Oil/YSH 組み込みの JSON パーサーを使用するため，外部ツール（`jq`）への依存がない．
 
 ### 基本使用方法
 
 ```bash
-# 実装・リファクタリング（Bash / YSH いずれも使用可能）
-.agents/skills/coding-worker/scripts/run.sh "<PROMPT_IN_ENGLISH>"
+# 実装・リファクタリング
 .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
 
 # 改善差分を直接作成させる技術レビュー（推奨）
-.agents/skills/coding-worker/scripts/run.sh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
+.agents/skills/coding-worker/scripts/run.ysh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
 
 # 読み取り専用レビュー（指摘のみを取得しワーキングツリーを変更しない）
-.agents/skills/coding-worker/scripts/run.sh --read-only "Review the diff origin/main..HEAD for technical correctness."
+.agents/skills/coding-worker/scripts/run.ysh --read-only "Review the diff origin/main..HEAD for technical correctness."
 
 # セッション継続・特定セッション ID 指定
-CONTINUE=1 .agents/skills/coding-worker/scripts/run.sh "<FOLLOW_UP_PROMPT>"
-TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.sh "<PROMPT_IN_ENGLISH>"
+CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
+TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
 ```
 
 ### オプションとフラグ
@@ -88,7 +87,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.sh "<PROMPT_IN_ENGLI
 | 終了コード | 意味 |
 | :--- | :--- |
 | `0` | 正常終了． |
-| `1` | 引数不正，再帰呼び出し制限超過（`__CODING_WORKER_DEPTH >= 2`），依存コマンド不足（`run.sh` での `jq` 不在），または非対応ワーカーでの `--read-only` 指定． |
+| `1` | 引数不正，再帰呼び出し制限超過（`__CODING_WORKER_DEPTH >= 2`），または非対応ワーカーでの `--read-only` 指定． |
 | `2`（またはワーカー固有） | ワーカープロセスの異常終了（ワーカープロセスの終了コードを透過）． |
 | `3` | `--read-only` 実行中にワーキングツリーの変更を検知（フィンガープリント不一致）． |
 
@@ -100,7 +99,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.sh "<PROMPT_IN_ENGLI
 - **セッション状態の分離**: `.agents/skills/coding-worker/.state/` は各ワークツリー配下に独立して保持されるため，セッション記録（`last.session`，`task_${TASK_ID}.session`）やログファイルがワーカー間で衝突しない．
 - **実行と差分統合の技術フロー**:
   1. 親エージェントが `.worktrees/<topic>/` 配下に兄弟ワークツリーを作成する（コマンド例は `dev-workflow` 参照）．
-  2. 各ワークツリーを作業場所として `run.sh` / `run.ysh` をバックグラウンドで同時起動する．
+  2. 各ワークツリーを作業場所として `run.ysh` をバックグラウンドで同時起動する．
   3. 各ワーカーは未コミットの差分を兄弟ワークツリー内に生成する．
   4. 親エージェントは未コミット変更を含めて差分を抽出し（`git -C <worker-tree> add -N . && git -C <worker-tree> diff`），`main/` ワークツリーへパッチ適用（`git apply`）またはコミット後にマージする．
 
