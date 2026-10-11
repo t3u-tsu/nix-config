@@ -105,7 +105,7 @@ Linux 環境において，Lenovo の EC ファームウェアが CPU を過剰�
 内蔵指紋リーダーは Synaptics Prometheus（`06cb:00bd`）であり，標準の `libfprint` ドライバで認識される．
 
 - **有効化**: [`services.fprintd.enable = true`](../../hosts/x1c7/default.nix)
-- **PAM 統合**: NixOS は `fprintd` 有効化時に `pam_fprintd.so` を `sufficient` として `sudo`，`su`，`polkit-1`，`greetd`，`swaylock` など 22 の PAM サービスに自動挿入する．指紋認証に失敗した場合は直ちにパスワードプロンプトへフォールバックするため，リーダー故障時にもロックアウトされない．
+- **PAM 統合**: NixOS は `fprintd` 有効化時に `pam_fprintd.so` を `sufficient` として `sudo`，`su`，`polkit-1`，`greetd`，`swaylock` など 22 の PAM サービスに自動挿入する．指紋認証に失敗した場合は直ちにパスワードプロンプトへフォールバックするため，リーダー故障時にもロックアウトされない．なお，`greetd` ではパスワード入力を優先するため，PAM 順序で `pam_unix` を先に評価するよう設定している（空パスワードで送信した場合は指紋認証へフォールスルーする）．
 - **登録手順**:
   センサーはタッチ式（押して離す動作）である．スワイプ動作では認識されない．
   ```bash
