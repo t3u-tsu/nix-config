@@ -10,7 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos
     # Brings in services.throttled and TLP (configured in services/power.nix).
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];

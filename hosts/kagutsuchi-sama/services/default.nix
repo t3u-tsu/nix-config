@@ -3,6 +3,7 @@
 {
   imports = [
     ./nebula.nix
-    ../../../nixos/services/backup/receiver.nix
   ];
+
+  my.services.backup.receiver.enable = true;
 }

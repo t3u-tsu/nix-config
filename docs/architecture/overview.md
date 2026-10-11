@@ -44,6 +44,7 @@ flake.nix
              nix-index-database / noctalia-greeter のモジュール
              home-manager 共通設定（sharedModules: nix-index, zen-browser, sops, noctalia）
              nixpkgs.overlays
+             ../nixos                        # システム共通モジュール群（基盤，セキュリティ，サービス等）
              ../nixos/profiles/${profile}    # プロファイル（desktop, tower-server, gateway 等）
              ../hosts/${name}/default.nix    # ホスト固有エントリ
            ] ++ extraModules;                # ホスト固有の追加モジュール（例: sbc.nix）
@@ -58,6 +59,11 @@ flake.nix
 
 ```text
 mkLib.mkSystem によるモジュール合成
+ ├─ nixos/                    # システム共通モジュール群（直接注入）
+ │   ├─ base, core, security (SOPS), dev-tools, environment, hardware
+ │   ├─ networking, services, virtualisation
+ │   └─ ../home/              # Home Manager 共通設定
+ │
  ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
  │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），home/desktop
  │   ├─ tower-server/         # 常時稼働サーバー共通基盤（boot, security, ssh）
@@ -66,11 +72,7 @@ mkLib.mkSystem によるモジュール合成
  │
  ├─ hosts/<name>/default.nix  # ホスト固有定義
  │   ├─ ./hardware.nix        # ハードウェア固有設定（fileSystems, swap, カーネル）
- │   ├─ ./services/           # ホスト固有サービス（該当する場合）
- │   └─ ../../nixos/          # システム共通モジュール群（一括 import）:
- │       ├─ base, core, security (SOPS), dev-tools, environment, hardware
- │       ├─ networking, services, virtualisation
- │       └─ ../../home/       # Home Manager 共通設定
+ │   └─ ./services/           # ホスト固有サービス（該当する場合）
  │
  └─ extraModules              # ホスト固有の追加モジュール（例: sbc.nix, fs-hdd.nix）
 ```
@@ -80,7 +82,7 @@ mkLib.mkSystem によるモジュール合成
 ## 4. モジュール評価順序と優先度制御
 
 1. **構成モジュールの注入順序**:
-   - `modules` リストは `profile → hosts/<name>/default.nix → extraModules` の順序で渡される．
+   - `modules` リストは `../nixos → profile → hosts/<name>/default.nix → extraModules` の順序で渡される．
    - プロファイルで基本設定（または `lib.mkDefault`）を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する設計となっている．
 2. **優先度制御（Priority System）**:
    - 単純なスカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
