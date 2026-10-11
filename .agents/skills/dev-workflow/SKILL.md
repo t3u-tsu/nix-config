@@ -85,16 +85,26 @@ description: このリポジトリで設定変更を適用するときの手順�
    - **自然言語・ドキュメント・コメント改善（サブエージェント）**:
      日本語ドキュメントやスキルの文章表現，SSOT 整合性，相互参照リンクの正確性は，外部ワーカーではなく Antigravity サブエージェント（`invoke_subagent`）が直接編集して改善する．コード内コメントの `hush` 規約への適合もサブエージェントが精査・直接修正する（句読点 `，．` はコミット時に pre-commit フックが自動置換するため，レビュー観点から除外する）．
    - **グループ運用時の差分統合と後始末**:
-     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合は，統合先（`main/`）から差分を確認・適用し，不要になった作業ツリーを削除する:
+     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．
+     そのため `git diff HEAD..feat/...` ではなく，ワーキングツリーの差分を直接取得して統合先（`main/`）へ取り込むか，ワーカーツリー内でコミットしてからマージする:
      ```bash
-     # main 側からワーカーツリーの差分を確認・パッチ適用
+     # main/ ワークツリーに移動
      cd .worktrees/topic-name/main
-     git diff HEAD..feat/topic-name-worker-pi
-     git merge --squash feat/topic-name-worker-pi  # または cherry-pick / patch
-     # 検証・統合完了後に作業ワークツリーとブランチを後始末
+
+     # ワーカーツリーの差分を確認
+     git -C ../worker-pi diff
+
+     # main/ ワークツリーに取り込む場合（パッチ適用）
+     git -C ../worker-pi diff | git apply
+
+     # またはワーカー内でコミットしてからマージする場合
+     git -C ../worker-pi commit -am "feat: ..."
+     git merge --squash feat/topic-name-worker-pi
+
+     # 検証・統合完了後に作業ワークツリーとブランチを後始末（未コミット変更があっても強制削除）
      cd ~/nix-config
-     git worktree remove .worktrees/topic-name/worker-pi
-     git branch -D feat/topic-name-worker-pi
+     git worktree remove --force .worktrees/topic-name/worker-pi
+     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
      ```
 
 5. **適用**:
@@ -153,11 +163,13 @@ description: このリポジトリで設定変更を適用するときの手順�
      git worktree remove .worktrees/topic-name || git worktree remove --force .worktrees/topic-name
      ```
    - **並列グループワークツリーの場合**:
-     残っている子ワークツリー群（`worker-*`，`subagent-*`）を順次削除し，`main` も削除した後，空になったタスクディレクトリを片付ける:
+     残っている子ワークツリー群（`worker-*`，`subagent-*`）を `--force` で順次削除してブランチも片付け，`main` も削除した後，空になったタスクディレクトリを片付ける:
      ```bash
      cd ~/nix-config
-     git worktree remove .worktrees/topic-name/worker-pi 2>/dev/null || true
-     git worktree remove .worktrees/topic-name/main
+     git worktree remove --force .worktrees/topic-name/worker-pi 2>/dev/null || true
+     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
+     git worktree remove --force .worktrees/topic-name/main 2>/dev/null || true
+     git branch -D feat/topic-name 2>/dev/null || true
      rmdir .worktrees/topic-name
      ```
    - **メインツリーの手元同期（安全確認）**:

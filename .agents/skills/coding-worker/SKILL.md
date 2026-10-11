@@ -3,6 +3,7 @@ name: coding-worker
 description: >-
   Delegate implementation, refactoring, and technical review tasks to external coding workers (pi, dsh, codewhale, etc.).
   Strictly for Antigravity (Gemini) orchestration — worker agents must NOT invoke this skill.
+disable-model-invocation: true
 ---
 
 # Coding Worker
@@ -25,7 +26,7 @@ description: >-
   .agents/skills/coding-worker/scripts/run.sh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
   ```
 - **読み取り専用レビュー（Read-Only）**:
-  差分を変更させず指摘のみを取得したい場合は `--read-only`（または `READ_ONLY=1`）を指定する．pi では `--tools read,bash,grep,find,ls --exclude-tools edit,write --no-session` が強制され，実行前後のツリーフィンガープリント（`git add -N .`，`git status --porcelain`，`git diff`，`git diff --cached`）が一致しない場合は終了コード 3 で失敗する．セッションは継続・保存されない．
+  差分を変更させず指摘のみを取得したい場合は `--read-only`（または `READ_ONLY=1`）を指定する．`--read-only` は事前ツール制限（`--tools read,bash,grep,find,ls --exclude-tools edit,write --no-session --no-mcp`）をサポートしている `pi` 専用のモードであり，`pi` 以外のワーカーを指定した場合はエラー終了する．実行前後のツリーフィンガープリント（`git rev-parse HEAD`，`git status --porcelain`，`git diff`，`git diff --cached`，`git ls-files --others --exclude-standard`）が一致しない場合は終了コード 3 で失敗する．セッションは継続・保存されない．
   ```bash
   .agents/skills/coding-worker/scripts/run.sh --read-only "Review the diff origin/main..HEAD for technical correctness."
   ```
@@ -50,7 +51,7 @@ description: >-
 | `WORKER` | `run.sh` | 使用するワーカー（デフォルト: `pi`，利用可能: `pi`, `dsh`, `codewhale`）． |
 | `TASK_ID` | `run.sh` | セッション ID を明示してターンをグループ化する（例: `feat-dns`）． |
 | `CONTINUE` | `run.sh` | `1` で直前のセッションを継続する． |
-| `READ_ONLY` | `run.sh` | `1` で読み取り専用レビューモードにする（`--read-only` と同等）． |
+| `READ_ONLY` | `run.sh` | `1` で読み取り専用レビューモードにする（`--read-only` と同等，`worker=pi` 専用）． |
 | `EXTRA_FLAGS` | `run.sh` | ワーカーに追加で転送するフラグ． |
 
 ## プロンプティング原則

@@ -4,6 +4,12 @@ set -euo pipefail
 ORIG_UMASK="$(umask)"
 umask 077
 
+export __CODING_WORKER_DEPTH=$(( ${__CODING_WORKER_DEPTH:-0} + 1 ))
+if [ "$__CODING_WORKER_DEPTH" -ge 2 ]; then
+  echo "ERROR: coding-worker recursion limit exceeded (depth: $__CODING_WORKER_DEPTH)" >&2
+  exit 1
+fi
+
 # Helper script for delegating coding tasks to external workers (pi, dsh, codewhale).
 # Usage: ./run.sh [--read-only] "<prompt in English>"
 # Environment variables:
@@ -39,20 +45,42 @@ fi
 
 PROMPT="$1"
 WORKER="${WORKER:-pi}"
+
+if [ "$READ_ONLY" = "1" ] && [ "$WORKER" != "pi" ]; then
+  echo "ERROR: Read-only enforcement is only supported for worker=pi" >&2
+  exit 1
+fi
+
 STATE_DIR=".agents/skills/coding-worker/.state"
 mkdir -p "$STATE_DIR"
 chmod 700 "$STATE_DIR" 2>/dev/null || true
 LAST_SESSION_FILE="$STATE_DIR/last-session-$WORKER"
 
+TASK_SESSION_FILE=""
+if [ -n "${TASK_ID:-}" ]; then
+  TASK_SAFE_ID="$(printf '%s' "$TASK_ID" | tr -c 'a-zA-Z0-9._-' '_')"
+  TASK_SESSION_FILE="$STATE_DIR/session-$WORKER-$TASK_SAFE_ID"
+fi
+
 CONTINUE_FLAG="${CONTINUE:-0}"
 SESSION_ID=""
+IS_RESUMED=0
 
 # Read-only runs never resume or persist a session.
 if [ "$READ_ONLY" != "1" ]; then
   if [ "$CONTINUE_FLAG" = "1" ] && [ -f "$LAST_SESSION_FILE" ]; then
     SESSION_ID="$(cat "$LAST_SESSION_FILE")"
+    IS_RESUMED=1
+  elif [ -n "$TASK_SESSION_FILE" ] && [ -f "$TASK_SESSION_FILE" ]; then
+    SESSION_ID="$(cat "$TASK_SESSION_FILE")"
+    IS_RESUMED=1
   elif [ -n "${TASK_ID:-}" ]; then
-    SESSION_ID="$TASK_ID"
+    if [ "$WORKER" = "pi" ]; then
+      SESSION_ID="$TASK_ID"
+    else
+      # For dsh and codewhale, unknown session IDs cause errors; start fresh.
+      SESSION_ID=""
+    fi
   fi
 fi
 
@@ -63,10 +91,11 @@ if [ -n "${EXTRA_FLAGS:-}" ]; then
 fi
 
 tree_fingerprint() {
-  git add -N . >/dev/null 2>&1 || true
+  git rev-parse HEAD 2>/dev/null || true
   git status --porcelain
   git diff
   git diff --cached
+  git ls-files --others --exclude-standard
 }
 
 LOG_FILE="$(mktemp /tmp/coding-worker-XXXXXX.log)"
@@ -96,7 +125,7 @@ case "$WORKER" in
   pi)
     PI_ARGS=("-p")
     if [ "$READ_ONLY" = "1" ]; then
-      PI_ARGS+=("--tools" "read,bash,grep,find,ls" "--exclude-tools" "edit,write" "--no-session")
+      PI_ARGS+=("--tools" "read,bash,grep,find,ls" "--exclude-tools" "edit,write" "--no-session" "--no-mcp")
     elif [ -n "$SESSION_ID" ]; then
       PI_ARGS+=("--session-id" "$SESSION_ID")
     elif [ "$CONTINUE_FLAG" = "1" ]; then
@@ -112,7 +141,7 @@ case "$WORKER" in
 
   dsh)
     DSH_ARGS=()
-    if [ -n "$SESSION_ID" ]; then
+    if [ -n "$SESSION_ID" ] && { [ "$IS_RESUMED" = "1" ] || [ "$CONTINUE_FLAG" = "1" ]; }; then
       DSH_ARGS+=("--session-id" "$SESSION_ID")
     fi
 
@@ -128,7 +157,7 @@ case "$WORKER" in
 
   codewhale)
     CW_ARGS=("--auto")
-    if [ -n "$SESSION_ID" ]; then
+    if [ -n "$SESSION_ID" ] && { [ "$IS_RESUMED" = "1" ] || [ "$CONTINUE_FLAG" = "1" ]; }; then
       CW_ARGS+=("--session-id" "$SESSION_ID")
     elif [ "$CONTINUE_FLAG" = "1" ]; then
       CW_ARGS+=("--continue")
@@ -154,6 +183,10 @@ set -e
 if [ "$READ_ONLY" != "1" ] && [ -n "$SESSION_ID" ]; then
   echo "$SESSION_ID" > "$LAST_SESSION_FILE"
   chmod 600 "$LAST_SESSION_FILE" 2>/dev/null || true
+  if [ -n "$TASK_SESSION_FILE" ]; then
+    echo "$SESSION_ID" > "$TASK_SESSION_FILE"
+    chmod 600 "$TASK_SESSION_FILE" 2>/dev/null || true
+  fi
 fi
 
 if [ -s "$RESP_FILE" ]; then
