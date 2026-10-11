@@ -10,7 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos
     inputs.nixos-hardware.nixosModules.common-pc-laptop
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];

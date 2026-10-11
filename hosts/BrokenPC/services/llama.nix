@@ -13,7 +13,7 @@
   ];
 
   home-manager.users.${config.my.user.name} = {
-    my.services.llama = {
+    my.home.programs.llama = {
       enable = true;
       enableCuda = true;
       modelsDir = "/data/llama/models";
