@@ -5,10 +5,6 @@
 
     inputs.niri.overlays.niri
 
-    (final: prev: {
-      ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
-    })
-
     # ffado / libcamera / roc-toolkit are broken on 32-bit, so disable them there.
     (final: prev: {
       pkgsi686Linux = prev.pkgsi686Linux // {

@@ -10,7 +10,7 @@
 
 - **`flake/hosts.nix`**: 各ホストの `nixosConfigurations` を定義する．
 - **`flake/lib.nix`**: `mkLib` を公開し，flake inputs と overlays を合成したカスタムライブラリを提供する．
-- **`flake/overlays.nix`**: nixpkgs のオーバーレイ群（`nix-minecraft`, `niri`, `ghostty`, `llama-cpp`, `unstable` 等）を合成・定義する．
+- **`flake/overlays.nix`**: nixpkgs のオーバーレイ群（`nix-minecraft`, `niri`, `llama-cpp`, `unstable` 等）を合成・定義する．
 - **`flake/packages.nix`**: カスタムビルド成果物（例: `torii-chan-vps-iso`）を `packages.${system}` に公開する．
 - **`flake/dev.nix`**: pre-commit hooks（`git-hooks.nix`）および開発シェル（`devShells`）を提供する．
 
