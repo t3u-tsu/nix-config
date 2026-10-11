@@ -1,11 +1,13 @@
 {
   config,
+  inputs,
   lib,
   ...
 }:
 
 {
   imports = [
+    inputs.nix-minecraft.nixosModules.minecraft-servers
     ./proxy.nix
     ./servers
   ];
