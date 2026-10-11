@@ -79,10 +79,7 @@
       url = "github:t3u-tsu/unity-via-distrobox-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    antigravity-nix = {
-      url = "github:jacopone/antigravity-nix";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     # === Development Environment ===
     git-hooks = {
