@@ -9,7 +9,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos
   ];
 
   boot.loader.grub = {

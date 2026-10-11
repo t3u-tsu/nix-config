@@ -20,7 +20,7 @@ A standard host directory contains:
 
 ```text
 hosts/<hostname>/
-├── default.nix     # Primary entrypoint (imports hardware.nix, services/, and ../../nixos)
+├── default.nix     # Primary entrypoint (imports hardware.nix and services/ — base nixos is injected via mkSystem)
 ├── hardware.nix    # Storage partitions, swap, and kernel parameters
 ├── services/       # Host-specific service definitions
 │   ├── default.nix # Service imports

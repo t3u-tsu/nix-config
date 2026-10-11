@@ -10,7 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos
     # Optional: nixos-hardware profile for the exact model, e.g.
     #   inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];

@@ -47,6 +47,7 @@
           nixpkgs.overlays = overlays;
         }
 
+        ../nixos
         ../nixos/profiles/${profile}
         ../hosts/${name}/default.nix
       ]

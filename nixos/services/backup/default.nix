@@ -53,6 +53,8 @@ let
   };
 in
 {
+  imports = [ ./receiver.nix ];
+
   options.my.services.backup = {
     enable = mkEnableOption "restic backup configuration";
 
