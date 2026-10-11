@@ -23,7 +23,7 @@ Secondary portable laptop based at Site A and taken off-site, featuring a hybrid
 - **Mobility & Networking:** Operates both at Site A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
 - **Key Modules:**
   - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
-  - Services: Local LLM (`my.services.llama`), SOPS secrets
+  - Services: Local LLM (`my.home.programs.llama`), SOPS secrets
 
 ## Installation
 Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).

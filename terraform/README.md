@@ -19,7 +19,7 @@ export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' secrets/ser
 export CONOHAVPS_PASSWORD=[redacted]
 export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' secrets/services/conoha-vps-mcp.yaml)
 # Region is hardcoded to c3j1 in provider.tf. CONOHAVPS_REGION is only read by
-# scripts/nixos-iso.sh and does NOT change the region terraform/OpenTofu uses.
+# scripts/nixos-iso.ysh and does NOT change the region terraform/OpenTofu uses.
 ```
 
 Required variables (passed via `TF_VAR_*`):
@@ -81,20 +81,20 @@ tofu apply
 ssh -i ~/.ssh/t3u root@<public_ip>
 
 # 3. Fetch the NixOS minimal ISO and inject it for a rescue boot
-./scripts/nixos-iso.sh install <instance_id> ./nixos-minimal.iso
+./scripts/nixos-iso.ysh install <instance_id> ./nixos-minimal.iso
 
 # 4. Operate the NixOS installer via the VNC console in the ConoHa control panel
 #    (set a static IP -> parted/mkfs -> nixos-generate-config -> nixos-install.
 #     See hosts/torii-chan/install-nixos.sh for details)
 
 # 5. After installation, eject the ISO and boot normally
-./scripts/nixos-iso.sh eject <instance_id>
+./scripts/nixos-iso.ysh eject <instance_id>
 
 # 6. Reflect the assigned IPs into wanIp / wanGateway in vps.nix and apply NixOS
 tofu output -json torii_chan_addresses
 ```
 
-`scripts/nixos-iso.sh` talks directly to the ConoHa public API (creates and uploads an
+`scripts/nixos-iso.ysh` talks directly to the ConoHa public API (creates and uploads an
 ISO via the Image API, and inserts/ejects it via the Compute API `rescue`/`unrescue`).
 
 Subcommands:
