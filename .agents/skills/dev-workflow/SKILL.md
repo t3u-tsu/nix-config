@@ -85,20 +85,22 @@ description: このリポジトリで設定変更を適用するときの手順�
    - **自然言語・ドキュメント・コメント改善（サブエージェント）**:
      日本語ドキュメントやスキルの文章表現，SSOT 整合性，相互参照リンクの正確性は，外部ワーカーではなく Antigravity サブエージェント（`invoke_subagent`）が直接編集して改善する．コード内コメントの `hush` 規約への適合もサブエージェントが精査・直接修正する（句読点 `，．` はコミット時に pre-commit フックが自動置換するため，レビュー観点から除外する）．
    - **グループ運用時の差分統合と後始末**:
-     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．
+     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
      そのため `git diff HEAD..feat/...` ではなく，ワーキングツリーの差分を直接取得して統合先（`main/`）へ取り込むか，ワーカーツリー内でコミットしてからマージする:
      ```bash
      # main/ ワークツリーに移動
      cd .worktrees/topic-name/main
 
-     # ワーカーツリーの差分を確認
+     # ワーカーツリーの差分を確認（新規作成ファイルを diff に含めるため add -N . を実行）
+     git -C ../worker-pi add -N .
      git -C ../worker-pi diff
 
-     # main/ ワークツリーに取り込む場合（パッチ適用）
+     # main/ ワークツリーに取り込む場合（パッチ適用: 新規作成ファイルも含めて抽出）
+     git -C ../worker-pi add -N .
      git -C ../worker-pi diff | git apply
 
-     # またはワーカー内でコミットしてからマージする場合
-     git -C ../worker-pi commit -am "feat: ..."
+     # またはワーカー内でコミットしてからマージする場合（add -A で新規作成ファイルも含めてコミット）
+     git -C ../worker-pi add -A && git -C ../worker-pi commit -m "feat: ..."
      git merge --squash feat/topic-name-worker-pi
 
      # 検証・統合完了後に作業ワークツリーとブランチを後始末（未コミット変更があっても強制削除）

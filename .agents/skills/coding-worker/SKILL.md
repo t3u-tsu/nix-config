@@ -44,6 +44,44 @@ disable-model-invocation: true
   WORKER=dsh .agents/skills/coding-worker/scripts/run.sh "<PROMPT_IN_ENGLISH>"
   ```
 
+### 進捗ストリーミングと出力形式
+
+`worker=pi` は `--mode json` でイベントストリームを逐次読み取り，進捗を stderr へ，最終応答と状態を stdout へ出力する．親エージェントは stdout を構造化出力として解釈し，stderr でツール実行の進捗をリアルタイムに確認できる．
+
+ツール実行開始ごとに次の1行を stderr へ出力する:
+
+```text
+[pi] tool: <toolName> (<target>)
+```
+
+- `read` / `edit` / `write`: `<target>` は対象パス．
+- `bash`: `<target>` はコマンド（60文字を超える場合は切り詰め）．
+- その他のツール: 主要引数の要約（例: `pattern=foo`）．
+
+完了時は stdout へ次の構造化テキストを出力する（`===` 等の装飾バナーは使わない）:
+
+```text
+worker: <worker> (session: <session_id>, exit: <exit_code>)
+log: <log_path>
+
+[response]
+<assistant の最終テキスト>
+
+[status]
+<git status --short，変更がなければ "  (clean)">
+
+[stat]
+<git diff --stat，差分がなければ "  (no diff)">
+```
+
+- `session:` はセッションが存在する場合のみ表示する（読み取り専用モードは `--no-session` のため省略される）．
+- `[response]` はストリーム中の `message_end`（assistant）から抽出した最終テキストである．
+- 終了コードが 0 以外の場合は末尾に `[error]` セクションとしてログ末尾を出力する．
+- 全イベントと診断（pi の stderr を含む）は `log` に記録される．
+- 読み取り専用モードでは，実行前後のフィンガープリントが一致しない場合に終了コード 3 で失敗する．
+
+`worker=dsh` / `worker=codewhale` は従来どおり stdout を最終応答，stderr をログとして扱い，進捗ストリーミングは行わない．
+
 ## 環境変数
 
 | 変数 | 対象 | 説明 |
@@ -60,6 +98,7 @@ disable-model-invocation: true
 コーディングワーカーへ渡すプロンプトは，簡潔かつ明確な英語で記述し，以下の制約を満たす:
 1. **hush 規約を指示する**: コードコメントに関する規約を指示し，自明な解説コメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
 2. **スコープを限定する**: 実装対象外のファイル（ドキュメント等）を編集させない（"Do NOT edit documentation or README files."）．
+3. **簡潔な要約を要求する**: 変更内容と根拠の要約箇条書きのみを報告させ，ファイル全文や大きなコードブロックを再掲させない（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
 
 ```text
 Task: <goal>
@@ -69,6 +108,7 @@ Constraints:
 - No explanatory or obvious comments. Self-documenting naming only.
 - Do NOT edit documentation or README files.
 - Follow nixpkgs conventions and formatting.
+- Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.
 ```
 
 ### 技術レビュータスクの指示
@@ -89,6 +129,7 @@ Constraints:
   - Follow hush conventions (no explanatory or restating comments).
   - Do NOT edit documentation or README files.
   - Follow nixpkgs conventions and formatting.
+  - Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.
   ```
 
 - **読み取り専用レビュー（Read-Only）**:
@@ -98,5 +139,6 @@ Constraints:
   Instructions:
   - Verify that commands, unit names, and Nix options match actual repository configs.
   - Identify edge cases, race conditions, permission issues, or missing steps.
-  - Provide concrete suggested fixes with code snippets.
+  - Provide concrete suggested fixes with small code snippets only.
+  - Report summary bullets of findings and reasoning only. Do NOT re-print full files or large code blocks.
   ```
