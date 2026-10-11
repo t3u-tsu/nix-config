@@ -65,45 +65,50 @@ docs/
 ├── README.md                          # 全体ナビゲーション・目次
 ├── architecture/                      # 設計仕様
 │   ├── overview.md                    # リポジトリ層構成とモジュール評価フロー
-│   ├── network-topology.md            # Nebula メッシュ, IP体系, DNS, ポートフォワード
-│   └── flake-and-modules.md           # flake-parts, lib/mkSystem, my.* 命名規則
+│   ├── network-topology.md            # Nebula メッシュ，IP体系，DNS，ポートフォワード
+│   └── flake-and-modules.md           # flake-parts，lib/mkSystem，my.* 命名規則
 ├── operations/                        # 運用ランブック
 │   ├── adding-a-host.md               # 新ホスト追加・登録の統一手順 (SSOT)
 │   ├── secret-management.md           # SOPS / age / 1Password 鍵ライフサイクル
-│   ├── backup-and-restore.md          # Restic バックアップ運用, 障害時完全復旧 (DR) 手順
+│   ├── backup-and-restore.md          # Restic バックアップ運用，障害時完全復旧 (DR) 手順
 │   ├── vps-failover.md                # ConoHa VPS プロビジョニング & フェイルオーバー切替手順
-│   └── maintenance.md                 # 日次自動更新, ガベージコレクション, カーネル更新
+│   └── maintenance.md                 # 日次自動更新，ガベージコレクション，カーネル更新
 ├── hardware/                          # ハードウェア・基盤別ガイド
 │   ├── thinkpad-x1c7.md               # ThinkPad X1C7 固有設定
-│   ├── hybrid-gpu.md                  # AMD+NVIDIA ハイブリッド, PRIME offload
-│   ├── orange-pi-zero3.md             # Allwinner H618, U-Boot, SD/HDD ブート
-│   └── storage-zfs.md                 # レガシー BIOS 構成, ZFS Mirror 保守
+│   ├── hybrid-gpu.md                  # AMD+NVIDIA ハイブリッド，PRIME offload
+│   ├── orange-pi-zero3.md             # Allwinner H618，U-Boot，SD/HDD ブート
+│   └── storage-zfs.md                 # レガシー BIOS 構成，ZFS Mirror 保守
 └── troubleshooting/                   # トラブルシューティング・FAQ
     ├── build-and-deploy.md            # ビルド・評価・キャッシュ・デプロイ失敗時
-    ├── secrets-and-auth.md            # SOPS 復号エラー, private input 認証エラー
-    ├── network-recovery.md            # Nebula 接続不能, NAT loopback, SSH 遮断復旧
+    ├── secrets-and-auth.md            # SOPS 復号エラー，private input 認証エラー
+    └── network-recovery.md            # Nebula 接続不能，NAT loopback，SSH 遮断復旧
 ```
 
 ---
 
-## 6. ドキュメントレビュー観点
+## 6. ドキュメントレビューと改善
 
-ドキュメントの新規作成や大幅な改修を行った際は，技術的正確性と文章品質の双方からレビューを実施する．
+ドキュメントの新規作成や大幅な改修を行った際は，コーディングワーカーによる技術的検証と，Antigravity サブエージェントによる文章品質の直接編集・改善の双方を実施する．
 
-### 技術的正確性の検証
+### コーディングワーカーによる技術的検証
 - **対象**: 手順書・設計書に記載された技術仕様，シェルコマンド，systemd ユニット名，Nix 設定値，ネットワーク構成．
 - **検証観点**:
   - 記載されたコマンドが実際のホスト環境・NixOS 仕様に合致しているか．
   - 参照されているファイルパスやサービス名がリポジトリ内のコードと整合しているか．
   - 復旧手順や運用ランブックに致命的な手順抜けやエッジケースがないか．
-- **スクリプトによる検証例**:
+- **実行例**:
+  一時ワークツリー上で改善差分を直接作成させるか，または読み取り専用で指摘を取得する:
   ```bash
-  FILES="docs/operations/backup-and-restore.md" .agents/skills/coding-worker/scripts/review.sh "Verify that restic restore commands and systemd unit names match the actual NixOS config."
+  # 改善差分を直接作成させる場合（推奨）
+  .agents/skills/coding-worker/scripts/run.sh "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match actual NixOS configs, and update them if needed."
+  # 読み取り専用レビューの場合
+  .agents/skills/coding-worker/scripts/run.sh --read-only "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match the actual NixOS config."
   ```
 
-### 自然言語・文章品質の検証
+### サブエージェントによる文章品質の直接編集・改善
+日本語ドキュメントの文体や文章表現，SSOT 整合性の改善は，外部ワーカーを介さず Antigravity サブエージェント（`invoke_subagent`）が直接編集を行って改善する．句読点（`，．`）はコミット時に pre-commit フック（ja-punctuation）が自動置換するため，レビュー観点から除外する．
 - **対象**: ドキュメントの文章，章立て，相互参照，コード内コメント．
-- **検証観点**:
+- **検証・改善観点**:
   - 自然な日本語表現（機械翻訳調の排除，簡潔で論理的な常体）．
   - SSOT 原則の遵守（他ドキュメントとの不要な重複がないか，正本 `docs/operations/` への参照になっているか）．
   - 相対リンクおよびアンカーの正確性（リンク切れがないか）．
