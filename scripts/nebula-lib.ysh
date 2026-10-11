@@ -18,3 +18,8 @@ func host_key(name) {
 func host_secrets_file(name) {
   return ($"secrets/hosts/${name}.yaml")
 }
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
