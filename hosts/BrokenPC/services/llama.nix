@@ -1,6 +1,17 @@
-{ config, ... }:
+{ config, inputs, ... }:
 
 {
+  nixpkgs.overlays = [
+    inputs.llama-cpp.overlays.default
+    (final: prev: {
+      llama-cpp = prev.llama-cpp.override {
+        cudaPackages = prev.cudaPackages // {
+          cccl = prev.cudaPackages.cuda_cccl;
+        };
+      };
+    })
+  ];
+
   home-manager.users.${config.my.user.name} = {
     my.services.llama = {
       enable = true;
