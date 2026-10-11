@@ -30,6 +30,13 @@
           files = "scripts/.*\\.sh$";
           entry = "${pkgs.shellcheck}/bin/shellcheck -x";
         };
+        ysh-check = {
+          enable = true;
+          name = "ysh-check";
+          description = "Check syntax of YSH scripts";
+          files = "\\.ysh$";
+          entry = "${pkgs.oils-for-unix}/bin/ysh -n";
+        };
         ja-punctuation = {
           enable = true;
           name = "ja-punctuation";
@@ -63,6 +70,7 @@
           pkgs.nix-tree
           pkgs.opentofu
           pkgs.convco
+          pkgs.oils-for-unix
         ];
         inputsFrom = [ config.pre-commit.devShell ];
       };

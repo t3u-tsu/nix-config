@@ -1,0 +1,310 @@
+#!/usr/bin/env ysh
+#
+# Delegate a coding task to an external worker (pi, dsh, codewhale).
+# Usage: ./run.ysh [--read-only] "<prompt in English>"
+# Environment:
+#   WORKER       (default: pi; options: pi, dsh, codewhale)
+#   TASK_ID      (optional session ID to group turns, e.g. "feat-dns")
+#   CONTINUE     (set to 1 to continue the previous session)
+#   EXTRA_FLAGS  (extra flags forwarded to the worker)
+#   READ_ONLY    (1 enforces read-only review mode; same as --read-only)
+
+shopt --unset verbose_errexit
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
+
+# Captures the working tree state so a read-only run can prove it changed nothing.
+func tree_fingerprint() {
+  var parts = []
+  try { call parts->append($(git rev-parse HEAD)) }
+  try { call parts->append($(git status --porcelain)) }
+  try { call parts->append($(git diff)) }
+  try { call parts->append($(git diff --cached)) }
+  try { call parts->append($(git ls-files --others --exclude-standard)) }
+  return (join(parts, u'\n'))
+}
+
+proc stream_pi_events(log_file, resp_file) {
+  var line = ''
+  while read -r line {
+    printf '%s\n' $line >> $log_file
+
+    var event = null
+    try { json read (&event) <<< $line 2>/dev/null }
+    if failed { continue }
+
+    var event_type = get(event, 'type', '')
+    if (event_type === 'tool_execution_start') {
+      var tool = get(event, 'toolName', '')
+      var args = get(event, 'args', {})
+      if (type(args) !== 'Dict') { setvar args = {} }
+
+      var target = ''
+      if (tool === 'bash') {
+        setvar target = get(args, 'command', '')
+      } elif (tool === 'read' or tool === 'edit' or tool === 'write') {
+        setvar target = get(args, 'file_path', get(args, 'path', ''))
+      } else {
+        for key, value in (args) {
+          var value_type = type(value)
+          if (value_type === 'Str' or value_type === 'Int' or value_type === 'Float' or value_type === 'Bool') {
+            setvar target = $"${key}=${value}"
+            break
+          }
+        }
+      }
+      if (tool === 'bash' and len(target) > 60) {
+        setvar target = target[:60] ++ '...'
+      }
+      printf '[pi] tool: %s (%s)\n' $tool $target >&2
+    }
+
+    if (event_type === 'message_end' and get(get(event, 'message', {}), 'role', '') === 'assistant') {
+      var content = get(get(event, 'message', {}), 'content', [])
+      if (type(content) !== 'List') { setvar content = [] }
+      var texts = []
+      for item in (content) {
+        if (get(item, 'type', '') === 'text') {
+          call texts->append(get(item, 'text', ''))
+        }
+      }
+      var text = join(texts, u'\n')
+      if (text !== '') {
+        printf '%s\n' $text > $resp_file
+      }
+    }
+  }
+}
+
+var orig_umask = $(umask)
+umask 077
+
+var depth = int(get(ENV, '__CODING_WORKER_DEPTH', '0')) + 1
+setglobal ENV.__CODING_WORKER_DEPTH = str(depth)
+if (depth >= 2) {
+  echo $"ERROR: coding-worker recursion limit exceeded (depth: ${depth})" >&2
+  exit 1
+}
+
+var read_only_env = get(ENV, 'READ_ONLY', '0').lower()
+var read_only = false
+if (read_only_env === '1' or read_only_env === 'true' or read_only_env === 'yes') {
+  setvar read_only = true
+}
+
+# Only leading options are parsed; the first non-option argument is the prompt.
+var arg_index = 0
+while (arg_index < len(ARGV)) {
+  var arg = ARGV[arg_index]
+  if (arg === '--read-only') {
+    setvar read_only = true
+    setvar arg_index += 1
+  } elif (arg === '--') {
+    setvar arg_index += 1
+    break
+  } else {
+    break
+  }
+}
+
+if (arg_index >= len(ARGV)) {
+  echo $"Usage: $0 [--read-only] \"<task description in English>\"" >&2
+  exit 1
+}
+var prompt = ARGV[arg_index]
+
+var worker = get(ENV, 'WORKER', 'pi')
+if (worker === '') { setvar worker = 'pi' }
+
+if (read_only and worker !== 'pi') {
+  echo 'ERROR: Read-only enforcement is only supported for worker=pi' >&2
+  exit 1
+}
+
+const STATE_DIR = '.agents/skills/coding-worker/.state'
+mkdir -p $STATE_DIR
+try { chmod 700 $STATE_DIR }
+var last_session_file = $"${STATE_DIR}/last-session-${worker}"
+
+var task_id = get(ENV, 'TASK_ID', '')
+var task_session_file = ''
+if (task_id !== '') {
+  var task_safe_id = $(printf '%s' $task_id | tr -c 'a-zA-Z0-9._-' '_')
+  setvar task_session_file = $"${STATE_DIR}/session-${worker}-${task_safe_id}"
+}
+
+var continue_flag = get(ENV, 'CONTINUE', '0')
+var session_id = ''
+var is_resumed = false
+if (not read_only) {
+  if (continue_flag === '1' and file_exists(last_session_file)) {
+    setvar session_id = $(cat $last_session_file)
+    setvar is_resumed = true
+  } elif (task_session_file !== '' and file_exists(task_session_file)) {
+    setvar session_id = $(cat $task_session_file)
+    setvar is_resumed = true
+  } elif (task_id !== '' and worker === 'pi') {
+    setvar session_id = task_id
+  }
+}
+
+var extra_args = shSplit(get(ENV, 'EXTRA_FLAGS', ''))
+
+var log_file = $(mktemp /tmp/coding-worker-XXXXXX.log)
+var resp_file = $(mktemp /tmp/coding-worker-resp-XXXXXX.log)
+trap --add EXIT { rm -f $resp_file }
+
+{
+  echo $"worker: ${worker}"
+  if (read_only) { echo 'mode: read-only' }
+  echo $"prompt: ${prompt}"
+  if (session_id !== '') { echo $"session: ${session_id}" }
+} >> $log_file
+
+var pre_fingerprint = ''
+if (read_only) {
+  setvar pre_fingerprint = tree_fingerprint()
+}
+
+# Restore the caller's umask so the worker creates files with normal permissions.
+umask $orig_umask
+
+var exit_code = 0
+case (worker) {
+  ('pi') {
+    var pi_args = ['--mode', 'json']
+    if (read_only) {
+      call pi_args->extend(['--tools', 'read,bash,grep,find,ls', '--exclude-tools', 'edit,write', '--no-session', '--no-mcp'])
+    } elif (session_id !== '') {
+      call pi_args->extend(['--session-id', session_id])
+    } elif (continue_flag === '1') {
+      call pi_args->extend(['--continue'])
+    } else {
+      var random_suffix = $(od -An -N2 -tu2 /dev/urandom | tr -d ' ')
+      setvar session_id = $"task-$(date +%Y%m%d-%H%M%S)-${random_suffix}"
+      call pi_args->extend(['--session-id', session_id])
+    }
+
+    try {
+      pi @[pi_args] @[extra_args] -- $prompt < /dev/null 2>> $log_file | stream_pi_events $log_file $resp_file
+    }
+    var pipeline_status = _pipeline_status
+    setvar exit_code = pipeline_status[0]
+  }
+  ('dsh') {
+    var dsh_args = []
+    if (session_id !== '' and (is_resumed or continue_flag === '1')) {
+      call dsh_args->extend(['--session-id', session_id])
+    }
+    try {
+      dsh headless @[dsh_args] @[extra_args] -- $prompt < /dev/null > $resp_file 2>> $log_file
+    }
+    setvar exit_code = _error.code
+
+    var extracted_id = ''
+    try {
+      setvar extracted_id = $(grep -hoE 'session-[0-9a-f-]+' $resp_file $log_file | head -n 1)
+    }
+    if (extracted_id !== '') {
+      setvar session_id = extracted_id
+    }
+  }
+  ('codewhale') {
+    var cw_args = ['--auto']
+    if (session_id !== '' and (is_resumed or continue_flag === '1')) {
+      call cw_args->extend(['--session-id', session_id])
+    } elif (continue_flag === '1') {
+      call cw_args->extend(['--continue'])
+    }
+    try {
+      codewhale exec @[cw_args] @[extra_args] -- $prompt < /dev/null > $resp_file 2>> $log_file
+    }
+    setvar exit_code = _error.code
+
+    var extracted_id = ''
+    try {
+      setvar extracted_id = $(awk '/(resumed )?session: [a-f0-9]+/ {for(i=1;i<=NF;i++) if($i ~ /^[a-f0-9]{8}/) id=$i} END {if (id) print id}' $log_file)
+    }
+    if (extracted_id !== '') {
+      setvar session_id = extracted_id
+    }
+  }
+  (else) {
+    echo $"Unknown worker: ${worker} (supported: pi, dsh, codewhale)" >&2
+    exit 1
+  }
+}
+
+if (not read_only and session_id !== '') {
+  printf '%s\n' $session_id > $last_session_file
+  try { chmod 600 $last_session_file }
+  if (task_session_file !== '') {
+    printf '%s\n' $session_id > $task_session_file
+    try { chmod 600 $task_session_file }
+  }
+}
+
+if test -s $resp_file {
+  {
+    echo ''
+    echo '[response]'
+    cat $resp_file
+  } >> $log_file
+}
+
+if (read_only) {
+  var post_fingerprint = tree_fingerprint()
+  if (pre_fingerprint !== post_fingerprint) {
+    echo 'ERROR: Working tree was modified during read-only run!' >&2
+    try {
+      diff -u <(printf '%s\n' $pre_fingerprint) <(printf '%s\n' $post_fingerprint) >&2
+    }
+    exit 3
+  }
+}
+
+if (session_id !== '') {
+  echo $"worker: ${worker} (session: ${session_id}, exit: ${exit_code})"
+} else {
+  echo $"worker: ${worker} (exit: ${exit_code})"
+}
+echo $"log: ${log_file}"
+
+echo ''
+echo '[response]'
+if test -s $resp_file {
+  cat $resp_file
+} else {
+  echo '(no response)'
+}
+
+echo ''
+echo '[status]'
+var modified = ''
+try { setvar modified = $(git status --short 2>/dev/null) }
+if (modified !== '') {
+  printf '%s\n' $modified
+} else {
+  echo '  (clean)'
+}
+
+echo ''
+echo '[stat]'
+var diff_stat = ''
+try { setvar diff_stat = $(git diff --stat 2>/dev/null) }
+if (diff_stat !== '') {
+  printf '%s\n' $diff_stat
+} else {
+  echo '  (no diff)'
+}
+
+if (exit_code !== 0) {
+  echo ''
+  echo '[error]'
+  tail -n 20 $log_file
+}
+
+exit $exit_code
