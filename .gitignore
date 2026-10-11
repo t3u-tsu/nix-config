@@ -7,3 +7,7 @@ result-*
 .direnv
 
 .pre-commit-config.yaml
+
+.worktrees/
+
+.agents/skills/coding-worker/.state/

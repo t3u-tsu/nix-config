@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
-# Helper script for delegating technical reviews to Codewhale with DeepSeek.
+# Helper script for delegating technical reviews to external workers (pi, dsh, codewhale).
 # Usage: ./review.sh "<review task in English>"
 # Environment variables:
-#   CODEPROVIDER (default: openrouter)
-#   CODEMODEL    (default: deepseek/deepseek-v4.1-flash)
+#   WORKER       (default: pi; options: pi, dsh, codewhale)
 #   DIFF_RANGE   (optional git diff range to include in prompt, e.g. "origin/main..HEAD")
 #   FILES        (optional space-separated list of target files)
-#   CONTINUE     (set to 1 to continue previous session)
-#   SESSION      (optional session ID to resume directly)
+#   EXTRA_FLAGS  (optional extra flags forwarded to the worker)
 
 if [ $# -eq 0 ] && [ -z "${DIFF_RANGE:-}" ] && [ -z "${FILES:-}" ]; then
   echo "Usage: $0 \"<technical review task in English>\"" >&2
@@ -19,15 +18,7 @@ if [ $# -eq 0 ] && [ -z "${DIFF_RANGE:-}" ] && [ -z "${FILES:-}" ]; then
 fi
 
 USER_PROMPT="${1:-Review the specified changes or files for technical correctness.}"
-PROVIDER="${CODEPROVIDER:-openrouter}"
-MODEL="${CODEMODEL:-@preset/deepseek-v4.1-flash}"
-
-CONTINUE_ARGS=()
-if [ -n "${SESSION:-}" ]; then
-  CONTINUE_ARGS+=("--resume" "$SESSION")
-elif [ "${CONTINUE:-0}" = "1" ]; then
-  CONTINUE_ARGS+=("--continue")
-fi
+WORKER="${WORKER:-pi}"
 
 EXTRA_ARGS=()
 if [ -n "${EXTRA_FLAGS:-}" ]; then
@@ -35,9 +26,11 @@ if [ -n "${EXTRA_FLAGS:-}" ]; then
   EXTRA_ARGS=($EXTRA_FLAGS)
 fi
 
+PRE_STATUS="$(git status --porcelain 2>/dev/null || true)"
+
 CONTEXT=""
 if [ -n "${DIFF_RANGE:-}" ]; then
-  DIFF_LINES="$(git diff "$DIFF_RANGE" 2>/dev/null | wc -l || echo 0)"
+  DIFF_LINES="$(git diff "$DIFF_RANGE" 2>/dev/null | wc -l)" || DIFF_LINES=0
   if [ "$DIFF_LINES" -gt 0 ] && [ "$DIFF_LINES" -lt 300 ]; then
     DIFF_OUTPUT="$(git diff "$DIFF_RANGE" 2>/dev/null || true)"
     CONTEXT="${CONTEXT}
@@ -67,9 +60,9 @@ Target files to inspect: $FILES
 "
 fi
 
-SYSTEM_INSTRUCTION="READ-ONLY TECHNICAL REVIEW:
+SYSTEM_INSTRUCTION="TECHNICAL REVIEW:
 You are acting as a strict technical reviewer for a NixOS / Linux infrastructure repository.
-CRITICAL CONSTRAINT: Do NOT edit, create, or delete ANY files. Your task is purely read-only review and analysis.
+CRITICAL CONSTRAINT: Do NOT edit, create, or delete repository files under review. Your task is technical review and analysis. You may use shell commands to evaluate expressions (e.g. nix eval), inspect system state, or check external references, but you must NOT modify repository files under review.
 
 Task:
 $USER_PROMPT
@@ -92,17 +85,11 @@ Provide a concise, high-signal Markdown review report:
   - Suggested Fix: Concrete fix or corrected code/command snippet
 If no issues are found, explicitly state why the changes are technically sound."
 
-LOG_FILE="/tmp/codewhale-review-$(date +%Y%m%d-%H%M%S).log"
-if [ -e "$LOG_FILE" ]; then
-  LOG_FILE="/tmp/codewhale-review-$(date +%Y%m%d-%H%M%S)-$$.log"
-fi
-
-RESP_FILE="$(mktemp /tmp/codewhale-review-resp-XXXXXX.log)"
+LOG_FILE="/tmp/coding-worker-review-$(date +%Y%m%d-%H%M%S)-$$.log"
+RESP_FILE="$(mktemp /tmp/coding-worker-review-resp-XXXXXX.log)"
 trap 'rm -f "${RESP_FILE:-}"' EXIT
 
-echo "=== Delegating Technical Review to Codewhale ==="
-echo "Provider: $PROVIDER"
-echo "Model:    $MODEL"
+echo "=== Delegating Technical Review to Worker: $WORKER ==="
 echo "Task:     $USER_PROMPT"
 if [ -n "${DIFF_RANGE:-}" ]; then
   echo "Diff:     $DIFF_RANGE"
@@ -111,11 +98,32 @@ if [ -n "${FILES:-}" ]; then
   echo "Files:    $FILES"
 fi
 echo "Log file: $LOG_FILE"
-echo "================================================"
+echo "======================================================"
 
 set +e
-codewhale --provider "$PROVIDER" --model "$MODEL" "${EXTRA_ARGS[@]}" exec --auto "${CONTINUE_ARGS[@]}" "$SYSTEM_INSTRUCTION" < /dev/null > "$RESP_FILE" 2> "$LOG_FILE"
-EXIT_CODE=$?
+
+case "$WORKER" in
+  pi)
+    pi -p "${EXTRA_ARGS[@]}" -- "$SYSTEM_INSTRUCTION" < /dev/null > "$RESP_FILE" 2> "$LOG_FILE"
+    EXIT_CODE=$?
+    ;;
+
+  dsh)
+    dsh headless "${EXTRA_ARGS[@]}" -- "$SYSTEM_INSTRUCTION" < /dev/null > "$RESP_FILE" 2> "$LOG_FILE"
+    EXIT_CODE=$?
+    ;;
+
+  codewhale)
+    codewhale exec --auto "${EXTRA_ARGS[@]}" -- "$SYSTEM_INSTRUCTION" < /dev/null > "$RESP_FILE" 2> "$LOG_FILE"
+    EXIT_CODE=$?
+    ;;
+
+  *)
+    echo "Unknown worker: $WORKER (supported: pi, dsh, codewhale)" >&2
+    exit 1
+    ;;
+esac
+
 set -e
 
 if [ -s "$RESP_FILE" ]; then
@@ -126,22 +134,14 @@ if [ -s "$RESP_FILE" ]; then
   } >> "$LOG_FILE"
 fi
 
-SESSION_ID="$(awk '/(resumed )?session: [a-f0-9]+/ {for(i=1;i<=NF;i++) if($i ~ /^[a-f0-9]{8}/) id=$i} END {if (id) print id}' "$LOG_FILE")"
-if [ -z "$SESSION_ID" ]; then
-  SESSION_ID="$(codewhale sessions --limit 1 2>/dev/null | awk '/[a-f0-9]{8}/ {for(i=1;i<=NF;i++) if($i ~ /^[a-f0-9]{8}$/) {print $i; exit}}')"
-fi
-
 echo ""
 if [ "$EXIT_CODE" -eq 0 ]; then
-  echo "=== Codewhale Technical Review Finished (exit: 0) ==="
+  echo "=== Technical Review Finished (exit: 0) ==="
 else
-  echo "=== Codewhale Technical Review Failed (exit: $EXIT_CODE) ==="
+  echo "=== Technical Review Failed (exit: $EXIT_CODE) ==="
 fi
 
-echo "Log:     $LOG_FILE"
-if [ -n "$SESSION_ID" ]; then
-  echo "Session: $SESSION_ID"
-fi
+echo "Log: $LOG_FILE"
 
 if [ -s "$RESP_FILE" ]; then
   echo ""
@@ -156,11 +156,12 @@ elif [ "$EXIT_CODE" -ne 0 ]; then
 fi
 
 # Guard against accidental modifications
-DIRTY="$(git status --short 2>/dev/null || true)"
-if [ -n "$DIRTY" ]; then
+POST_STATUS="$(git status --porcelain 2>/dev/null || true)"
+if [ "$PRE_STATUS" != "$POST_STATUS" ]; then
   echo ""
-  echo "WARNING: Files were modified during review! Review should be read-only." >&2
-  echo "$DIRTY" >&2
+  echo "ERROR: Working tree was modified during review! Technical review must be read-only." >&2
+  diff -u <(echo "$PRE_STATUS") <(echo "$POST_STATUS") || true
+  exit 3
 fi
 
 exit "$EXIT_CODE"

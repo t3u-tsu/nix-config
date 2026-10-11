@@ -5,7 +5,15 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 # 変更・適用手順
 
-1. **ブランチ作成**: ブランチを切るかは AGENTS.md の基本ルールに従う．切る場合は `git checkout -b feat/topic-name`．
+1. **ブランチ作成・ワークツリー運用**:
+   - ブランチを切るかは AGENTS.md の基本ルールに従う（パッケージ1つ追加のような小さな変更は `main` に直接コミット・push してよい）．
+   - **並行作業・メインツリー保護（複数ファイル・機能変更時）**: メインツリー（`~/nix-config`）の手元作業と衝突しないよう，最新の `origin/main` を取得したうえで隔離ワークツリーを作成して作業する:
+     ```bash
+     git fetch origin main
+     git worktree add -b feat/topic-name .worktrees/topic-name origin/main
+     cd .worktrees/topic-name
+     ```
+   - 単純な単独ブランチ切りの場合は `git checkout -b feat/topic-name`．
 
 2. **実装**: Nix ファイルや設定ファイルを編集する．秘密情報は `sops` で編集する（`secrets/README.md`）．
 
@@ -50,17 +58,17 @@ description: このリポジトリで設定変更を適用するときの手順�
      - trim-trailing-whitespace は行末の空白を落とす．Markdown の行末スペース2つは改行の意味を持つため，改行したい場合は `<br>` を使う．
 
 4. **レビュー**:
-   変更規模や内容に応じて，Codewhale と Antigravity サブエージェントの強みを活かしてレビューを実施する．
-   - **技術レビュー（Codewhale 委譲）**:
+   変更規模や内容に応じて，技術的検証および自然言語・ドキュメントのレビューを実施する．
+   - **技術的検証**:
      コードや設定の論理，NixOS イディオム，ドキュメント記載コマンドや systemd ユニット名の正確性，潜在的不具合を検証する．
      ```bash
      # 差分全体の技術レビュー
-     DIFF_RANGE="origin/main..HEAD" .agents/skills/codewhale-worker/scripts/review.sh
+     DIFF_RANGE="origin/main..HEAD" .agents/skills/coding-worker/scripts/review.sh
      # 特定ファイルの技術レビュー
-     FILES="docs/operations/backup-and-restore.md" .agents/skills/codewhale-worker/scripts/review.sh
+     FILES="docs/operations/backup-and-restore.md" .agents/skills/coding-worker/scripts/review.sh
      ```
-   - **自然言語・ドキュメント・コメントレビュー（Antigravity サブエージェント）**:
-     日本語文書の自然さ，句読点 `，．`，SSOT 原則の遵守，相互参照リンクの正確性，および `hush` ルールに基づく自明なコメントの排除をサブエージェントにレビューさせる．
+   - **自然言語・ドキュメント・コメント検証**:
+     日本語文書の自然さ，SSOT 原則の遵守，相互参照リンクの正確性，および `hush` ルールに基づく自明なコメントの排除を確認する．
 
 5. **適用**:
    デスクトップ環境（Polkit エージェントが動作している x1c7 など）では，事前にユーザーの承認を得たうえで，エージェントが `pkexec` 経由で実行できる:
@@ -105,7 +113,25 @@ description: このリポジトリで設定変更を適用するときの手順�
    gh pr create --title "feat: topic description" --body-file /tmp/pr-body.md
    # ローカル検証済みなら checks を待たずにマージ，CI委譲時のみ完了を確認
    gh pr merge --merge --delete-branch
-   git checkout main
-   git pull origin main
-   git branch -d feat/topic-name  # ローカルブランチの後始末
    ```
+
+   **メインツリーの同期と後始末**:
+   - ワークツリーを使用した場合は，メインツリーへ戻りワークツリーを削除する（未コミット一時ファイルで失敗する場合は `--force`）:
+     ```bash
+     cd ~/nix-config
+     git worktree remove .worktrees/topic-name || git worktree remove --force .worktrees/topic-name
+     ```
+   - **メインツリーの手元同期（安全確認）**:
+     メインツリーの `git status --porcelain` を確認する．
+     - **Clean な場合**: `git pull origin main` を実行してリモートのマージを同期し，その後ローカルブランチを削除する:
+       ```bash
+       git pull origin main
+       git branch -d feat/topic-name 2>/dev/null || true
+       ```
+     - **Dirty な場合（手元作業中）**: メインツリーでの pull や checkout を控え，ユーザーへ「リモートへのマージが完了しました．現在手元に未コミットの変更があるため，作業が一段落した際に git pull を実行してください」と報告する．手動 pull 後にローカルブランチが不要であれば削除する．
+   - 単独ブランチで作業していた場合は:
+     ```bash
+     git checkout main
+     git pull origin main
+     git branch -d feat/topic-name
+     ```
