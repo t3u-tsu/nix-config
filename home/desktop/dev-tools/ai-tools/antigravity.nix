@@ -13,7 +13,7 @@ in
 {
   config = mkIf cfg.enable {
     home.packages = [
-      inputs.antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
+      inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.antigravity-cli
     ];
   };
 }
