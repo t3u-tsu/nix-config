@@ -1,0 +1,20 @@
+#!/usr/bin/env ysh
+# Single source of truth for the node list: add a new host here, sign its cert,
+# then re-import it into SOPS (see docs/operations/adding-a-host.md).
+
+const FLEET = [
+  {name: 'torii-chan', octet: 1, groups: ['mgmt']},
+  {name: 'sando-kun', octet: 2, groups: ['mgmt']},
+  {name: 'kagutsuchi-sama', octet: 3, groups: ['mgmt']},
+  {name: 'shosoin-tan', octet: 4, groups: ['mgmt', 'app']},
+  {name: 'BrokenPC', octet: 100, groups: ['mgmt', 'app']},
+  {name: 'x1c7', octet: 101, groups: ['mgmt', 'app']},
+]
+
+func host_key(name) {
+  return (name.lower().replace('-', '_'))
+}
+
+func host_secrets_file(name) {
+  return ($"secrets/hosts/${name}.yaml")
+}
