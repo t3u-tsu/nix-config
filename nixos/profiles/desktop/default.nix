@@ -1,17 +1,10 @@
 {
   config,
-  lib,
-  inputs,
   ...
 }:
 
 {
-  imports = [
-    inputs.chaotic.nixosModules.nyx-overlay
-  ];
-
   config = {
-    chaotic.nyx.overlay.enable = lib.mkDefault config.my.services.desktop.full.enable;
 
     my = {
       services.desktop.enable = true;

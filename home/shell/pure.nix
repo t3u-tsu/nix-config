@@ -1,12 +1,9 @@
-{ inputs, ... }:
+{ pkgs, ... }:
 
 {
-  home.file.".config/zsh/pure/prompt_pure_setup".source = "${inputs.pure}/prompt_pure_setup";
-  home.file.".config/zsh/pure/async".source = "${inputs.pure}/async";
-
   programs.zsh.initContent = ''
     # Must run after oh-my-zsh, which overwrites the prompt
-    fpath+=(~/.config/zsh/pure)
+    fpath+=("${pkgs.pure-prompt}/share/zsh/site-functions")
     autoload -U promptinit; promptinit
 
     PURE_CMD_MAX_EXEC_TIME=2

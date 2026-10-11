@@ -30,7 +30,7 @@ flake.nix
  │           flake/packages.nix, flake/dev.nix
  │
  ├─ flake/lib.nix      → flake.lib.mkLib（lib/default.nix を inputs + overlays 付きで import）
- ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, ghostty, llama-cpp, unstable 等）
+ ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, unstable 等）
  ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
  ├─ flake/packages.nix → torii-chan-vps-iso（mkSystem のビルド成果物）
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
@@ -59,7 +59,7 @@ flake.nix
 ```text
 mkLib.mkSystem によるモジュール合成
  ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
- │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），nyx，home/desktop
+ │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），home/desktop
  │   ├─ tower-server/         # 常時稼働サーバー共通基盤（boot, security, ssh）
  │   ├─ gateway/              # ルータ・ゲートウェイロール（torii-chan）
  │   └─ sbc/                  # 低スペックSBC制約緩和（sbc.nix 経由で適用）

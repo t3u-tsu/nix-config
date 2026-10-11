@@ -31,17 +31,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # === Shell ===
-    pure = {
-      url = "github:sindresorhus/pure";
-      flake = false;
-    };
-
     # === Desktop Environment ===
     niri.url = "github:sodiboo/niri-flake";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
-    ghostty.url = "github:ghostty-org/ghostty";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -53,10 +46,6 @@
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-    comfy-theme = {
-      url = "github:Comfy-Themes/Spicetify";
-      flake = false;
     };
 
     # === Services ===
@@ -85,12 +74,6 @@
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # === Package Sources ===
-    # Chaotic-Nyx, imported by the desktop profile's nyx-overlay module.
-    chaotic = {
-      url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     };
 
     # === Private ===
