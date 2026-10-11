@@ -30,7 +30,7 @@ flake.nix
  │           flake/packages.nix, flake/dev.nix
  │
  ├─ flake/lib.nix      → flake.lib.mkLib（lib/default.nix を inputs + overlays 付きで import）
- ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, llama-cpp, unstable 等）
+ ├─ flake/overlays.nix → flake.overlays.default（nix-minecraft, niri, unstable 等）
  ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
  ├─ flake/packages.nix → torii-chan-vps-iso（mkSystem のビルド成果物）
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
