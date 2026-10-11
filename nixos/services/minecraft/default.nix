@@ -19,5 +19,21 @@
       enable = true;
       eula = true;
     };
+
+    sops.secrets = {
+      minecraft_forwarding_secret = {
+        sopsFile = ../../../secrets/services/minecraft.yaml;
+        owner = "minecraft";
+        group = "minecraft";
+        mode = "0400";
+      };
+
+      nitac23s_rcon_password = {
+        sopsFile = ../../../secrets/services/minecraft.yaml;
+        owner = "minecraft";
+        group = "minecraft";
+        mode = "0400";
+      };
+    };
   };
 }

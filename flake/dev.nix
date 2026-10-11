@@ -24,7 +24,7 @@
           excludes = [ "^_sources/generated\\.(json|nix)$" ];
         };
         trim-trailing-whitespace.enable = true;
-        # shellcheck -x follows the source= directives (nebula-lib.sh).
+        # shellcheck -x follows source= directives.
         shellcheck = {
           enable = true;
           files = "scripts/.*\\.sh$";

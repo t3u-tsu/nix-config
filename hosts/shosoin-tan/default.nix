@@ -16,29 +16,6 @@
     services.minecraft.enable = true;
   };
 
-  sops.secrets = {
-    minecraft_forwarding_secret = {
-      sopsFile = ../../secrets/services/minecraft.yaml;
-      owner = "minecraft";
-      group = "minecraft";
-      mode = "0400";
-    };
-
-    nitac23s_rcon_password = {
-      sopsFile = ../../secrets/services/minecraft.yaml;
-      owner = "minecraft";
-      group = "minecraft";
-      mode = "0400";
-    };
-
-    discord_admin_guild_id = {
-      sopsFile = ../../secrets/services/minecraft.yaml;
-      owner = "minecraft";
-      group = "minecraft";
-      mode = "0400";
-    };
-  };
-
   boot = {
     loader.grub = {
       enable = true;

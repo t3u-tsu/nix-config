@@ -53,7 +53,7 @@ Nix Flakes を用いてデスクトップ環境，タワーサーバー，およ
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — タワーサーバークラスタ
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ（SD / HDD ブート）
 - **`torii-chan-vps`** — ConoHa VPS 上の待機系フェイルオーバーゲートウェイ（x86_64）
-- **`torii-chan-sd-installer`** — SD カードインストーライメージ（`hosts/torii-chan/build-sd-image.sh`）
+- **`torii-chan-sd-installer`** — SD カードインストーライメージ（`hosts/torii-chan/build-sd-image.ysh`）
 - **`torii-chan-vps-iso`** — VPS レスキューインストーラ ISO パッケージ（`nix build .#torii-chan-vps-iso`）
 
 ローカルマシンへの設定適用:

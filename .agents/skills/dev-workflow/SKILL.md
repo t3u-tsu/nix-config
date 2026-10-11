@@ -77,7 +77,7 @@ description: このリポジトリで設定変更を適用するときの手順�
        nixfmt <file>
        ```
      - statix: 同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．引数が空の場合は `{ ... }:` ではなく `_:` を使用する．
-     - shellcheck は `scripts/*.sh` が対象で `-x` 付き（`nebula-lib.sh` の source を追う）．
+     - ysh-check は `\.ysh$` を対象に YSH 構文を検証する（`ysh -n`）．shellcheck は `scripts/*.sh` が対象．
      - ja-punctuation は `.md` が対象．**日本語文書の句読点は `，．` を使う**（他の句読点はフックが自動置換する）．
      - convco はコミットメッセージの Conventional Commits 準拠を検証する．
      - end-of-file-fixer は全テキストファイルの末尾改行を揃える．`_sources/generated.{json,nix}` は nvfetcher の生成物なので除外している．
