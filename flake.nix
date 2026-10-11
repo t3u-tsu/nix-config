@@ -2,14 +2,14 @@
   description = "My NixOS configuration fleet";
 
   inputs = {
-    # === Framework ===
-    flake-parts.url = "github:hercules-ci/flake-parts";
-
-    # === Nixpkgs ===
+    # Nixpkgs
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # === System Modules ===
+    # Framework
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
+    # System Modules
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,7 +31,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # === Desktop Environment ===
+    # Desktop Environment
     niri.url = "github:sodiboo/niri-flake";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter";
@@ -48,7 +48,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    # === Services ===
+    # Services
     nix-minecraft = {
       url = "github:Infinidoge/nix-minecraft";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -63,20 +63,20 @@
       inputs.flake-parts.follows = "flake-parts";
     };
 
-    # === Developer Tools ===
+    # Developer Tools
     unity-via-distrobox = {
       url = "github:t3u-tsu/unity-via-distrobox-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # === Development Environment ===
+    # Development Environment
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # === Private ===
+    # Private
     # Personal data kept out of this public repository.
     # Fetched with the deploy key that nixos/base/private-config.nix installs.
     nix-config-private = {
