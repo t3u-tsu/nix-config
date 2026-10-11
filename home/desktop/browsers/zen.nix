@@ -13,6 +13,8 @@ let
   palette = import ../../../lib/palette.nix;
 in
 {
+  imports = [ inputs.zen-browser.homeModules.default ];
+
   config = mkIf (cfg.enable && cfg.zen.enable) {
     programs.zen-browser = {
       enable = true;

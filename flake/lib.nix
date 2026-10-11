@@ -10,7 +10,6 @@
       nixpkgs
       home-manager
       sops-nix
-      nix-minecraft
       ;
     inherit inputs;
     overlays = lib.attrValues (config.flake.overlays or { });

@@ -40,9 +40,8 @@ flake.nix
            specialArgs = { inputs };        # 全モジュールから inputs を直接参照可能
            modules = [
              { my.user.name = username; }
-             sops-nix / nix-minecraft / home-manager /
-             nix-index-database / noctalia-greeter のモジュール
-             home-manager 共通設定（sharedModules: nix-index, zen-browser, sops, noctalia）
+             sops-nix / home-manager / nix-index-database のモジュール
+             home-manager 共通設定（sharedModules: nix-index, sops）
              nixpkgs.overlays
              ../nixos                        # システム共通モジュール群（基盤，セキュリティ，サービス等）
              ../nixos/profiles/${profile}    # プロファイル（desktop, tower-server, gateway 等）
@@ -50,6 +49,9 @@ flake.nix
            ] ++ extraModules;                # ホスト固有の追加モジュール（例: sbc.nix）
          }
 ```
+
+> [!NOTE]
+> サービスやデスクトップ機能に固有の外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，`lib/default.nix` でグローバルに注入せず，それらを利用するコンシューマモジュール（`nixos/services/` や `home/desktop/`）が直接インポートしてスコープを局所化している．
 
 ---
 

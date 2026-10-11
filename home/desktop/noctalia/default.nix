@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -12,6 +13,8 @@ let
   isMinimal = cfg.wallpaperPreset == "minimal";
 in
 {
+  imports = [ inputs.noctalia.homeModules.default ];
+
   options.my.home.desktop.noctalia = {
     enable = mkEnableOption "Noctalia Wayland shell (bar, launcher, notifications, wallpaper)";
     wallpaperPreset = mkOption {

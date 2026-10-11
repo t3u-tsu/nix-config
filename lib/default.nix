@@ -3,7 +3,6 @@
   inputs,
   home-manager,
   sops-nix,
-  nix-minecraft,
   overlays ? [ ],
 }:
 
@@ -27,10 +26,8 @@
       modules = [
         { my.user.name = username; }
         sops-nix.nixosModules.sops
-        nix-minecraft.nixosModules.minecraft-servers
         home-manager.nixosModules.home-manager
         inputs.nix-index-database.nixosModules.nix-index
-        inputs.noctalia-greeter.nixosModules.default
         {
           home-manager = {
             useGlobalPkgs = true;
@@ -39,9 +36,7 @@
             extraSpecialArgs = { inherit inputs; };
             sharedModules = [
               inputs.nix-index-database.homeModules.nix-index
-              inputs.zen-browser.homeModules.default
               sops-nix.homeManagerModules.sops
-              inputs.noctalia.homeModules.default
             ];
           };
           nixpkgs.overlays = overlays;
