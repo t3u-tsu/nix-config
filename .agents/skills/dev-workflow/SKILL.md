@@ -5,7 +5,30 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 # 変更・適用手順
 
-1. **ブランチ作成**: ブランチを切るかは AGENTS.md の基本ルールに従う．切る場合は `git checkout -b feat/topic-name`．
+1. **ブランチ作成・一時ワークツリー運用**:
+   - ブランチを作成するかどうかは AGENTS.md の基本ルールに従う（パッケージ1つ追加のような小さな変更は `main` に直接コミット・push してよい）．
+   - **単一タスク（標準）**: メインツリー（`~/nix-config`）の手元作業と衝突しないよう，最新の `origin/main` を取得したうえで一時ワークツリーを作成して作業する:
+     ```bash
+     git fetch origin main
+     git worktree add -b feat/topic-name .worktrees/topic-name origin/main
+     cd .worktrees/topic-name
+     ```
+     一時ワークツリーを使用しない単独ブランチ運用の場合は `git checkout -b feat/topic-name`．
+   - **並列作業・分業・複数 agy 実行（タスク別グループ運用）**:
+     ワーカー（pi, dsh 等）やサブエージェントを同時稼働させる場合，あるいは別タスクの agy セッションが並行動作する場合は，`.worktrees/<topic-name>/` をタスクごとの独立した名前空間とし，その配下にフラットな兄弟ワークツリーを展開する:
+     ```bash
+     git fetch origin main
+     # 統合・PR用の親ワークツリー
+     git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
+     # 各ワーカー・サブエージェント用の作業ワークツリー
+     git worktree add -b feat/topic-name-worker-pi .worktrees/topic-name/worker-pi origin/main
+     git worktree add -b feat/topic-name-subagent-docs .worktrees/topic-name/subagent-docs origin/main
+     ```
+     - **利点**:
+       1. ワークツリーのネスト（入れ子）が発生せず，Git の追跡・ステータス・削除で一切干渉しない．
+       2. 各ワーカー・サブエージェントが完全並行で衝突なく作業できる．
+       3. 親エージェント（Antigravity Main）が各ツリーの差分（`git diff`）を見て，`main/` ワークツリーに良い変更だけを取捨選択・統合できる．
+       4. 別の agy セッション（親タスク同士）が並行稼働していても，`.worktrees/<topic-name>/` ごとに完全に分離されて衝突しない．
 
 2. **実装**: Nix ファイルや設定ファイルを編集する．秘密情報は `sops` で編集する（`secrets/README.md`）．
 
@@ -22,15 +45,15 @@ description: このリポジトリで設定変更を適用するときの手順�
      1. **Nix 評価空間に影響しない変更なら，検証をスキップする**:
         ドキュメント（`docs/`, `*.md`），コメント，スタンドアロンスクリプト等，Nix の Derivation 評価に影響を与えない変更は，`nix build` も `flake check` も実行しない（コミット時の軽量な pre-commit のみで十分）．
      2. **重いビルドが予想される場合は，先に `flake check` でフェイルファストする**:
-        カーネルや巨大なパッケージのコンパイルなど，`nix build` に長時間を要すると予想される場合，いきなりビルドを回すとタイポや構文エラーで数十分が無駄になる．先に `nix flake check`（あるいは eval チェック）を実行し，構文・型・オプションのミスがないことを素早く確認してから重いビルドに移る．
+        カーネルや巨大なパッケージのコンパイルなど，`nix build` に長時間を要すると予想される場合，事前の確認なくビルドを実行するとタイポや構文エラーで数十分が無駄になる．先に `nix flake check` を実行し，構文・型・オプションのミスがないことを素早く確認してから重いビルドに移る．
      3. **二重検証を排除する（包括関係と CI 委譲）**:
-        既に `nix build` が成功した場合，そのホストの構文・評価・実依存の整合性は実証されているため，ローカルで重ねて重い `nix flake check` を回さない（全ホスト回帰確認は GitHub Actions の CI に委ねる）．逆に，手元ホストへの反映は不要だが共通基盤（`flake.nix` や `lib/`）の変更で全ホストの健全性を手元ですぐ確かめたい場合は，個別の `nix build` ではなく `flake check` で全体を薄く広く検証する．
+        既に `nix build` が成功した場合，そのホストの構文・評価・実依存の整合性は実証されているため，ローカルで重ねて重い `nix flake check` を実行しない（全ホスト回帰確認は GitHub Actions の CI に委ねる）．逆に，手元ホストへの反映は不要だが共通基盤（`flake.nix` や `lib/`）の変更で全ホストの健全性を手元ですぐ確かめたい場合は，個別の `nix build` ではなく `flake check` で全体を薄く広く検証する．
      4. **先行タスクの破棄原則（古いビルド・チェックの即時停止）**:
         ビルドやチェックがバックグラウンドで実行されている最中にミスを発見してコードを再修正した場合，**必ず先に既存のタスクをキャンセル（kill）してから新しいビルドやチェックを開始する**．古いタスクを放置したまま再ビルドを重複して走らせてはならない．
 
    - **実行コマンド**:
      ```bash
-     # 全ホスト評価・ポカミス早期検知（フェイルファスト）
+     # 全ホスト評価・基本的なエラー早期検知（フェイルファスト）
      nix flake check
 
      # 設定がビルドできることを確認する場合（事前ビルド・ステージング）
@@ -49,18 +72,42 @@ description: このリポジトリで設定変更を適用するときの手順�
      - end-of-file-fixer は全テキストファイルの末尾改行を揃える．`_sources/generated.{json,nix}` は nvfetcher の生成物なので除外している．
      - trim-trailing-whitespace は行末の空白を落とす．Markdown の行末スペース2つは改行の意味を持つため，改行したい場合は `<br>` を使う．
 
-4. **レビュー**:
-   変更規模や内容に応じて，Codewhale と Antigravity サブエージェントの強みを活かしてレビューを実施する．
-   - **技術レビュー（Codewhale 委譲）**:
-     コードや設定の論理，NixOS イディオム，ドキュメント記載コマンドや systemd ユニット名の正確性，潜在的不具合を検証する．
+4. **レビューと改善**:
+   変更規模や内容に応じて，技術的検証および自然言語・ドキュメントのレビューと改善を実施する．
+   - **技術的検証と改善差分の作成（コーディングワーカー）**:
+     単にテキストで指摘を出すのではなく，一時ワークツリー上でコーディングワーカーに改善差分（diff）まで同時に作成させ，`git diff` で内容を検証して妥当な変更のみを取り込む（取捨選択する）フローを推奨する:
      ```bash
-     # 差分全体の技術レビュー
-     DIFF_RANGE="origin/main..HEAD" .agents/skills/codewhale-worker/scripts/review.sh
-     # 特定ファイルの技術レビュー
-     FILES="docs/operations/backup-and-restore.md" .agents/skills/codewhale-worker/scripts/review.sh
+     # 改善差分を直接作成させるレビュー（推奨）
+     .agents/skills/coding-worker/scripts/run.sh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
+     # 指摘のみを確認する読み取り専用レビュー
+     .agents/skills/coding-worker/scripts/run.sh --read-only "Review the diff origin/main..HEAD for technical correctness."
      ```
-   - **自然言語・ドキュメント・コメントレビュー（Antigravity サブエージェント）**:
-     日本語文書の自然さ，句読点 `，．`，SSOT 原則の遵守，相互参照リンクの正確性，および `hush` ルールに基づく自明なコメントの排除をサブエージェントにレビューさせる．
+   - **自然言語・ドキュメント・コメント改善（サブエージェント）**:
+     日本語ドキュメントやスキルの文章表現，SSOT 整合性，相互参照リンクの正確性は，外部ワーカーではなく Antigravity サブエージェント（`invoke_subagent`）が直接編集して改善する．コード内コメントの `hush` 規約への適合もサブエージェントが精査・直接修正する（句読点 `，．` はコミット時に pre-commit フックが自動置換するため，レビュー観点から除外する）．
+   - **グループ運用時の差分統合と後始末**:
+     独立した作業ツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
+     そのため `git diff HEAD..feat/...` ではなく，ワーキングツリーの差分を直接取得して統合先（`main/`）へ取り込むか，ワーカーツリー内でコミットしてからマージする:
+     ```bash
+     # main/ ワークツリーに移動
+     cd .worktrees/topic-name/main
+
+     # ワーカーツリーの差分を確認（新規作成ファイルを diff に含めるため add -N . を実行）
+     git -C ../worker-pi add -N .
+     git -C ../worker-pi diff
+
+     # main/ ワークツリーに取り込む場合（パッチ適用: 新規作成ファイルも含めて抽出）
+     git -C ../worker-pi add -N .
+     git -C ../worker-pi diff | git apply
+
+     # またはワーカー内でコミットしてからマージする場合（add -A で新規作成ファイルも含めてコミット）
+     git -C ../worker-pi add -A && git -C ../worker-pi commit -m "feat: ..."
+     git merge --squash feat/topic-name-worker-pi
+
+     # 検証・統合完了後に作業ワークツリーとブランチを後始末（未コミット変更があっても強制削除）
+     cd ~/nix-config
+     git worktree remove --force .worktrees/topic-name/worker-pi
+     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
+     ```
 
 5. **適用**:
    デスクトップ環境（Polkit エージェントが動作している x1c7 など）では，事前にユーザーの承認を得たうえで，エージェントが `pkexec` 経由で実行できる:
@@ -71,7 +118,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    実行するとデスクトップ上に Polkit の GUI 認証ダイアログ（実行コマンドが表示される）がポップアップし，ユーザーが指紋認証やパスワード入力で承認・認証を行う．
 
    **ビルドと適用の順序（並行実行の禁止）**:
-   `nix build`（事前ビルド）と `switch` は**絶対に並行実行しない**．`nix build` は特権昇格の保留時間を最小化するための「前準備（ステージング）」であるため，必ず一般ユーザー権限でのビルド（`nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link`）を完了させてから `switch` を実行する．これにより，ユーザーの認証直後に瞬時に切り替えが完了し，リソース競合やストアロックも防止できる．
+   `nix build`（事前ビルド）と `switch` は**絶対に並行実行しない**．`nix build` は特権昇格の保留時間を最小化するための「前準備（ステージング）」であるため，必ず一般ユーザー権限でのビルド（`nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link`）を完了させてから `switch` を実行する．これにより，ユーザーの認証直後に切り替えが完了し，リソース競合やストアロックも防止できる．
 
    ヘッドレス環境（torii-chan など）・SSH 経由・Polkit が利用できない場合のフォールバックでは，従来どおりユーザー自身が実行する:
    ```bash
@@ -105,7 +152,39 @@ description: このリポジトリで設定変更を適用するときの手順�
    gh pr create --title "feat: topic description" --body-file /tmp/pr-body.md
    # ローカル検証済みなら checks を待たずにマージ，CI委譲時のみ完了を確認
    gh pr merge --merge --delete-branch
-   git checkout main
-   git pull origin main
-   git branch -d feat/topic-name  # ローカルブランチの後始末
    ```
+
+   **一時ワークツリー内での `--delete-branch`**:
+   リンクされた一時ワークツリーから `gh pr merge --delete-branch` を実行すると，ブランチが当該ワークツリーでチェックアウト中のためローカルブランチを削除できず警告が出ることがある．マージ自体は成功しているため，後始末の `git branch -d ... || true` で削除する．
+
+   **メインツリーの同期と後始末**:
+   - **単一ワークツリーの場合**:
+     メインツリーへ戻り一時ワークツリーを削除する（未コミット一時ファイルで失敗する場合は `--force`）:
+     ```bash
+     cd ~/nix-config
+     git worktree remove .worktrees/topic-name || git worktree remove --force .worktrees/topic-name
+     ```
+   - **並列グループワークツリーの場合**:
+     残っている子ワークツリー群（`worker-*`，`subagent-*`）を `--force` で順次削除してブランチも片付け，`main` も削除した後，空になったタスクディレクトリを片付ける:
+     ```bash
+     cd ~/nix-config
+     git worktree remove --force .worktrees/topic-name/worker-pi 2>/dev/null || true
+     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
+     git worktree remove --force .worktrees/topic-name/main 2>/dev/null || true
+     git branch -D feat/topic-name 2>/dev/null || true
+     rmdir .worktrees/topic-name
+     ```
+   - **メインツリーの手元同期（安全確認）**:
+     メインツリーの `git status --porcelain` を確認する．
+     - **Clean な場合**: `git pull origin main` を実行してリモートのマージを同期し，その後ローカルブランチを削除する:
+       ```bash
+       git pull origin main
+       git branch -d feat/topic-name 2>/dev/null || true
+       ```
+     - **Dirty な場合（手元作業中）**: メインツリーでの pull や checkout を控え，ユーザーへ「リモートへのマージが完了しました．現在手元に未コミットの変更があるため，作業が一段落した際に git pull を実行してください」と報告する．手動 pull 後にローカルブランチが不要であれば削除する．
+   - 単独ブランチで作業していた場合は:
+     ```bash
+     git checkout main
+     git pull origin main
+     git branch -d feat/topic-name
+     ```
