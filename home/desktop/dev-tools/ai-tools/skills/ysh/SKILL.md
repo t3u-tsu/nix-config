@@ -115,7 +115,7 @@ for i, tag in (tags) {
 case (config.port) {
   (80 | 8080)   { echo "HTTP" }
   (443 | 8443)  { echo "HTTPS" }
-  else          { echo "Other" }
+  (else)        { echo "Other" }
 }
 ```
 
