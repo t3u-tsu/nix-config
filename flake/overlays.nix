@@ -5,10 +5,6 @@
 
     inputs.niri.overlays.niri
 
-    (final: prev: {
-      ghostty = inputs.ghostty.packages.${prev.stdenv.hostPlatform.system}.default;
-    })
-
     # ffado / libcamera / roc-toolkit are broken on 32-bit, so disable them there.
     (final: prev: {
       pkgsi686Linux = prev.pkgsi686Linux // {
@@ -43,19 +39,6 @@
           repo = "u-boot";
           rev = "v2024.01";
           sha256 = "sha256-0Da7Czy9cpQ+D5EICc3/QSZhAdCBsmeMvBgykYhAQFw=";
-        };
-      };
-    })
-
-    inputs.llama-cpp.overlays.default
-
-    # The llama.cpp flake's packaging targets nixpkgs unstable, where the
-    # attribute is `cudaPackages.cccl`; this repo pins llama.cpp's nixpkgs to
-    # 26.05 via follows, which only has the old `cuda_cccl`, so alias it back.
-    (final: prev: {
-      llama-cpp = prev.llama-cpp.override {
-        cudaPackages = prev.cudaPackages // {
-          cccl = prev.cudaPackages.cuda_cccl;
         };
       };
     })

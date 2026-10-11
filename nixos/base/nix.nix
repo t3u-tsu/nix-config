@@ -19,7 +19,6 @@
       ];
 
       extra-substituters = [
-        "https://ghostty.cachix.org?priority=30"
         "https://niri.cachix.org?priority=30"
         "https://noctalia.cachix.org?priority=30"
 
@@ -29,19 +28,14 @@
 
         # aagl launcher cache.
         "https://ezkea.cachix.org?priority=45"
-
-        # Chaotic-Nyx patches packages that can conflict with others, so it last.
-        "https://nyx-cache.chaotic.cx/?priority=50"
       ];
 
       extra-trusted-public-keys = [
-        "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
         "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
         "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         "ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI="
-        "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
       ];
 
       auto-optimise-store = true;
