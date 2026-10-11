@@ -53,7 +53,7 @@ Available host configurations (defined in `flake/hosts.nix`):
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — Tower server cluster
 - **`torii-chan-sd`** / **`torii-chan-hdd`** — Edge VPN gateway on an Orange Pi Zero 3 SBC (SD / HDD boot)
 - **`torii-chan-vps`** — Failover gateway on ConoHa VPS (x86_64)
-- **`torii-chan-sd-installer`** — SD card installer image (`hosts/torii-chan/build-sd-image.sh`)
+- **`torii-chan-sd-installer`** — SD card installer image (`hosts/torii-chan/build-sd-image.ysh`)
 - **`torii-chan-vps-iso`** — VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`)
 
 Apply configuration locally:

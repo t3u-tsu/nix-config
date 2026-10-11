@@ -57,7 +57,7 @@ tofu apply
 cd ..
 
 # 一時パスワード付きレスキュー ISO をビルド
-./hosts/torii-chan/build-vps-iso.sh
+./hosts/torii-chan/build-vps-iso.ysh
 
 # レスキュー ISO のアタッチ・起動
 ./terraform/scripts/nixos-iso.sh install <instance_id> ./result-iso/iso/nixos-*.iso

@@ -60,7 +60,7 @@ flowchart TD
 
 ## 2. Nebula IP アロケーション台帳
 
-全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置されている（正本: [`scripts/nebula-lib.sh`](../../scripts/nebula-lib.sh) の `FLEET` 定義）．
+全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置されている（正本: [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` 定義）．
 
 | ホスト名 | Nebula IP | 物理拠点 / 内部 LAN | ロール / グループ | 役割・用途 |
 | :--- | :--- | :--- | :--- | :--- |
