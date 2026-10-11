@@ -92,13 +92,18 @@ description: このリポジトリで設定変更を適用するときの手順�
    `main` 直 push は `git push origin main`．
 
 7. **PR（`gh`）**: ユーザー承認のうえ実行する．Git デフォルトのローカルマージコミットメッセージ（`Merge branch ...`）は `convco` フックで拒否されるため，マージは必ず GitHub PR を作成してリモート上で行う．説明文は一時ファイルに書いて `--body-file` で渡す．`--body` にバッククォート等を含めるとシェルがコマンド置換して本文が壊れるため使わない．
+
+   **CI（`gh pr checks`）の待機判断**:
+   - **ローカルで `flake check` や事前ビルドが通っている場合**: リモート CI の完了を待つ必要はなく，ユーザー承認のもと即座にマージ（`gh pr merge --merge --delete-branch`）してよい．
+   - **ローカル検証をスキップして CI に委譲した場合**: `gh pr checks`（または `--watch`）で CI のパスを確認してからマージする．
+
    ```bash
    cat > /tmp/pr-body.md <<'EOF'
    feat: topic description
    ...
    EOF
    gh pr create --title "feat: topic description" --body-file /tmp/pr-body.md
-   gh pr checks          # nix flake check の結果を確認（待つかは都度ユーザーと合意）
+   # ローカル検証済みなら checks を待たずにマージ，CI委譲時のみ完了を確認
    gh pr merge --merge --delete-branch
    git checkout main
    git pull origin main
