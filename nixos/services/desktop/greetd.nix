@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 
@@ -33,6 +34,8 @@ let
   };
 in
 {
+  imports = [ inputs.noctalia-greeter.nixosModules.default ];
+
   options.my.services.desktop.greetd = {
     enable = mkEnableOption "greetd login manager with the Noctalia greeter";
     greeterOutput = mkOption {
