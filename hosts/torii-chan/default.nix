@@ -11,10 +11,6 @@
 }:
 
 {
-  imports = [
-    ../../nixos
-  ];
-
   # Platform wiring (boot loader, WAN network) comes from the module imported
   # per-host in flake/hosts.nix (sbc.nix / vps.nix). The role itself is enabled
   # by the gateway profile.

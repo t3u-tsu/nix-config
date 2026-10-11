@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.my.services.llama;
+  cfg = config.my.home.programs.llama;
   inherit (lib)
     attrNames
     concatStringsSep
@@ -41,7 +41,7 @@ let
   );
 in
 {
-  options.my.services.llama = {
+  options.my.home.programs.llama = {
     enable = mkEnableOption "llama.cpp inference server";
 
     enableCuda = mkOption {

@@ -10,7 +10,6 @@
   imports = [
     ./hardware.nix
     ./services
-    ../../nixos
   ];
 
   my = {

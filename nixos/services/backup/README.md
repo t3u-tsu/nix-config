@@ -5,7 +5,7 @@ This directory manages the global backup configuration using Restic.
 ## Structure
 
 - **Sender Module (`default.nix`)**: Automates local and remote backups when `my.services.backup` is enabled on a host.
-- **Receiver Module (`receiver.nix`)**: Configuration for the server receiving backup data (currently `kagutsuchi-sama`). Includes dedicated user and SFTP restrictions.
+- **Receiver Module (`receiver.nix`)**: Configuration for the server receiving backup data (currently `kagutsuchi-sama`). Enabled via `my.services.backup.receiver.enable = true;` rather than direct file import. Includes dedicated user and SFTP restrictions.
 
 ## Policy
 
