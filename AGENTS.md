@@ -1,6 +1,6 @@
 # NixOS 設定構築 - 運用・開発ガイド
 
-エージェント作業のルール．手順は `.agents/skills/`，設計リファレンスは `docs/` に分離している．
+エージェント作業の共通ルール．共通の手順は `.agents/skills/`，設計リファレンスは `docs/` に分離している．Antigravity（親オーケストレーター）固有の運用ルールは `GEMINI.md` を参照する．
 
 ## 基本ルール
 
@@ -16,6 +16,7 @@
 
 ## 手順・リファレンス
 
+全エージェント共通:
 - **設定変更・適用**: `dev-workflow` スキル
 - **ドキュメント執筆・保守**: `documentation-guide` スキル
 - **モジュール・パッケージ配置**: `editing-guide` スキル
@@ -24,3 +25,7 @@
 - **YSH スクリプト記述**: `ysh` スキル
 - **設計・運用リファレンス**: `docs/`（目次は `docs/README.md`）
 - **秘密情報の扱い**: `docs/operations/secret-management.md`（概要は `secrets/README.md`）
+
+親オーケストレーター（Antigravity）専用:
+- **オーケストレーション・ツール運用**: `GEMINI.md`
+- **外部ワーカー委譲仕様**: `coding-worker` スキル（外部ワーカー自身は参照しない）
