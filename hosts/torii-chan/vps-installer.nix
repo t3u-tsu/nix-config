@@ -3,7 +3,7 @@
 # installer-common.nix, adding the ISO format, static IP (ConoHa has no DHCP),
 # 512MB low-memory tuning and the `install-nixos` helper on PATH. SSH is key-only.
 #
-# Build: ./hosts/torii-chan/build-vps-iso.sh. A package, not a nixosConfiguration:
+# Build: ./hosts/torii-chan/build-vps-iso.ysh. A package, not a nixosConfiguration:
 # `nix flake check` cannot verify an installer ISO as a bootable system.
 {
   config,

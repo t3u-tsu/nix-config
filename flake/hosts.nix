@@ -22,7 +22,7 @@ in
     # The same role runs on the physical SBC or the failover VPS, one at a time.
 
     # SD installer image: no production services, temp password + relaxed SSH.
-    # Build with ./hosts/torii-chan/build-sd-image.sh
+    # Build with ./hosts/torii-chan/build-sd-image.ysh
     "torii-chan-sd-installer" = mkToriiChan {
       system = "aarch64-linux";
       extraModules = [

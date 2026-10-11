@@ -96,12 +96,12 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 
 ## 3. SD カードインストーライメージと初期プロビジョニング
 
-### イメージ生成手順 (`hosts/torii-chan/build-sd-image.sh`)
+### イメージ生成手順 (`hosts/torii-chan/build-sd-image.ysh`)
 
 新規セットアップ時は，スクリプトを用いてインストーラ SD イメージを作成する．
 
 ```bash
-./hosts/torii-chan/build-sd-image.sh
+./hosts/torii-chan/build-sd-image.ysh
 ```
 
 #### スクリプトの動作機構

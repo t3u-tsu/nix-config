@@ -46,7 +46,9 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 ### Step 3: パスワード初期化と SOPS 鍵の登録
 1. **初期パスワードの生成**:
    ```bash
-   nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#jq -c bash scripts/set-host-password.sh <hostname>
+   nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#oils-for-unix -c ysh scripts/set-host-password.ysh <hostname>
+   # または直接実行:
+   # ./scripts/set-host-password.ysh <hostname>
    ```
 2. **ホスト age 公開鍵の取得**:
    新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）を age 鍵へ変換する:
@@ -86,13 +88,15 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
      -out-key "$CA_DIR/<hostname>.key"
    ```
 2. **クラスタ管理スクリプトへの登録**:
-   `scripts/nebula-lib.sh` の `FLEET` 配列にエントリ（`<name>|<octet>|<groups>`）を追加する:
-   ```bash
-   "<hostname>|X|mgmt,..."
+   `scripts/nebula-lib.ysh` の `FLEET` リストにエントリ（`{name: '<hostname>', octet: X, groups: ['mgmt', ...]}`）を追加する:
+   ```ysh
+   {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```
 3. **シークレットへのインポート**:
    ```bash
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt nix shell nixpkgs#sops nixpkgs#oils-for-unix -c ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+   # または直接実行:
+   # SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./scripts/nebula-import-secrets.ysh "$CA_DIR"
    ```
 
 ### Step 5: プライベート Flake 入力のブートストラップ
