@@ -11,6 +11,8 @@
     ../../nixos/profiles/sbc
   ];
 
+  my.nix.distributedBuilds.enable = true;
+
   boot.loader = {
     generic-extlinux-compatible.enable = true;
     grub.enable = false;

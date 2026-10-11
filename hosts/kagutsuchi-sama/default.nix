@@ -21,8 +21,5 @@
   networking.hostId = "c0ffee01";
   networking.hostName = "kagutsuchi-sama";
 
-  # Direct LAN DNS override when collocated on the same router as torii-chan
-  # my.networking.local-network.enable = true;
-
   my.hardware.nvidia.enable = true;
 }

@@ -21,7 +21,7 @@ sequenceDiagram
     SBC-xAdmin: 物理ハード障害 / 停電検知
     Admin->>Tofu: tofu apply (VPS 作成)
     Tofu->>ConoHa: インスタンス作成 & ISO マウント
-    Admin->>VPS: terraform/scripts/nixos-iso.sh (NixOS 自動導入)
+    Admin->>VPS: terraform/scripts/nixos-iso.ysh (NixOS 自動導入)
     Admin->>Cloudflare: DDNS A レコードを VPS IP に切替
     Note over VPS,Cloudflare: フェイルオーバー完了 (サービス復旧)
 
@@ -60,10 +60,10 @@ cd ..
 ./hosts/torii-chan/build-vps-iso.ysh
 
 # レスキュー ISO のアタッチ・起動
-./terraform/scripts/nixos-iso.sh install <instance_id> ./result-iso/iso/nixos-*.iso
+./terraform/scripts/nixos-iso.ysh install <instance_id> ./result-iso/iso/nixos-*.iso
 
 # VNC コンソールで NixOS インストール後，ISO をイジェクト
-./terraform/scripts/nixos-iso.sh eject <instance_id>
+./terraform/scripts/nixos-iso.ysh eject <instance_id>
 ```
 
 ### Step 3: DNS 切替

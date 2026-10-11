@@ -14,6 +14,7 @@
 
   my = {
     services.minecraft.enable = true;
+    nix.distributedBuilds.enable = true;
   };
 
   boot = {
@@ -31,9 +32,6 @@
     hostName = "shosoin-tan";
     useDHCP = true;
   };
-
-  # Direct LAN DNS override when collocated on the same router as torii-chan
-  # my.networking.local-network.enable = true;
 
   my.hardware.nvidia.enable = true;
 }
