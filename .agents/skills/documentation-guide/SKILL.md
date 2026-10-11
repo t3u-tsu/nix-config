@@ -100,9 +100,9 @@ docs/
   一時ワークツリー上で改善差分を直接作成させるか，または読み取り専用で指摘を取得する:
   ```bash
   # 改善差分を直接作成させる場合（推奨）
-  .agents/skills/coding-worker/scripts/run.sh "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match actual NixOS configs, and update them if needed."
+  .agents/skills/coding-worker/scripts/run.ysh "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match actual NixOS configs, and update them if needed."
   # 読み取り専用レビューの場合
-  .agents/skills/coding-worker/scripts/run.sh --read-only "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match the actual NixOS config."
+  .agents/skills/coding-worker/scripts/run.ysh --read-only "Verify that restic restore commands and systemd unit names in docs/operations/backup-and-restore.md match the actual NixOS config."
   ```
 
 ### サブエージェントによる文章品質の直接編集・改善

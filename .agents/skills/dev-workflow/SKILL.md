@@ -89,14 +89,14 @@ description: このリポジトリで設定変更を適用するときの手順�
      単にテキストで指摘を出すのではなく，一時ワークツリー上でコーディングワーカーに改善差分（diff）まで同時に作成させ，`git diff` で内容を検証して妥当な変更のみを取り込む（取捨選択する）フローを推奨する:
      ```bash
      # 改善差分を直接作成させるレビュー（推奨）
-     .agents/skills/coding-worker/scripts/run.sh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
+     .agents/skills/coding-worker/scripts/run.ysh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
      # 指摘のみを確認する読み取り専用レビュー
-     .agents/skills/coding-worker/scripts/run.sh --read-only "Review the diff origin/main..HEAD for technical correctness."
+     .agents/skills/coding-worker/scripts/run.ysh --read-only "Review the diff origin/main..HEAD for technical correctness."
      ```
    - **自然言語・ドキュメント・コメント改善（サブエージェント）**:
      日本語ドキュメントやスキルの文章表現，SSOT 整合性，相互参照リンクの正確性は，外部ワーカーではなく Antigravity サブエージェント（`invoke_subagent`）が直接編集して改善する．コード内コメントの `hush` 規約への適合もサブエージェントが精査・直接修正する（句読点 `，．` はコミット時に pre-commit フックが自動置換するため，レビュー観点から除外する）．
    - **兄弟ワークツリーからの差分統合と後始末**:
-     独立した兄弟ワークツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.sh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
+     独立した兄弟ワークツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で改善差分を作成させた場合，`run.ysh` はコミットを行わないため，変更は未コミットのワーキングツリー差分（uncommitted working-tree changes）として存在する．新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する．
      そのため `git diff HEAD..feat/...` ではなく，ワーキングツリーの差分を直接取得して統合先（`main/`）へ取り込むか，ワーカーツリー内でコミットしてからマージする:
      ```bash
      # main/ ワークツリーに移動
