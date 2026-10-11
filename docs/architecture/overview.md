@@ -59,7 +59,7 @@ flake.nix
 ```text
 mkLib.mkSystem によるモジュール合成
  ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
- │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），nyx，home/desktop
+ │   ├─ desktop/              # GUI環境（niri, greetd, fonts, gaming），home/desktop
  │   ├─ tower-server/         # 常時稼働サーバー共通基盤（boot, security, ssh）
  │   ├─ gateway/              # ルータ・ゲートウェイロール（torii-chan）
  │   └─ sbc/                  # 低スペックSBC制約緩和（sbc.nix 経由で適用）
