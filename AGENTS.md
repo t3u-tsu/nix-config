@@ -9,9 +9,9 @@
 - **言語**: ユーザーへの報告は日本語．コードコメントとコミットメッセージは英語．エージェント運用ドキュメント（本ファイル・`docs/`・`.agents/`・`TODO.md`）は日本語．ルートの `README.md` / `README.ja.md` は常に同期して更新し，サブディレクトリの `README.md` は英語のみ．日本語文書の読点・句点は `，．` を使う（pre-commit の ja-punctuation が全角の読点・句点を自動置換する）．
 - **コメント**: `hush` スキル（`~/.agents/skills/hush/`）に従う．自明なコメントやコードの言い換えコメントは書かず，名前で表現する．コードのみでは意図を読めない場合のみ1〜2行付ける．
 - **コミット・PR**: Conventional Commits 準拠．Git のデフォルトローカルマージメッセージは `convco` フックで拒否されるため，マージは必ず GitHub PR を作成してリモート上で行う（`gh pr merge`）．
-- **レビュー**: 変更やドキュメントの検証・レビューは強みに応じて分担する．Codewhale（DeepSeek）は技術的検証（NixOS イディオム，コマンド・systemd 整合性，潜在的不具合，エッジケース）を担当し，Antigravity サブエージェント（Gemini）は自然言語・文章品質（自然な日本語，句読点 `，．`，SSOT 整合性，`hush` ルールによるコメント精査）を担当する．
+- **レビュー**: 変更やドキュメントの検証・レビューでは，技術的検証（NixOS イディオム，コマンド・systemd 整合性，潜在的不具合，エッジケース）と，自然言語・文章品質（自然な日本語，SSOT 整合性，`hush` ルールによるコメント精査）の双方を確認する．
 - **承認**: `main` へのマージ，リモート `main` へのプッシュ，`nixos-rebuild switch` の実行（エージェントによる `pkexec` 経由，ユーザーによる手動実行のいずれも）は実行前にユーザーの明示的な承認が必要．
-- **パッケージ実行**: 本環境には `python3` などが未インストールのため，必要なパッケージは `nix run` / `nix shell` を使う．
+- **パッケージ実行**: 本環境には多くのパッケージがインストールされていないため，必要なパッケージは `nix run` / `nix shell` を使って実行する．
 
 ## 手順・リファレンス
 
@@ -20,6 +20,5 @@
 - **モジュール・パッケージ配置**: `editing-guide` スキル
 - **新ホスト追加**: `new-host` スキル（正本手順は `docs/operations/adding-a-host.md`）
 - **キャッシュ最適化**: `nix-cache-optimization` スキル
-- **Codewhale 委譲**: `codewhale-worker` スキル
 - **設計・運用リファレンス**: `docs/`（目次は `docs/README.md`）
 - **秘密情報の扱い**: `docs/operations/secret-management.md`（概要は `secrets/README.md`）
