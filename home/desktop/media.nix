@@ -27,10 +27,7 @@ in
     # Noctalia (build-time embedding), so the Vesper palette is baked in.
     programs.spicetify = {
       enable = true;
-      theme = {
-        name = "Comfy";
-        src = "${inputs.comfy-theme}/Comfy";
-      };
+      theme = spicePkgs.themes.comfy;
       colorScheme = "custom";
       customColorScheme = with palette; {
         text = nohash fg;
