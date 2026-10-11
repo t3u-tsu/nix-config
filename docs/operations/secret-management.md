@@ -65,9 +65,11 @@ Nebula のルート CA（`~/.nebula-ca/ca.crt`）は 10 年間有効（`-duratio
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
 # 各ノードの証明書を署名後，SOPS へ一括インポート
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+# または直接実行:
+# SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./scripts/nebula-import-secrets.ysh "$CA_DIR"
 ```
-※CA 自体を更新する場合は，`bash scripts/nebula-rotate-ca.sh` を実行して全ノードを再発行する．
+※CA 自体を更新する場合は，`ysh scripts/nebula-rotate-ca.ysh`（または `./scripts/nebula-rotate-ca.ysh`）を実行して全ノードを再発行する．
 更新後は `git commit` し，各ホストにデプロイを適用することでダウンタイムなしに新しい証明書へ切り替わる．
 
 ---
@@ -86,7 +88,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets
 3. **不要シークレットファイルの削除**:
    ホストを完全破棄する場合は，`git rm secrets/hosts/<hostname>.yaml` を実行してコミットする．
 4. **Nebula 台帳からの削除**:
-   `scripts/nebula-lib.sh` の `FLEET` 配列から該当ホストのエントリを削除する．
+   `scripts/nebula-lib.ysh` の `FLEET` リストから該当ホストのエントリを削除する．
 
 ---
 

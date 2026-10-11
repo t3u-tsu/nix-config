@@ -56,7 +56,7 @@ nebula-cert sign \
   -out-key "$CA_DIR/<hostname>.key"
 
 # SOPS へのインポート
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt bash scripts/nebula-import-secrets.sh "$CA_DIR"
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
 
 git add secrets/hosts/<hostname>.yaml
 git commit -m "fix(nebula): refresh certificate for <hostname>"
