@@ -14,7 +14,9 @@
 
 ```mermaid
 flowchart TD
-    Start["障害検知 (Nebula 疎通不可)"] --> CheckService{"nebula サービス稼働?"}
+    Start["障害検知 (Nebula 疎通不可)"] --> CheckOOB{"Cloudflare Tunnel<br>(*-cf-ssh.t3u.uk) でログイン可能?"}
+    CheckOOB -- Yes --> OOBRepair["帯域外アクセス経由で復旧作業<br>(nebula 再起動 / iptables / rollback)"]
+    CheckOOB -- No --> CheckService{"nebula サービス稼働?<br>(物理コンソール接続時)"}
     CheckService -- No --> RestartService["systemctl restart nebula@nebula0.service"]
     CheckService -- Yes --> CheckCert{"証明書の有効期限切れ?"}
     CheckCert -- Yes --> RefreshCert["nebula-cert sign & 再配布"]
@@ -62,6 +64,44 @@ git add secrets/hosts/<hostname>.yaml
 git commit -m "fix(nebula): refresh certificate for <hostname>"
 ```
 
+### 1.3 非常用帯域外アクセス（Cloudflare Tunnel）
+
+Nebula メッシュがダウンしている場合や，プライマリ Lighthouse（`torii-chan`）が停止して P2P ハンドシェイクが成立しない場合，またファイアウォール設定で LAN 側の物理 SSH（ポート 22）が遮断されている場合でも，**物理ディスプレイやキーボードを接続する前に Cloudflare Tunnel 経由で各サーバーへ直接ログインして復旧作業を行える**．
+
+各サーバーは独立したアウトバウンドトンネルを Cloudflare エッジに対して確立しているため，Nebula メッシュやルータのインバウンドポート開放状態に依存せず安全に到達できる．
+
+#### 接続方法
+1. **PC CLI からの接続**:
+   ```bash
+   ssh -o ProxyCommand="cloudflared access ssh --hostname <hostname>-cf-ssh.t3u.uk" t3u@<hostname>-cf-ssh.t3u.uk
+   ```
+2. **Web ブラウザ（スマートフォン / 出先端末）からの接続**:
+   ブラウザで `https://<hostname>-cf-ssh.t3u.uk` を開き，Cloudflare Access 認証（OTP / SSO）を経て xterm.js ターミナルから操作する．
+
+#### 復旧コマンドの実行
+ログイン確立後，直ちに以下のコマンドで原因究明および復旧を行う:
+
+- **Nebula デーモンの状態確認と再起動**:
+  ```bash
+  sudo systemctl status nebula@nebula0.service
+  sudo systemctl restart nebula@nebula0.service
+  sudo journalctl -u nebula@nebula0.service -e --no-pager
+  ```
+- **ファイアウォール一時開放（LAN 側ポート 22 の暫定許可）**:
+  ```bash
+  sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+  ```
+- **直前世代へのロールバックまたは設定修正・適用**:
+  ```bash
+  # 直前の健全な世代へロールバック
+  sudo nixos-rebuild switch --rollback
+
+  # または設定修正後に適用
+  sudo nixos-rebuild switch --flake .#<hostname>
+  ```
+
+※ 対象ホスト一覧や詳細な認証仕様は [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md) を参照．
+
 ---
 
 ## 2. SSH 接続が拒否された場合の物理コンソール・ローカル接続手順
@@ -89,6 +129,9 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
   により物理ポート 22 が遮断される（`restrictAccess` が `false` の場合は LAN からの SSH が許可される）．
 
 このため，Nebula が停止すると（あるいはゲートウェイで `restrictAccess = true` が有効な場合），物理 LAN 経由での SSH 接続は一切不可となる．
+
+> [!TIP]
+> 物理ディスプレイやキーボードをマシンに接続する前に，まず [1.3 非常用帯域外アクセス（Cloudflare Tunnel）](#13-非常用帯域外アクセスcloudflare-tunnel) によるリモート復旧を試行すること．アウトバウンドトンネルが稼働していれば，物理作業なしで安全に復旧できる．
 
 ### 物理コンソール経由での復旧手順
 
@@ -189,6 +232,7 @@ getent hosts torii-chan.t3u.uk
 ---
 
 ## 関連ドキュメント
+- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md)
 - [ネットワークアーキテクチャ設計](../architecture/network-topology.md)
 - [VPS フェイルオーバー手順](../operations/vps-failover.md)
 - [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md)

@@ -13,11 +13,13 @@ flowchart TD
     subgraph WAN["外部インターネット (WAN)"]
         User["Minecraft プレイヤー / 外部接続"]
         CF["Cloudflare DNS (DDNS)"]
+        CF_ZT["Cloudflare Zero Trust<br>(Access / SSH CA)"]
+        AdminExt["管理者 (外出先 / 障害対応)"]
     end
 
     subgraph SiteT["【拠点T】 (LAN: 192.168.0.0/24)"]
         TRouter["拠点Tルータ (192.168.0.1)"]
-        Torii["torii-chan (10.0.0.1 / 192.168.0.128)<br>Orange Pi Zero 3 SBC<br>・プライマリ Lighthouse & Relay<br>・Cloudflare DDNS 自動更新<br>・ポートフォワード (:25565)"]
+        Torii["torii-chan (10.0.0.1 / 192.168.0.128)<br>Orange Pi Zero 3 SBC<br>・プライマリ Lighthouse & Relay<br>・Cloudflare DDNS 自動更新<br>・ポートフォワード (:25565)<br>・非常用 SSH (torii-chan-cf-ssh)"]
         TRouter --- Torii
     end
 
@@ -29,9 +31,9 @@ flowchart TD
         ARouter["拠点Aルータ (192.168.42.1)"]
 
         subgraph Servers["サーバー群 (Nebula: 10.0.0.0/24)"]
-            Shosoin["shosoin-tan (10.0.0.4)<br>・Minecraft サーバー (:25565)<br>・Discord Bridge DB<br>・ZFS Mirror"]
-            Kagutsuchi["kagutsuchi-sama (10.0.0.3)<br>・Restic バックアップ保管庫<br>・計算サーバー"]
-            Sando["sando-kun (10.0.0.2)<br>・汎用タワーサーバー"]
+            Shosoin["shosoin-tan (10.0.0.4)<br>・Minecraft サーバー (:25565)<br>・Discord Bridge DB<br>・ZFS Mirror<br>・非常用 SSH (shosoin-tan-cf-ssh)"]
+            Kagutsuchi["kagutsuchi-sama (10.0.0.3)<br>・Restic バックアップ保管庫<br>・計算サーバー<br>・非常用 SSH (kagutsuchi-sama-cf-ssh)"]
+            Sando["sando-kun (10.0.0.2)<br>・汎用タワーサーバー<br>・非常用 SSH (sando-kun-cf-ssh)"]
         end
 
         ARouter --- Servers
@@ -46,6 +48,11 @@ flowchart TD
     User -->|WAN 接続| CF
     CF -->|DDNS Aレコード| Torii
     Torii -->|"DNAT :25565 (Nebula経由)"| Shosoin
+
+    %% 非常用帯域外アクセス (Cloudflare Tunnel)
+    AdminExt -->|"Access 認証 / 短期証明書"| CF_ZT
+    Torii -.->|"アウトバウンド Tunnel"| CF_ZT
+    Servers -.->|"アウトバウンド Tunnel"| CF_ZT
 
     %% Nebula メッシュオーバーレイ通信
     RoamingClients <-->|"Nebula メッシュ (10.0.0.0/24)"| Servers
@@ -89,6 +96,11 @@ flowchart TD
 - 拠点Tの LAN 内から外部公開ドメイン（`torii-chan.t3u.uk`）へアクセスする際，ルータのヘアピン NAT（NAT Loopback）対応状況や IPv6 優先挙動によっては通信障害が発生する場合がある．
 - この回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）が用意されている（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
 
+### 3.4 非常用帯域外アクセス（Cloudflare Tunnel）
+- Nebula メッシュ VPN や物理 LAN の疎通状態に依存しない独立した帯域外管理系統（Out-of-Band Management）として，各サーバー（`torii-chan`, `sando-kun`, `kagutsuchi-sama`, `shosoin-tan`）上で `cloudflared` が常時稼働している．
+- 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）によりトンネルを確立するため，拠点ルータでインバウンドポートを開放することなく，NAT やローカルファイアウォールを越えて外部から安全に直接到達できる．
+- Nebula 不通時や Lighthouse ダウン時でも，管理者は `<hostname>-cf-ssh.t3u.uk` を通じて PC CLI（ProxyCommand）または Web ブラウザ（xterm.js ターミナル）経由で各サーバーへアクセスし，緊急復旧作業を実施できる（詳細は [`../operations/emergency-cf-ssh.md`](../operations/emergency-cf-ssh.md) 参照）．
+
 ---
 
 ## 4. セキュリティ境界（Security Boundary）
@@ -100,10 +112,14 @@ flowchart TD
    - `app`: アプリケーション通信（Minecraft，Discord Bridge，デスクトップ作業）を許可するグループ．
 3. **証明書の有効期限と管理**:
    - Nebula ルート CA および各ノード証明書は長期有効（10年）として発行されている．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
+4. **非常用帯域外アクセスの多層防御（Zero Trust + SSH CA）**:
+   - Cloudflare Tunnel 経由の接続は，エッジでの **Cloudflare Zero Trust (Access)** 認証（メール OTP / SSO），Cloudflare SSH CA による **有効期限 3 分の短期証明書（Short-lived Certificate）** 検証，および OS 側 **ED25519 ユーザー公開鍵認証** の 3 層で保護される．
+   - インバウンドポートを外部に一切露出させないアウトバウンドトンネル方式のため，インターネットからのポートスキャンやブルートフォース攻撃から完全に隔離される．
 
 ---
 
 ## 関連ドキュメント
+- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md)
 - [リポジトリ全体アーキテクチャ](overview.md)
 - [シークレット & 証明書管理](../operations/secret-management.md)
 - [VPS フェイルオーバー手順](../operations/vps-failover.md)

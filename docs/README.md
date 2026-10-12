@@ -16,6 +16,7 @@
 - [`operations/secret-management.md`](operations/secret-management.md) — SOPS / age / 1Password 鍵ライフサイクル，年次証明書更新
 - [`operations/backup-and-restore.md`](operations/backup-and-restore.md) — Restic バックアップ運用，障害時完全復旧 (DR) 手順
 - [`operations/vps-failover.md`](operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替・切戻し手順
+- [`operations/emergency-cf-ssh.md`](operations/emergency-cf-ssh.md) — Cloudflare Tunnel を用いた非常用 SSH アクセス手順（帯域外管理）
 - [`operations/maintenance.md`](operations/maintenance.md) — 日次自動更新，ガベージコレクション，定期保守
 
 ### 3. [ハードウェア固有ガイド (Hardware)](hardware/)
