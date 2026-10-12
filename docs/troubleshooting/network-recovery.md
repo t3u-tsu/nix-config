@@ -40,7 +40,7 @@ sudo journalctl -u nebula@nebula0.service -e --no-pager
 Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
 ```bash
 # 証明書の詳細確認（有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの）
-sudo nix shell nixpkgs#nebula -c nebula-cert print \
+sudo nebula-cert print \
   -path /run/secrets/<hostKey>_nebula_cert
 ```
 再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
