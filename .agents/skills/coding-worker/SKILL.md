@@ -49,6 +49,37 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 | `READ_ONLY` | `0` | `1` で `--read-only` モードを有効化する（`worker=pi` 専用）． |
 | `EXTRA_FLAGS` | （空） | ワーカー実行バイナリへ追加で渡す任意フラグ． |
 
+### セッションの継続と対話的改善（CONTINUE / TASK_ID）
+
+ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` や `TASK_ID` を使用する．
+
+- **使用シーン**:
+  - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
+  - **ビルド・検証エラーの修正**: ワーカーの変更後に `nix build` や `flake check` を実行してエラーが発生した際，エラーログを渡して「このエラーを修正してほしい」と修正を指示する場合．
+  - **段階的なリファクタリング**: 実装完了後に同一コンテキストで「関数名をより簡潔にリファクタリングしてほしい」など追加指示を行う場合．
+- **ワークツリーごとの状態分離**:
+  各兄弟ワークツリー配下の `.agents/skills/coding-worker/.state/` は独立して保持されているため，ツリー内で安全に対話を継続できる．別ツリーで並列稼働している他ワーカーのセッションと干渉・混同することはない．
+- **具体例**:
+  ```bash
+  # 兄弟ツリー (.worktrees/dns-migration/worker-dns) 内での対話例:
+
+  # 1. 初回実装を指示
+  .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration in hosts/torii-chan/dns.nix"
+
+  # （結果の diff や検証を確認後，ビルドエラーや追加要件が発生）
+
+  # 2. 直前のセッションを引き継いでエラー修正・テスト追加を指示
+  CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "The build failed with 'attribute dns_records missing'. Fix the syntax and add a unit test in tests/dns.nix."
+  ```
+  `TASK_ID` を指定してセッションを名指しで管理することも可能:
+  ```bash
+  # 特定タスク ID で初回起動
+  TASK_ID="dns-zone" .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration..."
+
+  # 同じタスク ID を指定して継続
+  TASK_ID="dns-zone" CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix build failure..."
+  ```
+
 ### 進捗ストリーミングと出力形式
 
 `worker=pi` は `--mode json` でイベントストリームを逐次処理し，ツールの進捗を stderr へ，最終結果を stdout へ出力する．
@@ -142,11 +173,15 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述する．子ワーカーに親のオーケストレーション規約や無関係なドキュメントを読ませず，タスク目標と対象ファイルのみにコンテキストを絞り込むことで，トークン消費を抑えつつ精度を高める．
 
+### 設計思想: 具体的に考えすぎずワーカーに任せる
+
+親オーケストレーターが細かな実装手順や書き換えコード（Nix 式のコード片やパッチ詳細）までプロンプトに具体的に詰め込もうとしないこと．親は「達成すべきゴール（目的）」「対象ファイル（スコープ）」「守るべき制約（hush 規約，nixpkgs 慣例等）」を明確に渡すにとどめる．具体的な実装設計や編集詳細はワーカー自身の推論力に委ねて直接編集させたほうが，プロンプト作成コストを抑え，迅速で質の高い成果が得られる．
+
 ### 必須制約
 1. **コンテキストの最小化（トークン消費の削減とタスクの明確化）**:
    親オーケストレーター向けの運用ルールやリポジトリ全体のドキュメントを子ワーカーに読ませず，達成すべき具体的な目標や要件，排他的な担当ファイルのみを指示する．不要なコンテキストを遮断することで，トークン消費を抑え，目的外のファイル探索や変更を防ぐ（"Focus strictly on the assigned task and files. Do NOT explore or modify unrelated areas."）．
-2. **担当ファイルの排他指定（競合防止）**:
-   複数ワーカーが並列稼働する場合，統合時のコンフリクトを避けるため，各ワーカーに担当ファイル・ディレクトリを明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
+2. **担当ファイルの排他指定（統合時のコンフリクト回避と責務明確化）**:
+   兄弟ワークツリーによって Git 状態や作業ディレクトリは物理的に分離されているため，作業中のファイル衝突やロック競合はそもそも起きない．スコープを排他指定する真の理由は，**各ワーカーの担当責務を明確にし，最終的に統合用ツリー（`main/`）へ差分統合（パッチ適用/マージ）する際のコンフリクトを回避するため**である．各ワーカーには担当ファイル・ディレクトリを明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
 3. **hush 規約の遵守**:
    自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
 4. **スコープの限定**:
