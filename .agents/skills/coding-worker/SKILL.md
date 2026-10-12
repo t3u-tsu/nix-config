@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 ## 実行スクリプト仕様
 
-コーディングタスクの委譲には，モダンな YSH 実装の `scripts/run.ysh` を使用する．Oil/YSH 組み込みの JSON パーサーを使用するため，外部ツール（`jq`）への依存がない．
+コーディングタスクの委譲には，`scripts/run.ysh` を使用する．
 
 ### 基本使用方法
 
