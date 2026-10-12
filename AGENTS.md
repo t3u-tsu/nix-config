@@ -1,6 +1,6 @@
 # NixOS 設定構築 - 運用・開発ガイド
 
-すべての作業エージェント（親オーケストレーター，子ワーカー，サブエージェント）に適用される共通ルール．共通の手順は `.agents/skills/`，設計リファレンスは `docs/` に分離している．Antigravity（親オーケストレーター）固有の運用ルールは `GEMINI.md` を参照する（子エージェントは参照不要）．
+すべての作業エージェント（親オーケストレーター，子ワーカー，サブエージェント）に適用される共通ルール．共通の手順は `.agents/skills/`，設計リファレンスは `docs/` に分離している．Antigravity 共通のツール運用ルールは `GEMINI.md`，親オーケストレーター固有の仕様は `orchestration` スキルを参照する．
 
 ## 基本ルール
 
@@ -26,6 +26,9 @@
 - **設計・運用リファレンス**: `docs/`（目次は `docs/README.md`）
 - **秘密情報の扱い**: `docs/operations/secret-management.md`（概要は `secrets/README.md`）
 
-親オーケストレーター（Antigravity）専用（子エージェントは参照不要）:
-- **オーケストレーション・並列委譲・パイプライン・ツール運用**: `GEMINI.md`（SSOT）
+Antigravity（Gemini / agy CLI）環境共通:
+- **ツール運用・プロセス監視**: `GEMINI.md`（親・サブエージェント共通）
+
+親オーケストレーター（Antigravity Main）専用（子エージェントは参照不要）:
+- **並列オーケストレーション手順**: `orchestration` スキル
 - **外部ワーカー委譲仕様**: `coding-worker` スキル（外部ワーカー自身は参照しない）

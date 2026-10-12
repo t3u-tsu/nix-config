@@ -93,7 +93,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 ## 並列ワーカー実行の技術仕様
 
-同一タスクグループ配下の独立した兄弟ワークツリー（`.worktrees/<topic>/worker-<name>/` 等）を作業ディレクトリとして各ワーカーに割り当てることで，複数のワーカーを完全並列に実行できる．ワークツリーの作成や差分統合の手順は `dev-workflow` スキル（SSOT）に従う．
+同一タスクグループ配下の独立した兄弟ワークツリー（`.worktrees/<topic>/worker-<name>/` 等）を作業ディレクトリとして各ワーカーに割り当てることで，複数のワーカーを完全並列に実行できる．ワークツリーの作成や差分統合の手順は `orchestration` スキル（SSOT）に従う．
 
 - **Git 状態の完全分離**: 各兄弟ワークツリーは独立したインデックス（`.git` index）と作業ツリーを持つため，複数ワーカーが同時にファイルを操作・検証しても Git ロック競合やステージング干渉が発生しない．
 - **セッション状態の分離**: `.agents/skills/coding-worker/.state/` は各ワークツリー配下に独立して保持されるため，セッション記録（`last.session`，`task_${TASK_ID}.session`）やログファイルがワーカー間で衝突しない．
@@ -103,7 +103,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 親オーケストレーターが複数のワーカーを稼働させる標準手順は以下の通りである．
 
 1. **兄弟ワークツリーの事前一括作成**:
-   タスク分解に基づき，必要な作業ツリーを `.worktrees/<topic>/` 配下に一括で展開する（詳細コマンドは `dev-workflow` 参照）．
+   タスク分解に基づき，必要な作業ツリーを `.worktrees/<topic>/` 配下に一括で展開する（詳細コマンドは `orchestration` スキル参照）．
    ```bash
    # 例: 2つの独立実装タスク用に兄弟ツリーを一括作成
    git worktree add -b feat/task-dns .worktrees/dns-migration/worker-dns origin/main
@@ -121,7 +121,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 3. **未コミット差分の並行生成**:
    各ワーカーはそれぞれの兄弟ワークツリー内で作業ツリーへ差分を直接生成する．
 4. **選択的差分抽出と統合**:
-   全ワーカーのバックグラウンド完了通知を受けた後，または個別完了ごとに親エージェントが各ツリーから未コミット差分を抽出し，統合用ワークツリー（`main/`）へ選択的に取り込む（統合コマンドは `dev-workflow` 参照）．
+   全ワーカーのバックグラウンド完了通知を受けた後，または個別完了ごとに親エージェントが各ツリーから未コミット差分を抽出し，統合用ワークツリー（`main/`）へ選択的に取り込む（統合コマンドは `orchestration` スキル参照）．
 
 ### ワーカー種別の柔軟な並行利用（Worker Diversity）
 
