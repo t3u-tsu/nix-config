@@ -39,7 +39,7 @@ in
     sops.secrets."${config.my.hostKey}_cloudflared_ssh_token" = { };
 
     environment.etc."ssh/cloudflare_ca.pub".text = ''
-      ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBIHsq7F3PQTDg/TsWn/hG9+igYbGgtT6En3qRnj0tH3SuzQHqkaRsaGHO0JE+FmFlZy0fnKgiDL/dwz/XIPAiLA= open-ssh-ca@cloudflareaccess.org
+      ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAtJPFOS2FnrhSJBXk5eU6qsXlQ0G8vYqlNTxQUy7hLzjMoaVDZbNwrwZ2ApBl+mmYX6LR/sTIGb1rqjCCyPIME= open-ssh-ca@cloudflareaccess.org
     '';
 
     environment.etc."ssh/auth_principals/${config.my.user.name}".text = ''
