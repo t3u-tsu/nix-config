@@ -19,12 +19,19 @@ sequenceDiagram
     participant SSHD as sshd (ローカル 22)
 
     Admin->>CF_Edge: 接続要求 (*-cf-ssh.t3u.uk)
-    Note over Admin,CF_Edge: レイヤー 1: Access 認証
-    CF_Edge->>CF_Edge: レイヤー 2: 短期 SSH 証明書発行
-    CF_Edge->>CF_Tunnel: アウトバウンドトンネル経由でトラフィック転送
-    CF_Tunnel->>SSHD: ローカルポート 22 へフォワード
-    SSHD->>SSHD: SSH CA 公開鍵で短期証明書を検証
-    Note over Admin,SSHD: レイヤー 3: ED25519 ユーザー鍵認証 (多層防御)
+    Note over Admin,CF_Edge: レイヤー 1: Access 認証 (メール OTP / SSO)
+
+    alt Web ブラウザ接続 (xterm.js)
+        CF_Edge->>CF_Edge: レイヤー 2: 短期 SSH 証明書発行
+        CF_Edge->>CF_Tunnel: トンネル経由でトラフィック転送
+        CF_Tunnel->>SSHD: ローカルポート 22 へフォワード
+        SSHD->>SSHD: SSH CA 公開鍵で短期証明書を検証
+    else PC CLI 接続 (cloudflared access ssh)
+        CF_Edge->>CF_Tunnel: トンネル経由で SSH トラフィック透過転送
+        CF_Tunnel->>SSHD: ローカルポート 22 へフォワード
+        Admin->>SSHD: レイヤー 3: ED25519 ユーザー公開鍵認証
+    end
+
     Admin->>SSHD: SSH セッション確立 (緊急復旧作業)
 ```
 
@@ -37,8 +44,8 @@ sequenceDiagram
 | 階層 | 防御機構 | 検証場所 | 役割・セキュリティ特性 |
 | :--- | :--- | :--- | :--- |
 | **レイヤー 1** | **Cloudflare Zero Trust (Access)** | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
-| **レイヤー 2** | **Cloudflare SSH CA（短期証明書）** | ホスト OpenSSH (`sshd`) | Access 認証通過時に Cloudflare CA から短期証明書（Short-lived Certificate）が発行される．`sshd` は `/etc/ssh/ca.pub` で証明書を検証し，失効リスクを最小化する． |
-| **レイヤー 3** | **ED25519 ユーザー公開鍵認証** | ホスト OpenSSH (`sshd`) | OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による通常の公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
+| **レイヤー 2** | **Cloudflare SSH CA（短期証明書）** | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書（Short-lived Certificate）．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
+| **レイヤー 3** | **ED25519 ユーザー公開鍵認証** | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
 
 ---
 
@@ -48,10 +55,10 @@ sequenceDiagram
 
 | ホスト名 | 接続ドメイン (FQDN) | シークレットキー (`secrets/hosts/<hostname>.yaml`) | 役割・配置拠点 |
 | :--- | :--- | :--- | :--- |
-| **`torii-chan`** | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_credentials_json` | エッジゲートウェイ / Lighthouse（拠点T） |
-| **`sando-kun`** | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_credentials_json` | 汎用タワーサーバー（拠点A） |
-| **`kagutsuchi-sama`** | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_credentials_json` | 計算サーバー / バックアップ保管庫（拠点A） |
-| **`shosoin-tan`** | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_credentials_json` | アプリケーションサーバー（拠点A） |
+| **`torii-chan`** | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse（拠点T） |
+| **`sando-kun`** | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー（拠点A） |
+| **`kagutsuchi-sama`** | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫（拠点A） |
+| **`shosoin-tan`** | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー（拠点A） |
 
 ---
 
@@ -64,9 +71,10 @@ sequenceDiagram
 日常の作業端末やノート PC（BrokenPC, x1c7）からターミナル経由で接続する標準的な手順である．
 
 #### 前提条件
-接続元端末に `cloudflared` が導入されている必要がある:
+接続元端末に `cloudflared` が導入されている必要がある．
+本リポジトリの開発環境（`nix develop` または direnv）および NixOS クライアント（`network-tools` 有効時）には `cloudflared` が標準で導入されている．未導入の外部環境から接続する場合は，事前にインストールするか一時シェルで実行する:
 ```bash
-# Nix 環境の場合
+# 外部 Nix 環境の場合
 nix shell nixpkgs#cloudflared
 ```
 
@@ -136,7 +144,13 @@ torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
 
 編集後，ファイルを保存して暗号化を完了する．
 
-### Step 3: NixOS 設定の反映
+### Step 3: NixOS 設定の有効化と反映
+各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または `hosts/torii-chan/sbc.nix`）で本機能を有効化する:
+
+```nix
+my.services.emergencySsh.enable = true;
+```
+
 設定をデプロイまたは switch し，各ホスト上で cloudflared サービスが正常に稼働したことを確認する:
 ```bash
 sudo systemctl status cloudflared-emergency-ssh.service

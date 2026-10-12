@@ -72,6 +72,8 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
    ```bash
    sops updatekeys secrets/hosts/<hostname>.yaml
    ```
+5. **非常用 SSH トークンの登録（サーバーホストのみ）**:
+   サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
 
 ### Step 4: Nebula 証明書の発行と登録
 1. **証明書の署名**:
@@ -262,6 +264,7 @@ sudo reboot
 ---
 
 ## 関連ドキュメント
+- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](emergency-cf-ssh.md)
 - [リポジトリ全体アーキテクチャ](../architecture/overview.md)
 - [ネットワークトポロジと IP 台帳](../architecture/network-topology.md)
 - [シークレット & 証明書管理](secret-management.md)
