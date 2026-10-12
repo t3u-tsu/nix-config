@@ -5,41 +5,65 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 # 変更・適用手順
 
-1. **ブランチ作成・一時ワークツリー運用**:
+1. **ブランチ作成・一時ワークツリー運用（並列・パイプライン型ライフサイクル）**:
    - ブランチを作成するかどうかは AGENTS.md の基本ルールに従う（パッケージ1つ追加のような小さな変更は `main` に直接コミット・push してよい）．
-   - **タスク名前空間とワークツリー構造**:
+   - **タスク名前空間とフラットな兄弟ワークツリー構造**:
      メインツリー（`~/nix-config`）の手元作業と衝突しないよう，また作業規模（単一作業か並列・委譲作業か）にかかわらず常に一貫した構造を保つため，タスク名前空間として常に `.worktrees/<topic-name>/` を使用し，その配下に起点・統合・PR用ワークツリーとして `main/`（`.worktrees/<topic-name>/main`）を作成する．
-     並列作業や外部ワーカー・サブエージェントへ委譲する場合は，同じ名前空間配下にフラットな兄弟ワークツリー（`worker-*`，`subagent-*`）を展開する．
+     複数モジュール改修やドキュメント改訂などで外部ワーカー（`pi`, `dsh`）やサブエージェントを並行稼働させる場合は，同じ名前空間配下にフラットな兄弟ワークツリー（`worker-*`，`subagent-*`）を展開する．
 
      ```text
-     .worktrees/<topic-name-1>/main         # 起点・統合・PR用ワークツリー
-                              /worker-pi    # 兄弟ワークツリー（ワーカー用）
-                              /subagent-*   # 兄弟ワークツリー（サブエージェント用）
-     .worktrees/<topic-name-2>/main         # 別タスクのワークツリー
+     .worktrees/<topic-name-1>/main           # 起点・統合・PR用ワークツリー
+                              /worker-pi-1    # 兄弟ワークツリー（ワーカー1用）
+                              /worker-dsh-2   # 兄弟ワークツリー（ワーカー2用）
+                              /subagent-docs  # 兄弟ワークツリー（サブエージェント用）
+     .worktrees/<topic-name-2>/main           # 別タスクのワークツリー
      ```
 
-   - **作成手順**:
-     最新の `origin/main` を取得したうえで，まず起点となる `main/` ワークツリーを作成して作業を開始する:
-     ```bash
-     git fetch origin main
-     # 起点・統合・PR用の親ワークツリー
-     git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
-     cd .worktrees/topic-name/main
-     ```
-     コーディングワーカーやサブエージェントに作業を委譲する場合は，必要に応じて兄弟ワークツリーを追加する:
-     ```bash
-     # 各ワーカー・サブエージェント用の作業ワークツリー（委譲時に追加）
-     git worktree add -b feat/topic-name-worker-pi .worktrees/topic-name/worker-pi origin/main
-     git worktree add -b feat/topic-name-subagent-docs .worktrees/topic-name/subagent-docs origin/main
-     ```
-     一時ワークツリーを使用しない単独ブランチ運用の場合は `git checkout -b feat/topic-name`．
+   - **並列・パイプライン型ワークフローの5フェーズ**:
+     独立したタスクを直列に処理せず，バッチ一括投入と先行進行（パイプライン化）によって効率を最大化する．単一タスクの場合も「兄弟ツリーが1つまたはなし」の特殊ケースとして同一の流れで扱う．
+
+     - **フェーズ1: タスク分解と複数兄弟ワークツリーの一括準備**
+       変更対象が複数ファイル，複数モジュール，またはコードとドキュメントのように異なるドメインにまたがる場合，独立した作業単位に分解する（目安: 2ファイルまたは2モジュール以上で原則並列化）．
+       起点となる統合用ワークツリー `main/` を作成し，同時に必要な兄弟ワークツリー群（`worker-*`, `subagent-*`）を一括作成する:
+       ```bash
+       git fetch origin main
+
+       # 起点・統合・PR用の親ワークツリー
+       git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
+
+       # 複数ワーカー・サブエージェント用の兄弟ワークツリーを一括作成
+       git worktree add -b feat/topic-name-worker-pi-1 .worktrees/topic-name/worker-pi-1 origin/main
+       git worktree add -b feat/topic-name-worker-dsh-2 .worktrees/topic-name/worker-dsh-2 origin/main
+       git worktree add -b feat/topic-name-subagent-docs .worktrees/topic-name/subagent-docs origin/main
+       ```
+       ※ 単一タスク（親エージェント単独作業）の場合は `main/` のみ，単一ワーカー委譲の場合は `main/` と単一の `worker-*` のみを作成する．一時ワークツリーを使用しない単独ブランチ運用の場合は `git checkout -b feat/topic-name`．
+
+     - **フェーズ2: 並列一括投入（非同期バッチ起動）**
+       各兄弟ワークツリーに対し，対応する外部ワーカーやサブエージェントを**1回のターンで一斉にバックグラウンド投入**する．1つ起動して結果を待ってから次を起動する直列実行は避け，並行可能な処理はすべて最初に一括起動する:
+       - **サブエージェント**: `invoke_subagent` ツールの `Subagents: [...]` 配列に複数エージェントを同時に指定して一括起動する．
+       - **外部コーディングワーカー**: `run_command`（`WaitMsBeforeAsync` 指定）で各ワークツリーを `Cwd` に設定し，バックグラウンドプロセスとして並行起動する（`WORKER=pi ./scripts/worker/run.ysh ...` や `WORKER=dsh ./scripts/worker/run.ysh ...`）．
+
+     - **フェーズ3: 先行進行（非同期パイプライン化）**
+       並列投入したワーカーやサブエージェントの完了を待たずに，親エージェントができる作業を先先と進める．
+       - PR 本文ドラフト（`/tmp/pr-body.md` 等）の事前起草．
+       - 後続のビルド・検証計画の準備や，別ドメインの依存関係・設定調査．
+       - 統合用 `main/` ワークツリーで親エージェントが担当する静的変更（メタデータ更新，小さな共通設定等）の実装．
+       - 後続の合流フェーズで必要な統合スクリプトや確認手順の整理．
+
+     - **フェーズ4: 同期ポイント（Join Point）**
+       親エージェントの先行作業が完了し，各ワーカー・サブエージェントの成果物を統合・検証・ビルドしなければ次へ進めない段階（合流ポイント）に至って初めてツールの呼び出しを停止し，完了通知を待つ．
+       小刻みなタイマー監視やポーリングは行わず，バックグラウンドプロセスの完了通知やサブエージェントからのメッセージ受信により自動起床する．
+
+     - **フェーズ5: 選択的差分統合・検証と一括後始末**
+       完了通知を受け取った後，各兄弟ワークツリーの変更を精査（`git diff`）し，妥当な成果物のみを `main/` ワークツリーへ選択的に取り込む（手順4参照）．
+       統合後に一括して検証（手順3参照）を実施し，問題がなければ用済みの兄弟ワークツリー群を一括削除してコミット・PR 作成へ進む．
 
    - **利点**:
-     1. 作業開始時からディレクトリ階層が一貫しており，単独作業からワーカー委譲への移行時にもパスの再構成が不要．
-     2. ワークツリーのネスト（入れ子）が発生せず，Git の追跡・ステータス・削除で一切干渉しない．
-     3. 各作業ツリーが完全並行で衝突なく作業できる．
-     4. 起点ワークツリー（`main/`）から各ツリーの差分（`git diff`）を確認し，良い変更だけを取捨選択・統合できる．
-     5. 別のセッション（タスク同士）が並行稼働していても，`.worktrees/<topic-name>/` ごとに完全に分離されて衝突しない．
+     1. **最大のスループット**: タスク分解と非同期バッチ投入により，複数の変更を同時並行で進行できる．
+     2. **待ち時間の極小化**: ワーカーの処理待ち時間を親エージェントの先行作業（パイプライン化）に充てることで，全体のリードタイムを短縮できる．
+     3. **安全な分離と取捨選択**: ワークツリーが完全に分離されているためコンフリクトせず，各ツリーの差分を精査して良い変更のみを選択的に統合できる．
+     4. **構造の一貫性**: 単一タスクから大規模並列タスクまで同一の名前空間・ディレクトリ構造で扱え，作業規模の変化に応じて柔軟にスケールできる．
+     5. **セッション分離**: 別のタスクが並行稼働していても，`.worktrees/<topic-name>/` ごとに完全に分離されて手元作業と衝突しない．
 
 2. **実装**: Nix ファイルや設定ファイルを編集する．ドキュメントの新規作成・編集時は `documentation-guide` スキルに従う．秘密情報は `sops` で編集する（`secrets/README.md`）．
 
@@ -95,28 +119,36 @@ description: このリポジトリで設定変更を適用するときの手順�
      ドキュメントの執筆方針，文体，SSOT 整合性，相互参照，およびコード内コメント（`hush` 規約）の品質観点・レビュー基準は，すべて `documentation-guide` スキル（SSOT）に従う（Antigravity によるサブエージェントへの文章改善委譲の詳細は `GEMINI.md` を参照）．
 
    - **作業ツリーからの差分統合と後始末**:
-     独立した兄弟ワークツリー（`.worktrees/<topic-name>/worker-<name>/` 等）で作業や改善差分作成を行った場合，未コミット変更を含めて差分を取得し，起点・統合用ワークツリー（`main/`）へ取り込むか，作業ツリー内でコミットしてからマージする．
+     独立した兄弟ワークツリー群（`.worktrees/<topic-name>/worker-*`，`subagent-*` 等）で並行作業を行った場合，各ツリーから未コミット変更を含めて差分を取得し，起点・統合用ワークツリー（`main/`）へ選択的に取り込むか，作業ツリー内でコミットしてからマージする．
      新規作成ファイル（未追跡ファイル）が差分やコミットから漏れないよう，パッチ抽出前には `git add -N .`，コミット時には `git add -A` を使用する:
      ```bash
      # main/ ワークツリーに移動
      cd .worktrees/topic-name/main
 
-     # 作業ツリーの差分を確認（新規作成ファイルを diff に含めるため add -N . を実行）
-     git -C ../worker-pi add -N .
-     git -C ../worker-pi diff
+     # 各作業ツリーの差分を確認（新規作成ファイルを diff に含めるため add -N . を実行）
+     git -C ../worker-pi-1 add -N .
+     git -C ../worker-pi-1 diff
 
      # main/ ワークツリーに取り込む場合（パッチ適用: 新規作成ファイルも含めて抽出）
-     git -C ../worker-pi add -N .
-     git -C ../worker-pi diff | git apply
+     git -C ../worker-pi-1 add -N .
+     git -C ../worker-pi-1 diff | git apply
+
+     # 別の兄弟ツリーの差分も順次適用
+     git -C ../worker-dsh-2 add -N .
+     git -C ../worker-dsh-2 diff | git apply
 
      # または作業ツリー内でコミットしてからマージする場合（add -A で新規作成ファイルも含めてコミット）
-     git -C ../worker-pi add -A && git -C ../worker-pi commit -m "feat: ..."
-     git merge --squash feat/topic-name-worker-pi
+     git -C ../worker-pi-1 add -A && git -C ../worker-pi-1 commit -m "feat(module-a): ..."
+     git merge --squash feat/topic-name-worker-pi-1
 
-     # 検証・統合完了後に作業ツリーと作業ブランチを後始末（未コミット変更があっても強制削除）
+     # 検証・統合完了後に兄弟ワークツリー群を一括後始末
      cd ~/nix-config
-     git worktree remove --force .worktrees/topic-name/worker-pi
-     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
+     for wt in .worktrees/topic-name/worker-* .worktrees/topic-name/subagent-*; do
+       [ -d "$wt" ] || continue
+       branch=$(git -C "$wt" branch --show-current 2>/dev/null || true)
+       git worktree remove --force "$wt"
+       [ -n "$branch" ] && git branch -D "$branch" 2>/dev/null || true
+     done
      ```
 
 5. **適用**:
@@ -169,14 +201,16 @@ description: このリポジトリで設定変更を適用するときの手順�
 
    **メインツリーの同期と後始末**:
    - **一時ワークツリーの後始末**:
-     メインツリーへ戻り，残っている兄弟ワークツリー群（`worker-*`，`subagent-*` 等）があれば `--force` で順次削除して作業ブランチを片付け，統合用の `main` ワークツリーを削除した後，空になった親ディレクトリ（タスク名前空間）を削除する:
+     メインツリーへ戻り，残っている兄弟ワークツリー群（`worker-*`，`subagent-*` 等）があれば `--force` で一括削除して作業ブランチを片付け，統合用の `main` ワークツリーを削除した後，空になった親ディレクトリ（タスク名前空間）を削除する:
      ```bash
      cd ~/nix-config
-     # 兄弟ワークツリーが存在する場合は削除（ブランチも片付ける）
-     git worktree remove --force .worktrees/topic-name/worker-pi 2>/dev/null || true
-     git branch -D feat/topic-name-worker-pi 2>/dev/null || true
-     git worktree remove --force .worktrees/topic-name/subagent-docs 2>/dev/null || true
-     git branch -D feat/topic-name-subagent-docs 2>/dev/null || true
+     # 兄弟ワークツリー群の一括削除（存在する場合，ブランチも合わせて削除）
+     for wt in .worktrees/topic-name/worker-* .worktrees/topic-name/subagent-*; do
+       [ -d "$wt" ] || continue
+       branch=$(git -C "$wt" branch --show-current 2>/dev/null || true)
+       git worktree remove --force "$wt"
+       [ -n "$branch" ] && git branch -D "$branch" 2>/dev/null || true
+     done
 
      # 統合用 main ワークツリーの削除
      git worktree remove --force .worktrees/topic-name/main 2>/dev/null || true
