@@ -113,32 +113,25 @@ ssh t3u@shosoin-tan-cf-ssh.t3u.uk
 
 ## 5. シークレット登録手順
 
-各ホストが Cloudflare Tunnel を確立するための認証情報（Tunnel Credentials JSON）は，SOPS により暗号化されて管理される．
+各ホストが Cloudflare Tunnel を確立するための認証情報（Tunnel Token）は，SOPS により暗号化されて管理される．
 
-### Step 1: Cloudflare Tunnel の作成と認証情報取得
-Cloudflare Zero Trust ダッシュボードまたは CLI で各ホスト用の Tunnel を作成し，発行された Credentials JSON（`TunnelID`, `AccountTag`, `TunnelSecret` 等を含むファイル）を取得する:
-```bash
-cloudflared tunnel create <hostname>-emergency-ssh
-```
+### Step 1: Cloudflare Tunnel の作成とトークン取得
+Cloudflare Zero Trust ダッシュボード（Networks → Tunnels）で各ホスト用の Tunnel を作成し，発行された Tunnel Token（`eyJh...` から始まる Base64 トークン文字列）を取得する．
+Public Hostname には `<hostname>-cf-ssh.t3u.uk` を設定し，サービス先として `SSH -> localhost:22` を指定する．
 
 ### Step 2: SOPS シークレットへの登録
 ホスト個別の暗号化ファイル `secrets/hosts/<hostname>.yaml` に登録する:
 
 ```bash
 # master 鍵を指定して対象ホストのシークレットを編集
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/hosts/<hostname>.yaml
+sops secrets/hosts/<hostname>.yaml
 ```
 
-ファイル内に `<hostKey>_cloudflared_credentials_json` キーを定義し，Credentials JSON の内容を貼り付ける（`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）:
+ファイル内に `<hostKey>_cloudflared_token` キーを定義し，取得した Token 文字列を貼り付ける（`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）:
 
 ```yaml
 # secrets/hosts/torii-chan.yaml の例
-torii_chan_cloudflared_credentials_json: |
-  {
-    "AccountTag": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "TunnelSecret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "TunnelID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  }
+torii_chan_cloudflared_token: "eyJhIjoi..."
 ```
 
 編集後，ファイルを保存して暗号化を完了する．
@@ -146,7 +139,7 @@ torii_chan_cloudflared_credentials_json: |
 ### Step 3: NixOS 設定の反映
 設定をデプロイまたは switch し，各ホスト上で cloudflared サービスが正常に稼働したことを確認する:
 ```bash
-sudo systemctl status cloudflared-tunnel-*.service
+sudo systemctl status cloudflared-emergency-ssh.service
 ```
 
 ---
