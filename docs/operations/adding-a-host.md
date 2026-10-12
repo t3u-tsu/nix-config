@@ -12,10 +12,12 @@
 - [ ] 割り当てる Nebula IP（[`docs/architecture/network-topology.md`](../architecture/network-topology.md) の台帳を参照）
 - [ ] 適用するプロファイル（`desktop` / `tower-server` / `gateway` / `sbc`）
 - [ ] 管理者マシンで master 鍵が利用可能であること（`~/.config/sops/age/keys.txt`）
+- [ ] 開発環境（`nix develop` または direnv）が有効であること
 
-作業はトピックブランチを作成して行う:
+作業はトピックブランチを作成し，開発シェルに入って行う:
 ```bash
 git checkout -b feat/add-<hostname>
+nix develop  # direnv を使用していない場合
 ```
 
 ---
@@ -46,9 +48,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 ### Step 3: パスワード初期化と SOPS 鍵の登録
 1. **初期パスワードの生成**:
    ```bash
-   nix shell nixpkgs#mkpasswd nixpkgs#sops nixpkgs#oils-for-unix -c ysh scripts/set-host-password.ysh <hostname>
-   # または直接実行:
-   # ./scripts/set-host-password.ysh <hostname>
+   ysh scripts/set-host-password.ysh <hostname>
    ```
 2. **ホスト age 公開鍵の取得**:
    新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）を age 鍵へ変換する:
@@ -72,6 +72,8 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
    ```bash
    sops updatekeys secrets/hosts/<hostname>.yaml
    ```
+5. **非常用 SSH トークンの登録（サーバーホストのみ）**:
+   サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
 
 ### Step 4: Nebula 証明書の発行と登録
 1. **証明書の署名**:
@@ -94,9 +96,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
    ```
 3. **シークレットへのインポート**:
    ```bash
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt nix shell nixpkgs#sops nixpkgs#oils-for-unix -c ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
-   # または直接実行:
-   # SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./scripts/nebula-import-secrets.ysh "$CA_DIR"
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
    ```
 
 ### Step 5: プライベート Flake 入力のブートストラップ
@@ -264,6 +264,7 @@ sudo reboot
 ---
 
 ## 関連ドキュメント
+- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](emergency-cf-ssh.md)
 - [リポジトリ全体アーキテクチャ](../architecture/overview.md)
 - [ネットワークトポロジと IP 台帳](../architecture/network-topology.md)
 - [シークレット & 証明書管理](secret-management.md)

@@ -65,12 +65,20 @@
 
       devShells.default = pkgs.mkShell {
         packages = [
+          pkgs.age
+          pkgs.cloudflared
+          pkgs.convco
+          pkgs.gh
           pkgs.git
+          pkgs.mkpasswd
+          pkgs.nebula
           pkgs.nh
           pkgs.nix-tree
-          pkgs.opentofu
-          pkgs.convco
+          pkgs.nvfetcher
           pkgs.oils-for-unix
+          pkgs.opentofu
+          pkgs.sops
+          pkgs.ssh-to-age
         ];
         inputsFrom = [ config.pre-commit.devShell ];
       };
