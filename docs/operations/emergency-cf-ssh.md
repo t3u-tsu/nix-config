@@ -79,20 +79,36 @@ nix shell nixpkgs#cloudflared
 ```
 
 #### SSH クライアント設定 (`~/.ssh/config`)
-`~/.ssh/config` に以下のエントリを追加する:
+リポジトリの Home Manager 設定（`home/programs/ssh.nix`）に以下のエントリおよび短縮エイリアスが定義されている:
 
 ```ssh-config
 # Cloudflare Tunnel 経由 非常用帯域外アクセス
-Host *-cf-ssh.t3u.uk
+Host torii-chan-cf
+    HostName torii-chan-cf-ssh.t3u.uk
+
+Host sando-kun-cf
+    HostName sando-kun-cf-ssh.t3u.uk
+
+Host kagutsuchi-sama-cf
+    HostName kagutsuchi-sama-cf-ssh.t3u.uk
+
+Host shosoin-tan-cf
+    HostName shosoin-tan-cf-ssh.t3u.uk
+
+Host *-cf-ssh.t3u.uk *-cf
     ProxyCommand cloudflared access ssh --hostname %h
     User t3u
     IdentityFile ~/.ssh/id_ed25519
 ```
 
 #### 接続実行
-通常通り SSH コマンドを実行する:
+短縮エイリアスまたは FQDN を指定して通常通り SSH コマンドを実行する:
 ```bash
-ssh t3u@shosoin-tan-cf-ssh.t3u.uk
+# 短縮エイリアスで接続する場合
+ssh torii-chan-cf
+
+# FQDN で接続する場合
+ssh shosoin-tan-cf-ssh.t3u.uk
 ```
 
 - **初回・認証期限切れ時の挙動**: コマンド実行時にブラウザが自動的に開き，Cloudflare Access の認証ページが表示される．認証を完了すると，ターミナル側で透過的に SSH セッションが確立される．

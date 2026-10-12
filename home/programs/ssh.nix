@@ -30,7 +30,19 @@
         IdentityFile = "~/.ssh/id_ed25519";
         ServerAliveInterval = 60;
       };
-      "*-cf-ssh.t3u.uk" = {
+      "torii-chan-cf" = {
+        HostName = "torii-chan-cf-ssh.t3u.uk";
+      };
+      "sando-kun-cf" = {
+        HostName = "sando-kun-cf-ssh.t3u.uk";
+      };
+      "kagutsuchi-sama-cf" = {
+        HostName = "kagutsuchi-sama-cf-ssh.t3u.uk";
+      };
+      "shosoin-tan-cf" = {
+        HostName = "shosoin-tan-cf-ssh.t3u.uk";
+      };
+      "*-cf-ssh.t3u.uk *-cf" = {
         ProxyCommand = "cloudflared access ssh --hostname %h";
         User = osConfig.my.user.name;
         IdentityFile = "~/.ssh/id_ed25519";
