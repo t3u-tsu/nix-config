@@ -18,10 +18,10 @@ GitHub Actions のスケジュールワークフローが毎日日本時間 04:0
    すべての検証に成功した場合のみ，コミットを作成して `main` ブランチへ自動プッシュする．
 
 ### 手動での更新実行
-ローカルでパッケージやロックファイルを先行して更新する場合:
+開発環境（`nix develop` または direnv）下で，ローカルのパッケージやロックファイルを先行して更新する場合:
 ```bash
 # nvfetcher パッケージの更新
-nix run nixpkgs#nvfetcher
+nvfetcher
 
 # flake inputs の更新
 nix flake update

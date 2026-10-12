@@ -19,8 +19,8 @@ sequenceDiagram
     participant SSHD as sshd (ローカル 22)
 
     Admin->>CF_Edge: 接続要求 (*-cf-ssh.t3u.uk)
-    Note over Admin,CF_Edge: レイヤー 1: Access 認証 (メール OTP / SSO)
-    CF_Edge->>CF_Edge: レイヤー 2: 短期 SSH 証明書発行 (有効期限 3分)
+    Note over Admin,CF_Edge: レイヤー 1: Access 認証
+    CF_Edge->>CF_Edge: レイヤー 2: 短期 SSH 証明書発行
     CF_Edge->>CF_Tunnel: アウトバウンドトンネル経由でトラフィック転送
     CF_Tunnel->>SSHD: ローカルポート 22 へフォワード
     SSHD->>SSHD: SSH CA 公開鍵で短期証明書を検証
@@ -37,7 +37,7 @@ sequenceDiagram
 | 階層 | 防御機構 | 検証場所 | 役割・セキュリティ特性 |
 | :--- | :--- | :--- | :--- |
 | **レイヤー 1** | **Cloudflare Zero Trust (Access)** | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
-| **レイヤー 2** | **Cloudflare SSH CA（短期証明書）** | ホスト OpenSSH (`sshd`) | Access 認証通過時に Cloudflare CA から有効期限 3 分の短期証明書（Short-lived Certificate）が発行される．`sshd` は `/etc/ssh/ca.pub` で証明書を検証し，失効リスクを最小化する． |
+| **レイヤー 2** | **Cloudflare SSH CA（短期証明書）** | ホスト OpenSSH (`sshd`) | Access 認証通過時に Cloudflare CA から短期証明書（Short-lived Certificate）が発行される．`sshd` は `/etc/ssh/ca.pub` で証明書を検証し，失効リスクを最小化する． |
 | **レイヤー 3** | **ED25519 ユーザー公開鍵認証** | ホスト OpenSSH (`sshd`) | OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による通常の公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
 
 ---
