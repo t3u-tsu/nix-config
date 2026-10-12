@@ -42,13 +42,17 @@ in
       ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAtJPFOS2FnrhSJBXk5eU6qsXlQ0G8vYqlNTxQUy7hLzjMoaVDZbNwrwZ2ApBl+mmYX6LR/sTIGb1rqjCCyPIME= open-ssh-ca@cloudflareaccess.org
     '';
 
-    environment.etc."ssh/auth_principals/${config.my.user.name}".text = ''
-      ${config.my.user.name}
-    '';
-
     services.openssh.settings = {
       TrustedUserCAKeys = "/etc/ssh/cloudflare_ca.pub";
-      AuthorizedPrincipalsFile = "/etc/ssh/auth_principals/%u";
+      AuthorizedPrincipalsCommand = "${pkgs.writeShellScript "emergency-ssh-principals" ''
+        case "$1" in
+          ${config.my.user.name})
+            echo "${config.my.user.name}"
+            echo "${config.my.user.name}@t3u.uk"
+            ;;
+        esac
+      ''} %u";
+      AuthorizedPrincipalsCommandUser = "nobody";
       Macs = [
         "hmac-sha2-512-etm@openssh.com"
         "hmac-sha2-256-etm@openssh.com"
