@@ -138,16 +138,18 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 ## プロンプティング原則
 
-コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述し，以下の制約を遵守させる．
+コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述する．子ワーカーに親のオーケストレーション規約や無関係なドキュメントを読ませず，タスク目標と対象ファイルのみにコンテキストを絞り込むことで，トークン消費を最小化しつつ精度を最大化する．
 
 ### 必須制約
-1. **排他的ファイルスコープ（ファイル衝突防止）**:
+1. **コンテキストの最小化（トークン消費の極小化と目的純化）**:
+   親オーケストレーター向けの管理規約やリポジトリ全体の広範なドキュメントを子ワーカーに読ませず，達成すべき具体的ゴール，要件，および排他的な担当ファイルスコープのみを与える．不要なコンテキストを遮断することで，ワーカーのトークン消費を抑え，目的外のファイル探索や逸脱を防ぐ（"Focus strictly on the assigned task and files. Do NOT explore or modify unrelated areas."）．
+2. **排他的ファイルスコープ（ファイル衝突防止）**:
    複数ワーカーが並列稼働する場合，統合時のコンフリクトを完全に回避するため，各ワーカーに担当ファイル・ディレクトリを排他的に明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
-2. **hush 規約の遵守**:
+3. **hush 規約の遵守**:
    自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
-3. **スコープの限定**:
+4. **スコープの限定**:
    ドキュメントや README など実装対象外のファイルを変更させない（"Do NOT edit documentation or README files."）．
-4. **要約箇条書きの要求**:
+5. **要約箇条書きの要求**:
    全文再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
 
 ### プロンプトテンプレート
