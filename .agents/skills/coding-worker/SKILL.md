@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # Coding Worker
 
-外部コーディングワーカー（pi，dsh，codewhale）に対するコード実装・リファクタリングおよび技術レビューの委譲仕様．本スキルは Antigravity（親オーケストレーター）専用であり，呼び出される側のコーディングワーカー自身は参照しない．
+外部コーディングワーカー（pi, dsh, codewhale）に対するコード実装・リファクタリングおよび技術レビューの委譲仕様である．本スキルは親オーケストレーター専用であり，呼び出される側のワーカー自身は参照しない．
 
 ## 実行スクリプト仕様
 
@@ -82,7 +82,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 `worker=dsh` / `worker=codewhale` はストリーミングを行わず，stdout に応答テキスト，stderr にログを出力する．
 
-### 終了コード（Exit Codes）
+### 終了コード
 
 | 終了コード | 意味 |
 | :--- | :--- |
@@ -93,12 +93,12 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 ## 並列ワーカー実行の技術仕様
 
-同一タスクグループ配下の独立した兄弟ワークツリー（`.worktrees/<topic>/worker-<name>/` 等）を作業ディレクトリとして各ワーカーに割り当てることで，複数のワーカーを完全並列に実行できる．ワークツリーの作成や差分統合の手順は `orchestration` スキル（SSOT）に従う．
+同一タスクグループ配下の独立した兄弟ワークツリー（`.worktrees/<topic>/worker-<name>/` 等）を作業ディレクトリとして各ワーカーに割り当てることで，複数のワーカーを完全並列に実行できる．ワークツリーの作成や差分統合の手順は `orchestration` スキルに従う．
 
-- **Git 状態の完全分離**: 各兄弟ワークツリーは独立したインデックス（`.git` index）と作業ツリーを持つため，複数ワーカーが同時にファイルを操作・検証しても Git ロック競合やステージング干渉が発生しない．
+- **Git 状態の完全分離**: 各兄弟ワークツリーは独立したインデックス（`.git` index）と作業ツリーを持つため，複数ワーカーが同時にファイルを操作・検証しても Git のロック競合やステージングの干渉が発生しない．
 - **セッション状態の分離**: `.agents/skills/coding-worker/.state/` は各ワークツリー配下に独立して保持されるため，セッション記録（`last.session`，`task_${TASK_ID}.session`）やログファイルがワーカー間で衝突しない．
 
-### 複数ワーカー並列実行プロトコル
+### 複数ワーカーの並列実行手順
 
 親オーケストレーターが複数のワーカーを稼働させる標準手順は以下の通りである．
 
@@ -109,7 +109,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
    git worktree add -b feat/task-dns .worktrees/dns-migration/worker-dns origin/main
    git worktree add -b feat/task-dhcp .worktrees/dns-migration/worker-dhcp origin/main
    ```
-2. **バックグラウンド並列同時起動（バッチディスパッチ）**:
+2. **バックグラウンドでの並列一括起動**:
    各ワークツリーを作業ディレクトリ（`Cwd`）として指定し，直列に待たずに `run.ysh` を連続して非同期起動する．親エージェントは小刻みなポーリングや直前の完了待ちを行わず，すべてのワーカーを同時に走らせる．
    ```bash
    # ワーカー 1 起動 (Cwd: .worktrees/dns-migration/worker-dns)
@@ -118,43 +118,43 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
    # ワーカー 2 起動 (Cwd: .worktrees/dns-migration/worker-dhcp)
    WORKER=dsh .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_DHCP>"
    ```
-3. **未コミット差分の並行生成**:
-   各ワーカーはそれぞれの兄弟ワークツリー内で作業ツリーへ差分を直接生成する．
-4. **選択的差分抽出と統合**:
-   全ワーカーのバックグラウンド完了通知を受けた後，または個別完了ごとに親エージェントが各ツリーから未コミット差分を抽出し，統合用ワークツリー（`main/`）へ選択的に取り込む（統合コマンドは `orchestration` スキル参照）．
+3. **作業ツリーへの差分生成**:
+   各ワーカーはそれぞれの兄弟ワークツリー内で変更を生成する．
+4. **差分の抽出と統合**:
+   全ワーカーのバックグラウンド完了通知を受けた後，または個別完了ごとに親エージェントが各ツリーから差分を抽出し，統合用ワークツリー（`main/`）へ取り込む（統合コマンドは `orchestration` スキル参照）．
 
-### ワーカー種別の柔軟な並行利用（Worker Diversity）
+### ワーカー種別の柔軟な使い分け
 
 タスクの特性，API レート制限，コンテキストサイズに応じ，ワーカー種別（`pi`, `dsh` 等）を柔軟に組み合わせて並行運用する．
 
 - **`pi` 同士の並行運用**:
-  最も標準的なパターン．複数の `pi` プロセスを別個の兄弟ワークツリーで同時起動し，進捗ストリーミング（stderr）と構造化出力（stdout）を個別に受け取る．
+  最も標準的なパターン．複数の `pi` プロセスを別個の兄弟ワークツリーで同時起動し，進捗（stderr）と実行結果（stdout）を個別に受け取る．
 - **`dsh` 同士の並行運用**:
-  大容量スクリプト生成や広範なリファクタリングなど，`dsh` を複数インスタンス同時起動して処理を分散する．
-- **`pi` と `dsh` の組み合わせ並行運用**:
-  バックエンドを分散させることでモデルの多様性を活かし，同時レート制限を回避する．
-  - 例1: モジュール A の実装（`WORKER=pi`）とモジュール B の実装（`WORKER=dsh`）を同時並行で走らせる．
-  - 例2: モジュール実装（`WORKER=pi`）と，先行して完了した別モジュールの技術レビュー（`WORKER=dsh`）をパイプライン上で重ね合わせて実行する．
+  大規模なスクリプト生成や広範なリファクタリングなど，`dsh` を複数起動して処理を分散する．
+- **`pi` と `dsh` の組み合わせ運用**:
+  バックエンドを分散させることで，API のレート制限を回避しつつ適材適所で使い分ける．
+  - 例1: モジュール A の実装（`WORKER=pi`）とモジュール B の実装（`WORKER=dsh`）を同時に走らせる．
+  - 例2: モジュール実装（`WORKER=pi`）と，先行して完了した別モジュールの技術レビュー（`WORKER=dsh`）を並行して実行する．
 
-## プロンプティング原則
+## プロンプトの設計原則
 
-コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述する．子ワーカーに親のオーケストレーション規約や無関係なドキュメントを読ませず，タスク目標と対象ファイルのみにコンテキストを絞り込むことで，トークン消費を最小化しつつ精度を最大化する．
+コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述する．子ワーカーに親のオーケストレーション規約や無関係なドキュメントを読ませず，タスク目標と対象ファイルのみにコンテキストを絞り込むことで，トークン消費を抑えつつ精度を高める．
 
 ### 必須制約
-1. **コンテキストの最小化（トークン消費の極小化と目的純化）**:
-   親オーケストレーター向けの管理規約やリポジトリ全体の広範なドキュメントを子ワーカーに読ませず，達成すべき具体的ゴール，要件，および排他的な担当ファイルスコープのみを与える．不要なコンテキストを遮断することで，ワーカーのトークン消費を抑え，目的外のファイル探索や逸脱を防ぐ（"Focus strictly on the assigned task and files. Do NOT explore or modify unrelated areas."）．
-2. **排他的ファイルスコープ（ファイル衝突防止）**:
-   複数ワーカーが並列稼働する場合，統合時のコンフリクトを完全に回避するため，各ワーカーに担当ファイル・ディレクトリを排他的に明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
+1. **コンテキストの最小化（トークン消費の削減とタスクの明確化）**:
+   親オーケストレーター向けの運用ルールやリポジトリ全体のドキュメントを子ワーカーに読ませず，達成すべき具体的な目標や要件，排他的な担当ファイルのみを指示する．不要なコンテキストを遮断することで，トークン消費を抑え，目的外のファイル探索や変更を防ぐ（"Focus strictly on the assigned task and files. Do NOT explore or modify unrelated areas."）．
+2. **担当ファイルの排他指定（競合防止）**:
+   複数ワーカーが並列稼働する場合，統合時のコンフリクトを避けるため，各ワーカーに担当ファイル・ディレクトリを明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
 3. **hush 規約の遵守**:
    自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
 4. **スコープの限定**:
    ドキュメントや README など実装対象外のファイルを変更させない（"Do NOT edit documentation or README files."）．
 5. **要約箇条書きの要求**:
-   全文再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
+   全文の再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
 
 ### プロンプトテンプレート
 
-#### 並行実装タスク（排他ファイルスコープ明示・推奨）
+#### 並行実装タスク（推奨）
 ```text
 Task: <goal>
 Exclusive Target Files:
@@ -169,7 +169,7 @@ Constraints:
 - Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.
 ```
 
-#### 技術レビュー（改善差分作成・推奨）
+#### 技術レビュー（改善差分の直接作成・推奨）
 ```text
 Task: Review and improve the current changes
 Review Target: origin/main..HEAD
