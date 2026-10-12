@@ -112,8 +112,8 @@ flowchart TD
    - `app`: アプリケーション通信（Minecraft，Discord Bridge，デスクトップ作業）を許可するグループ．
 3. **証明書の有効期限と管理**:
    - Nebula ルート CA および各ノード証明書は長期有効（10年）として発行されている．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
-4. **非常用帯域外アクセスの多層防御（Zero Trust + SSH CA）**:
-   - Cloudflare Tunnel 経由の接続は，エッジでの **Cloudflare Zero Trust (Access)** 認証（メール OTP / SSO），Cloudflare SSH CA による **有効期限 3 分の短期証明書（Short-lived Certificate）** 検証，および OS 側 **ED25519 ユーザー公開鍵認証** の 3 層で保護される．
+4. **非常用帯域外アクセスの多層防御（Zero Trust + SSH CA / 公開鍵認証）**:
+   - Cloudflare Tunnel 経由の接続は，エッジでの **Cloudflare Zero Trust (Access)** 認証（メール OTP / SSO），Cloudflare SSH CA による **有効期限 3 分の短期証明書（Short-lived Certificate）** 検証（Web ターミナル接続時），および OS 側 **ED25519 ユーザー公開鍵認証**（PC CLI 接続時）の多層防御で保護される．
    - インバウンドポートを外部に一切露出させないアウトバウンドトンネル方式のため，インターネットからのポートスキャンやブルートフォース攻撃から完全に隔離される．
 
 ---

@@ -27,44 +27,7 @@ flowchart TD
     CheckLighthouse -- Yes --> OtherNet["物理 NIC / ルーティング障害調査"]
 ```
 
-### 復旧手順
-
-#### Step 1: サービス稼働状況の確認
-対象ホストで Nebula systemd ユニットの状態とログを確認する:
-```bash
-sudo systemctl status nebula@nebula0.service
-sudo journalctl -u nebula@nebula0.service -e --no-pager
-```
-
-#### Step 2: 証明書有効期限・妥当性の検証
-Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
-```bash
-# 証明書の詳細確認（有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの）
-sudo nebula-cert print \
-  -path /run/secrets/<hostKey>_nebula_cert
-```
-再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
-```bash
-CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
-
-# ノード証明書の再発行（-networks オプションを使用）
-nebula-cert sign \
-  -name "<hostname>" \
-  -networks "10.0.0.X/24" \
-  -groups "mgmt,..." \
-  -ca-crt "$CA_DIR/ca.crt" \
-  -ca-key "$CA_DIR/ca.key" \
-  -out-crt "$CA_DIR/<hostname>.crt" \
-  -out-key "$CA_DIR/<hostname>.key"
-
-# SOPS へのインポート
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
-
-git add secrets/hosts/<hostname>.yaml
-git commit -m "fix(nebula): refresh certificate for <hostname>"
-```
-
-### 1.3 非常用帯域外アクセス（Cloudflare Tunnel）
+### 非常用帯域外アクセス（Cloudflare Tunnel）によるリモート復旧
 
 Nebula メッシュがダウンしている場合や，プライマリ Lighthouse（`torii-chan`）が停止して P2P ハンドシェイクが成立しない場合，またファイアウォール設定で LAN 側の物理 SSH（ポート 22）が遮断されている場合でも，**物理ディスプレイやキーボードを接続する前に Cloudflare Tunnel 経由で各サーバーへ直接ログインして復旧作業を行える**．
 
@@ -102,6 +65,45 @@ Nebula メッシュがダウンしている場合や，プライマリ Lighthous
 
 ※ 対象ホスト一覧や詳細な認証仕様は [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md) を参照．
 
+### 物理コンソール接続時の調査・復旧手順
+
+Cloudflare Tunnel 経由での接続も不可能な場合，実機に物理ディスプレイとキーボードを接続して以下の手順で調査・修復を行う．
+
+#### Step 1: サービス稼働状況の確認
+対象ホストで Nebula systemd ユニットの状態とログを確認する:
+```bash
+sudo systemctl status nebula@nebula0.service
+sudo journalctl -u nebula@nebula0.service -e --no-pager
+```
+
+#### Step 2: 証明書有効期限・妥当性の検証
+Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
+```bash
+# 証明書の詳細確認（有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの）
+sudo nebula-cert print \
+  -path /run/secrets/<hostKey>_nebula_cert
+```
+再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
+```bash
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+
+# ノード証明書の再発行（-networks オプションを使用）
+nebula-cert sign \
+  -name "<hostname>" \
+  -networks "10.0.0.X/24" \
+  -groups "mgmt,..." \
+  -ca-crt "$CA_DIR/ca.crt" \
+  -ca-key "$CA_DIR/ca.key" \
+  -out-crt "$CA_DIR/<hostname>.crt" \
+  -out-key "$CA_DIR/<hostname>.key"
+
+# SOPS へのインポート
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+
+git add secrets/hosts/<hostname>.yaml
+git commit -m "fix(nebula): refresh certificate for <hostname>"
+```
+
 ---
 
 ## 2. SSH 接続が拒否された場合の物理コンソール・ローカル接続手順
@@ -115,7 +117,7 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
 ### 原因
 本リポジトリのタワーサーバー群（`tower-server` プロファイル）およびゲートウェイ（`torii-chan`）では，セキュリティ強化のため物理 LAN 側からの SSH 接続が制限されている:
 
-- **タワーサーバー群（`shosoin-tan`, `sando-kun`）**:
+- **タワーサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）**:
   [`nixos/profiles/tower-server/security.nix`](../../nixos/profiles/tower-server/security.nix) において:
   ```nix
   networking.firewall.allowedTCPPorts = lib.mkForce [ ];
@@ -131,7 +133,7 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
 このため，Nebula が停止すると（あるいはゲートウェイで `restrictAccess = true` が有効な場合），物理 LAN 経由での SSH 接続は一切不可となる．
 
 > [!TIP]
-> 物理ディスプレイやキーボードをマシンに接続する前に，まず [1.3 非常用帯域外アクセス（Cloudflare Tunnel）](#13-非常用帯域外アクセスcloudflare-tunnel) によるリモート復旧を試行すること．アウトバウンドトンネルが稼働していれば，物理作業なしで安全に復旧できる．
+> 物理ディスプレイやキーボードをマシンに接続する前に，まず [非常用帯域外アクセス（Cloudflare Tunnel）](#非常用帯域外アクセスcloudflare-tunnelによるリモート復旧) によるリモート復旧を試行すること．アウトバウンドトンネルが稼働していれば，物理作業なしで安全に復旧できる．
 
 ### 物理コンソール経由での復旧手順
 
