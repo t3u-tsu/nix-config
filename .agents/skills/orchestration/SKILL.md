@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 - **コード実装・修正**:
   - 親オーケストレーターは，Nix 式，設定ファイル，スクリプト等のコード作成・編集に `replace_file_content` や `write_to_file` を直接使用しない．
-  - 実装，リファクタリング，および技術レビュー（改善差分の直接作成，または読み取り専用）はすべてコーディングワーカー（`pi`, `dsh`）に委譲する（仕様・実行方法は `coding-worker` スキル参照）．
+  - 実装，リファクタリング，および技術レビュー（改善差分の直接作成，または読み取り専用）はすべてコーディングワーカー（`pi`, `dsh`）に委譲する（実行スクリプトの仕様や外部ワーカー固有のプロンプト制約は `coding-worker` スキル参照）．
 - **コメント精査（hush 規約）**:
   - 親オーケストレーターはコード内コメントの直接編集を行わない．自明な解説コメントの削除は，Antigravity サブエージェント（`invoke_subagent`）を起動し，`hush` スキル（`~/.agents/skills/hush/`）に沿って精査・削除させる．
 - **ドキュメント・文章の改善**:
@@ -122,7 +122,7 @@ git worktree add -b docs/<topic>-subagent-c .worktrees/<topic>/subagent-c origin
 順番に待機せず，全ワーカーやサブエージェントを連続して起動する．
 
 - **コーディングワーカーの起動**:
-  - 各兄弟ツリーを作業ディレクトリ（`Cwd`）に指定し，`coding-worker` スキル（`scripts/run.ysh`）をバックグラウンド（`run_command`）で連続起動する．
+  - 各兄弟ツリーを作業ディレクトリ（`Cwd`）に指定し，`coding-worker` スキル（`scripts/run.ysh`）をバックグラウンド（`run_command`）で連続起動する（スクリプトのオプションや外部ワーカー固有のプロンプト制約・テンプレートは `coding-worker` スキル参照）．
 - **サブエージェントの起動**:
   - `invoke_subagent` の `Subagents` 配列を活用して1回のツール呼び出しで一斉起動する．
 - **子エージェントのコンテキスト最小化と自律委任**:
@@ -196,6 +196,9 @@ git branch -D feat/<topic>-worker-a feat/<topic>-worker-b docs/<topic>-subagent-
 
 親オーケストレーターは，外部コーディングワーカー（主に `pi`，場合に応じて `dsh` や `codewhale`）をタスクに応じて活用し，複数兄弟ツリーへ並列投入する．
 
+> [!NOTE]
+> 実行スクリプト（`run.ysh`）の詳細オプション（`--read-only`，`TASK_ID` 等）や終了コード，進捗ストリーミング，および外部コーディングワーカー固有の注意事項（英語プロンプトの原則，hush 規約の英語制約指示，スコープ限定，全文再掲禁止，プロンプトテンプレート）の詳細は，`coding-worker` スキル（`.agents/skills/coding-worker/SKILL.md`）を参照する．
+
 ### 状態の完全分離
 - **Git 状態の分離**: 兄弟ツリーごとに独立した Git インデックスを持つため，複数ワーカーが同時実行されてもロック競合やステージングの干渉が起きない．
 - **セッション状態の分離**: `.agents/skills/coding-worker/.state/` はツリーごとに独立保持されるため，セッション ID やログが衝突しない．
@@ -228,7 +231,7 @@ WORKER=dsh .agents/skills/coding-worker/scripts/run.ysh "Task: Implement DHCP mo
 CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix build error in dns.nix and add test cases..."
 ```
 
-各兄弟ツリー配下で `.agents/skills/coding-worker/.state/` が独立しているため，結果確認後に追加指示やエラー修正が必要になった場合でも，`CONTINUE=1` を指定することで他ワーカーと干渉せずに同一コンテキストで対話を継続できる．
+各兄弟ツリー配下で `.agents/skills/coding-worker/.state/` が独立しているため，結果確認後に追加指示やエラー修正が必要になった場合でも，`CONTINUE=1` を指定することで他ワーカーと干渉せずに同一コンテキストで対話を継続できる（対話継続やセッション管理の詳細は `coding-worker` スキル参照）．
 
 ---
 
