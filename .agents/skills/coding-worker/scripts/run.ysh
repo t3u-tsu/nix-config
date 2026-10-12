@@ -141,10 +141,12 @@ var session_id = ''
 var is_resumed = false
 if (not read_only) {
   if (continue_flag === '1' and file_exists(last_session_file)) {
-    setvar session_id = $(cat $last_session_file)
+    read --all (&session_id) < $last_session_file
+    setvar session_id = session_id.trim()
     setvar is_resumed = true
   } elif (task_session_file !== '' and file_exists(task_session_file)) {
-    setvar session_id = $(cat $task_session_file)
+    read --all (&session_id) < $task_session_file
+    setvar session_id = session_id.trim()
     setvar is_resumed = true
   } elif (task_id !== '' and worker === 'pi') {
     setvar session_id = task_id
