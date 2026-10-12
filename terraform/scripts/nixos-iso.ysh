@@ -16,20 +16,12 @@
 shopt --unset verbose_errexit
 
 var region = 'c3j1'
-try {
-  var region_env = ENV.CONOHAVPS_REGION
-  if (region_env !== '') {
-    setvar region = region_env
-  }
-}
+var region_env = get(ENV, 'CONOHAVPS_REGION', '')
+if (region_env !== '') { setvar region = region_env }
 
 var wait_timeout = 600
-try {
-  var timeout_env = ENV.CONOHAVPS_WAIT_TIMEOUT
-  if (timeout_env !== '') {
-    setvar wait_timeout = int(timeout_env)
-  }
-}
+var wait_timeout_env = get(ENV, 'CONOHAVPS_WAIT_TIMEOUT', '')
+if (wait_timeout_env !== '') { setvar wait_timeout = int(wait_timeout_env) }
 const WAIT_INTERVAL = 10
 
 var identity = $"https://identity.${region}.conoha.io/v3"

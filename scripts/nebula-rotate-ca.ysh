@@ -63,47 +63,53 @@ echo $"  CA dir : ${ca_dir}"
 echo $"  subnet : ${subnet}"
 echo $"  CA gps : ${ca_groups}"
 
+umask 077
 mkdir -p $ca_dir
-cd $ca_dir
-
-if (not file_exists('passphrase')) {
-  head -c 24 /dev/urandom | base64 > passphrase
-}
-chmod 600 passphrase
-var passphrase = ''
-read --all (&passphrase) < passphrase
-setvar passphrase = passphrase.trim()
 
 # nebula-cert prompts for passphrase; a pty satisfies it.
 proc run_nebula(passphrase, ...cmd) {
-  var cmd_line = 'nix shell nixpkgs#nebula -c ' ++ join(cmd, ' ')
-  printf '%s\n' $passphrase | script -qec $cmd_line /dev/null
+  var quoted = []
+  for arg in (cmd) {
+    call quoted->append($(printf '%q' $arg))
+  }
+  var cmd_line = 'nix shell nixpkgs#nebula -c ' ++ join(quoted, ' ')
+  printf '%s\n' $passphrase | script -q -e -E never -c $cmd_line /dev/null
 }
 
-echo '== creating CA =='
-run_nebula $passphrase nebula-cert ca \
-  -name $CA_NAME \
-  -networks $subnet \
-  -groups $ca_groups \
-  -duration $DURATION \
-  -encrypt \
-  -out-crt ca.crt \
-  -out-key ca.key
+cd $ca_dir {
+  if (not file_exists('passphrase')) {
+    head -c 24 /dev/urandom | base64 > passphrase
+  }
+  chmod 600 passphrase
+  var passphrase = ''
+  read --all (&passphrase) < passphrase
+  setvar passphrase = passphrase.trim()
 
-for node in (FLEET) {
-  var name = node.name
-  var octet = node.octet
-  var ip = $"${prefix}.${octet}"
-  var groups = join(node.groups, ',')
-  echo $"== sign ${name} (${ip}/24, ${groups}) =="
-  run_nebula $passphrase nebula-cert sign \
-    -name $name \
-    -networks $"${ip}/24" \
-    -groups $groups \
-    -ca-crt ca.crt \
-    -ca-key ca.key \
-    -out-crt $"${name}.crt" \
-    -out-key $"${name}.key"
+  echo '== creating CA =='
+  run_nebula $passphrase nebula-cert ca \
+    -name $CA_NAME \
+    -networks $subnet \
+    -groups $ca_groups \
+    -duration $DURATION \
+    -encrypt \
+    -out-crt ca.crt \
+    -out-key ca.key
+
+  for node in (FLEET) {
+    var name = node.name
+    var octet = node.octet
+    var ip = $"${prefix}.${octet}"
+    var groups = join(node.groups, ',')
+    echo $"== sign ${name} (${ip}/24, ${groups}) =="
+    run_nebula $passphrase nebula-cert sign \
+      -name $name \
+      -networks $"${ip}/24" \
+      -groups $groups \
+      -ca-crt ca.crt \
+      -ca-key ca.key \
+      -out-crt $"${name}.crt" \
+      -out-key $"${name}.key"
+  }
 }
 
 echo
