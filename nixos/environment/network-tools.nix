@@ -13,17 +13,19 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       bandwhich
+      cloudflared
       curl
       dnsutils
       gping
+      iftop
       lsof
       mtr
+      nebula
       nmap
       rsync
       tcpdump
       wget
       xh
-      iftop
     ];
   };
 }

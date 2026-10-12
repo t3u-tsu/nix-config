@@ -13,6 +13,8 @@
 
   my.nix.distributedBuilds.enable = true;
 
+  my.services.emergencySsh.enable = true;
+
   boot.loader = {
     generic-extlinux-compatible.enable = true;
     grub.enable = false;

@@ -72,7 +72,7 @@ proc run_nebula(passphrase, ...cmd) {
   for arg in (cmd) {
     call quoted->append($(printf '%q' $arg))
   }
-  var cmd_line = 'nix shell nixpkgs#nebula -c ' ++ join(quoted, ' ')
+  var cmd_line = join(quoted, ' ')
   printf '%s\n' $passphrase | script -q -e -E never -c $cmd_line /dev/null
 }
 
