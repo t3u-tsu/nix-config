@@ -30,13 +30,13 @@ in
         Restart = "always";
         RestartSec = "5s";
         LoadCredential = [
-          "token:${config.sops.secrets."${config.my.hostKey}_cloudflared_token".path}"
+          "token:${config.sops.secrets."${config.my.hostKey}_cloudflared_ssh_token".path}"
         ];
         ExecStart = "${pkgs.cloudflared}/bin/cloudflared tunnel --no-autoupdate run --token-file %d/token";
       };
     };
 
-    sops.secrets."${config.my.hostKey}_cloudflared_token" = { };
+    sops.secrets."${config.my.hostKey}_cloudflared_ssh_token" = { };
 
     environment.etc."ssh/cloudflare_ca.pub".text = ''
       ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBIHsq7F3PQTDg/TsWn/hG9+igYbGgtT6En3qRnj0tH3SuzQHqkaRsaGHO0JE+FmFlZy0fnKgiDL/dwz/XIPAiLA= open-ssh-ca@cloudflareaccess.org

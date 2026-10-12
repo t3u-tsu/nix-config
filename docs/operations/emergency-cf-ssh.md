@@ -127,11 +127,11 @@ Public Hostname には `<hostname>-cf-ssh.t3u.uk` を設定し，サービス先
 sops secrets/hosts/<hostname>.yaml
 ```
 
-ファイル内に `<hostKey>_cloudflared_token` キーを定義し，取得した Token 文字列を貼り付ける（`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）:
+ファイル内に `<hostKey>_cloudflared_ssh_token` キーを定義し，取得した Token 文字列を貼り付ける（`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）:
 
 ```yaml
 # secrets/hosts/torii-chan.yaml の例
-torii_chan_cloudflared_token: "eyJhIjoi..."
+torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
 ```
 
 編集後，ファイルを保存して暗号化を完了する．
