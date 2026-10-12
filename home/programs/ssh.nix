@@ -30,6 +30,11 @@
         IdentityFile = "~/.ssh/id_ed25519";
         ServerAliveInterval = 60;
       };
+      "*-cf-ssh.t3u.uk" = {
+        ProxyCommand = "cloudflared access ssh --hostname %h";
+        User = osConfig.my.user.name;
+        IdentityFile = "~/.ssh/id_ed25519";
+      };
     };
   };
 }
