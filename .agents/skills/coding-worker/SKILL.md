@@ -97,30 +97,71 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 - **Git 状態の完全分離**: 各兄弟ワークツリーは独立したインデックス（`.git` index）と作業ツリーを持つため，複数ワーカーが同時にファイルを操作・検証しても Git ロック競合やステージング干渉が発生しない．
 - **セッション状態の分離**: `.agents/skills/coding-worker/.state/` は各ワークツリー配下に独立して保持されるため，セッション記録（`last.session`，`task_${TASK_ID}.session`）やログファイルがワーカー間で衝突しない．
-- **実行と差分統合の技術フロー**:
-  1. 親エージェントが `.worktrees/<topic>/` 配下に兄弟ワークツリーを作成する（作成手順は `dev-workflow` 参照）．
-  2. 各ワークツリーを作業ディレクトリとして `run.ysh` をバックグラウンドで同時起動する．
-  3. 各ワーカーは未コミットの差分を兄弟ワークツリー内に生成する．
-  4. 親エージェントは未コミット変更を含めて差分を抽出し，`main/` ワークツリーへ統合・マージする（統合コマンドは `dev-workflow` 参照）．
+
+### 複数ワーカー並列実行プロトコル
+
+親オーケストレーターが複数のワーカーを稼働させる標準手順は以下の通りである．
+
+1. **兄弟ワークツリーの事前一括作成**:
+   タスク分解に基づき，必要な作業ツリーを `.worktrees/<topic>/` 配下に一括で展開する（詳細コマンドは `dev-workflow` 参照）．
+   ```bash
+   # 例: 2つの独立実装タスク用に兄弟ツリーを一括作成
+   git worktree add -b feat/task-dns .worktrees/dns-migration/worker-dns origin/main
+   git worktree add -b feat/task-dhcp .worktrees/dns-migration/worker-dhcp origin/main
+   ```
+2. **バックグラウンド並列同時起動（バッチディスパッチ）**:
+   各ワークツリーを作業ディレクトリ（`Cwd`）として指定し，直列に待たずに `run.ysh` を連続して非同期起動する．親エージェントは小刻みなポーリングや直前の完了待ちを行わず，すべてのワーカーを同時に走らせる．
+   ```bash
+   # ワーカー 1 起動 (Cwd: .worktrees/dns-migration/worker-dns)
+   .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_DNS>"
+
+   # ワーカー 2 起動 (Cwd: .worktrees/dns-migration/worker-dhcp)
+   WORKER=dsh .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_DHCP>"
+   ```
+3. **未コミット差分の並行生成**:
+   各ワーカーはそれぞれの兄弟ワークツリー内で作業ツリーへ差分を直接生成する．
+4. **選択的差分抽出と統合**:
+   全ワーカーのバックグラウンド完了通知を受けた後，または個別完了ごとに親エージェントが各ツリーから未コミット差分を抽出し，統合用ワークツリー（`main/`）へ選択的に取り込む（統合コマンドは `dev-workflow` 参照）．
+
+### ワーカー種別の柔軟な並行利用（Worker Diversity）
+
+タスクの特性，API レート制限，コンテキストサイズに応じ，ワーカー種別（`pi`, `dsh` 等）を柔軟に組み合わせて並行運用する．
+
+- **`pi` 同士の並行運用**:
+  最も標準的なパターン．複数の `pi` プロセスを別個の兄弟ワークツリーで同時起動し，進捗ストリーミング（stderr）と構造化出力（stdout）を個別に受け取る．
+- **`dsh` 同士の並行運用**:
+  大容量スクリプト生成や広範なリファクタリングなど，`dsh` を複数インスタンス同時起動して処理を分散する．
+- **`pi` と `dsh` の組み合わせ並行運用**:
+  バックエンドを分散させることでモデルの多様性を活かし，同時レート制限を回避する．
+  - 例1: モジュール A の実装（`WORKER=pi`）とモジュール B の実装（`WORKER=dsh`）を同時並行で走らせる．
+  - 例2: モジュール実装（`WORKER=pi`）と，先行して完了した別モジュールの技術レビュー（`WORKER=dsh`）をパイプライン上で重ね合わせて実行する．
 
 ## プロンプティング原則
 
 コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述し，以下の制約を遵守させる．
 
 ### 必須制約
-1. **hush 規約の遵守**: 自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
-2. **スコープの限定**: ドキュメントや README など実装対象外のファイルを変更させない（"Do NOT edit documentation or README files."）．
-3. **要約箇条書きの要求**: 全文再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
+1. **排他的ファイルスコープ（ファイル衝突防止）**:
+   複数ワーカーが並列稼働する場合，統合時のコンフリクトを完全に回避するため，各ワーカーに担当ファイル・ディレクトリを排他的に明示し，対象外の変更を厳格に禁止する（"Exclusive File Scope: You are strictly responsible ONLY for the files listed. Modifying any other files is strictly FORBIDDEN."）．
+2. **hush 規約の遵守**:
+   自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
+3. **スコープの限定**:
+   ドキュメントや README など実装対象外のファイルを変更させない（"Do NOT edit documentation or README files."）．
+4. **要約箇条書きの要求**:
+   全文再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
 
 ### プロンプトテンプレート
 
-#### 実装タスク
+#### 並行実装タスク（排他ファイルスコープ明示・推奨）
 ```text
 Task: <goal>
-Target files: <list of files>
+Exclusive Target Files:
+- <file_1>
+- <file_2>
 Instructions: <concise steps>
 Constraints:
-- No explanatory or obvious comments. Self-documenting naming only.
+- Exclusive Scope: You are strictly responsible ONLY for the target files listed above. Do NOT modify, create, or touch any other files under any circumstances.
+- No explanatory or obvious comments. Self-documenting naming only (hush rule).
 - Do NOT edit documentation or README files.
 - Follow nixpkgs conventions and formatting.
 - Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.
@@ -130,12 +171,14 @@ Constraints:
 ```text
 Task: Review and improve the current changes
 Review Target: origin/main..HEAD
+Target Files: <list of specific files to touch>
 Focus: <e.g. systemd service definitions, restic restore logic, networking>
 Instructions:
 - Verify that commands, unit names, and Nix options match actual repository configs.
 - Identify edge cases, race conditions, permission issues, or missing steps.
-- Directly apply suggested fixes and improvements to the target files.
+- Directly apply suggested fixes and improvements to the target files only.
 Constraints:
+- Exclusive Scope: Modify ONLY the specified target files.
 - Follow hush conventions (no explanatory or restating comments).
 - Do NOT edit documentation or README files.
 - Follow nixpkgs conventions and formatting.
