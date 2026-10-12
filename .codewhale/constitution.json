@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "branch_policy": "大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は feat/ fix/ refactor/ docs/ chore/ のブランチで行う．パッケージ1つ追加のような小さな変更は main へ直接コミット・push してよい．main へのマージ・リモート main へのプッシュはユーザー承認を得たうえで行う．マージは PR を作成し，CI（check / convco-check）の通過後にリモートで行う（ローカルでの merge コミットは convco が拒否する）．",
+  "branch_policy": "大きな作業（新ホスト追加，モジュール新設，複数ファイルの変更）は feat/ fix/ refactor/ docs/ chore/ revert/ のブランチで行う．パッケージ1つ追加のような小さな変更は main へ直接コミット・push してよい．main へのマージ・リモート main へのプッシュはユーザー承認を得たうえで行う．マージは PR を作成し，CI（check / convco-check）の通過後にリモートで行う（ローカルでの merge コミットは convco が拒否する）．",
   "escalate_when": [
     "main へのマージまたはリモート main へのプッシュ",
     "nixos-rebuild switch の適用",
