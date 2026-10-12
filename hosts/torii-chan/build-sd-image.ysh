@@ -8,13 +8,7 @@
 #   nix build .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage
 
 cd $_this_dir/../.. {
-  var temp_password = ''
-  try {
-    var preset = ENV.TEMP_PASSWORD
-    if (preset !== '') {
-      setvar temp_password = preset
-    }
-  }
+  var temp_password = get(ENV, 'TEMP_PASSWORD', '')
   if (temp_password === '') {
     setvar temp_password = $(openssl rand -hex 8)
   }

@@ -4,7 +4,7 @@ description: Write, refactor, and execute modern YSH (Oils for Unix) scripts. Us
 license: 0BSD
 compatibility: Requires oils-for-unix (bin/ysh)
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   standard: "agentskills.io"
 ---
 
@@ -23,10 +23,16 @@ YSH strictly separates **Command Mode** (running processes) and **Expression Mod
 | :--- | :--- | :--- |
 | **Command Mode** | `echo $name`, `ls @[files]` | `$var`, `@[list]`, `$[expr]` |
 | **Expression Mode** | `var total = x + y`, `if (port > 80)` | Bare variable names |
-| **Environment Vars** | `var home = ENV.HOME` | Access via `ENV` object |
+| **Environment Vars** | `var home = ENV.HOME`, `var r = get(ENV, 'REGION', 'us-east-1')` | Access via `ENV` object (`get()` with fallback) |
 
 * `$[expr]`: Evaluates an expression and stringifies the result into a shell word.
 * `@[list]`: Splices array elements as distinct shell words (prevents unintended word splitting).
+
+### Environment Variables & Fallbacks
+
+Environment variables live in the `ENV` object (`Obj` type).
+* Direct property access (`var home = ENV.HOME`) requires the variable to exist; accessing an unset variable triggers a fatal error (`Attribute 'KEY' not found on Obj`).
+* `get(ENV, 'KEY', default_val)`: Built-in function to safely access an environment variable with a fallback default. Returns `default_val` only when the key is unset (missing on `Obj`). If the variable is set to an empty string (`export KEY=""`), `get()` returns `""`. For values that must not be empty (e.g. integer conversions like port or timeout), test `if (val !== '')` explicitly.
 
 ### String Interpolation & Quotes
 
@@ -37,10 +43,11 @@ YSH strictly separates **Command Mode** (running processes) and **Expression Mod
 
 ```ysh
 var home = ENV.HOME
-var log_path = $"${home}/logs/app.log"  # Pre-bind before interpolating
+var region = get(ENV, 'REGION', 'us-east-1')  # Idiomatic fallback if unset
+var log_path = $"${home}/logs/app.log"        # Pre-bind before interpolating
 
-var newline = u'\n'                     # Unicode escape
-var winpath = r'C:\Users\me'            # Raw string
+var newline = u'\n'                           # Unicode escape
+var winpath = r'C:\Users\me'                  # Raw string
 ```
 
 ---
@@ -125,14 +132,16 @@ case (config.port) {
 
 Ruby-like blocks `{ ... }` automatically revert scoped state on exit.
 
-* `cd /dir { ... }`: Directory scope. Inside the block, `$PWD` and `$(pwd)` reflect the target directory; `ENV.PWD` remains stale.
+* `cd /dir { ... }`: Directory scope. Wrapping directory-dependent operations inside a block guarantees RAII-style restoration of the working directory upon exit (even on errors or caught failures), replacing fragile `(cd ... && ...)` subshells or manual `cd -`.
+  > **Note**: Inside the block, `$PWD` and `$(pwd)` reflect the target directory; `ENV.PWD` remains stale.
 * `shvar VAR=val { ... }`: Scoped environment/shell variable override.
 * `trap --add SIG { ... }`: YSH uses block syntax for signal traps. String commands (e.g. `trap '...' EXIT`) are invalid.
 
 ```ysh
-# Scoped directory
+# Scoped directory execution with RAII restoration
 cd /tmp {
   echo "Inside PWD: $PWD"       # /tmp
+  # All directory-dependent operations run here; PWD is restored on exit
 }
 echo "Outside PWD: $PWD"        # Restored
 
@@ -162,9 +171,10 @@ echo "Status: $[_reply.status]"
 var res = null
 json read (&res) <<< '{"version": "1.0"}'
 
-# Read entire file into string preserving newlines (native jq -Rs / $(cat ...))
+# Read entire file into string without subshells (subprocess-free $(cat ...) / jq -Rs replacement)
 var text = ""
 read --all (&text) < path/to/file.txt
+setvar text = text.trim()                     # Preferred $(cat file) replacement, strips trailing newlines
 var json_str = $(json write (text))
 ```
 
@@ -176,11 +186,6 @@ YSH enables strict error checking (`errexit`) by default.
 
 * `try { ... }`: Executes block without aborting; records result in `_error`.
 * `if failed { ... }`: Idiomatic check for non-zero exit (`_error.code !== 0`).
-* Checking `ENV` keys: `ENV` is an `Obj`, not a `Dict` (`in` operator unsupported). Check key existence via `try`:
-  ```ysh
-  try { var _ = ENV.MY_KEY }
-  if failed { echo "MY_KEY not set" }
-  ```
 * Suppress `errexit` stderr noise for caught failures:
   ```ysh
   shopt --unset verbose_errexit {
@@ -188,6 +193,17 @@ YSH enables strict error checking (`errexit`) by default.
   }
   if failed { echo "Pattern not found" }
   ```
+* **Environment Variable Access vs. Strict Existence Checks**:
+  `ENV` is an `Obj`, not a `Dict` (the `in` operator is unsupported, and direct missing property access triggers an error).
+  * **Reading with default fallback (idiomatic)**: Use the built-in function `get(ENV, 'KEY', default_val)` directly without `try`:
+    ```ysh
+    var region = get(ENV, 'REGION', 'us-east-1')
+    ```
+  * **Strict existence check (no default)**: Contrast with `try`, which is only needed when strictly checking key existence without providing a default value:
+    ```ysh
+    try { var _ = ENV.API_KEY }
+    if failed { echo "API_KEY not set" }
+    ```
 
 ---
 
@@ -198,11 +214,13 @@ YSH enables strict error checking (`errexit`) by default.
 | `[ "$a" = "$b" ]` or `[[ ... ]]` | `if (a === b)` | Native typed expressions prevent word splitting errors |
 | `VAR=val` (implicit global) | `var x = val` / `setvar x = val` | Explicit scope and dynamic typing |
 | `$"${node.attr}"` | `var a = node.attr; $"${a}"` | Nested property/dict access unsupported in string interpolation |
-| `if ("KEY" in ENV)` | `try { var _ = ENV.KEY } / if failed` | `ENV` is an `Obj`, not a `Dict` (`in` operator unsupported) |
+| `FOO="${FOO-default}"` | `var foo = get(ENV, 'FOO', 'default')` | `get()` corresponds to unset fallback (`${FOO-default}`, not set-but-empty `${FOO:-default}`) on `Obj` without fatal missing-key errors |
+| `if ("KEY" in ENV)` | `try { var _ = ENV.KEY } / if failed` | `ENV` is an `Obj` (`in` unsupported); only use `try` when strictly checking presence without a default |
 | `trap 'rm ...' EXIT` | `trap --add EXIT { rm ... }` | YSH requires block syntax; string commands are invalid |
 | `var path = $PWD` | `var path = ENV.PWD` | Environment variables live in `ENV` object (or `$PWD` after `cd`) |
+| `(cd /dir && cmd)` or `cd /dir; cmd; cd -` | `cd /dir { cmd }` | Block scoping guarantees RAII-style restoration of working directory |
 | `for item in $(ls)` | `for item in (glob("*.txt"))` | Prevents fragile word splitting |
 | `echo $JSON \| jq .key` | `... \| json read; $[_reply.key]` | Native parsing is faster and dependency-free |
 | `jq -Rs . < file` | `read --all (&text); $(json write (text))` | Whole-file JSON encoding without `jq` |
-| `$(cat file)` | `read --all (&text)` | Preserves trailing newlines and avoids a subshell |
+| `$(cat file)` | `read --all (&text) < file; setvar text = text.trim()` | Subprocess-free, avoids subshell overhead, and strips trailing newlines cleanly |
 | `"$@"` | `@[ARGV]` or `@[list]` | Explicit list splicing; built-in CLI args list is uppercase `ARGV` |
