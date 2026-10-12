@@ -49,6 +49,13 @@ in
     services.openssh.settings = {
       TrustedUserCAKeys = "/etc/ssh/cloudflare_ca.pub";
       AuthorizedPrincipalsFile = "/etc/ssh/auth_principals/%u";
+      Macs = [
+        "hmac-sha512-etm@openssh.com"
+        "hmac-sha2-256-etm@openssh.com"
+        "umac-128-etm@openssh.com"
+        "hmac-sha2-256"
+        "hmac-sha2-512"
+      ];
     };
   };
 }
