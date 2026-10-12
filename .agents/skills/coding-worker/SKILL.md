@@ -8,11 +8,16 @@ disable-model-invocation: true
 
 # Coding Worker
 
-外部コーディングワーカー（pi，dsh，codewhale）に対するコード実装・リファクタリングおよび技術レビューの委譲仕様．本スキルは Antigravity（親オーケストレーター）専用であり，呼び出される側のコーディングワーカー自身は参照しない．
+外部コーディングワーカー（pi, dsh, codewhale）に対するコード実装・リファクタリングおよび技術レビューの委譲仕様である．本スキルは親オーケストレーター専用であり，呼び出される側のワーカー自身は参照しない．
+
+親オーケストレーターは，`GEMINI.md` および `orchestration` スキル（`.agents/skills/orchestration/SKILL.md`）に基づいてタスク分解や兄弟ワークツリーの準備を行い，実際にコード実装やレビューで外部ワーカーを起動・委譲する段階で本スキルを参照する．
+
+> [!NOTE]
+> 並列実行時の兄弟ワークツリー作成，非同期パイプライン化，先行作業の進行，および差分統合の手順など，オーケストレーション全般の基本事項は `orchestration` スキルを参照する．本スキルは，実行スクリプト（`run.ysh`）の仕様・使い方および外部コーディングワーカー固有の注意事項・プロンプト設計に特化している．
 
 ## 実行スクリプト仕様
 
-コーディングタスクの委譲には，モダンな YSH 実装の `scripts/run.ysh` を使用する．Oil/YSH 組み込みの JSON パーサーを使用するため，外部ツール（`jq`）への依存がない．
+コーディングタスクの委譲には，`scripts/run.ysh` を使用する．
 
 ### 基本使用方法
 
@@ -49,6 +54,37 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 | `READ_ONLY` | `0` | `1` で `--read-only` モードを有効化する（`worker=pi` 専用）． |
 | `EXTRA_FLAGS` | （空） | ワーカー実行バイナリへ追加で渡す任意フラグ． |
 
+### セッションの継続と対話的改善（CONTINUE / TASK_ID）
+
+ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` や `TASK_ID` を使用する．
+
+- **使用シーン**:
+  - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
+  - **ビルド・検証エラーの修正**: ワーカーの変更後に `nix build` や `flake check` を実行してエラーが発生した際，エラーログを渡して「このエラーを修正してほしい」と修正を指示する場合．
+  - **段階的なリファクタリング**: 実装完了後に同一コンテキストで「関数名をより簡潔にリファクタリングしてほしい」など追加指示を行う場合．
+- **ワークツリーごとの状態分離**:
+  各兄弟ワークツリー配下の `.agents/skills/coding-worker/.state/` は独立して保持されているため，ツリー内で安全に対話を継続できる．別ツリーで並列稼働している他ワーカーのセッションと干渉・混同することはない．
+- **具体例**:
+  ```bash
+  # 兄弟ツリー (.worktrees/dns-migration/worker-dns) 内での対話例:
+
+  # 1. 初回実装を指示
+  .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration in hosts/torii-chan/dns.nix"
+
+  # （結果の diff や検証を確認後，ビルドエラーや追加要件が発生）
+
+  # 2. 直前のセッションを引き継いでエラー修正・テスト追加を指示
+  CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "The build failed with 'attribute dns_records missing'. Fix the syntax and add a unit test in tests/dns.nix."
+  ```
+  `TASK_ID` を指定してセッションを名指しで管理することも可能:
+  ```bash
+  # 特定タスク ID で初回起動
+  TASK_ID="dns-zone" .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration..."
+
+  # 同じタスク ID を指定して継続
+  TASK_ID="dns-zone" CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix build failure..."
+  ```
+
 ### 進捗ストリーミングと出力形式
 
 `worker=pi` は `--mode json` でイベントストリームを逐次処理し，ツールの進捗を stderr へ，最終結果を stdout へ出力する．
@@ -82,7 +118,7 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 
 `worker=dsh` / `worker=codewhale` はストリーミングを行わず，stdout に応答テキスト，stderr にログを出力する．
 
-### 終了コード（Exit Codes）
+### 終了コード
 
 | 終了コード | 意味 |
 | :--- | :--- |
@@ -91,51 +127,60 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 | `2`（またはワーカー固有） | ワーカープロセスの異常終了（ワーカープロセスの終了コードを透過）． |
 | `3` | `--read-only` 実行中にワーキングツリーの変更を検知（フィンガープリント不一致）． |
 
-## 並列ワーカー実行の技術仕様
+## 外部ワーカー固有の注意事項（サブエージェントとの相違点）
 
-同一タスクグループ配下の独立した兄弟ワークツリー（`.worktrees/<topic>/worker-<name>/` 等）を作業ディレクトリとして各ワーカーに割り当てることで，複数のワーカーを完全並列に実行できる．ワークツリーの作成や差分統合の手順は `dev-workflow` スキル（SSOT）に従う．
+親オーケストレーターが Antigravity サブエージェント（`invoke_subagent`）ではなく外部コーディングワーカー（`run.ysh`）を使用する際に，特有として気をつけるべき原則である．
 
-- **Git 状態の完全分離**: 各兄弟ワークツリーは独立したインデックス（`.git` index）と作業ツリーを持つため，複数ワーカーが同時にファイルを操作・検証しても Git ロック競合やステージング干渉が発生しない．
-- **セッション状態の分離**: `.agents/skills/coding-worker/.state/` は各ワークツリー配下に独立して保持されるため，セッション記録（`last.session`，`task_${TASK_ID}.session`）やログファイルがワーカー間で衝突しない．
-- **実行と差分統合の技術フロー**:
-  1. 親エージェントが `.worktrees/<topic>/` 配下に兄弟ワークツリーを作成する（作成手順は `dev-workflow` 参照）．
-  2. 各ワークツリーを作業ディレクトリとして `run.ysh` をバックグラウンドで同時起動する．
-  3. 各ワーカーは未コミットの差分を兄弟ワークツリー内に生成する．
-  4. 親エージェントは未コミット変更を含めて差分を抽出し，`main/` ワークツリーへ統合・マージする（統合コマンドは `dev-workflow` 参照）．
+> [!NOTE]
+> 複数ワーカーの並列実行における兄弟ワークツリーの作成，非同期パイプライン化，先行作業の進行，担当ファイルの排他指定，および差分統合の手順，ならびにワーカー種別（`pi`, `dsh`, `codewhale`）の使い分け・組み合わせ運用方針は，`orchestration` スキル（`.agents/skills/orchestration/SKILL.md`）を参照する．
 
-## プロンプティング原則
+### 1. 英語プロンプトの原則
+Antigravity サブエージェントとは日本語で指示・対話し，ドキュメント等の推敲を行わせるが，外部コーディングワーカー（`pi`, `dsh` 等）には **必ず簡潔で明確な英語（English）** でプロンプトを指示する．日本語の指示や過剰な文脈を与えると，ワーカーの推論精度低下や不要な探索を招く原因となる．
 
-コーディングワーカーへ渡すプロンプトは簡潔かつ明確な英語で記述し，以下の制約を遵守させる．
+### 2. hush 規約の英語制約指示
+サブエージェントには `hush` スキルを直接参照させることができるが，外部ワーカーにはプロンプト内に英語で直接制約を与える（`No explanatory or obvious comments. Self-documenting naming only (hush rule).`）．ワーカーはコメントを過剰に追加しがちであるため，必ず英語制約としてプロンプトに明示する．
 
-### 必須制約
-1. **hush 規約の遵守**: 自明な解説や言い換えコメントの付与を禁じる（"No explanatory or restating comments. Self-documenting naming only."）．
-2. **スコープの限定**: ドキュメントや README など実装対象外のファイルを変更させない（"Do NOT edit documentation or README files."）．
-3. **要約箇条書きの要求**: 全文再掲を禁止し，変更内容と根拠の箇条書きのみを報告させる（"Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks."）．
+### 3. 実装専念とスコープの限定
+外部ワーカーはコード実装・修正に専念させる．ドキュメントや README などの修正はワーカーには行わせず（`Do NOT edit documentation or README files.`），サブエージェントに委譲する．
 
-### プロンプトテンプレート
+### 4. 出力トークンの抑制（全文再掲の禁止）
+CLI 実行される外部ワーカーがファイル全文や巨大なコードブロックを標準出力に再掲すると，トークン消費やバッファ溢れの原因となる．変更内容と理由の簡潔な箇条書きのみを報告させる制約を課す（`Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.`）．
 
-#### 実装タスク
+### 5. レビューモードとワーキングツリー不変の保証（`--read-only`）
+外部ワーカーにレビューを行わせる際，作業ツリーを変更させずに指摘のみを取得したい場合は `--read-only` モードを使用する．`worker=pi` のツール制限と Git フィンガープリント照合により，ツリーが変更されていないことが保証される（変更が検知されると終了コード 3 で異常終了する）．一方，改善差分を直接作成させたい場合は通常の編集可能モードで実行する．
+
+### 6. 対話的改善とセッション継続（`CONTINUE=1`, `TASK_ID`）
+初回の実装や検証後にビルドエラーが発生した場合や追加要件が生じた場合は，新規セッションを起こさず `CONTINUE=1` や `TASK_ID` を指定して同一コンテキストで対話を継続する．兄弟ワークツリーごとに `.agents/skills/coding-worker/.state/` が分離されているため，並列稼働中の他ワーカーと干渉せずに安全に継続できる．
+
+## プロンプトテンプレート
+
+#### 並行実装タスク（推奨）
 ```text
 Task: <goal>
-Target files: <list of files>
+Exclusive Target Files:
+- <file_1>
+- <file_2>
 Instructions: <concise steps>
 Constraints:
-- No explanatory or obvious comments. Self-documenting naming only.
+- Exclusive Scope: You are strictly responsible ONLY for the target files listed above. Do NOT modify, create, or touch any other files under any circumstances.
+- No explanatory or obvious comments. Self-documenting naming only (hush rule).
 - Do NOT edit documentation or README files.
 - Follow nixpkgs conventions and formatting.
 - Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.
 ```
 
-#### 技術レビュー（改善差分作成・推奨）
+#### 技術レビュー（改善差分の直接作成・推奨）
 ```text
 Task: Review and improve the current changes
 Review Target: origin/main..HEAD
+Target Files: <list of specific files to touch>
 Focus: <e.g. systemd service definitions, restic restore logic, networking>
 Instructions:
 - Verify that commands, unit names, and Nix options match actual repository configs.
 - Identify edge cases, race conditions, permission issues, or missing steps.
-- Directly apply suggested fixes and improvements to the target files.
+- Directly apply suggested fixes and improvements to the target files only.
 Constraints:
+- Exclusive Scope: Modify ONLY the specified target files.
 - Follow hush conventions (no explanatory or restating comments).
 - Do NOT edit documentation or README files.
 - Follow nixpkgs conventions and formatting.
