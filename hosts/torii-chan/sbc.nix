@@ -13,10 +13,7 @@
 
   my.nix.distributedBuilds.enable = true;
 
-  my.services.emergencySsh = {
-    enable = true;
-    tunnelId = "e4742587-5e55-4baf-b7ba-e962fa4ec031";
-  };
+  my.services.emergencySsh.enable = true;
 
   boot.loader = {
     generic-extlinux-compatible.enable = true;
