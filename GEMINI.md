@@ -1,24 +1,69 @@
 # Antigravity 共通運用ルール
 
-本リポジトリで Antigravity を用いて稼働するすべてのエージェント（親オーケストレーター，サブエージェント）に適用されるツール運用およびプロセス監視のルールである．
+本リポジトリで Antigravity を用いて稼働するエージェントのツール運用ルールおよび親オーケストレーター行動規範である．
 
-## ツール運用とプロセス監視
+## ツール運用とプロセス監視（全エージェント共通）
 
-不要なツール再実行やトークン消費を抑えるため，以下のルールを遵守する．
+- **タイマーポーリング禁止**: コマンドやプロセスの完了待ちに `schedule` による小刻みなタイマー監視を行わない．完了通知で自動再開されるため，ツール呼び出しを停止して待つ．
+- **外部プロセス待機**: バックグラウンドプロセスの待機は，タイマーではなく `tail --pid=<PID> -f /dev/null` などの単一コマンドで一度だけ完了通知を受ける．
 
-- **小刻みなタイマー監視の禁止**:
-  コマンドやプロセスの完了待ちに `schedule` タイマーによるポーリングを行わない．バックグラウンド通知やタスク完了メッセージによって自動的に処理が再開されるため，ツールの呼び出しを停止して完了通知を待つ．
-- **バックグラウンドプロセスの待機**:
-  バックグラウンドで実行中の外部プロセスを監視・待機する必要がある場合は，小刻みなタイマーではなく `tail --pid=<PID> -f /dev/null` などの単一コマンドで一度だけ完了通知を受け取る．
+## 親オーケストレーター行動規範
 
-## 親オーケストレーターとしての行動規範
+> **子エージェント（サブエージェント）の適用除外**: `invoke_subagent` で起動された子セッションは本章以降をすべて無視する．指示された作業ディレクトリ内で具体的タスクに専念し `send_message` で親へ報告する（ワークツリー作成や再帰起動は禁止）．
 
-ユーザーと直接対話し，全体の進行管理を行う親セッションとして振る舞う場合はこれに従うこと．
+親セッションは全体の進行管理・アーキテクチャ設計・タスク分解・差分統合に専念する．外部ワーカー起動時は `coding-worker` スキル（`run.ysh`），検証・適用時は `dev-workflow` スキルを参照する．
 
-### 初動での必須スキル確認
+### 1. 親オーケストレーターの行動境界（初動判定）
 
-**作業着手時の初手（最初のツール呼び出し）として，他のいかなるファイル探索・コード確認・コマンド実行よりも先に，必ず最優先で `orchestration` スキル（`.agents/skills/orchestration/SKILL.md`）を読み込むこと．**
+コンテキスト汚染防止と並列性最大化のため，深追いを避け即座に委譲する．
 
-親セッションは自己判断で先行して探索や作業を開始してはならない．まず本スキルを読み込み，そこに定義された行動境界に従ってタスク分解，並列委譲，兄弟ワークツリー管理，差分統合を行う．
+- **親が直接実行**: 1〜2 ステップの局所確認（ファイル存在確認，grep 1 回等）や，1〜2 ファイルの軽微修正（typo，設定値変更等）のみ．
+- **外部ワーカーへ委譲（`coding-worker`）**: 本格的なコード実装・技術レビュー（専用ツリーを展開し，指摘にとどまらず改善差分を直接作成させる．`pi`, `dsh`, `codewhale`）．
+- **サブエージェントへ委譲（`self` / `research`）**: 探索的調査（3 ファイル以上の横断精査・原因究明等，ワーカー `--read-only` も可），ドキュメント改修・推敲，文章レビュー（専用ツリーで直接推敲）．
 
-※ `invoke_subagent` により起動されたサブエージェント（子）は，指示された具体的タスク（ファイルの編集や推敲など）を自ら遂行する作業者であり，`orchestration` スキルは参照しない．
+### 2. 並列優先・自律委任の原則
+
+- **並列分割・排他スコープ**: 複数ファイル・モジュール・独立タスクにまたがる作業は，ディレクトリ・ファイル（日英対訳等）・検証単位で排他分割し，直列化せず並列投入する（ワーカー同士・サブエージェント混成可）．
+- **自律委任（指示最小化）**: 子には本ルールや管理手順，過度なコード片を渡さず，ゴール・担当スコープ・制約のみを指定して具体設計・編集は自律的に委ねる．
+- **非同期・逐次合流**: 投入直後に停止せず先行作業を進める．待機時も全完了を待たず，**いずれか 1 つ完了した時点で即座に再開し，先行完了したツリーから順次統合・検証を進める（未完了タスクと統合作業のオーバーラップ）**．
+- **状態分離**: 兄弟ツリーごとに Git インデックスおよびワーカー状態（セッション・ログ）が独立するため，並列稼働や対話継続でもロック競合や混同は起きない．
+
+### 3. 兄弟ワークツリー統合ライフサイクル
+
+1. **ツリー一括作成**: 同一トピック配下にフラットな兄弟ワークツリーを一括作成する（実装・ドキュメントだけでなくレビュー用も展開）．
+   ```bash
+   git fetch origin main
+   git worktree add -b feat/<topic> .worktrees/<topic>/main origin/main # 統合用
+   git worktree add -b feat/<topic>-worker-a .worktrees/<topic>/worker-a origin/main
+   git worktree add -b feat/<topic>-worker-b .worktrees/<topic>/worker-b origin/main
+   git worktree add -b docs/<topic>-subagent-c .worktrees/<topic>/subagent-c origin/main
+   ```
+2. **並列一括投入**: 兄弟ツリーを作業ディレクトリ（`Cwd`）とし，ワーカー（待機せず連続起動）やサブエージェント（`Subagents` 配列）を一斉投入する．
+   ```bash
+   # ワーカー並列投入（Cwd: 各兄弟ツリー）※完了を待たずに連続起動
+   TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
+   TASK_ID="worker-b" .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
+   # 追加指示・対話継続（同一 TASK_ID で自動継続，直前セッション継続は CONTINUE=1）
+   TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
+   ```
+   ```json
+   {
+     "Subagents": [
+       {"Role": "Docs Editor", "TypeName": "self", "Prompt": "作業ディレクトリ: ...\n担当: docs/...\nゴール: ...\n完了報告: send_message"},
+       {"Role": "Comment Reviewer", "TypeName": "self", "Prompt": "作業ディレクトリ: ...\n担当: modules/...\nゴール: hush 精査\n完了報告: send_message"}
+     ]
+   }
+   ```
+3. **先行推進・逐次合流待機**: 投入直後も PR 下書き（`/tmp/pr-body.md`）作成や先行確認を進める．作業が尽きた段階でツール呼び出しを停止して待機し，**いずれか 1 つの完了通知を受けた時点で即座に再開する**．
+4. **差分統合・検証（インクリメンタル統合）**: 完了した兄弟ツリーから順次パッチを統合用ツリーへ適用し，他タスク完了を待たずに先行検証（ビルド，`nix flake check` 等）を進める．
+   ```bash
+   git -C .worktrees/<topic>/worker-a add -N . # 未追跡ファイルを diff に含める
+   git -C .worktrees/<topic>/worker-a diff HEAD --binary | git -C .worktrees/<topic>/main apply
+   ```
+5. **コミット・PR 作成・後始末**: 全差分の統合・検証後，統合用ツリーからコミット，push（`git push -u origin <branch>`），PR 作成（`gh pr create --title <title> --body-file /tmp/pr-body.md`）を行う．完了後に兄弟ツリー群および一時ブランチを一括削除する．
+   ```bash
+   for wt in .worktrees/<topic>/*; do [ "$wt" != ".worktrees/<topic>/main" ] && git worktree remove --force "$wt" 2>/dev/null || true; done
+   git worktree remove --force .worktrees/<topic>/main 2>/dev/null || true
+   rmdir .worktrees/<topic> 2>/dev/null || true
+   git branch -D feat/<topic>-worker-a feat/<topic>-worker-b docs/<topic>-subagent-c 2>/dev/null || true
+   ```
