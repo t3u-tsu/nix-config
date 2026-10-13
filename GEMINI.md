@@ -48,9 +48,11 @@
 2. **並列一括投入**: 兄弟ツリーを作業ディレクトリ（`Cwd`）とし，ワーカー（待機せず連続起動）やサブエージェント（`Subagents` 配列）を一斉起動する．原則として `pi` を使用し，`dsh` や `codewhale` はタスク特性に応じて選択する．ワーカー・サブエージェント双方のレビュータスクも専用ツリーで起動し，指摘にとどまらず改善差分を直接作成させる（統合手戻り防止）．
    ```bash
    # ワーカー 1 投入 (Cwd: .worktrees/<topic>/worker-a)
-   .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
+   TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
    # ワーカー 2 並列投入 (Cwd: .worktrees/<topic>/worker-b) ※完了を待たずに連続起動
-   .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
+   TASK_ID="worker-b" .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
+   # 追加指示・対話継続時
+   CONTINUE=1 TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
    ```
    ```json
    {
