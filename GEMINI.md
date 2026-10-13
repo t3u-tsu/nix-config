@@ -27,10 +27,10 @@
 
 ### 2. 並列優先・自律委任・非同期パイプライン
 
-- **並列優先・分割指針**: 変更・調査対象が 2 つ以上のファイル，モジュール，独立タスクにまたがる本格的な作業は，単一処理に直列化せず原則として並列に分割・投入する．分割単位はディレクトリ・領域単位，ファイル単位（`README.md` / `README.ja.md` 対訳同期等），または独立検証単位とし，排他スコープを割り当てる（1〜2 ファイルの軽微な修正や局所確認は除く）．
-- **自律委任（コンテキスト最小化）**: 子エージェントには本ルールや管理手順を読ませず，コード片や推敲文案を具体的に詰め込みすぎない．「達成すべきゴール」「排他的な担当スコープ」「守るべき制約」の 3 点のみを直接渡し，具体設計や編集詳細は自律的に委ねる．過度な具体化は指示コストを増やし，子の自律的な推論を妨げる．
+- **並列優先・分割指針**: 変更・調査対象が 2 つ以上のファイル，モジュール，独立タスクにまたがる本格的な作業は，単一処理に直列化せず原則として並列に分割・投入する．サブエージェントだけでなく，外部ワーカーも兄弟ツリーごとに複数同時にバックグラウンド起動する（`pi` 同士や混成並列が可能）．分割単位はディレクトリ・領域単位，ファイル単位（`README.md` / `README.ja.md` 対訳同期等），または独立検証単位とし，排他的なスコープを割り当てる．
+- **自律委任（コンテキスト最小化）**: 子エージェントには本ルールや管理手順を読ませず，コード片や推敲文案を具体的に詰め込みすぎない．ゴール，担当スコープ，制約などのみを直接渡し，具体設計や編集詳細は自律的に委ねる．過度な具体化は指示コストを増やし，子の自律的な推論を妨げる．
 - **排他指定の徹底**: 各エージェントに担当スコープを排他指定する．兄弟ツリーにより作業中の物理的な衝突は起きないが，統合ツリーへマージ・パッチ適用する際のコンフリクト回避と責務明確化のために徹底する．
-- **非同期パイプライン**: バックグラウンド投入直後にツール呼び出しを停止しない．先行作業（PR 下書き作成，ピンポイント先行確認，追加タスク投入）を推進し，合流ポイント（全タスク完了後の統合段階）まで待機しない．
+- **非同期パイプライン・逐次合流**: バックグラウンド投入直後にツール呼び出しを停止しない．先行作業（PR 下書き作成，ピンポイント先行確認，追加タスク投入）を推進する．待機時も全タスクの完了を待つのではなく，**いずれか 1 つが完了した時点で即座に再開し，先行完了したツリーから順次差分統合・検証を進める（未完了タスクの実行と統合作業をオーバーラップさせる）**．
 - **状態分離**: 兄弟ツリーごとに Git インデックスと `.agents/skills/coding-worker/.state/`（セッション・ログ）が独立するため，並列稼働してもロック競合やセッション混同は起きない．`CONTINUE=1` による対話継続も他ワーカーと干渉しない（詳細は `coding-worker` スキル）．
 
 ### 3. 兄弟ワークツリー統合ライフサイクル
@@ -42,15 +42,15 @@
    git fetch origin main
    git worktree add -b feat/<topic> .worktrees/<topic>/main origin/main # 統合用
    git worktree add -b feat/<topic>-worker-a .worktrees/<topic>/worker-a origin/main
-   git worktree add -b docs/<topic>-subagent-b .worktrees/<topic>/subagent-b origin/main
-   git worktree add -b test/<topic>-worker-review .worktrees/<topic>/worker-review origin/main # レビュー・改善用
+   git worktree add -b feat/<topic>-worker-b .worktrees/<topic>/worker-b origin/main
+   git worktree add -b docs/<topic>-subagent-c .worktrees/<topic>/subagent-c origin/main
    ```
-2. **並列一括投入**: 兄弟ツリーを作業ディレクトリ（`Cwd`）とし，ワーカーやサブエージェント（`Subagents` 配列）を一斉起動する．原則として `pi` を使用し，`dsh` や `codewhale` はタスク特性に応じて選択する．ワーカー・サブエージェント双方のレビュータスクも専用ツリーで起動し，指摘にとどまらず改善差分を直接作成させる（統合手戻り防止）．
+2. **並列一括投入**: 兄弟ツリーを作業ディレクトリ（`Cwd`）とし，ワーカー（待機せず連続起動）やサブエージェント（`Subagents` 配列）を一斉起動する．原則として `pi` を使用し，`dsh` や `codewhale` はタスク特性に応じて選択する．ワーカー・サブエージェント双方のレビュータスクも専用ツリーで起動し，指摘にとどまらず改善差分を直接作成させる（統合手戻り防止）．
    ```bash
-   # ワーカー起動例 (Cwd: .worktrees/<topic>/worker-a)
-   .agents/skills/coding-worker/scripts/run.ysh "Task: ..."
-   # 追加指示・対話継続時
-   CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
+   # ワーカー 1 投入 (Cwd: .worktrees/<topic>/worker-a)
+   .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
+   # ワーカー 2 並列投入 (Cwd: .worktrees/<topic>/worker-b) ※完了を待たずに連続起動
+   .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
    ```
    ```json
    {
@@ -60,8 +60,8 @@
      ]
    }
    ```
-3. **先行推進・合流待機**: 投入後も PR 下書き（`/tmp/pr-body.md`: 概要・主な変更点・検証項目）の作成やピンポイント先行確認を進める．先行タスクの完了に依存しない後続作業があれば別ツリーを作成して追加投入する．サブエージェントは完了時に `send_message` で親へ報告する．先行作業が尽きた段階でのみツールの呼び出しを停止して完了通知を待つ．
-4. **差分統合・検証**: 各兄弟ツリーからパッチを抽出し，統合用ツリーへ適用する．
+3. **先行推進・逐次合流待機**: 投入後も PR 下書き（`/tmp/pr-body.md`: 概要・主な変更点・検証項目）の作成やピンポイント先行確認を進める．先行タスクの完了に依存しない後続作業があれば別ツリーを作成して追加投入する．先行作業が尽きた段階でツールの呼び出しを停止して待機するが，**全タスク完了を待たずいずれか 1 つの完了通知（またはメッセージ）を受けた時点で再開する**．
+4. **差分統合・検証（インクリメンタル統合）**: 完了した兄弟ツリーから順次パッチを抽出し，統合用ツリーへ適用する（他タスクが実行中でも先行して統合可能）．
    ```bash
    # 未追跡ファイルを diff に含めるため事前に add -N
    git -C .worktrees/<topic>/worker-a add -N .
@@ -69,10 +69,10 @@
    # または新規ディレクトリ等の同期: rsync -av --exclude='.git' .worktrees/<topic>/worker-a/<dir>/ .worktrees/<topic>/main/<dir>/
    ```
    適用後，`dev-workflow` スキルに従い統合ツリー内でビルドや `nix flake check` などの検証を実施する．
-5. **コミット・PR 作成・後始末**: 統合用ツリーからコミット，push（`git push -u origin <branch>`），PR 作成（`gh pr create --title <title> --body-file /tmp/pr-body.md`）を行う．マージまたは作業完了後，兄弟ツリー群および一時ブランチを一括削除する．
+5. **コミット・PR 作成・後始末**: 全差分の統合・検証後，統合用ツリーからコミット，push（`git push -u origin <branch>`），PR 作成（`gh pr create --title <title> --body-file /tmp/pr-body.md`）を行う．マージまたは作業完了後，兄弟ツリー群および一時ブランチを一括削除する．
    ```bash
    for wt in .worktrees/<topic>/*; do [ "$wt" != ".worktrees/<topic>/main" ] && git worktree remove --force "$wt" 2>/dev/null || true; done
    git worktree remove --force .worktrees/<topic>/main 2>/dev/null || true
    rmdir .worktrees/<topic> 2>/dev/null || true
-   git branch -D feat/<topic>-worker-a docs/<topic>-subagent-b 2>/dev/null || true
+   git branch -D feat/<topic>-worker-a feat/<topic>-worker-b docs/<topic>-subagent-c 2>/dev/null || true
    ```
