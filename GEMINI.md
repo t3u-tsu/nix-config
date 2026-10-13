@@ -51,7 +51,7 @@
    TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
    # ワーカー 2 並列投入 (Cwd: .worktrees/<topic>/worker-b) ※完了を待たずに連続起動
    TASK_ID="worker-b" .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
-   # 追加指示・対話継続時（同一 TASK_ID の指定で自動継続，未指定時は CONTINUE=1）
+   # 追加指示・対話継続時（同一 TASK_ID で自動継続，直前セッションの継続は CONTINUE=1）
    TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
    ```
    ```json
