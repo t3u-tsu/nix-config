@@ -16,7 +16,6 @@
 
 ## 手順・リファレンス
 
-全エージェント共通（実装・検証・品質ルール）:
 - **設定変更・適用**: `dev-workflow` スキル
 - **ドキュメント執筆・保守**: `documentation-guide` スキル
 - **モジュール・パッケージ配置**: `editing-guide` スキル
@@ -25,10 +24,3 @@
 - **YSH スクリプト記述**: `ysh` スキル
 - **設計・運用リファレンス**: `docs/`（目次は `docs/README.md`）
 - **秘密情報の扱い**: `docs/operations/secret-management.md`（概要は `secrets/README.md`）
-
-Antigravity 環境共通:
-- **ツール運用・プロセス監視**: `GEMINI.md`
-
-親オーケストレーター専用（子エージェントは参照不要）:
-- **行動規範・並列オーケストレーション**: `GEMINI.md`
-- **外部ワーカー委譲仕様**: `coding-worker` スキル
