@@ -43,8 +43,8 @@
    # ワーカー並列投入（Cwd: 各兄弟ツリー）※完了を待たずに連続起動
    TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Task A: ..."
    TASK_ID="worker-b" .agents/skills/coding-worker/scripts/run.ysh "Task B: ..."
-   # 追加指示・対話継続（同一 TASK_ID で自動継続，直前セッション継続は CONTINUE=1）
-   TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
+   # 追加指示・対話継続（CONTINUE=1 と TASK_ID で特定タスク継続，直前継続は CONTINUE=1 単独）
+   CONTINUE=1 TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "Fix: ..."
    ```
    ```json
    {

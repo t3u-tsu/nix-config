@@ -26,9 +26,9 @@ disable-model-invocation: true
 # 読み取り専用レビュー（指摘のみを取得しワーキングツリーを変更しない）
 .agents/skills/coding-worker/scripts/run.ysh --read-only "Review the diff origin/main..HEAD for technical correctness."
 
-# セッション継続・特定セッション ID 指定
+# セッション継続（直前セッション，または特定 TASK_ID セッション）
 CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
-TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
+CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
 ```
 
 ### オプションとフラグ
@@ -44,14 +44,14 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 | 変数 | デフォルト | 説明 |
 | :--- | :--- | :--- |
 | `WORKER` | `pi` | 使用するワーカーバックエンド（`pi`, `dsh`, `codewhale`）． |
-| `TASK_ID` | （空） | セッション ID を明示して会話ターンをグループ化する（例: `feat-dns`）． |
-| `CONTINUE` | `0` | `1` で直前のセッションを継続する． |
+| `TASK_ID` | （空） | タスク識別子を指定して会話ターンをグループ化する（例: `feat-dns`）．継続には `CONTINUE=1` が必要． |
+| `CONTINUE` | `0` | `1` でセッションを継続する（`TASK_ID` 併用時はそのタスク，未指定時は直前セッション）． |
 | `READ_ONLY` | `0` | `1` で `--read-only` モードを有効化する（`worker=pi` 専用）． |
 | `EXTRA_FLAGS` | （空） | ワーカー実行バイナリへ追加で渡す任意フラグ． |
 
 ### セッションの継続と対話的改善（CONTINUE / TASK_ID）
 
-ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` や `TASK_ID` を使用する．
+ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` を使用する（`TASK_ID` との併用で特定タスクのセッションをピンポイントに継続可能）．
 
 - **使用シーン**:
   - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
@@ -145,7 +145,7 @@ CLI 実行される外部ワーカーがファイル全文や巨大なコード�
 外部ワーカーにレビューを行わせる際，作業ツリーを変更させずに指摘のみを取得したい場合は `--read-only` モードを使用する．`worker=pi` のツール制限と Git フィンガープリント照合により，ツリーが変更されていないことが保証される（変更が検知されると終了コード 3 で異常終了する）．一方，改善差分を直接作成させたい場合は通常の編集可能モードで実行する．
 
 ### 6. 対話的改善とセッション継続（`CONTINUE=1`, `TASK_ID`）
-初回の実装や検証後にビルドエラーが発生した場合や追加要件が生じた場合は，新規セッションを起こさず `CONTINUE=1` や `TASK_ID` を指定して同一コンテキストで対話を継続する．兄弟ワークツリーごとに `.agents/skills/coding-worker/.state/` が分離されているため，並列稼働中の他ワーカーと干渉せずに安全に継続できる．
+初回の実装や検証後にビルドエラーが発生した場合や追加要件が生じた場合は，新規セッションを起こさず `CONTINUE=1`（特定タスクは `TASK_ID` を併用）を指定して同一コンテキストで対話を継続する．兄弟ワークツリーごとに `.agents/skills/coding-worker/.state/` が分離されているため，並列稼働中の他ワーカーと干渉せずに安全に継続できる．
 
 ## プロンプトテンプレート
 
