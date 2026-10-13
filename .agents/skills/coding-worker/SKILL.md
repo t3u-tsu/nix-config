@@ -26,9 +26,9 @@ disable-model-invocation: true
 # 読み取り専用レビュー（指摘のみを取得しワーキングツリーを変更しない）
 .agents/skills/coding-worker/scripts/run.ysh --read-only "Review the diff origin/main..HEAD for technical correctness."
 
-# セッション継続・特定セッション ID 指定
+# セッション継続（直前セッション，または特定 TASK_ID セッション）
 CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
-TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
+CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
 ```
 
 ### オプションとフラグ
@@ -45,13 +45,13 @@ TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGL
 | :--- | :--- | :--- |
 | `WORKER` | `pi` | 使用するワーカーバックエンド（`pi`, `dsh`, `codewhale`）． |
 | `TASK_ID` | （空） | セッション ID を明示して会話ターンをグループ化する（例: `feat-dns`）． |
-| `CONTINUE` | `0` | `1` で直前のセッションを継続する． |
+| `CONTINUE` | `0` | `1` でセッションを継続する（`TASK_ID` 併用時はそのタスク，未指定時は直前セッション）． |
 | `READ_ONLY` | `0` | `1` で `--read-only` モードを有効化する（`worker=pi` 専用）． |
 | `EXTRA_FLAGS` | （空） | ワーカー実行バイナリへ追加で渡す任意フラグ． |
 
 ### セッションの継続と対話的改善（CONTINUE / TASK_ID）
 
-ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` や `TASK_ID` を使用する．
+ワーカーの初回実行後，追加の修正や改善を同一コンテキスト（直前の会話履歴，コード変更，検討内容）を引き継いで行わせたい場合は `CONTINUE=1` を使用する（`TASK_ID` との併用で特定タスクのセッションをピンポイントに継続可能）．
 
 - **使用シーン**:
   - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
