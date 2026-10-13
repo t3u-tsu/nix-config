@@ -42,5 +42,59 @@
         };
       };
     })
+
+    (
+      _final: prev:
+      let
+        ysh = prev.oils-for-unix.ysh;
+        interpreter = lib.getExe ysh;
+        check = "${interpreter} -n > /dev/null";
+        writeYsh =
+          name: argsOrScript:
+          if lib.isAttrs argsOrScript && !lib.isDerivation argsOrScript then
+            prev.writers.makeScriptWriter (argsOrScript // { inherit interpreter check; }) name
+          else
+            prev.writers.makeScriptWriter { inherit interpreter check; } name argsOrScript;
+        writeYshBin = name: writeYsh "/bin/${name}";
+      in
+      {
+        writers = prev.writers // {
+          inherit writeYsh writeYshBin;
+        };
+
+        inherit writeYsh writeYshBin;
+
+        writeYshApplication =
+          {
+            name,
+            text,
+            runtimeInputs ? [ ],
+            checkPhase ? null,
+            meta ? { },
+            passthru ? { },
+            derivationArgs ? { },
+          }:
+          prev.writeTextFile {
+            inherit
+              name
+              meta
+              passthru
+              derivationArgs
+              ;
+            executable = true;
+            destination = "/bin/${name}";
+            allowSubstitutes = true;
+            preferLocalBuild = false;
+            text = ''
+              #!${interpreter}
+            ''
+            + lib.optionalString (runtimeInputs != [ ]) ''
+              setglobal ENV.PATH = "${lib.makeBinPath runtimeInputs}" ++ (":" ++ get(ENV, 'PATH', "") if (get(ENV, 'PATH', "") !== "") else "")
+            ''
+            + text;
+            checkPhase = if checkPhase == null then "${interpreter} -n $target > /dev/null" else checkPhase;
+          };
+      }
+    )
   ];
 }
