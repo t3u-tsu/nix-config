@@ -188,7 +188,7 @@ BIOS 設定の `Config -> Power -> Sleep State` は Linux (S3) に設定して�
 | 方式 | 動作概要 | メリット | デメリット・注意点 |
 | :--- | :--- | :--- | :--- |
 | S3 (Deep Sleep) | RAM 以外の給電を遮断 | スリープ中の電力消費を最小化 | 復帰に 1〜2 秒要する |
-| s2idle (Modern Standby) | SoC の低電力アイドル状態 | 復帰が極めて高速 | スリープ中のバッテリー消費が大きい |
+| s2idle (Modern Standby) | SoC の低電力アイドル状態 | 復帰が高速 | スリープ中のバッテリー消費が大きい |
 
 本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，カーネルパラメータ (`mem_sleep_default=deep` など) ではなく，BIOS 設定の `Config -> Power -> Sleep State` を Linux (S3) に設定して ACPI レベルで行う ([hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) に `boot.kernelParams` は定義していない)．
 

@@ -52,7 +52,9 @@ description: このリポジトリで設定変更を適用するときの手順�
    | `nixfmt` | ファイル単位でフォーマット検証・整形 (`nixfmt <file>`) |
    | `statix` | 同一トップレベルキーの集約定義，空引数の `_:` 指定 |
    | `ysh-check` / `shellcheck` | `*.ysh` は `ysh -n`，`scripts/*.sh` は `shellcheck -x` で検証 |
-   | `ja-punctuation` | Markdown (`.md`)の日本語句読点を `，．` に自動補正 |
+   | `ja-punctuation` | Markdown (`.md`) の日本語句読点を `，．` に自動補正 |
+   | `markdown-link-check` | Markdown の相対リンクと見出しアンカーを検証 |
+   | `docs-check` | Markdown の全角括弧，禁止ワード，擬似見出し (`- **見出し**: 本文`) を検出 |
    | `convco` | コミットメッセージの Conventional Commits 準拠を検証 |
    | `end-of-file-fixer` / `trim-trailing-whitespace` | ファイル末尾改行と末尾空白の整形 (強制改行は `<br>` を使用) |
 

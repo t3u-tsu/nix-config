@@ -26,10 +26,10 @@ description: パッケージ，モジュール，サービス，プロファイ�
 
 ## 設計原則
 
-- プロファイル (`profiles/*.nix`)に具象設定を直書きせず，`my.*` オプションを持つモジュールを `nixos/services/` (または `home/desktop/`)に配置し，プロファイル側は `enable` フラグの指定にとどめる．
-- `home/` (Home Manager)と `nixos/` の関心事を明確に分離する．`home/` はユーザー環境の GUI アプリ・ツールやユーザー設定，`nixos/` (特に `nixos/services/`)はシステムサービス・`/etc` 設定 (`networking.hosts` 等)・カーネル連携を定義する (双方にまたがる場合はランチャー本体を home，hosts ルールを nixos/services に置くなど役割を分担する)．
-- 新機能は既存の関連カテゴリ (例: ゲーム関連なら [nixos/services/desktop/gaming.nix](../../../nixos/services/desktop/gaming.nix) や [home/desktop/gaming.nix](../../../home/desktop/gaming.nix))への統合を優先し，単独ファイルの新設は独立管理すべき大規模機能に限定する．
-- 新規スクリプト (`scripts/` や運用ツール等)は `ysh` スキルに従い原則として YSH (`.ysh`)で作成し，ネイティブ JSON やデータ構造を活用して `jq` や文字列操作ハックを排除する (インストーラ ISO やレスキュー環境等の最小構成向けのみ例外)．Nix 内のスクリプト生成には `pkgs.writeYshApplication` (`runtimeInputs` による PATH 注入対応)や `pkgs.writeYsh` / `pkgs.writeYshBin` を使用する (ビルド時に `ysh -n` で構文検証が行われる)．
+- プロファイル (`profiles/*.nix`) に具象設定を直書きせず，`my.*` オプションを持つモジュールを `nixos/services/` (または `home/desktop/`) に配置し，プロファイル側は `enable` フラグの指定にとどめる．
+- `home/` (Home Manager) と `nixos/` の関心事を明確に分離する．`home/` はユーザー環境の GUI アプリ・ツールやユーザー設定，`nixos/` (特に `nixos/services/`) はシステムサービス・`/etc` 設定 (`networking.hosts` 等)・カーネル連携を定義する (双方にまたがる場合はランチャー本体を home，hosts ルールを nixos/services に置くなど役割を分担する)．
+- 新機能は既存の関連カテゴリ (例: ゲーム関連なら [nixos/services/desktop/gaming.nix](../../../nixos/services/desktop/gaming.nix) や [home/desktop/gaming.nix](../../../home/desktop/gaming.nix)) への統合を優先し，単独ファイルの新設は独立管理すべき大規模機能に限定する．
+- 新規スクリプト (`scripts/` や運用ツール等) は `ysh` スキルに従い原則として YSH (`.ysh`) で作成し，ネイティブ JSON やデータ構造を用いて `jq` や文字列操作ハックを排除する (インストーラ ISO やレスキュー環境等の最小構成向けのみ例外)．Nix 内のスクリプト生成には `pkgs.writeYshApplication` (`runtimeInputs` による PATH 注入対応) や `pkgs.writeYsh` / `pkgs.writeYshBin` を使用する (ビルド時に `ysh -n` で構文検証が行われる)．
 
 ## 新プロファイルを追加するとき
 

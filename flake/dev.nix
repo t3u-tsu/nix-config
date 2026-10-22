@@ -72,9 +72,16 @@ in
         markdown-link-check = {
           enable = true;
           name = "markdown-link-check";
-          description = "Validate relative links in markdown files";
+          description = "Validate relative links and heading anchors in markdown files";
           files = "\\.md$";
           entry = "${pkgs.python3}/bin/python3 scripts/check-markdown-links.py";
+        };
+        docs-check = {
+          enable = true;
+          name = "docs-check";
+          description = "Lint markdown prose for full-width parentheses, prohibited words, and pseudo-headings";
+          files = "\\.md$";
+          entry = "${pkgs.oils-for-unix}/bin/ysh scripts/check-docs.ysh";
         };
       };
 

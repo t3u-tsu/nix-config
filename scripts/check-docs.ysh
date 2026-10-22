@@ -1,0 +1,235 @@
+#!/usr/bin/env ysh
+# Lint markdown prose for full-width parentheses, prohibited words, and pseudo-headings.
+# Usage: ysh scripts/check-docs.ysh [files...]
+
+const PROHIBITED_JA = [
+  '堅牢', '包括的', '網羅的', 'シームレス', '活用', 'レバレッジ',
+  '担保', '看取', '企図', '包摂', '敷設', '資する',
+  '直叩き', '直結で叩く', '正本', '土台', '配線する', '引き回す',
+  '側に倒す', '素通り', '一手に担う', 'という形になる',
+  '念頭に置', '留意する', '非常に', '極めて',
+  'を可能にする', '静かに動く', '効く',
+]
+
+const PROHIBITED_EN = [
+  'delve', 'delves', 'delved', 'delving',
+  'testament', 'testaments', 'tapestry',
+  'robust', 'robustly', 'robustness',
+  'seamless', 'seamlessly',
+  'streamline', 'streamlines', 'streamlined', 'streamlining',
+  'leverage', 'leverages', 'leveraged', 'leveraging',
+  'crucial', 'crucially', 'paramount', 'vital', 'vitally',
+  'comprehensive', 'comprehensively',
+  'foster', 'fosters', 'fostered', 'fostering',
+  'cultivate', 'cultivates', 'cultivated', 'cultivating',
+  'plethora', 'myriad',
+]
+
+const ASCII_WORD_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+
+# The guide quotes every prohibited word while defining the rule.
+const PROHIBITED_WORD_EXEMPT = [
+  '.agents/skills/documentation-guide/SKILL.md',
+]
+
+func leading_count(s, ch) {
+  var count = 0
+  while (count < len(s) and s[count:count + 1] === ch) {
+    setvar count += 1
+  }
+  return (count)
+}
+
+func fence_start(line) {
+  var stripped = line.trimStart()
+  var indent = len(line) - len(stripped)
+  var fence_char = stripped[:1]
+  if (indent > 3 or (fence_char !== '`' and fence_char !== '~')) {
+    return (null)
+  }
+  var count = leading_count(stripped, fence_char)
+  if (count < 3) {
+    return (null)
+  }
+  return ({char: fence_char, count: count})
+}
+
+func closes_fence(line, fence) {
+  var stripped = line.trimStart()
+  var indent = len(line) - len(stripped)
+  if (indent > 3 or stripped[:1] !== fence.char) {
+    return (false)
+  }
+  var count = leading_count(stripped, fence.char)
+  return (count >= fence.count and stripped[count:].trim() === '')
+}
+
+func strip_inline_code(line) {
+  var out = ''
+  var rest = line
+  while (true) {
+    var start = rest.find('`')
+    if (start === -1) {
+      setvar out = out ++ rest
+      break
+    }
+    setvar out = out ++ rest[:start]
+    var run = leading_count(rest[start:], '`')
+    var delimiter = rest[start:start + run]
+    var after = rest[start + run:]
+    var close = after.find(delimiter)
+    if (close === -1) {
+      setvar out = out ++ delimiter
+      setvar rest = after
+    } else {
+      setvar rest = after[close + run:]
+    }
+  }
+  return (out)
+}
+
+func is_pseudo_heading(line) {
+  if (not line.startsWith('- **')) {
+    return (false)
+  }
+  var rest = line[4:]
+  var end = rest.find('**:')
+  if (end <= 0) {
+    return (false)
+  }
+  return (not rest[:end].contains('*'))
+}
+
+func is_ascii_word_char(ch) {
+  return (ch !== '' and ASCII_WORD_CHARS.contains(ch))
+}
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
+
+func contains_ascii_word(haystack, word) {
+  var offset = 0
+  while (true) {
+    var index = haystack[offset:].find(word)
+    if (index === -1) {
+      return (false)
+    }
+    var absolute = offset + index
+    var before = '' if absolute === 0 else haystack[absolute - 1:absolute]
+    var after_index = absolute + len(word)
+    var after = '' if after_index >= len(haystack) else haystack[after_index:after_index + 1]
+    if (not is_ascii_word_char(before) and not is_ascii_word_char(after)) {
+      return (true)
+    }
+    setvar offset = absolute + 1
+  }
+}
+
+func discover_markdown_files() {
+  var listing = ''
+  try {
+    setvar listing = $(git ls-files -co --exclude-standard)
+  }
+  if failed {
+    echo 'ERROR: git ls-files failed; pass markdown files as arguments' >&2
+    return (null)
+  }
+  var files = []
+  for path in (listing.lines()) {
+    if (path.endsWith('.md') and file_exists(path)) {
+      call files->append(path)
+    }
+  }
+  return (files)
+}
+
+func check_file(path, errors) {
+  var content = ''
+  try {
+    read --all (&content) < $path
+  }
+  if failed {
+    call errors->append($"${path}: failed to read file")
+    return (null)
+  }
+
+  var word_checks_enabled = true
+  for exempt in (PROHIBITED_WORD_EXEMPT) {
+    if (path.endsWith(exempt)) {
+      setvar word_checks_enabled = false
+    }
+  }
+
+  var fence = null
+  var lineno = 0
+  for line in (content.lines()) {
+    setvar lineno += 1
+
+    if (fence !== null) {
+      if (closes_fence(line, fence)) {
+        setvar fence = null
+      }
+      continue
+    }
+
+    var start = fence_start(line)
+    if (start !== null) {
+      setvar fence = start
+      continue
+    }
+
+    var clean = strip_inline_code(line)
+    if (clean.contains('（') or clean.contains('）')) {
+      call errors->append($"${path}:${lineno}: full-width parentheses: ${line}")
+    }
+    for word in (PROHIBITED_JA) {
+      if (word_checks_enabled and clean.contains(word)) {
+        call errors->append($"${path}:${lineno}: prohibited word '${word}': ${line}")
+      }
+    }
+    var lowered = clean.lower()
+    for word in (PROHIBITED_EN) {
+      if (word_checks_enabled and contains_ascii_word(lowered, word)) {
+        call errors->append($"${path}:${lineno}: prohibited word '${word}': ${line}")
+      }
+    }
+    if (is_pseudo_heading(clean)) {
+      call errors->append($"${path}:${lineno}: pseudo-heading bullet: ${line}")
+    }
+  }
+  return (null)
+}
+
+var targets = []
+if (len(ARGV) > 0) {
+  for arg in (ARGV) {
+    if (arg.endsWith('.md')) {
+      call targets->append(arg)
+    }
+  }
+} else {
+  var discovered = discover_markdown_files()
+  if (discovered === null) {
+    exit 1
+  }
+  setvar targets = discovered
+}
+
+var errors = []
+for path in (targets) {
+  call check_file(path, errors)
+}
+
+if (len(errors) > 0) {
+  var failure_count = len(errors)
+  echo $"FAILED: ${failure_count} documentation violation(s):"
+  for message in (errors) {
+    echo $"  ${message}"
+  }
+  exit 1
+}
+
+var file_count = len(targets)
+echo $"PASSED: No documentation violations in ${file_count} markdown files."

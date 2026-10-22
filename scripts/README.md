@@ -10,7 +10,8 @@ Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fle
 | [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
 | [set-host-password.ysh](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
-| [check-markdown-links.py](check-markdown-links.py) | Validates that all relative markdown links point to existing files. | Python 3 (run via pre-commit) |
+| [check-markdown-links.py](check-markdown-links.py) | Validates that all relative markdown links point to existing files and heading anchors. | Python 3 (run via pre-commit) |
+| [check-docs.ysh](check-docs.ysh) | Detects full-width parentheses, prohibited words, and pseudo-heading bullets in markdown prose. | YSH (run via pre-commit) |
 | [linkify-markdown.py](linkify-markdown.py) | Scans markdown files and converts raw in-text file paths into relative links. | Python 3 |
 
 ## Usage Examples
@@ -37,6 +38,16 @@ ysh scripts/nebula-rotate-ca.ysh ~/.nebula-ca-new --prefix 10.0.0
 
 # Import new certs into SOPS host files
 SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-new
+```
+
+### Validate Markdown Links and Prose
+
+```bash
+# Check relative links and heading anchors across the repository
+python3 scripts/check-markdown-links.py
+
+# Check full-width parentheses, prohibited words, and pseudo-heading bullets
+ysh scripts/check-docs.ysh
 ```
 
 ## References

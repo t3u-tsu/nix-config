@@ -81,7 +81,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 | ワークフロー | トリガー・内容 |
 | :--- | :--- |
-| [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`)の実行，`convco` による Conventional Commits 検証 |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`, `markdown-link-check`, `docs-check`) の実行，`convco` による Conventional Commits 検証 |
 | [Scheduled Auto Update](.github/workflows/auto-update.yml) | 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，[flake.lock](flake.lock) 更新，CI 検証を経て `main` へ反映 |
 
 ## ドキュメント

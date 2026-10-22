@@ -81,7 +81,7 @@ See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for hos
 
 | Workflow | Trigger & Details |
 | :--- | :--- |
-| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco` |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`, `markdown-link-check`, `docs-check`), and enforces Conventional Commits via `convco` |
 | [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [flake.lock](flake.lock), validates in CI, and pushes updates to `main` |
 
 ## Documentation
