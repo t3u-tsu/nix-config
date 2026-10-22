@@ -83,10 +83,14 @@ docs/
 │   ├── hybrid-gpu.md                  # AMD+NVIDIA ハイブリッド，PRIME offload
 │   ├── orange-pi-zero3.md             # Allwinner H618，U-Boot，SD/HDD ブート
 │   └── storage-zfs.md                 # レガシー BIOS 構成，ZFS Mirror 保守
-└── troubleshooting/                   # トラブルシューティング・FAQ
-    ├── build-and-deploy.md            # ビルド・評価・キャッシュ・デプロイ失敗時
-    ├── secrets-and-auth.md            # SOPS 復号エラー，private input 認証エラー
-    └── network-recovery.md            # Nebula 接続不能，NAT loopback，SSH 遮断復旧
+├── troubleshooting/                   # トラブルシューティング・FAQ
+│   ├── build-and-deploy.md            # ビルド・評価・キャッシュ・デプロイ失敗時
+│   ├── secrets-and-auth.md            # SOPS 復号エラー，private input 認証エラー
+│   └── network-recovery.md            # Nebula 接続不能，NAT loopback，SSH 遮断復旧
+└── research/                          # 実機調査・upstream 読解に基づく調査ノート
+    ├── parallel-auth-architecture.md  # 指紋 + パスワード並行待ち受けの実現方式
+    ├── bsd-auth-architecture.md       # OpenPAM / BSD Authentication の逐次性
+    └── fprintd-triage-notes.md        # x1c7 実機の fprintd トリアージ記録
 ```
 
 ---
