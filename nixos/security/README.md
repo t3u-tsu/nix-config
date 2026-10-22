@@ -1,11 +1,16 @@
-# Security Modules
+# Security Modules (`nixos/security/`)
 
-Security and secret management.
+System secrets management, cryptographic key bootstrapping, and permission policies.
 
 ## Modules
 
-- **`sops.nix`**: SOPS integration via `sops-nix`.
-  - Per-host secrets from `secrets/hosts/<hostname>.yaml` (password hashes, SSH keys, Nebula certs).
-  - Age key is **derived from the SSH host key** at activation (`0-sops-key-import` writes `/var/lib/sops-nix/key.txt`), so freshly flashed images decrypt without manual key placement — as long as the SSH host key exists (i.e. `services.openssh` is enabled).
-  - `sops.age.generateKey = false` is required: a random age key cannot decrypt host-key-encrypted secrets.
-- **`default.nix`**: Imports the security modules.
+| File | Purpose | Notes |
+| :--- | :--- | :--- |
+| `sops.nix` | SOPS secret decryption via `sops-nix`. Automatically extracts host Age private key from `/etc/ssh/ssh_host_ed25519_key` during system activation (`0-sops-key-import`). | Sets `sops.age.generateKey = false`. |
+| `default.nix` | Security module aggregator. | — |
+
+## References
+
+- SOPS secrets directory: [`secrets/`](../../secrets/README.md)
+- Secret management & key lifecycle: [`docs/operations/secret-management.md`](../../docs/operations/secret-management.md)
+- Secrets troubleshooting: [`docs/troubleshooting/secrets-and-auth.md`](../../docs/troubleshooting/secrets-and-auth.md)

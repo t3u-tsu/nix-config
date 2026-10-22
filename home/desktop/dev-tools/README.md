@@ -1,14 +1,34 @@
 # Development Tools
 
-User-specific development environment configuration.
+User-specific developer tooling managed via Home Manager.
 
 ## Modules
 
-- **`neovim.nix`**: Editor configuration — palette-driven highlight groups, `vi`/`vim` aliases and a desktop entry for file managers.
-- **`git-tools.nix`**: Git TUI, forge CLI and the Git credential helper.
-- **`nix.nix`**: Nix ecosystem tooling — store inspection, build monitoring, formatting and linting.
-- **`ai-tools/`**: AI-assisted development tools. `default.nix` is the index; `codewhale.nix` builds the upstream CodeWhale release binary (version and hash tracked by `nvfetcher`); `skills.nix` configures agent skills, installing `hush` (via `nvfetcher`) and `ysh` (from `skills/ysh`); `conoha-vps-mcp.nix` wires the MCP server with SOPS-injected credentials (`conoha-schema-fix.js`); `antigravity.nix` installs Antigravity CLI (`agy`), `pi.nix` installs Pi coding agent (`pi`), and `deepseek-harness.nix` installs DeepSeek Harness (`dsh`), all sourced from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix). Enabled with the desktop full stack (`my.home.desktop.full.enable`).
-- **`hardware.nix`**: EDA tooling, serial console and USB installer writing. The system-level udev rules for the WCH-LinkE programmer live in `nixos/dev-tools/wch-linke.nix`. Enabled with the desktop full stack.
-- **`ghostty.nix`**: Terminal emulator configuration.
-- **`unity.nix`**: Game engine tooling from the standalone [unity-via-distrobox-flake](https://github.com/t3u-tsu/unity-via-distrobox-flake) repository (Distrobox-based Ubuntu 22.04 container). Enabled with the desktop full stack (`my.home.desktop.full.enable`).
-- **`default.nix`**: Index module for the development tool categories.
+| Module / Directory | Description | Profile |
+| :--- | :--- | :--- |
+| `neovim.nix` | Neovim configuration with palette-driven highlights and desktop entries. | Core (`dev-tools.enable`) |
+| `ghostty.nix` | Ghostty GPU-accelerated terminal emulator configuration. | Core (`dev-tools.enable`) |
+| `git-tools.nix` | Git TUIs (LazyGit), forge CLIs (`gh`), and credential helpers. | Core (`dev-tools.enable`) |
+| `nix.nix` | Nix developer utilities (`nix-tree`, `nix-output-monitor`, formatting/linting). | Core (`dev-tools.enable`) |
+| `ai-tools/` | AI coding agents (`agy`, `pi`, `dsh`, CodeWhale, ConoHa MCP, agent skills). | Full (`full.enable`) |
+| `hardware.nix` | EDA tools, serial monitors, and embedded flashing utilities (WCH-LinkE). | Full (`full.enable`) |
+| `unity.nix` | Unity Editor environment via Distrobox container. | Full (`full.enable`) |
+| `default.nix` | Aggregator and default enablement rules. | — |
+
+## AI Tooling (`ai-tools/`)
+
+The `ai-tools/` directory integrates local and upstream LLM coding assistants:
+
+| File | Tool / Function | Source |
+| :--- | :--- | :--- |
+| `antigravity.nix` | Antigravity CLI (`agy`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
+| `pi.nix` | Pi coding agent (`pi`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
+| `deepseek-harness.nix` | DeepSeek Harness (`dsh`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
+| `codewhale.nix` | CodeWhale binary package | Tracked by `nvfetcher` |
+| `conoha-vps-mcp.nix` | ConoHa VPS MCP server | Local Node.js MCP server with SOPS API credentials |
+| `skills.nix` | Agent skills installation | Installs `hush` (via `nvfetcher`) and `ysh` (`skills/ysh`) |
+
+## References
+
+- Hardware udev rules: [`nixos/dev-tools/wch-linke.nix`](../../../nixos/dev-tools/wch-linke.nix)
+- Agent skills documentation: [`.agents/skills/`](../../../.agents/skills/)

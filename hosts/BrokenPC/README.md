@@ -1,44 +1,42 @@
 # Host: BrokenPC (HP Victus 16-e1065AX)
 
-Secondary portable laptop based at Site A and taken off-site, featuring a hybrid AMD iGPU and faulty NVIDIA dGPU configuration, running NixOS with Niri (Wayland).
+Secondary portable laptop deployed at Site A and off-site, featuring a hybrid AMD iGPU and defective NVIDIA dGPU architecture, running NixOS with Niri (Wayland).
 
-## Hardware Specs
-- **CPU:** AMD Ryzen 7 6800H (Zen 3+, 8C/16T, up to 4.7 GHz)
-- **iGPU:** AMD Radeon 680M (RDNA2, primary display renderer)
-- **dGPU:** NVIDIA GeForce RTX 3050 Ti Mobile (Ampere 4 GB, **hardware rendering defect**)
-- **RAM:** 16 GB DDR5-4800
-- **Storage:**
-  - 512 GB NVMe SSD (`MTFDKBA512TFH`): Root (`/`), Boot (`/boot`), Swap
-  - 1 TB NVMe SSD (`FIKWOT_FN500`): Fast scratch & LLM storage (`/data`)
+## Hardware Specifications
 
-## GPU Separation & Local LLM Service
-- **Display Renderer Isolation:** The dGPU suffers from a hardware-level 3D texture/rendering pipeline defect. All desktop display (Niri) and gaming rendering (Steam) are strictly locked to the stable AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and keeping `my.services.desktop.gaming.nvidiaOffload.enable = false` (default disabled).
-- **CUDA & Local LLM (`llama.cpp`):** Matrix compute (GEMM) circuits remain fully functional. The dGPU is utilized as a dedicated CUDA inference accelerator for `llama-server` (`services/llama.nix`, targeting SM 8.6).
-- **Power Management:** When idle, the dGPU is completely powered down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), minimizing battery drain when used portably.
-- For in-depth technical analysis and preset configurations, see [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md).
+| Component | Specification | Details |
+| :--- | :--- | :--- |
+| **CPU** | AMD Ryzen 7 6800H | Zen 3+, 8C/16T, up to 4.7 GHz |
+| **iGPU** | AMD Radeon 680M | RDNA2 (Primary display renderer) |
+| **dGPU** | NVIDIA GeForce RTX 3050 Ti Mobile | Ampere 4 GB (Matrix compute only; 3D rasterization defective) |
+| **RAM** | 16 GB DDR5-4800 | Dual channel |
+| **Storage 1** | 512 GB NVMe SSD (`MTFDKBA512TFH`) | ESP (`/boot` 512M fat32), Swap (8G), Root (`/` ext4) |
+| **Storage 2** | 1 TB NVMe SSD (`FIKWOT_FN500`) | Fast scratch & LLM models (`/data` ext4) |
+
+## GPU Separation & Workload Allocation
+
+- **Display & UI Isolation:** The dGPU suffers from a hardware-level 3D rasterization failure. Wayland compositor (Niri) and 3D graphics (Steam) are strictly locked to the AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload.enable = false`.
+- **CUDA Matrix Acceleration:** Matrix compute (GEMM) units remain functional. The dGPU operates as a dedicated CUDA inference engine for local LLMs (`services/llama.nix`, targeting SM 8.6).
+- **Power Optimization:** When idle, the dGPU powers down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), preserving battery life.
 
 ## Configuration Summary
-- **Profile:** `desktop`
-- **Nebula Mesh:** `10.0.0.100` (groups: `mgmt`, `app`)
-- **Mobility & Networking:** Operates both at Site A and off-site over Wi-Fi / mobile hotspots, accessing cluster services securely via Nebula (`10.0.0.0/24`).
-- **Key Modules:**
-  - Desktop: Niri Wayland compositor, Noctalia greeter & shell, Ghostty, Zen Browser
-  - Services: Local LLM (`my.home.programs.llama`), SOPS secrets
 
-## Installation
-Follow the unified host installation guide in [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md).
-
-Disk layout:
-- `nvme0n1`: ESP (512M fat32), Swap (8G), Root (ext4)
-- `nvme1n1`: `/data` (1 TB ext4)
+| Property | Value |
+| :--- | :--- |
+| **Profile** | `desktop` |
+| **Nebula Mesh** | `10.0.0.100` (groups: `mgmt`, `app`) |
+| **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
+| **Key Services** | Local LLM inference server (`my.home.programs.llama`), SOPS secrets |
 
 ## Quick Operations
+
 ```bash
-# Local rebuild
+# Local system rebuild
 sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
 ## References
+
 - Hybrid GPU architecture & LLM tuning: [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md)
 - Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

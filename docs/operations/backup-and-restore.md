@@ -1,6 +1,6 @@
 # バックアップ運用 & ディザスタリカバリ (DR)
 
-本ドキュメントは，Restic および ZFS によるサーバーデータの多重バックアップ構成，日々の保守運用，およびシステム全損時の完全復旧（ディザスタリカバリ）手順を記述する．
+本ドキュメントは，Restic および ZFS によるサーバーデータの多重バックアップ構成，日々の保守運用，およびシステム全損時の完全復旧（ディザスタリカバリ）手順を解説する．
 
 ---
 
@@ -81,7 +81,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 `shosoin-tan` のディスクが全損，またはマシン自体が失われた場合，`kagutsuchi-sama` のリモートバックアップから代替マシンへデータを完全復元する手順である．
 
 ### Step 1: 新規ホストの準備
-[新ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
+[新規ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
 
 ### Step 2: バックアップの取得・復元
 1. **代替ホスト上で Restic を実行**:
@@ -128,6 +128,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [ネットワークアーキテクチャ](../architecture/network-topology.md)
 - [ZFS & ストレージ保守](../hardware/storage-zfs.md)
-- [新ホスト追加手順](adding-a-host.md)
+- [新規ホスト追加手順](adding-a-host.md)

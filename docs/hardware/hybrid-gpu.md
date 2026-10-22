@@ -1,6 +1,32 @@
 # AMD + NVIDIA ハイブリッド GPU 分離設計ガイド
 
-本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．本機は拠点A をベースとしつつ，外出時にも持ち出されるサブ機（可搬ノートPC）としての運用特性を持つ．
+本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．本機は拠点Aを拠点としつつ，外出時にも持ち出されるサブ機（可搬ノートPC）としての運用特性を持つ．
+
+```mermaid
+flowchart TD
+    subgraph Host["BrokenPC (HP Victus 16-e1065AX)"]
+        subgraph DisplayPipeline["デスクトップ・描画パイプライン"]
+            Niri["Wayland コンポジタ (Niri)"]
+            Games["Steam / ゲーム描画"]
+            iGPU["AMD Radeon 680M (07:00.0)<br>★ プライマリ DRM レンダラ"]
+            Display["内蔵 / 外部ディスプレイ"]
+
+            Niri -->|"WLR_DRM_DEVICES<br>(by-path 固定)"| iGPU
+            Games -->|"nvidiaOffload = false<br>(ネイティブ実行)"| iGPU
+            iGPU --> Display
+        end
+
+        subgraph ComputePipeline["推論計算パイプライン"]
+            Llama["llama-server (systemd ユーザーサービス)"]
+            dGPU["NVIDIA RTX 3050 Ti Mobile (01:00.0)<br>3D 回路: 物理破損 / CUDA・GEMM: 正常"]
+            PowerState["RTD3 動的電源制御<br>(finegrained = true)"]
+
+            Llama -->|"CUDA GEMM 計算<br>(Compute Capability 8.6)"| dGPU
+            PowerState -->|"推論アイドル 5分経過"| dGPU
+            PowerState -.->|"D3cold (完全電源遮断)"| dGPU
+        end
+    end
+```
 
 ---
 
@@ -19,7 +45,7 @@
 
 ### 障害の症状と切り分け
 
-- **症状**: Minecraft 等の重い 3D レンダリングを実行すると，OpenGL 環境では `libnvidia-glcore.so` 内で `SIGSEGV` が発生し，Vulkan 環境では GPU ハング（画面フリーズおよびドライバのリセットタイムアウト）が発生する．
+- **症状**: Minecraft 等の高負荷 3D レンダリングを実行すると，OpenGL 環境では `libnvidia-glcore.so` 内で `SIGSEGV` が発生し，Vulkan 環境では GPU ハング（画面フリーズおよびドライバのリセットタイムアウト）が発生する．
 - **切り分け実験**:
   - `glmark2` ベンチマークは完走する．
   - VRAM の 90% 以上を確保するメモリストレステストはエラーなく通過する．
@@ -79,6 +105,22 @@ my.hardware.nvidia = {
 ```
 
 これにより，後述の CUDA 計算タスクが実行されていない平常時，dGPU は自動的に省電力スリープ（電源遮断状態）を維持する．
+
+#### dGPU 電源状態の確認手順
+
+dGPU が正常にサスペンド（D3cold）しているかは，以下の sysfs 経由で確認できる:
+
+```bash
+# dGPU の Runtime PM 状態を確認 (suspended であれば電源切断中)
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
+# 期待される出力: suspended
+
+# 動作ステートの確認 (D3cold であれば完全サスペンド)
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
+```
+
+> [!WARNING]
+> `nvidia-smi` コマンドを実行すると，ドライバが dGPU を D0（稼働状態）へ復帰させてしまう．アイドリング状態の確認には `nvidia-smi` ではなく上記の sysfs を参照すること．
 
 ---
 
@@ -143,15 +185,18 @@ home-manager.users.${config.my.user.name} = {
 
 #### 4 GB VRAM 環境におけるチューニング要点
 
-1. **モデル規模別の層オフロード (`ngl`)**:
-   - **3B / 4B クラス**: `ngl = 99` を指定し，全レイヤを 4 GB VRAM 内へ完全に格納して超高速推論を実現する．
-   - **9B クラス**: VRAM 容量を超えるため，`ngl = 12` により先頭の 12 レイヤのみを GPU へオフロードし，残りは CPU（Ryzen 7 6800H）および DDR5 RAM で処理する．
-2. **`--fit` オプションによる動的 MoE オフロード**:
+| モデル区分 | 該当モデル例 | GPU層 (`ngl`) | MoE (`ncmoe`) | コンテキスト長 (`ctxSize`) | オフロード戦略 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **3B / 4B クラス** | `G9v3-3B`, `Qwen3.5-4B` | `99` (全層) | `0` | 16,384 〜 32,768 | 4 GB VRAM 内へ全レイヤを格納し最速推論を実現 |
+| **9B クラス** | `Qwen3.5-9B`, `Ornith-1.5-9B` | `12` (先頭12層) | `0` | 32,768 | VRAM を超えるため先頭層のみ GPU，残りは CPU+RAM |
+| **小型 MoE** | `Ling-3.0-tiny`, `LFM2.5-8B` | *未指定* | *未指定* | *未指定* | `--fit` フラグに委ね，VRAM 枠に応じた動的最適配分 |
+
+1. **`--fit` オプションによる動的 MoE オフロード**:
    - `presets` 内で設定値を空集合 `{}` としたモデルは，設定 INI ファイルからキーが省略される．
    - これにより，`llama-server` の `--fit` フラグが有効化され，4 GB の VRAM 枠に収まるよう自動的にレイヤ数，コンテキスト長，MoE エキスパート数が最適配分される（手動で `ngl` や `ncmoe` を与えると `--fit` が無効化されるため）．
-3. **アイドル時の電源復帰 (`sleepIdleSeconds = 300`)**:
+2. **アイドル時の電源復帰 (`sleepIdleSeconds = 300`)**:
    - 推論リクエストが途絶えて 300 秒（5 分）経過するとモデルをメモリから解放する．
-   - これに連動して dGPU への CUDA コンテキストが破棄され，前述の RTD3 機構により dGPU が自動的に電源遮断（サスペンド）状態に戻る．
+   - これに連動して dGPU への CUDA コンテキストが破棄され，前述の RTD3 機構により dGPU が自動的に電源遮断（`suspended`）状態に戻る．
 
 ---
 

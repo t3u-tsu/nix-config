@@ -1,24 +1,39 @@
 # Host: torii-chan (Nebula Gateway / Lighthouse & Relay)
 
-Edge gateway node deployed at **Site T** on an Orange Pi Zero 3 SBC (`192.168.0.128`), with failover capability to a ConoHa VPS.
+Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), with automated failover capability to ConoHa VPS.
 
-## Role & Architecture
-- **Primary Lighthouse & Relay:** Serves as the central discovery lighthouse and relay for the Nebula mesh (`10.0.0.1:4242`).
-- **Cloudflare DDNS:** Automatically synchronizes public dynamic IPv4 to `torii-chan.t3u.uk` and `*.mc.t3u.uk`.
-- **Minecraft Port Forward:** Proxies public TCP `25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) via Nebula mesh overlay.
-- **Security Boundary:** SSH port 22 is strictly restricted to `nebula0`. Only UDP `4242` (Nebula) and TCP `25565` (Minecraft) are publicly exposed.
-- **Failover Design:** Shares hostname and SOPS secrets with `torii-chan-vps` to enable seamless DNS/traffic takeover during physical outages.
+## Hardware Specifications
 
-## Configurations in Flake
-- `torii-chan-sd`: Production SBC deployment (root on microSD).
-- `torii-chan-hdd`: Production SBC deployment (root on USB SATA HDD).
-- `torii-chan-vps`: Failover deployment on ConoHa VPS (x86_64).
-- `torii-chan-sd-installer`: Minimal installer image package for SBC provisioning.
-- `torii-chan-vps-iso`: Minimal installer ISO package for VPS rescue boots.
+| Component | Specification | Details |
+| :--- | :--- | :--- |
+| **SoC** | Allwinner H618 | Quad-core ARM Cortex-A53 up to 1.5 GHz |
+| **RAM** | 1 GB LPDDR4 | Shared memory |
+| **Storage (Production)** | 2.5" SATA HDD via USB bridge | Root filesystem (`/dev/sda2`) |
+| **Storage (Bootloader)** | MicroSD Card | U-Boot SPL and boot partition |
+| **Network** | Gigabit Ethernet (1000BASE-T) | Static local IP: `192.168.0.128` |
+
+## Roles & Network Architecture
+
+- **Primary Lighthouse & Relay:** Central discovery node and mesh traffic relay for Nebula (`10.0.0.1:4242`).
+- **Cloudflare DDNS:** Dynamic IP sync daemon updating `torii-chan.t3u.uk` and `*.mc.t3u.uk`.
+- **Minecraft Port Forward:** Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
+- **Security Boundary:** SSH port 22 is strictly bound to `nebula0`. Only UDP `4242` (Nebula) and TCP `25565` (Minecraft) are exposed publicly.
+- **Failover Compatibility:** Shares hostname and SOPS secrets with `torii-chan-vps` to support seamless failover.
+
+## Flake Configurations
+
+| Target | Architecture | Target Medium / Purpose |
+| :--- | :--- | :--- |
+| `torii-chan-hdd` | `aarch64-linux` | Production SBC deployment (Root on USB SATA HDD) |
+| `torii-chan-sd` | `aarch64-linux` | Production SBC deployment (Root on MicroSD) |
+| `torii-chan-vps` | `x86_64-linux` | Failover deployment on ConoHa VPS (512MB) |
+| `torii-chan-sd-installer` | `aarch64-linux` | Minimal SD installer image |
+| `torii-chan-vps-iso` | `x86_64-linux` | Minimal rescue installer ISO |
 
 ## Quick Operations
+
 ```bash
-# Rebuild SBC remotely (requires disabling sandbox on low-RAM SBC)
+# Rebuild SBC remotely (disabling sandbox on 1GB RAM)
 nixos-rebuild switch \
   --flake .#torii-chan-hdd \
   --target-host t3u@10.0.0.1 \
@@ -28,7 +43,8 @@ nixos-rebuild switch \
 ```
 
 ## References
-- Hardware architecture, U-Boot & HDD setup: [`docs/hardware/orange-pi-zero3.md`](../../docs/hardware/orange-pi-zero3.md)
+
+- Hardware architecture, U-Boot, and storage: [`docs/hardware/orange-pi-zero3.md`](../../docs/hardware/orange-pi-zero3.md)
 - ConoHa VPS failover & failback runbook: [`docs/operations/vps-failover.md`](../../docs/operations/vps-failover.md)
-- Fleet network topology & IP allocation: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Adding a new host: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)

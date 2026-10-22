@@ -1,10 +1,17 @@
-# Profiles
+# Host Profiles (`nixos/profiles/`)
 
-Role-based host profiles, applied automatically by `mkSystem` (see [`lib/`](../../lib/)). A profile must be specified for every host.
+Role-based host profiles applied automatically during system evaluation via `mkSystem` (`lib/mkSystem.nix`). Every managed machine specifies one primary profile.
 
-## Profiles
+## Profile Catalog
 
-- [`desktop/`](desktop/): Desktop experience — lightweight core via `my.services.desktop.enable` / `my.home.desktop.enable` plus an opt-in full stack (`my.services.desktop.full.enable` / `my.home.desktop.full.enable`) for gaming/creative/media; wires `home/desktop` into Home Manager for the primary user.
-- [`gateway/`](gateway/): Enables the torii-chan gateway role ([`nixos/services/gateway/`](../services/gateway/)) — Nebula Lighthouse/Relay, DDNS, Minecraft port-forward, firewall hardening. See [`hosts/torii-chan/`](../../hosts/torii-chan/) for details.
-- [`sbc/`](sbc/): Low-memory SBC profile — sandbox disabled, 4GB swapfile, swappiness tuning.
-- [`tower-server/`](tower-server/): Tower server common — stock kernel, SSH via Nebula mesh only, PC tools.
+| Profile | Target Architecture | Description | Target Hosts |
+| :--- | :--- | :--- | :--- |
+| [`desktop/`](desktop/README.md) | `x86_64-linux` | Graphical desktop workstations (Niri Wayland compositor, Noctalia shell, audio, and optional gaming/creative tools). | `BrokenPC`, `x1c7` |
+| [`gateway/`](../services/gateway/README.md) | `aarch64-linux`, `x86_64-linux` | Edge network router: Nebula Lighthouse and Relay, Cloudflare DDNS, and port forwarding. | `torii-chan`, `torii-chan-vps` |
+| [`sbc/`](sbc/README.md) | `aarch64-linux` | Low-RAM single-board computers (sandboxing disabled, 4GB swapfile, aggressive swappiness). | `torii-chan` |
+| [`tower-server/`](tower-server/README.md) | `x86_64-linux` | Headless servers (LTS kernel, SSH restricted exclusively to Nebula mesh, hardware health monitoring). | `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` |
+
+## References
+
+- System evaluation architecture: [`docs/architecture/overview.md`](../../docs/architecture/overview.md)
+- System builder implementation: [`lib/README.md`](../../lib/README.md)

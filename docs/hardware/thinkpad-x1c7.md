@@ -2,6 +2,39 @@
 
 本ドキュメントは，Lenovo ThinkPad X1 Carbon Gen 7（ホスト名: `x1c7`）におけるハードウェア仕様，電源・サーマル管理，ログイン認証，スリープ動作，およびオーディオ消失回避ワークアラウンドに関する技術仕様と設計要点をまとめたものである．
 
+```mermaid
+flowchart TD
+    subgraph X1C7["ThinkPad X1 Carbon Gen 7 (x1c7)"]
+        subgraph PowerThermal["電源・サーマル協調制御"]
+            TLP["TLP 5層設定<br>(powersave + EPP 自律制御)"]
+            Throttled["throttled (EC スロットル解除)<br>AC: PL1 25W / BAT: PL1 15W"]
+            Platform["ACPI platform_profile<br>(balanced / performance)"]
+            TLP <--> Throttled
+            TLP --> Platform
+        end
+
+        subgraph MemorySwap["メモリ・OOM 防止スタック"]
+            ZRAM["zram (RAM 100%, prio 100)<br>最優先インメモリ圧縮"]
+            Swapfile["Swapfile (16 GiB, /var/lib/swapfile)<br>オーバーフロー & ハイバネーション"]
+            Sysctl["sysctl 最適化<br>swappiness=180, watermark=125, page-cluster=0"]
+            ZRAM --> Swapfile
+        end
+
+        subgraph AudioPatch["オーディオ消失回避ワークアラウンド"]
+            UCM["alsa-ucm-conf パッチ適用<br>ConflictingDevice & Priority 900"]
+            PipeWire["pipewire.service"]
+            WirePlumber["wireplumber.service"]
+            UCM -->|"ALSA_CONFIG_UCM2"| PipeWire & WirePlumber
+        end
+
+        subgraph AuthSec["生体認証 & USB 安定化"]
+            Fprint["Synaptics Prometheus (06cb:00bd)<br>libfprint / fprintd"]
+            TLP_Deny["TLP USB_DENYLIST 登録<br>(autosuspend タイムアウト防止)"]
+            Fprint --- TLP_Deny
+        end
+    end
+```
+
 ---
 
 ## 1. ハードウェア諸元と NixOS 最適化
@@ -67,6 +100,8 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
   - `CPU_HWP_DYN_BOOST_ON_AC = 1`: AC 駆動時の急激な負荷スパイクに対し動的ブーストを適用し UI 応答性を維持．
   - `PLATFORM_PROFILE = "balanced"`: AC / BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げ可能．
   - `PCIE_ASPM_ON_BAT = "powersave"`: バッテリー駆動時に PCIe リンク（NVMe，Wi-Fi，Thunderbolt）を低電力ステートへ移行．
+- **USB 自動サスペンドの除外 (`USB_DENYLIST = "06cb:00bd"`)**:
+  Synaptics 指紋リーダー（`06cb:00bd`）は USB autosuspend 状態から復帰する際にプロトコルタイムアウトを起こしやすい．そのため，TLP の `USB_DENYLIST` に本デバイスを追加して常時通電を維持している．
 
 ### throttled (Lenovo サーマルバグ対策)
 
@@ -132,10 +167,12 @@ Linux 環境において，Lenovo の EC ファームウェアが CPU を過剰�
 
 BIOS 設定の `Config -> Power -> Sleep State` は **Linux (S3)** に設定している．
 
-- **S3 (Deep Sleep)**: RAM 以外の給電をカットするためスリープ中のバッテリー消費を最小限に抑えられる．
-- **s2idle (Modern Standby)**: 復帰が極めて高速で，復帰時の指紋センサー初期化の信頼性に優れるが，スリープ中の電力消費が大きい．
+| 方式 | 動作概要 | メリット | デメリット・留意点 |
+| :--- | :--- | :--- | :--- |
+| **S3 (Deep Sleep)** | RAM 以外の給電を遮断 | スリープ中の電力消費を最小化 | 復帰に 1〜2 秒要する |
+| **s2idle (Modern Standby)** | SoC の低電力アイドル状態 | 復帰が極めて高速 | スリープ中のバッテリー消費が大きい |
 
-本ホストではバッテリー持続時間を優先して S3 を選択している．スリープステートの S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を **Linux (S3)** に設定することで ACPI レベルで実現される．
+本ホストではバッテリー持続時間を最優先して S3 を選択している．スリープステートの S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を **Linux (S3)** に設定することで ACPI レベルで実現される．
 
 ### 運用上の留意事項
 

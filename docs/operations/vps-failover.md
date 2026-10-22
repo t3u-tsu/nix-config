@@ -1,6 +1,6 @@
 # ConoHa VPS プロビジョニング & フェイルオーバー手順
 
-本ドキュメントは，物理エッジゲートウェイ（`torii-chan`）がハードウェア故障や長時間の停電等で停止した場合に，ConoHa VPS 上で待機系ゲートウェイ（`torii-chan-vps`）を立ち上げ，切替および物理復旧後の切戻し（Failback）を行う緊急時手順書（Runbook）である．
+本ドキュメントは，物理エッジゲートウェイ（`torii-chan`）がハードウェア故障や停電等で停止した場合に，ConoHa VPS 上で待機系ゲートウェイ（`torii-chan-vps`）を立ち上げ，切替および物理復旧後の切戻し（Failback）を行う緊急時運用手順書（Runbook）である．
 
 ---
 
@@ -92,6 +92,7 @@ Cloudflare ダッシュボード（または API）で，ドメインの A レ�
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [ネットワークアーキテクチャ](../architecture/network-topology.md)
 - [Terraform モジュール仕様](../../terraform/README.md)
 - [トラブルシューティング: ネットワーク](../troubleshooting/network-recovery.md)

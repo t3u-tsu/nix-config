@@ -1,13 +1,15 @@
-# Development Tools (System Level)
+# System Development Hardware (`nixos/dev-tools/`)
 
-System-wide configuration for development hardware and tooling.
-Imported for all hosts via `nixos/default.nix`; enabled per-host with
-`my.dev-tools.enable`.
+System-level udev rules and hardware privileges for developer tooling.
 
 ## Modules
 
-- **`default.nix`**: Defines the `my.dev-tools.enable` category flag and imports the modules.
-- **`wch-linke.nix`**: udev rules for the WCH-LinkE debug probe.
-- **`ventoy.nix`**: Approves the insecure USB-installer package.
-  Its upstream binaries cannot be verified malware-free (nixpkgs#404663),
-  so the package is marked insecure and requires `nixpkgs.config.permittedInsecurePackages`.
+| File | Description | Option |
+| :--- | :--- | :--- |
+| `wch-linke.nix` | udev rules granting unprivileged user access to WCH-LinkE RISC-V/ARM debug probes. | Enabled with `my.dev-tools.enable` |
+| `ventoy.nix` | Explicit security override (`permittedInsecurePackages`) for Ventoy USB installer packages. | Enabled with `my.dev-tools.enable` |
+| `default.nix` | Category flag definition (`my.dev-tools.enable`) and aggregator. | — |
+
+## References
+
+- User-level dev tools: [`home/desktop/dev-tools/`](../../home/desktop/dev-tools/README.md)

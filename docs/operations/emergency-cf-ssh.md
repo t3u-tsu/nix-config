@@ -1,6 +1,6 @@
 # 非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）
 
-本ドキュメントは，Nebula メッシュ VPN の障害時，Lighthouse 停止時，またはファイアウォール誤設定時等に，物理ディスプレイやキーボードを接続することなく安全にサーバーへアクセスするための帯域外管理（Out-of-Band Management: OOBM）手段である Cloudflare Tunnel 経由 SSH アクセスの運用・接続手順を記述する．
+本ドキュメントは，Nebula メッシュ VPN の障害時，Lighthouse 停止時，またはファイアウォール誤設定時等に，物理ディスプレイやキーボードを接続することなく安全にサーバーへアクセスするための帯域外管理（Out-of-Band Management: OOBM）手段である Cloudflare Tunnel 経由 SSH アクセスの運用・接続手順を解説する．
 
 ---
 
@@ -199,8 +199,8 @@ sudo nixos-rebuild switch --rollback
 ---
 
 ## 関連ドキュメント
-
-- [ネットワークアーキテクチャ設計](../architecture/network-topology.md)
+- [目次（設計・運用ドキュメント）](../README.md)
+- [ネットワークアーキテクチャ](../architecture/network-topology.md)
 - [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md)
 - [シークレット & 鍵ライフサイクル管理](secret-management.md)
-- [VPS フェイルオーバー手順](vps-failover.md)
+- [ConoHa VPS プロビジョニング & フェイルオーバー手順](vps-failover.md)

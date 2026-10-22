@@ -1,6 +1,6 @@
 # シークレット & 鍵ライフサイクル管理
 
-本ドキュメントは，SOPS（sops-nix），age，1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，年次更新手順，および失効・廃棄プロトコルを記述する．
+本ドキュメントは，SOPS（sops-nix），age，1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，年次更新手順，および失効・廃棄プロトコルを解説する．
 
 ---
 
@@ -45,7 +45,7 @@ graph TD
 
 シークレットの編集には `master_key` が必要である:
 ```bash
-# master 鍵の環境変数を指定して編集
+# master 鍵の環境変数を指定して共通シークレットを編集
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/common.yaml
 
 # ホスト個別シークレットの編集
@@ -66,8 +66,6 @@ CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
 # 各ノードの証明書を署名後，SOPS へ一括インポート
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
-# または直接実行:
-# SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./scripts/nebula-import-secrets.ysh "$CA_DIR"
 ```
 ※CA 自体を更新する場合は，`ysh scripts/nebula-rotate-ca.ysh`（または `./scripts/nebula-rotate-ca.ysh`）を実行して全ノードを再発行する．
 更新後は `git commit` し，各ホストにデプロイを適用することでダウンタイムなしに新しい証明書へ切り替わる．
@@ -93,6 +91,8 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [ネットワークアーキテクチャ](../architecture/network-topology.md)
-- [新ホスト追加手順](adding-a-host.md)
+- [新規ホスト追加手順](adding-a-host.md)
+- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](emergency-cf-ssh.md)
 - [トラブルシューティング: 認証・シークレット](../troubleshooting/secrets-and-auth.md)

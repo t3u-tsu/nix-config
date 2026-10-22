@@ -8,7 +8,7 @@
 
 [日本語](README.ja.md)
 
-A central declarative repository managing personal workstations, servers, and network gateways using Nix Flakes.
+A central declarative configuration repository managing personal workstations, servers, and network gateways using Nix Flakes.
 
 ## Tech Stack
 
@@ -16,21 +16,21 @@ A central declarative repository managing personal workstations, servers, and ne
 | :--- | :--- |
 | **OS** | NixOS 26.05 |
 | **WM / Compositor** | niri (Wayland) |
-| **Bar / Shell** | Noctalia |
+| **Desktop Shell / Bar** | Noctalia |
 | **Shell** | zsh + pure + Atuin |
 | **Terminal** | Ghostty |
 | **Editor** | Neovim |
 | **Browser** | Zen Browser |
 | **Color Theme** | Vesper |
-| **Secrets** | SOPS (sops-nix) + age |
+| **Secrets Management** | SOPS (sops-nix) + age |
 | **Mesh VPN** | Nebula |
 | **Backup** | Restic + ZFS Mirror |
 | **IaC** | OpenTofu |
 
 ## Directory Structure
 
-- [`flake.nix`](flake.nix) — Flake-parts entrypoint
-- [`flake/`](flake/) — Flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
+- [`flake.nix`](flake.nix) — flake-parts entrypoint
+- [`flake/`](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
 - [`lib/`](lib/) — `mkSystem` builder and shared color palette
 - [`nixos/`](nixos/) — Shared system-level NixOS modules
 - [`home/`](home/) — Home Manager user-level configurations
@@ -48,10 +48,10 @@ Sensitive data is isolated in a private repository ([`nix-config-private`](https
 
 Available host configurations (defined in `flake/hosts.nix`):
 
-- **`x1c7`** — Laptop (ThinkPad X1 Carbon Gen 7)
-- **`BrokenPC`** — Secondary portable laptop (HP Victus 16-e1065AX)
+- **`x1c7`** — Primary laptop (ThinkPad X1 Carbon Gen 7)
+- **`BrokenPC`** — Portable gaming laptop (HP Victus 16-e1065AX)
 - **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — Tower server cluster
-- **`torii-chan-sd`** / **`torii-chan-hdd`** — Edge VPN gateway on an Orange Pi Zero 3 SBC (SD / HDD boot)
+- **`torii-chan-sd`** / **`torii-chan-hdd`** — Edge VPN gateway on Orange Pi Zero 3 SBC (SD / HDD boot)
 - **`torii-chan-vps`** — Failover gateway on ConoHa VPS (x86_64)
 - **`torii-chan-sd-installer`** — SD card installer image (`hosts/torii-chan/build-sd-image.ysh`)
 - **`torii-chan-vps-iso`** — VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`)
@@ -78,7 +78,7 @@ Follow the comprehensive step-by-step runbook in [`docs/operations/adding-a-host
 ## CI/CD & Automation
 
 - **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): Evaluates all hosts, executes pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco`.
-- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates `flake.lock`, validates changes, and automatically pushes updates to `main`.
+- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates `flake.lock`, validates changes in CI, and automatically pushes updates to `main`.
 
 ## Documentation
 

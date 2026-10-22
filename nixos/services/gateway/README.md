@@ -1,13 +1,29 @@
-# Gateway Service
+# Gateway Services (`nixos/services/gateway/`)
 
-The **torii-chan** role: a Nebula mesh gateway (Lighthouse + Relay) with DDNS and Minecraft port-forwarding. Enabled via `my.services.gateway.enable` (set by the gateway profile); shared by the physical SBC and the failover VPS.
+Core network routing and gateway services powering the `torii-chan` role, shared between the physical SBC and failover VPS.
 
-## Modules
+## Services Architecture
 
-- **`firewall.nix`**: WAN firewall — only TCP 25565 exposed by default (`restrictAccess`), NAT/MASQUERADE for the Minecraft backend.
-- **`hardening.nix`**: Kernel hardening sysctls (kptr_restrict, dmesg_restrict, BPF, rp_filter, redirects).
-- **`nebula.nix`**: Nebula node wiring — `10.0.0.1`, Lighthouse + Relay, inbound 22 (mgmt) + 25565 (app).
-- **`ssh.nix`**: OpenSSH with key-only auth, restricted to the Nebula mesh.
-- **`ddns.nix`**: Cloudflare DDNS via `ddclient` for `torii-chan.t3u.uk`, `mc.t3u.uk`, `*.mc.t3u.uk`.
+| Module | Role & Responsibilities |
+| :--- | :--- |
+| `firewall.nix` | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft proxy) with iptables/nftables NAT MASQUERADE rules. |
+| `hardening.nix` | Linux kernel sysctl hardening (`kptr_restrict`, `dmesg_restrict`, BPF JIT, `rp_filter`, ICMP redirects). |
+| `nebula.nix` | Nebula Lighthouse & Relay configuration (`10.0.0.1:4242`) with inbound rules for management and application traffic. |
+| `ssh.nix` | Key-only OpenSSH daemon strictly bound to the `nebula0` overlay interface. |
+| `ddns.nix` | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk` and `*.mc.t3u.uk`. |
+| `default.nix` | Service aggregator enabled via `my.services.gateway.enable`. |
 
-Platform-specific wiring (SBC vs VPS) lives in [`hosts/torii-chan/`](../../../hosts/torii-chan/).
+## Network Forwarding & Port Map
+
+| Port / Protocol | Inbound Interface | Destination | Description |
+| :--- | :--- | :--- | :--- |
+| **UDP 4242** | WAN (`end0`) | Localhost (`torii-chan`) | Nebula Lighthouse discovery and relay traffic |
+| **TCP 25565** | WAN (`end0`) | `10.0.0.4:25565` (`shosoin-tan`) | Public Minecraft reverse proxy forwarding |
+| **TCP 22** | Mesh (`nebula0`) | Localhost (`torii-chan`) | Administrative SSH access (blocked on WAN) |
+
+## References
+
+- Hardware guide (Orange Pi Zero 3): [`docs/hardware/orange-pi-zero3.md`](../../../docs/hardware/orange-pi-zero3.md)
+- Failover runbook (ConoHa VPS): [`docs/operations/vps-failover.md`](../../../docs/operations/vps-failover.md)
+- Network topology: [`docs/architecture/network-topology.md`](../../../docs/architecture/network-topology.md)
+- Host configuration: [`hosts/torii-chan/`](../../../hosts/torii-chan/README.md)

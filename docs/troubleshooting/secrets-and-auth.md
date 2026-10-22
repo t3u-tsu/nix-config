@@ -1,6 +1,12 @@
 # シークレット・認証トラブルシューティング
 
-本ドキュメントは，SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）の認証失敗，および activation スクリプト失敗による emergency mode 突入時の原因切り分けと脱出手順を記述する．
+本ドキュメントは，SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）の認証失敗，および activation スクリプト失敗による emergency mode 突入時の原因切り分けと脱出手順をまとめたものである．
+
+| 障害現象 | 主な原因 | 推奨復旧アプローチ |
+| :--- | :--- | :--- |
+| **SOPS 復号エラー** (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，`.sops.yaml` 更新，`sops updatekeys` |
+| **private flake input フェッチ失敗** | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
+| **activation 失敗で emergency mode** | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
 ---
 

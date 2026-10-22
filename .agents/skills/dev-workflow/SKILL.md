@@ -48,29 +48,28 @@ description: このリポジトリで設定変更を適用するときの手順�
      # 設定がビルドできることを確認する場合（事前ビルド）
      nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link
      ```
-     - Flake は git 追跡下のファイルのみを参照するため，新規作成・変更ファイルは事前に `git add -A`（または `git add -N`）しておく必要がある．
-     - 個別に nixfmt を実行する場合は**ファイル単位**で指定する:
+     - **Git 追跡**: Flake は git 追跡下のファイルのみを参照するため，新規作成・変更ファイルは事前に `git add -A`（または `git add -N`）しておく必要がある．
+     - **nixfmt**: 個別に実行する場合はファイル単位で指定する:
        ```bash
        nixfmt --check <file>
        nixfmt <file>
        ```
-     - statix: 同じトップレベルキーはまとめて attrset で定義し，分割して記述しない．引数が空の場合は `{ ... }:` ではなく `_:` を使用する．
-     - ysh-check は `\.ysh$` を対象に YSH 構文を検証する（`ysh -n`）．shellcheck は `scripts/*.sh` が対象．
-     - ja-punctuation は `.md` が対象．**日本語文書の句読点は `，．` を使う**（他の句読点はフックが自動置換する）．
-     - convco はコミットメッセージの Conventional Commits 準拠を検証する．
-     - end-of-file-fixer は全テキストファイルの末尾改行を揃える．`_sources/generated.{json,nix}` は nvfetcher の生成物なので除外している．
-     - trim-trailing-whitespace は行末の空白を落とす．Markdown の行末スペース2つは改行の意味を持つため，改行したい場合は `<br>` を使う．
+     - **statix**: 同一トップレベルキーは attrset で集約して定義し分割しない．引数が空の場合は `{ ... }:` ではなく `_:` を使用する．
+     - **ysh-check / shellcheck**: `\.ysh$` は `ysh -n` で構文検証，`scripts/*.sh` は `shellcheck -x` で検証する．
+     - **ja-punctuation**: Markdown（`.md`）の日本語句読点が `，．` になっているかを検証・自動補正する．
+     - **convco**: コミットメッセージの Conventional Commits 準拠を検証する．
+     - **end-of-file-fixer / trim-trailing-whitespace**: テキストファイルの末尾改行と末尾空白を整形する（Markdown で強制改行したい場合は行末スペースではなく `<br>` を使用する）．
 
 4. **レビューと改善**:
    変更規模や内容に応じて，技術的検証および自然言語・ドキュメントのレビューと改善を実施する．
    - **技術的検証の観点**:
      - NixOS のイディオムや構文・オプション設定が適切か．
      - コマンド，サービス名，systemd ユニット名がリポジトリ内の実設定やシステム仕様と整合しているか．
-     - 潜在的な不具合，競合，権限不足，エッジケース，復旧時の手順抜けがないか．
-     - ※ 外部コーディングワーカーへの技術レビュー委譲の詳細は `coding-worker` スキルおよび `GEMINI.md` を参照する．
+     - 潜在的な不具合，競合，権限不足，エッジケース，復旧手順の抜け漏れがないか．
+     - （外部コーディングワーカーへの技術レビュー委譲は `coding-worker` スキルおよび `GEMINI.md` を参照）
 
    - **自然言語・ドキュメント・コメント品質の観点**:
-     ドキュメントの執筆方針，文体，他ドキュメントとの整合性，相互参照，およびコード内コメント（`hush` 規約）の品質観点は，すべて `documentation-guide` スキルに従う（サブエージェントへの文章改善委譲の詳細は `GEMINI.md` を参照）．
+     ドキュメントの執筆方針，文体，他ドキュメントとの整合性，相互参照，およびコード内コメント（`hush` 規約）の品質観点は，すべて `documentation-guide` スキルに従う（サブエージェントへの文章改善委譲は `GEMINI.md` を参照）．
 
    - **改善の反映**:
      レビューで判明した問題点や改善事項は，作業ツリー内でコードやドキュメントへ直接反映する．
@@ -135,7 +134,7 @@ description: このリポジトリで設定変更を適用するときの手順�
      # 空になったタスクディレクトリの削除
      rmdir .worktrees/topic-name 2>/dev/null || true
      ```
-     ※ 兄弟ワークツリーの一括削除手順は `GEMINI.md` を参照する．
+     （兄弟ワークツリーの一括削除手順は `GEMINI.md` を参照）
    - **メインツリーの手元同期（安全確認）**:
      メインツリーの `git status --porcelain` を確認する．
      - **Clean な場合**: `git pull origin main` を実行してリモートのマージを同期し，その後ローカルブランチを削除する:

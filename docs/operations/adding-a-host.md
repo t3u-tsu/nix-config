@@ -9,7 +9,7 @@
 新しいホストを追加する前に，以下を確認する．
 
 - [ ] マシンのハードウェア構成（CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス）
-- [ ] 割り当てる Nebula IP（[`docs/architecture/network-topology.md`](../architecture/network-topology.md) の台帳を参照）
+- [ ] 割り当てる Nebula IP（[ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照）
 - [ ] 適用するプロファイル（`desktop` / `tower-server` / `gateway` / `sbc`）
 - [ ] 管理者マシンで master 鍵が利用可能であること（`~/.config/sops/age/keys.txt`）
 - [ ] 開発環境（`nix develop` または direnv）が有効であること
@@ -90,7 +90,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
      -out-key "$CA_DIR/<hostname>.key"
    ```
 2. **クラスタ管理スクリプトへの登録**:
-   `scripts/nebula-lib.ysh` の `FLEET` リストにエントリ（`{name: '<hostname>', octet: X, groups: ['mgmt', ...]}`）を追加する:
+   `scripts/nebula-lib.ysh` の `FLEET` リストにエントリを追加する:
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```
@@ -264,8 +264,9 @@ sudo reboot
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](emergency-cf-ssh.md)
 - [リポジトリ全体アーキテクチャ](../architecture/overview.md)
-- [ネットワークトポロジと IP 台帳](../architecture/network-topology.md)
-- [シークレット & 証明書管理](secret-management.md)
+- [ネットワークアーキテクチャ](../architecture/network-topology.md)
+- [シークレット & 鍵ライフサイクル管理](secret-management.md)
 - [トラブルシューティング: 認証・シークレット](../troubleshooting/secrets-and-auth.md)

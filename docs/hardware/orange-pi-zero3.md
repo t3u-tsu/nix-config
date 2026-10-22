@@ -13,7 +13,7 @@
 | **対象ホスト** | `torii-chan`（SBC モード） |
 | **SoC** | Allwinner H618（Quad-core ARM Cortex-A53 @ 1.5 GHz） |
 | **GPU** | ARM Mali-G31 MP2（OpenGL ES 3.2，Vulkan 1.1） |
-| **RAM** | 1 GB LPDDR4（オンボード） |
+| **RAM** | 1 GB LPDDR4（オンボード実装） |
 | **有線 LAN** | ギガビット Ethernet（`end0`，Realtek RTL8211F PHY） |
 | **ストレージ** | microSD スロット（ブート用）+ USB 2.0 接続 2.5インチ SATA HDD（ルート用） |
 | **電源** | USB Type-C（5V / 3A 推奨） |
@@ -34,16 +34,12 @@
 
 Allwinner 製 SoC は，起動時に BROM（内蔵 Mask ROM）が SD カードの特定セクタから U-Boot SPL を読み込むアーキテクチャを持つ．
 
-```text
-[BROM]
-  ↓ (SD カード先頭 8 KiB オフセットから読込)
-[U-Boot SPL (u-boot-sunxi-with-spl.bin)]
-  ↓
-[U-Boot 本隊]
-  ↓ (SD カード /boot/extlinux/extlinux.conf 読込)
-[Linux Kernel & initrd]
-  ↓ (rootdelay 待機 & USB-SATA ブリッジ認識)
-[ルートファイルシステム (USB HDD: /dev/disk/by-label/NIXOS_HDD)]
+```mermaid
+flowchart TD
+    BROM["Allwinner BROM (内蔵 Mask ROM)"] -->|"SD 先頭 8 KiB (seek 8) より読込"| SPL["U-Boot SPL (u-boot-sunxi-with-spl.bin)"]
+    SPL --> UBOOT["U-Boot 本隊"]
+    UBOOT -->|"extlinux.conf 読込 (/boot: NIXOS_SD)"| KERNEL["Linux Kernel & initrd"]
+    KERNEL -->|"rootdelay=10 待機 & USB-SATA 認識"| ROOT["ルートファイルシステム (/dev/disk/by-label/NIXOS_HDD)"]
 ```
 
 #### U-Boot の注入 (`hosts/torii-chan/sd-installer.nix`)
@@ -72,7 +68,7 @@ boot.loader = {
 
 ### SD / HDD 分離アーキテクチャ (`torii-chan-hdd`)
 
-SD カードはランダム書き込み耐性が低く，24時間稼働のルータ・ゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．そのため，本番の HDD 運用構成（`torii-chan-hdd`）では **ブート部とルートファイルシステムを物理的に分離** している（※SD 単体運用構成 `torii-chan-sd` の場合は [`hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix) を使用）．
+SD カードはランダム書き込み耐性が低く，24時間稼働のエッジゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．そのため，本番の HDD 運用構成（`torii-chan-hdd`）では **ブート部とルートファイルシステムを物理的に分離** している（※SD 単体運用構成 `torii-chan-sd` の場合は [`hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix) を使用）．
 
 | 領域 | デバイス | ラベル / マウント先 | ファイルシステム | 定義モジュール |
 | :--- | :--- | :--- | :--- | :--- |
@@ -160,6 +156,14 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 
 Orange Pi Zero3 はメモリ容量が 1 GB と極めて少なく，カーネル機能にも一部制限があるため，[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix) にて以下の制約回避策を講じている．
 
+### 制約事項と対策一覧
+
+| 項目 | 制約要因・技術的背景 | 適用対策 | 運用上の留意事項 |
+| :--- | :--- | :--- | :--- |
+| **沙箱 / システムコール** | Allwinner 向けカーネルにおける `user_namespaces` / `seccomp BPF` の不完全性 | `sandbox = false;`<br>`filter-syscalls = false;` | デプロイ時にも `--option sandbox false --option filter-syscalls false` の付与が必須 |
+| **メモリ枯渇 (OOM)** | 1 GB 物理 RAM に対する Nix 評価や並列タスクの負荷 | 4 GB スワップファイル確保 (`/var/lib/swapfile`) | 大規模評価やビルドは作業機からのリモートビルド（`--build-host localhost`）を推奨 |
+| **スワップスラッシング** | 低速ストレージへの過剰なスワップ I/O によるシステム停止 | `vm.swappiness = 10` | 物理 RAM 限界までスワップ書き込みを遅延させ応答性を維持 |
+
 ### サンドボックスと seccomp BPF の無効化
 
 Allwinner 向け Linux カーネルでは，`user_namespaces` や `seccomp BPF` のサポートが不完全である．この状態で Nix の標準ビルドを実行すると，サンドボックス環境の作成やシステムコールフィルタでエラーが発生する．
@@ -197,6 +201,22 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
   ```
 - **swappiness の引き下げ (`vm.swappiness = 10`)**:
   極小メモリ環境ではあるものの，SD カードや USB HDD への過剰なスワップ I/O はシステム全体を著しくフリーズ（スラッシング）させる．そのため `swappiness` を `10` に設定し，極力物理 RAM を使い切るまでディスクスワップへの書き出しを遅延させている．
+
+#### 状態検証コマンド
+
+実機ログイン後，以下のコマンドで各設定が正常に稼働しているか確認できる:
+
+```bash
+# ストレージラベルとマウント状況の確認
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT
+
+# APM スピンダウン抑止の確認 (255 または disabled)
+sudo hdparm -I /dev/disk/by-label/NIXOS_HDD | grep -i "Advanced power management"
+
+# スワップ認識と swappiness の確認
+swapon --show
+sysctl vm.swappiness
+```
 
 ---
 

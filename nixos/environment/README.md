@@ -1,21 +1,19 @@
-# System Packages
+# System Packages (`nixos/environment/`)
 
-Pre-defined groups of system-level packages that can be toggled via options.
+Modular system-wide package groups enabled via `my.packages.*` options.
 
-## Options and Categories
+## Package Groups
 
-Each package category can be enabled individually using the `my.packages.<category>.enable = true` option.
-
-- **`base.nix`**: CLI essentials required for basic system administration. Enabled on all hosts by default.
-- **`monitoring.nix`**: System and hardware monitoring tools.
-- **`network-tools.nix`**: Network diagnostic and transfer utilities.
-- **`data.nix`**: Data processing and compression tools.
-- **`security.nix`**: Security-related tools and hardening settings.
-- **`default.nix`**: Definition of all `my.packages.*` options.
+| Module | Purpose | Option | Default |
+| :--- | :--- | :--- | :--- |
+| `base.nix` | System administration essentials (curl, git, tmux, vim, tree). | `my.packages.base.enable` | `true` |
+| `monitoring.nix` | Performance and hardware monitoring (htop, btop, iotop, nvtop). | `my.packages.monitoring.enable` | `false` |
+| `network-tools.nix` | Network diagnostics and transfer tools (bind-utils, nmap, tcpdump, iperf3). | `my.packages.network-tools.enable` | `false` |
+| `data.nix` | Data processing and compression utilities (jq, ripgrep, zip, p7zip). | `my.packages.data.enable` | `false` |
+| `security.nix` | Security auditing and encryption utilities (nmap, openssl). | `my.packages.security.enable` | `false` |
+| `default.nix` | Declares all `my.packages.*` options. | — | — |
 
 ## Usage Example
-
-To enable specific package groups in a host configuration:
 
 ```nix
 my.packages = {

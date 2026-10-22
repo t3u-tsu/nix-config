@@ -6,7 +6,7 @@
 
 ## 1. Flake 構成と分割 (`flake/`)
 
-リポジトリ直下の `flake.nix` は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとに分割されたサブモジュールを読み込むのみに留めている．
+リポジトリ直下の `flake.nix` は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとに分割されたサブモジュールを読み込む構造としている．
 
 - **`flake/hosts.nix`**: 各ホストの `nixosConfigurations` を定義する．
 - **`flake/lib.nix`**: `mkLib` を公開し，flake inputs と overlays を合成したカスタムライブラリを提供する．
@@ -52,7 +52,7 @@ mkLib.mkSystem {
 | **`my.home.desktop.<category>.<name>`** | `home/desktop/` | デスクトップ環境のユーザー設定（例: `my.home.desktop.dev-tools.ghostty`） |
 
 ### オプション設計の原則
-1. **デフォルト無効**: 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に要求されない限り評価・適用されない．
+1. **デフォルト無効**: 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に有効化されない限り評価・適用されない．
 2. **自己完結性**: サービスを有効化した際，必要なファイアウォール開放，ユーザー作成，SOPS シークレット配線，systemd ユニット定義が当該モジュール内で完結すること．
 3. **トップレベルキーの集約**: statix の規約に従い，同一属性セットは分割せず 1 つのブロックで定義する．
 
@@ -69,11 +69,13 @@ NixOS 環境に新しいパッケージやツールを導入する際は，以�
    - 日次自動更新ワークフロー（`auto-update.yml`）で自動的にハッシュ値が更新される．
 3. **Flake inputs (`flake.nix`)**:
    - 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合（例: `niri`, `nix-minecraft`）．
-   - キャッシュの最適化のため，可能な限り `inputs.<name>.inputs.nixpkgs.follows = "nixpkgs"` を指定する（詳細は [`../operations/maintenance.md`](../operations/maintenance.md) 参照）．
+   - 重いコンパイルを要する外部 Flake パッケージ（例: `ghostty` 等）は，`inputs.<name>.inputs.nixpkgs.follows = "nixpkgs"` でローカル nixpkgs に追従させると上流のバイナリキャッシュ（Cachix 等）とビルドハッシュが一致せずフルコンパイルが走る場合がある．そのため，キャッシュ利用可否と nixpkgs インスタンス複製のトレードオフを考慮して判断する（詳細は `nix-cache-optimization` スキル参照）．
 
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [リポジトリ全体アーキテクチャ](overview.md)
 - [モジュール配置ガイド](../../.agents/skills/editing-guide/SKILL.md)
-- [新ホスト追加手順](../operations/adding-a-host.md)
+- [新規ホスト追加手順](../operations/adding-a-host.md)
+- [日常保守 & ライフサイクル管理](../operations/maintenance.md)

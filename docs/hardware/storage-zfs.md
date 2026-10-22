@@ -2,6 +2,33 @@
 
 本ドキュメントは，レガシー BIOS（MBR）環境で稼働するタワー型サーバ群（`shosoin-tan`，`sando-kun`）のブート設計，および `shosoin-tan` における ZFS Mirror プール（`tank-1tb`）の構築，定期スクラブ，障害検知，ディスク交換・リビルド（`zpool replace`）手順をまとめたものである．
 
+```mermaid
+flowchart TD
+    subgraph Shosoin["shosoin-tan (アプリケーションサーバー)"]
+        SSD["480 GB SATA SSD<br>(ata-CT480BX500SSD1_...)"]
+        MBR1["MBR (GRUB ステージ1)"]
+        Boot1["/boot (fat32, 500 MiB)"]
+        Root1["/ (ext4, ~470 GiB)"]
+
+        SSD --> MBR1 --> Boot1 & Root1
+
+        subgraph ZFS["ZFS Mirror プール (tank-1tb: /mnt/tank-1tb)"]
+            HDD1["1 TB SATA HDD A"]
+            HDD2["1 TB SATA HDD B"]
+            Mirror["2-way Mirror (実効 ~930 GiB)<br>チェックサム自己修復"]
+            HDD1 & HDD2 --> Mirror
+        end
+    end
+
+    subgraph Sando["sando-kun (汎用タワーサーバー)"]
+        HDD_Sando["250 GB SATA HDD<br>(ata-ST9250320AS_...)"]
+        MBR2["MBR (GRUB ステージ1)"]
+        Boot2["/boot (fat32, 500 MiB)"]
+        Root2["/ (ext4, ~240 GiB)"]
+        HDD_Sando --> MBR2 --> Boot2 & Root2
+    end
+```
+
 ---
 
 ## 1. レガシー BIOS (MBR) ホストのブート設計
@@ -44,7 +71,7 @@ boot.loader.grub = {
 
 ### MBR パーティションレイアウト
 
-初期プロビジョニング時，ディスクは `parted` により `msdos`（MBR）ラベルで初期化される．
+初期プロビジョニング時，システムドライブは `parted` により `msdos`（MBR）ラベルで初期化される．
 
 - **第1パーティション (`part1`)**: `linux-swap`（8 GiB）— メモリ枯渇防止（初期インストール時に swapon，定常稼働時の NixOS 設定には swapDevices 未指定）．
 - **第2パーティション (`part2`)**: `fat32`（500 MiB，boot フラグ有効）— `/boot` にマウント．
@@ -92,7 +119,7 @@ boot.zfs.extraPools = [ "tank-1tb" ];
 ```
 
 - `boot.zfs.extraPools`: 起動時に `tank-1tb` を自動的にインポートする．
-- `boot.zfs.forceImportRoot = false`: 26.11 以降の既定値変更に備え，強制インポートを明示的に抑止．
+- `boot.zfs.forceImportRoot = false`: 26.11 以降の既定値変更に備え，強制インポートを明示的に抑止．他ホストへの誤アタッチやダーティな状態での破壊的インポートを未然に防止する．
 
 ### 初期作成コマンド (参考)
 
@@ -142,7 +169,7 @@ errors: No known data errors
 ```
 
 - `repaired`: ミラーのもう一方の正常ブロックを用いて自動修復されたデータ量．
-- `CKSUM`: チェックサム不整合が検知された回数（非ゼロの場合はドライブの劣化を疑う）．
+- `CKSUM`: チェックサム不整合が検知された回数（非ゼロの場合はドライブの物理劣化を疑う）．
 
 ---
 
@@ -161,12 +188,12 @@ zpool status -x
 
 #### ステータスの判別
 
-| ステータス | 意味 | 健全度・影響 |
-| :--- | :--- | :--- |
-| **`ONLINE`** | 全デバイスが正常に稼働している． | 正常 |
-| **`DEGRADED`** | ミラー内の 1 台がオフラインまたは故障しているが，残る 1 台で読み書きは継続可能． | **警告**: 冗長性が喪失しており，早期交換が必要 |
-| **`FAULTED`** | デバイスまたはプールが重篤な障害で隔離されている（プール全体が FAULTED の場合はアクセス不能）． | **致命的**: 該当ディスク交換またはデータ復旧作業が必要 |
-| **`UNAVAIL`** | デバイスファイルが見つからない（物理切断，電源断など）． | **エラー**: 接続またはハードウェア確認が必要 |
+| ステータス | 意味 | 健全度・影響 | 推奨される初動対応 |
+| :--- | :--- | :--- | :--- |
+| **`ONLINE`** | 全デバイスが正常に稼働している． | 正常 | 定期スクラブの継続 |
+| **`DEGRADED`** | ミラー内の 1 台がオフラインまたは故障しているが，残る 1 台で読み書きは継続可能． | **警告**: 冗長性が喪失 | 故障ドライブの特定と速やかな `zpool replace` 交換 |
+| **`FAULTED`** | デバイスまたはプールが重篤な障害で隔離されている（プール全体が FAULTED の場合はアクセス不能）． | **致命的**: データアクセス不可 | ディスク接続確認，レスキュー環境からのインポート検証 |
+| **`UNAVAIL`** | デバイスファイルが見つからない（物理切断，電源断，SATA 認識不良など）． | **エラー**: 物理障害の疑い | 配線確認，カーネルログ（`dmesg`）の確認 |
 
 ### SMART 情報によるハードウェア予兆検知
 
@@ -187,10 +214,30 @@ sudo smartctl -a /dev/disk/by-id/<DISK_ID>
 
 ミラー内の 1 台に障害が発生し，プールが `DEGRADED` 状態となった場合の交換・復旧手順である．
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as 管理者
+    participant Host as shosoin-tan
+    participant ZFS as ZFS (tank-1tb)
+    participant NewDisk as 新HDD
+
+    Admin->>Host: zpool status tank-1tb (故障ディスク特定)
+    Admin->>Host: sudo poweroff
+    Admin->>Host: 故障 HDD を新 HDD へ物理交換
+    Admin->>Host: 電源投入・ログイン
+    Admin->>Host: lsblk で新ディスクの ID 確認 (/dev/disk/by-id/...)
+    Admin->>ZFS: sudo zpool replace tank-1tb <旧ディスク識別子> <新ディスクID>
+    Note over ZFS,NewDisk: リシルバリング (Resilvering) 自動開始
+    Admin->>ZFS: zpool status tank-1tb (進捗 100% まで監視)
+    Admin->>ZFS: sudo zpool clear tank-1tb (エラーカウンタ消去)
+    Admin->>Host: zpool status -x ("all pools are healthy" 確認)
+```
+
 ### Step 1: 故障ディスクの特定と物理換装
 
 1. `zpool status tank-1tb` を実行し，エラーが多発しているディスクの識別子（またはシリアル番号）を特定する．
-2. システムをシャットダウンし，故障した HDD を新しい HDD へ物理的に交換する．
+2. システムをシャットダウン（`sudo poweroff`）し，故障した HDD を新しい HDD へ物理的に交換する．
 3. システムを起動し，新しいディスクが認識されていることを確認する:
    ```bash
    lsblk -o NAME,SIZE,SERIAL,MODEL,PATH
@@ -222,7 +269,8 @@ zpool status tank-1tb
 	120G resilvered, 24.00% done, 00:15:45 to go
 ```
 
-- リシルバリングが完了するまで，マシンの電源を切ったり重い負荷をかけたりしないこと．
+> [!IMPORTANT]
+> リシルバリングが完了するまで，マシンの電源を切ったり高負荷な I/O 処理を実行したりしないこと．
 
 ### Step 4: 完了確認とエラーカウンタのクリア
 

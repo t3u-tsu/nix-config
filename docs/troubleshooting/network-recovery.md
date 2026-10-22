@@ -1,6 +1,12 @@
 # ネットワーク障害トラブルシューティング
 
-本ドキュメントは，Nebula メッシュ VPN の不通障害，SSH 遮断発生時の物理コンソール経由での復旧手順，および同一ルータ同居時の NAT loopback 回避手順を記述する．
+本ドキュメントは，Nebula メッシュ VPN の不通障害，SSH 遮断発生時の物理コンソール経由での復旧手順，および同一ルータ同居時の NAT loopback 回避手順をまとめたものである．
+
+| 障害現象 | 主な原因 | 推奨復旧アプローチ |
+| :--- | :--- | :--- |
+| **クラスター間通信不通 (`10.0.0.X`)** | Nebula デーモン停止，証明書期限切れ，Lighthouse 停止 | Cloudflare Tunnel 帯域外アクセス，証明書再署名，VPS フェイルオーバー |
+| **物理 LAN からの SSH 接続拒否** | `tower-server` プロファイルによるポート 22 遮断 | Cloudflare Tunnel 経由復旧，または物理コンソールで `iptables -I` 一時開放 |
+| **同一 LAN からの FQDN 接続不通** | ルータのヘアピン NAT（NAT Loopback）未対応，IPv6 優先 | `my.networking.local-network.enable = true` による LAN IP 直接解決 |
 
 ---
 

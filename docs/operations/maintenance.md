@@ -1,6 +1,6 @@
 # 日常保守 & ライフサイクル管理
 
-本ドキュメントは，本リポジトリの継続的な保守運用，日次自動更新の仕組み，ディスク容量管理（ガベージコレクション），および安全なカーネル更新の手順を記述する．
+本ドキュメントは，本リポジトリの継続的な保守運用，日次自動更新の仕組み，ディスク容量管理（ガベージコレクション），および安全なカーネル更新の手順を解説する．
 
 ---
 
@@ -35,7 +35,7 @@ nix flake check
 ## 2. ディスク容量管理とガベージコレクション
 
 NixOS ではビルド生成物や古い世代（generations）が `/nix/store` に蓄積するため，ディスク容量管理を行う．
-全ホスト共通のベース設定（[`nixos/base/nix.nix`](../../nixos/base/nix.nix)）において，週次の 14日経過自動 GC（`gc.automatic = true; dates = "weekly"; options = "--delete-older-than 14d";`）およびビルド時ストア最適化（`auto-optimise-store = true;`）が標準稼働している．
+全ホスト共通のベース設定（[`nixos/base/nix.nix`](../../nixos/base/nix.nix)）において，週次の 14 日経過自動 GC（`gc.automatic = true; dates = "weekly"; options = "--delete-older-than 14d";`）およびビルド時ストア最適化（`auto-optimise-store = true;`）が標準稼働している．
 
 そのため通常運用で手動実行は不要であるが，ディスク容量逼迫時や即時クリーンアップを行いたい場合は，以下の手動コマンドを実行する．
 
@@ -86,11 +86,13 @@ Linux カーネルのバージョンが更新された場合，完全な適用�
    ssh t3u@10.0.0.X "sudo reboot"
    ```
 3. **起動失敗時のロールバック**:
-   万一カーネルの非互換性で起動に失敗した場合は，ブートローダ（systemd-boot または GRUB）の選択画面で直前の世代を選択して起動する．詳細は [`../troubleshooting/emergency-recovery.md`](../troubleshooting/emergency-recovery.md) を参照．
+   万一カーネルの非互換性等で起動に失敗した場合は，ブートローダ（systemd-boot または GRUB）の世代選択画面で直前の正常世代を選択して起動する．詳細は [`../troubleshooting/emergency-recovery.md`](../troubleshooting/emergency-recovery.md) を参照．
 
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [リポジトリ全体アーキテクチャ](../architecture/overview.md)
+- [Flake とモジュール設計原則](../architecture/flake-and-modules.md)
 - [トラブルシューティング: ビルド・デプロイ](../troubleshooting/build-and-deploy.md)
 - [トラブルシューティング: 緊急時復旧](../troubleshooting/emergency-recovery.md)

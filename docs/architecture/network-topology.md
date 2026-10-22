@@ -1,12 +1,12 @@
 # ネットワークアーキテクチャ
 
-本ドキュメントは，本リポジトリで管理されている全ホスト間のオーバーレイネットワーク（Nebula），拠点間（拠点T・拠点A・クラウド）の物理・論理トポロジ，WAN/LAN 接続経路，ポートフォワーディング，およびセキュリティ境界の設計仕様を記述する．
+本ドキュメントは，本リポジトリで管理する全ホスト間のオーバーレイネットワーク（Nebula），拠点間（拠点T・拠点A・クラウド）の物理・論理トポロジ，WAN/LAN 接続経路，ポートフォワーディング，およびセキュリティ境界の設計仕様を解説する．
 
 ---
 
 ## 1. マルチサイト・ネットワーク全体トポロジ
 
-本環境は **拠点T**（エッジゲートウェイ・Lighthouse），**拠点A**（サーバークラスタ・端末群），および **クラウド**（待機系 VPS）の複数拠点に分散しており，これらを **Nebula メッシュ VPN**（`10.0.0.0/24`, MTU 1320）でシームレスに相互接続している．クライアント端末（BrokenPC, x1c7）は拠点A LAN 内だけでなく，外部の公衆網（モバイル）からも Nebula を経由して安全にクラスタへ参加する．
+本環境は **拠点T**（エッジゲートウェイ・Lighthouse），**拠点A**（サーバークラスタ・端末群），および **クラウド**（待機系 VPS）の複数拠点に分散しており，これらを **Nebula メッシュ VPN**（`10.0.0.0/24`, MTU 1320）で相互接続している．クライアント端末（BrokenPC, x1c7）は拠点A LAN 内だけでなく，外部の公衆網（モバイル）からも Nebula を経由して安全にクラスタへ参加する．
 
 ```mermaid
 flowchart TD
@@ -84,21 +84,21 @@ flowchart TD
 ## 3. 主要なネットワーク機構
 
 ### 3.1 メッシュネットワークの適用範囲と通信構造
-- **適用範囲（スコープ）**: 本リポジトリが管理する全ノード（`10.0.0.0/24`）間でメッシュが構成され，外部インターネットや未登録端末とは完全に論理分離される．
+- **適用範囲（スコープ）**: 本リポジトリが管理する全ノード（`10.0.0.0/24`）間でメッシュが構成され，外部インターネットや未登録端末とは論理的に完全分離される．
 - **透過的な暗号化通信**: ノード間の通信は自動的に最適な経路が選択される．同一 LAN（拠点A 内など）にあるノード間は直接通信し，拠点間など直接到達が困難な場合は Lighthouse / Relay（`torii-chan`）を経由して透過的に接続される．
 - **高可用性構成**: プライマリ Lighthouse（`torii-chan`）に障害が発生した場合は，クラウド上の待機系 VPS（`torii-chan-vps`）へ切り替えることでメッシュ全体の接続性を維持する（詳細は [`../operations/vps-failover.md`](../operations/vps-failover.md) 参照）．
 
 ### 3.2 外部公開とポートフォワーディング
 - 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード（`torii-chan.t3u.uk`, `mc.t3u.uk` 等）を自動更新する．
-- 外部から届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の NixOS 標準ファイアウォール（iptables バックエンド，`networking.nat`）により Nebula トンネルを経由して拠点Aの `shosoin-tan`（`10.0.0.4:25565`）へ安全に DNAT 転送される．
+- 外部から届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の NixOS 標準ファイアウォール（iptables バックエンド，`networking.nat`）により Nebula トンネルを経由して拠点Aの `shosoin-tan`（`10.0.0.4:25565`）へ DNAT 転送される．
 
 ### 3.3 同一 LAN 内での直接接続と名前解決
-- 拠点Tの LAN 内から外部公開ドメイン（`torii-chan.t3u.uk`）へアクセスする際，ルータのヘアピン NAT（NAT Loopback）対応状況や IPv6 優先挙動によっては通信障害が発生する場合がある．
-- この回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）が用意されている（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
+- 拠点Tの LAN 内から外部公開ドメイン（`torii-chan.t3u.uk`）へアクセスする際，ルータのヘアピン NAT（NAT Loopback）対応状況や IPv6 優先挙動によって通信障害が発生する場合がある．
+- この回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）を用意している（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
 
 ### 3.4 非常用帯域外アクセス（Cloudflare Tunnel）
 - Nebula メッシュ VPN や物理 LAN の疎通状態に依存しない独立した帯域外管理系統（Out-of-Band Management）として，各サーバー（`torii-chan`, `sando-kun`, `kagutsuchi-sama`, `shosoin-tan`）上で `cloudflared` が常時稼働している．
-- 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）によりトンネルを確立するため，拠点ルータでインバウンドポートを開放することなく，NAT やローカルファイアウォールを越えて外部から安全に直接到達できる．
+- 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）によりトンネルを確立するため，拠点ルータでインバウンドポートを開放することなく，NAT やローカルファイアウォールを越えて外部から直接到達できる．
 - Nebula 不通時や Lighthouse ダウン時でも，管理者は `<hostname>-cf-ssh.t3u.uk` を通じて PC CLI（ProxyCommand）または Web ブラウザ（xterm.js ターミナル）経由で各サーバーへアクセスし，緊急復旧作業を実施できる（詳細は [`../operations/emergency-cf-ssh.md`](../operations/emergency-cf-ssh.md) 参照）．
 
 ---
@@ -114,13 +114,14 @@ flowchart TD
    - Nebula ルート CA および各ノード証明書は長期有効（10年）として発行されている．更新手順は [`../operations/secret-management.md`](../operations/secret-management.md) を参照．
 4. **非常用帯域外アクセスの多層防御（Zero Trust + SSH CA / 公開鍵認証）**:
    - Cloudflare Tunnel 経由の接続は，エッジでの **Cloudflare Zero Trust (Access)** 認証（メール OTP / SSO），Cloudflare SSH CA による **有効期限 3 分の短期証明書（Short-lived Certificate）** 検証（Web ターミナル接続時），および OS 側 **ED25519 ユーザー公開鍵認証**（PC CLI 接続時）の多層防御で保護される．
-   - インバウンドポートを外部に一切露出させないアウトバウンドトンネル方式のため，インターネットからのポートスキャンやブルートフォース攻撃から完全に隔離される．
+   - インバウンドポートを外部に露出させないアウトバウンドトンネル方式のため，インターネットからのポートスキャンやブルートフォース攻撃から完全に隔離される．
 
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md)
 - [リポジトリ全体アーキテクチャ](overview.md)
-- [シークレット & 証明書管理](../operations/secret-management.md)
-- [VPS フェイルオーバー手順](../operations/vps-failover.md)
+- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md)
+- [ConoHa VPS プロビジョニング & フェイルオーバー手順](../operations/vps-failover.md)
 - [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md)

@@ -1,11 +1,17 @@
 # Programs Modules
 
-Common workstation tools managed via Home Manager.
+Common user programs and CLI tools managed via Home Manager.
 
 ## Modules
 
-- **`cli-tools.nix`**: Modern CLI replacements plus the `ls`/`ll`/`la` shell aliases.
-- **`git.nix`**: Git configuration — identity, GPG-signed commits, rebase-on-pull.
-- **`ssh.nix`**: SSH client config — fleet host entries over the Nebula mesh (`10.0.0.x`).
-- **`llama.nix`**: Local LLM inference server behind `my.home.programs.llama.enable`.
-- **`default.nix`**: Imports the program modules.
+| File | Description | Option |
+| :--- | :--- | :--- |
+| `cli-tools.nix` | Modern CLI utilities (ripgrep, fd, bat, eza) and standard aliases. | `my.home.programs.cli-tools.enable` (Default: `true`) |
+| `git.nix` | Git user identity, default branches, signing, and pull rebase defaults. | `my.home.programs.git.enable` (Default: `true`) |
+| `ssh.nix` | SSH client host aliases and Nebula mesh addressing (`10.0.0.x`). | `my.home.programs.ssh.enable` (Default: `true`) |
+| `llama.nix` | Local LLM inference server configuration. | `my.home.programs.llama.enable` (Default: `false`) |
+| `default.nix` | Program module aggregator. | — |
+
+## References
+
+- Mesh network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
