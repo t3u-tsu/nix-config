@@ -18,7 +18,7 @@ var script_path = $(readlink -f $0)
 var euid = $(id -u)
 if (euid !== '0') {
   echo $"[restart-touchpad] Root privileges required; requesting elevation via pkexec..."
-  exec pkexec ysh $script_path @ARGV
+  exec pkexec ysh $script_path @[ARGV]
 }
 
 echo $"[restart-touchpad] Resetting AMD I2C controller (${CONTROLLER})..."
