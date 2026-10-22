@@ -14,10 +14,11 @@ const PLATFORM_DIR = '/sys/bus/platform/drivers/i2c_designware'
 const I2C_DIR = '/sys/bus/i2c/drivers/i2c_hid_acpi'
 const TOUCHPAD = 'i2c-SYNA32CD:00'
 
+var script_path = $(readlink -f $0)
 var euid = $(id -u)
 if (euid !== '0') {
   echo $"[restart-touchpad] Root privileges required; requesting elevation via pkexec..."
-  exec pkexec ysh $0 @ARGV
+  exec pkexec ysh $script_path @ARGV
 }
 
 echo $"[restart-touchpad] Resetting AMD I2C controller (${CONTROLLER})..."
@@ -45,7 +46,7 @@ if test -f $"/sys/bus/platform/devices/${CONTROLLER}/power/control" {
 
 # Trigger bus drivers reprobe if touchpad device is missing
 if test -d $"/sys/bus/i2c/devices/${TOUCHPAD}" {
-  if not test -e $"${I2C_DIR}/${TOUCHPAD}" {
+  if test ! -e $"${I2C_DIR}/${TOUCHPAD}" {
     echo $TOUCHPAD > $"${I2C_DIR}/bind"
   }
 }
