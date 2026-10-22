@@ -19,6 +19,13 @@ Short description of this machine (role, hardware headline, profile).
 | **Nebula Mesh** | `10.0.0.X` (groups: `mgmt`, ...) |
 | **Key Services** | `my.services.<name>.enable = true;` |
 
+## Host Services & Modules
+
+| File | Description | Options / Notes |
+| :--- | :--- | :--- |
+| [services/default.nix](services/default.nix) | Host service aggregator importing node-specific service configurations. | Imported in [default.nix](default.nix) |
+| [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition template. | Node IP `10.0.0.X`, groups: `mgmt` |
+
 ## Quick Operations
 
 ```bash

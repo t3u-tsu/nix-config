@@ -50,21 +50,16 @@ sudo restic -r /mnt/tank-1tb/backups/minecraft snapshots
 sudo restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan snapshots
 ```
 
-### Restoration Workflows
+### Quick Restore
 
 ```bash
-# Method 1: Mount repository as a read-only FUSE filesystem
+# Mount repository read-only to inspect or extract files
 mkdir -p /tmp/restore-view
 sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
-
-# Method 2: Restore specific database directly
-sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest \
-  --target / \
-  --include "/var/lib/minecraft-discord-bridge/bridge.db"
-
-# Method 3: Restore full snapshot to alternate directory
-sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest --target /tmp/restored-data
 ```
+
+> [!NOTE]
+> For complete disaster recovery, database rollback procedures, and off-site restore workflows, refer to the disaster recovery runbook in [docs/operations/backup-and-restore.md](../../../docs/operations/backup-and-restore.md).
 
 ## References
 
