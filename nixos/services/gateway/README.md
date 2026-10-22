@@ -9,8 +9,8 @@ Network routing and gateway services for the `torii-chan` role, shared between t
 | `firewall.nix` | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft proxy) with iptables/nftables NAT MASQUERADE rules. |
 | `hardening.nix` | Linux kernel sysctl hardening (`kptr_restrict`, `dmesg_restrict`, BPF JIT, `rp_filter`, ICMP redirects). |
 | `nebula.nix` | Nebula Lighthouse & Relay configuration (`10.0.0.1:4242`) with inbound rules for management and application traffic. |
-| `ssh.nix` | Key-only OpenSSH daemon strictly bound to the `nebula0` overlay interface. |
-| `ddns.nix` | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk` and `*.mc.t3u.uk`. |
+| `ssh.nix` | Key-only OpenSSH daemon; WAN access is blocked by `firewall.nix`, so SSH is reachable only via the `nebula0` overlay interface. |
+| `ddns.nix` | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`. |
 | `default.nix` | Service aggregator enabled via `my.services.gateway.enable`. |
 
 ## Network Forwarding & Port Map

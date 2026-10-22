@@ -23,8 +23,8 @@ SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/set-host-password.ysh <hostnam
 ### Import Nebula Certificates into SOPS
 
 ```bash
-# Import certificates from ~/.nebula-ca into SOPS
-SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca
+# Import certificates into SOPS (the rotation script's default CA dir)
+SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-10-0-0
 ```
 
 ### Rotate Entire Nebula CA

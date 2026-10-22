@@ -8,16 +8,16 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | :--- | :--- | :--- |
 | **SoC** | Allwinner H618 | Quad-core ARM Cortex-A53 up to 1.5 GHz |
 | **RAM** | 1 GB LPDDR4 | Shared memory |
-| **Storage (Production)** | 2.5" SATA HDD via USB bridge | Root filesystem (`/dev/sda2`) |
+| **Storage (Production)** | 2.5" SATA HDD via USB bridge | Root filesystem (`/dev/disk/by-label/NIXOS_HDD`) |
 | **Storage (Bootloader)** | MicroSD Card | U-Boot SPL and boot partition |
 | **Network** | Gigabit Ethernet (1000BASE-T) | Static local IP: `192.168.0.128` |
 
 ## Roles & Network Architecture
 
 - **Primary Lighthouse & Relay:** Central discovery node and mesh traffic relay for Nebula (`10.0.0.1:4242`).
-- **Cloudflare DDNS:** Dynamic IP sync daemon updating `torii-chan.t3u.uk` and `*.mc.t3u.uk`.
+- **Cloudflare DDNS:** Dynamic IP sync daemon updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`.
 - **Minecraft Port Forward:** Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
-- **Security Boundary:** SSH port 22 is strictly bound to `nebula0`. Only UDP `4242` (Nebula) and TCP `25565` (Minecraft) are exposed publicly.
+- **Security Boundary:** SSH port 22 is allowed only via `nebula0`. Only UDP `4242` (Nebula) and TCP `25565` (Minecraft) are exposed publicly.
 - **Failover Compatibility:** Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
 
 ## Flake Configurations

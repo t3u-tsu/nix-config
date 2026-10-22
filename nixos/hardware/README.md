@@ -7,7 +7,7 @@ Hardware drivers, GPU acceleration, and system diagnostic tooling.
 | File | Purpose | Key Options |
 | :--- | :--- | :--- |
 | `nvidia.nix` | NVIDIA driver management, PRIME offload/sync, and dynamic power management. | `my.hardware.nvidia.*` |
-| `pc-tools.nix` | Hardware health and diagnostic tools (smartmontools, lm_sensors, pciutils, usbutils). | `my.hardware.pc-tools.enable` |
+| `pc-tools.nix` | Hardware health and diagnostic tools (`nvme-cli`, `smartmontools`). | `my.hardware.pc-tools.enable` |
 | `default.nix` | Hardware module aggregator. | — |
 
 ## NVIDIA Driver Configurations

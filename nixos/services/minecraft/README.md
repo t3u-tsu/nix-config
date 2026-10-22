@@ -8,7 +8,7 @@ The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing
 
 | Component | Port | Inbound Hostname | Description |
 | :--- | :--- | :--- | :--- |
-| **Proxy** (`proxy.nix`) | `25565` | `mc.t3u.uk` / `*.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
+| **Proxy** (`proxy.nix`) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
 | **Lobby** (`servers/lobby.nix`) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
 | **Main Survival** (`servers/nitac23s.nix`) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
 

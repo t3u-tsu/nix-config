@@ -23,7 +23,7 @@ Allwinner H618 搭載シングルボードコンピュータ `torii-chan` の U-
 - **設置場所**: **拠点T**（拠点T LAN: `192.168.0.0/24`，固定 IP: `192.168.0.128`）．
 - **Nebula Gateway / Lighthouse**: メッシュネットワーク `10.0.0.0/24` の固定灯台ノード（`10.0.0.1:4242`）およびリレーとして拠点Tから常時稼働．
 - **ポートフォワーディング**: 外部からの Minecraft 接続（TCP 25565）を受け，Nebula オーバーレイ経由で拠点Aの `shosoin-tan`（`10.0.0.4`）へ透過的に NAT 転送．
-- **Cloudflare DDNS**: 拠点Tの動的グローバル IP アドレスの変化を検知し，`torii-chan.t3u.uk` および `*.mc.t3u.uk` の A レコードを自動更新．
+- **Cloudflare DDNS**: 拠点Tの動的グローバル IP アドレスの変化を検知し，`torii-chan.t3u.uk`，`mc.t3u.uk`，および `*.mc.t3u.uk` の A レコードを自動更新．
 - **VPS フェイルオーバー設計**: SBC のハードウェア障害時は，同一のホスト名と暗号化シークレットを共有する ConoHa VPS（`torii-chan-vps`）へ役割を移譲できる（詳細は [`docs/operations/vps-failover.md`](../operations/vps-failover.md) を参照）．
 
 ---

@@ -8,8 +8,8 @@ Desktop modules are divided into a lightweight baseline core and an opt-in full 
 
 | Tier | Option Flags | Included Components |
 | :--- | :--- | :--- |
-| **Baseline Core** (Default) | `my.services.desktop.enable = true;`<br>`my.home.desktop.enable = true;` | Niri Wayland compositor, Noctalia greeter & shell, PipeWire low-latency audio, Thunar file manager, CJK & coding fonts, Mesa GPU drivers, NetworkManager, Chromium/Zen baseline, GPG signing, and core dev tools (Neovim, Ghostty). |
-| **Full Stack** (Opt-in) | `my.services.desktop.full.enable = true;`<br>`my.home.desktop.full.enable = true;` | Steam & GameMode, containerized game engine toolchain (Distrobox / Podman), creative suite (GIMP, Inkscape, Blender, OBS Studio), media players, LibreOffice, and local AI coding tooling (`agy`, `pi`, `dsh`). |
+| **Baseline Core** (Default) | `my.services.desktop.enable = true;`<br>`my.home.desktop.enable = true;` | Niri Wayland compositor, Noctalia greeter & shell, PipeWire low-latency audio, Thunar file manager, CJK & coding fonts, Mesa GPU drivers, NetworkManager, Chromium/Zen baseline, GPG signing, LibreOffice, and core dev tools (Neovim, Ghostty). |
+| **Full Stack** (Opt-in) | `my.services.desktop.full.enable = true;`<br>`my.home.desktop.full.enable = true;` | Steam & GameMode, containerized game engine toolchain (Distrobox / Podman), creative suite (GIMP, Blender, OBS Studio), media players, and local AI coding tooling (`agy`, `pi`, `dsh`). |
 
 ## Features & Integration
 

@@ -17,13 +17,13 @@ Tower server for compilation, GPU compute, and off-site Restic backup reception 
 | Property | Value |
 | :--- | :--- |
 | **Profile** | `tower-server` |
-| **Nebula Mesh** | `10.0.0.3` (groups: `server`, `mgmt`, `backup-receiver`) |
+| **Nebula Mesh** | `10.0.0.3` (groups: `mgmt`) |
 | **Roles** | Remote compute / build offload, Restic backup repository receiver |
-| **SSH Policy** | Strictly bound to `nebula0` overlay interface |
+| **SSH Policy** | Allowed only via the `nebula0` overlay interface |
 
 ## Backup Storage
 
-Runs SFTP receiver account `restic-shosoin` storing encrypted Restic snapshots in `/mnt/data/backups/shosoin-tan`. SOPS-managed authorized keys authenticate access over Nebula.
+Runs SFTP receiver account `restic-shosoin` storing encrypted Restic snapshots in `/mnt/data/backups/shosoin-tan`. A restricted `internal-sftp` authorized key authenticates access over Nebula.
 
 ## Quick Operations
 

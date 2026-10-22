@@ -19,7 +19,7 @@ Home tower server hosting Minecraft services, Discord Bridge, and Restic backups
 | :--- | :--- |
 | **Profile** | `tower-server` |
 | **Bootloader** | GRUB on MBR (`boot.loader.grub.efiSupport = false`) |
-| **Nebula Mesh** | `10.0.0.4` (groups: `server`, `mgmt`, `app`) |
+| **Nebula Mesh** | `10.0.0.4` (groups: `mgmt`, `app`) |
 | **Key Services** | Minecraft Paper server, Discord Bridge bot, multi-tier Restic backups |
 
 ## Key Services

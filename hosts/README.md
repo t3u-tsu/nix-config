@@ -11,12 +11,12 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 | [`shosoin-tan`](shosoin-tan/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.4` | Core i7-870 Tower | Minecraft server, Discord Bridge, ZFS Mirror storage |
 | [`kagutsuchi-sama`](kagutsuchi-sama/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.3` | Xeon E5-2650 v2 Tower | Compute server, Restic backup receiver |
 | [`sando-kun`](sando-kun/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.2` | Core i7-860 Tower | General-purpose tower server (Legacy BIOS) |
-| [`torii-chan`](torii-chan/README.md) | `gateway` / `sbc` | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway |
+| [`torii-chan`](torii-chan/README.md) | `gateway` + `sbc` layer | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway |
 | `torii-chan-vps` | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | ConoHa VPS (512MB) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
 
 ## Directory Layout
 
-Each host directory follows a uniform structure:
+Host configurations typically follow this layout (specialized hosts such as `torii-chan` include additional platform-specific files):
 
 ```text
 hosts/<hostname>/

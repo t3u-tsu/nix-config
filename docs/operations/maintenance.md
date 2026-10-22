@@ -79,7 +79,7 @@ Linux カーネルの更新適用には OS の再起動が必要となる．
    ssh t3u@10.0.0.X "sudo reboot"
    ```
 3. 起動失敗時のロールバック:
-   カーネルの非互換性等で起動に失敗した場合は，ブートローダ（systemd-boot または GRUB）の世代選択画面で直前の正常世代を選択して起動する（詳細は [`../troubleshooting/emergency-recovery.md`](../troubleshooting/emergency-recovery.md) 参照）．
+   カーネルの非互換性等で起動に失敗した場合は，ブートローダ（GRUB または extlinux）の世代選択画面で直前の正常世代を選択して起動する（詳細は [`../troubleshooting/emergency-recovery.md`](../troubleshooting/emergency-recovery.md) 参照）．
 
 ---
 

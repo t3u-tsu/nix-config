@@ -11,7 +11,7 @@ User-specific developer tooling managed with Home Manager.
 | `git-tools.nix` | Git TUIs (LazyGit), forge CLIs (`gh`), and credential helpers. | Core (`dev-tools.enable`) |
 | `nix.nix` | Nix developer utilities (`nix-tree`, `nix-output-monitor`, formatting/linting). | Core (`dev-tools.enable`) |
 | `ai-tools/` | AI coding agents (`agy`, `pi`, `dsh`, CodeWhale, ConoHa MCP, agent skills). | Full (`full.enable`) |
-| `hardware.nix` | EDA tools, serial monitors, and embedded flashing utilities (WCH-LinkE). | Full (`full.enable`) |
+| `hardware.nix` | EDA tools (KiCad, Qucs-S), serial monitor (picocom), and Ventoy. | Full (`full.enable`) |
 | `unity.nix` | Unity Editor environment via Distrobox container. | Full (`full.enable`) |
 | `default.nix` | Aggregator and default enablement rules. | — |
 

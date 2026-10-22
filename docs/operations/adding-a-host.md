@@ -75,9 +75,9 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 ### Step 4: Nebula 証明書の発行と登録
 1. 証明書の署名:
-   管理者のオフライン CA（通常 `~/.nebula-ca`）を用いてノード証明書を発行する:
+   管理者のオフライン CA（`scripts/nebula-rotate-ca.ysh` の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する:
    ```bash
-   CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+   CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
      -name "<hostname>" \
      -networks "10.0.0.X/24" \

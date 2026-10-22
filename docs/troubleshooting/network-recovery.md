@@ -91,7 +91,7 @@ sudo nebula-cert print \
 ```
 再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
 ```bash
-CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
 
 # ノード証明書の再発行（-networks オプションを使用）
 nebula-cert sign \

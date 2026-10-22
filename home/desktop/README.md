@@ -8,8 +8,8 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 
 | Option | Description | Included Modules |
 | :--- | :--- | :--- |
-| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `locales`, `niri`, `noctalia`, `theme`, `thunar`, `xdg`, `gpg-signing`, `dev-tools` (core) |
-| `my.home.desktop.full.enable` | Full workstation suite | Adds `gaming`, `creative`, `media`, `office`, and heavy dev/AI tooling |
+| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `gpg-signing`, `locales`, `niri`, `noctalia`, `office`, `theme`, `thunar`, `xdg` |
+| `my.home.desktop.full.enable` | Full workstation suite | Adds `gaming`, `creative`, `media`, and heavy dev/AI tooling |
 
 ## Modules
 
@@ -17,16 +17,16 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 | :--- | :--- |
 | `bitwarden.nix` | Bitwarden desktop client with persistent autostart configuration. |
 | `browsers/` | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
-| `communication.nix` | Messaging applications (Discord, Slack, Element). |
-| `creative.nix` | Creative production tools (GIMP, Inkscape, Blender, OBS Studio). |
+| `communication.nix` | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
+| `creative.nix` | Creative production tools (GIMP, Blender, OBS Studio). |
 | [`dev-tools/`](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
 | `gaming.nix` | Gaming clients and NVIDIA PRIME offload wrappers. |
 | `gpg-signing.nix` | GnuPG agent setup and SOPS-managed commit signing key import. |
 | `locales.nix` | Locale and Fcitx5 / Mozc Japanese input method settings. |
-| `media.nix` | Audio/video playback utilities and MPV player styling. |
-| `niri/` | Niri scrollable-tiling Wayland compositor configuration (`config.kdl.nix`). |
+| `media.nix` | Media playback (Spotify via Spicetify, VLC). |
+| `niri/` | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
 | `noctalia/` | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
-| `office.nix` | Office suite (LibreOffice, PDF viewers). |
+| `office.nix` | Office suite (LibreOffice). |
 | `theme.nix` | GTK, Qt, and cursor theming derived from [`lib/palette.nix`](../../lib/palette.nix). |
 | `thunar.nix` | Thunar file manager user preferences. |
 | `xdg.nix` | XDG base directories and default MIME application associations. |

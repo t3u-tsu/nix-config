@@ -7,7 +7,7 @@ Infrastructure as Code managed via [OpenTofu](https://opentofu.org/) (`tofu`) fo
 | Resource | Terraform Name | Description |
 | :--- | :--- | :--- |
 | SSH Key Pair | `conohavps_keypair.t3u` | Operator SSH public key. |
-| Security Group | `conohavps_securitygroup.torii_chan` | Allows TCP 22 (SSH), UDP 4242 (Nebula), ICMP, and all outbound. |
+| Security Group | `conohavps_securitygroup.torii_chan` | Allows TCP 22 (SSH), UDP 4242 (Nebula), ICMP, and all IPv4 outbound. |
 | Storage Volume | `conohavps_volume.boot` | 30 GB SSD boot volume (`c3j1-ds02-boot`). |
 | Compute Instance | `conohavps_instance.torii_chan` | 512 MB VPS plan (`g2l-t-c1m512`) in region `c3j1`. |
 

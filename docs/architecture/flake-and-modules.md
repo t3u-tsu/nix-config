@@ -14,7 +14,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 ---
 
-## 2. システムビルダー (`lib/mkSystem`)
+## 2. システムビルダー (`mkSystem`)
 
 全ホストは `lib/default.nix` に定義された `mkSystem` 関数を経由してインスタンス化する．
 
@@ -23,7 +23,7 @@ mkLib.mkSystem {
   name = "hostname";              # ホスト名（必須）
   system = "x86_64-linux";        # アーキテクチャ（必須: x86_64-linux / aarch64-linux）
   username = "t3u";               # プライマリユーザー名（任意，既定値: "t3u"）
-  profile = "desktop";            # プロファイル名（必須: desktop / tower-server / gateway）
+  profile = "desktop";            # プロファイル名（必須: desktop / tower-server / gateway / sbc）
   extraModules = [ ... ];         # ホスト固有の追加モジュール（任意）
 }
 ```
@@ -44,9 +44,9 @@ mkLib.mkSystem {
 | :--- | :--- | :--- |
 | **`my.user.name`** | `nixos/base/user.nix` | プライマリユーザー名の定義（全モジュールで参照） |
 | **`my.networking.<name>`** | `nixos/networking/` | ネットワークおよびメッシュ機能（例: `my.networking.nebula`） |
-| **`my.services.<name>`** | `nixos/services/` | システムレベルの共有サービス（例: `my.services.minecraft`, `my.services.gateway`） |
-| **`my.packages.<category>`** | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.core`, `my.packages.network-tools`） |
-| **`my.hardware.<name>`** | `nixos/hardware/` | ハードウェア機能の抽象化（例: `my.hardware.nvidia`, `my.hardware.pc-tools`） |
+| **`my.services.<name>`** | `nixos/services/` | システムレベルの共有サービス（例: `my.services.minecraft`，`my.services.gateway`） |
+| **`my.packages.<category>`** | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.core`，`my.packages.network-tools`） |
+| **`my.hardware.<name>`** | `nixos/hardware/` | ハードウェア機能の抽象化（例: `my.hardware.nvidia`，`my.hardware.pc-tools`） |
 | **`my.home.desktop.<category>.<name>`** | `home/desktop/` | デスクトップ環境のユーザー設定（例: `my.home.desktop.dev-tools.ghostty`） |
 
 ### オプション設計の原則
@@ -62,7 +62,7 @@ mkLib.mkSystem {
 
 1. **nixpkgs (stable / unstable)**: 標準リポジトリにパッケージが存在する場合に最優先で採用する（`pkgs.<name>` または `pkgs.unstable.<name>`）．
 2. **nvfetcher (`_sources/`)**: nixpkgs に存在しない，または最新リリースの追従が必要な単体バイナリや Git リポジトリ．日次自動更新ワークフロー（`auto-update.yml`）でハッシュ値を更新する．
-3. **Flake inputs (`flake.nix`)**: 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合（例: `niri`, `nix-minecraft`）．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断する（詳細は `nix-cache-optimization` スキル参照）．
+3. **Flake inputs (`flake.nix`)**: 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合（例: `niri`，`nix-minecraft`）．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断する（詳細は `nix-cache-optimization` スキル参照）．
 
 ---
 

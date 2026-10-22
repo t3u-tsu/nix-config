@@ -87,7 +87,7 @@ flowchart TD
 - プライマリ Lighthouse（`torii-chan`）障害時は，クラウド上の待機系 VPS（`torii-chan-vps`）へ切り替えて接続性を維持する（詳細は [`../operations/vps-failover.md`](../operations/vps-failover.md) 参照）．
 
 ### 3.2 外部公開とポートフォワーディング
-- 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード（`torii-chan.t3u.uk`, `mc.t3u.uk` 等）を自動更新する．
+- 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード（`torii-chan.t3u.uk`，`mc.t3u.uk`，`*.mc.t3u.uk` 等）を自動更新する．
 - 外部から届いた Minecraft トラフィック（TCP 25565）は，`torii-chan` の NixOS 標準ファイアウォール（iptables バックエンド，`networking.nat`）により Nebula トンネルを経由して拠点Aの `shosoin-tan`（`10.0.0.4:25565`）へ DNAT 転送する．
 
 ### 3.3 同一 LAN 内での直接接続と名前解決
@@ -95,7 +95,7 @@ flowchart TD
 - 回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）を用意している（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
 
 ### 3.4 非常用帯域外アクセス（Cloudflare Tunnel）
-- Nebula メッシュ VPN や物理 LAN の疎通状態に依存しない独立した帯域外管理系統（Out-of-Band Management）として，各サーバー（`torii-chan`, `sando-kun`, `kagutsuchi-sama`, `shosoin-tan`）上で `cloudflared` が常時稼働する．
+- Nebula メッシュ VPN や物理 LAN の疎通状態に依存しない独立した帯域外管理系統（Out-of-Band Management）として，各サーバー（`torii-chan`，`sando-kun`，`kagutsuchi-sama`，`shosoin-tan`）上で `cloudflared` が常時稼働する．
 - 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）によりトンネルを確立するため，拠点ルータでインバウンドポートを開放することなく，NAT やローカルファイアウォールを越えて外部から直接到達できる．
 - Nebula 不通時や Lighthouse ダウン時でも，管理者は `<hostname>-cf-ssh.t3u.uk` を通じて PC CLI（ProxyCommand）または Web ブラウザ（xterm.js ターミナル）経由で各サーバーへアクセスし，緊急復旧作業を実施できる（詳細は [`../operations/emergency-cf-ssh.md`](../operations/emergency-cf-ssh.md) 参照）．
 
