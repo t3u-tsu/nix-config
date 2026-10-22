@@ -6,8 +6,7 @@ System-level NixOS configuration modules, aggregated in [nixos/default.nix](defa
 
 | Directory | Scope & Responsibilities |
 | :--- | :--- |
-| [base/](base/README.md) | OS baseline: users, Nix daemon settings, private Flake input, and NTP time sync. |
-| [core/](core/README.md) | OS localization and keyboard mapping (`ja_JP.UTF-8` / `en_US.UTF-8`, console keymap). |
+| [base/](base/README.md) | OS baseline: users, Nix daemon settings, private Flake input, NTP time sync, locale (`ja_JP.UTF-8` / `en_US.UTF-8`), and console keymap. |
 | [security/](security/README.md) | SOPS secrets integration via SSH host key derivation. |
 | [networking/](networking/README.md) | Nebula mesh overlay network and LAN routing optimizations. |
 | [environment/](environment/README.md) | Modular system package categories (`my.packages.*`). |
