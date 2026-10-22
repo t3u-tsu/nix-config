@@ -24,9 +24,9 @@ Home tower server hosting Minecraft services, Discord Bridge, and Restic backups
 
 ## Key Services
 
-- **Minecraft Server:** Paper server running under `/srv/minecraft`. Forwards public traffic (`tcp/25565`) from `torii-chan` over Nebula.
-- **Discord Bridge:** Chat bridge bot communicating through UNIX socket at `/run/minecraft-discord-bridge/bridge.sock`.
-- **Multi-Tier Restic Backups:** Runs bi-hourly snapshots to local ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
+- Runs a Paper Minecraft server under `/srv/minecraft`, receiving public `tcp/25565` traffic forwarded from `torii-chan` over Nebula.
+- Bridges Minecraft chat to Discord via a local UNIX domain socket at `/run/minecraft-discord-bridge/bridge.sock`.
+- Runs bi-hourly Restic backup snapshots to the local ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
 
 ## Quick Operations
 

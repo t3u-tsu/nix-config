@@ -14,11 +14,11 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 
 ## Roles & Network Architecture
 
-- **Primary Lighthouse & Relay:** Central discovery node and mesh traffic relay for Nebula (`10.0.0.1:4242`).
-- **Cloudflare DDNS:** Dynamic IP sync daemon updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`.
-- **Minecraft Port Forward:** Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
-- **Security Boundary:** SSH port 22 is restricted to `nebula0`. UDP `4242` (Nebula) and TCP `25565` (Minecraft) are exposed publicly.
-- **Failover Compatibility:** Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
+- Serves as the central discovery lighthouse and mesh traffic relay for Nebula (`10.0.0.1:4242`).
+- Runs Cloudflare DDNS to synchronize `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk` with the edge dynamic IP.
+- Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
+- Restricts SSH access (port 22) to `nebula0` while publicly exposing UDP `4242` (Nebula) and TCP `25565` (Minecraft).
+- Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
 
 ## Flake Configurations
 

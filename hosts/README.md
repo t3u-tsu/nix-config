@@ -30,7 +30,7 @@ hosts/<hostname>/
 
 ## Adding a Host
 
-1. Copy the skeleton: `cp -r hosts/_template hosts/<hostname>`
+1. Copy the skeleton using `cp -r hosts/_template hosts/<hostname>`.
 2. Follow the step-by-step runbook in [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md) (covers SOPS age keys, Nebula certificates, private input bootstrap, and verification).
 
 ## References

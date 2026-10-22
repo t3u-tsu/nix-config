@@ -14,9 +14,9 @@ The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing
 
 ## External Integrations
 
-- **Discord Bridge:** Integrated via [`nixos/services/discord-bridge/`](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
-- **Plugin Management:** Server plugins (protocol translation, sitting animations, Japanese chat rendering) are declared in [`nvfetcher.toml`](../../../nvfetcher.toml) at the repository root and updated automatically via GitHub Actions ([`.github/workflows/auto-update.yml`](../../../.github/workflows/auto-update.yml)).
-- **Backup Schedule:** Backed up every 2 hours locally to ZFS Mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site to `kagutsuchi-sama` via Restic.
+- Integrates with [`nixos/services/discord-bridge/`](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via a UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
+- Declares server plugins (protocol translation, sitting animations, Japanese chat rendering) in [`nvfetcher.toml`](../../../nvfetcher.toml) at the repository root, updating them automatically via GitHub Actions ([`.github/workflows/auto-update.yml`](../../../.github/workflows/auto-update.yml)).
+- Runs Restic backups every 2 hours locally to a ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site to `kagutsuchi-sama`.
 
 ## CLI Operations (on `shosoin-tan`)
 

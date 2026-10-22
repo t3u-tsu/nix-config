@@ -247,9 +247,9 @@ in
 
 ### ワークアラウンド適用の理由と要点
 
-- ConflictingDevice の追加: HDMI 出力と Headphones デバイスを競合デバイス（排他）として指定し，HDMI 接続時に Headphones プロファイルが誤って有効化されるのを防止する．
-- PlaybackPriority の逆転: 内蔵スピーカーの優先度を `200` から `900` に引き上げ，常に選択可能なプライマリシンクとして維持する．
-- 両プロセスへの環境変数適用: PipeWire と WirePlumber の双方が ALSA カードを直接開いて UCM 設定を参照するため，両方の systemd ユーザーサービスに `ALSA_CONFIG_UCM2` を渡している（片方のみに設定すると未パッチの UCM が読み込まれ，スピーカーが再び消失する）．
+- HDMI 出力と Headphones デバイスに `ConflictingDevice` を指定して排他化し，HDMI 接続時に Headphones プロファイルが誤って有効化されるのを防止する．
+- 内蔵スピーカーの `PlaybackPriority` を `200` から `900` に引き上げ，常に選択可能なプライマリシンクとして維持する．
+- PipeWire と WirePlumber の双方が ALSA カードを直接開いて UCM 設定を参照するため，両方の systemd ユーザーサービスに環境変数 `ALSA_CONFIG_UCM2` を渡す（片方のみに設定すると未パッチの UCM が読み込まれ，スピーカーが再び消失する）．
 
 ---
 

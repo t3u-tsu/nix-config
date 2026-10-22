@@ -12,9 +12,9 @@ SOPS-encrypted secrets using Age encryption keys. Never commit plaintext secrets
 
 ## Key Distribution Model ([`.sops.yaml`](../.sops.yaml))
 
-- **Master Key (`master_key`):** Offline disaster-recovery Age key stored in a password manager (1Password). Included in every encryption group.
-- **Host Keys:** Derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`. Machines decrypt secrets automatically during boot.
-- **User Keys:** Derived from user workstation keys (`~/.ssh/id_ed25519`). Access is limited to developer and service files ([`services/signing.yaml`](services/signing.yaml), [`services/conoha-vps-mcp.yaml`](services/conoha-vps-mcp.yaml)).
+- The master key (`master_key`) serves as an offline disaster-recovery Age key stored in a password manager (1Password) and is included in every encryption group.
+- Host keys are derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`, allowing machines to decrypt secrets automatically during boot.
+- User keys are derived from user workstation keys (`~/.ssh/id_ed25519`), restricting access to developer and service files ([`services/signing.yaml`](services/signing.yaml), [`services/conoha-vps-mcp.yaml`](services/conoha-vps-mcp.yaml)).
 
 ### Access Matrix
 
@@ -44,7 +44,7 @@ sops secrets/services/signing.yaml
 
 Regenerate the host SSH key, e.g. after a clean reflash:
 
-1. Derive the new Age public key: `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`
+1. Derive the new Age public key using `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`.
 2. Update [`.sops.yaml`](../.sops.yaml) with the new key.
 3. Re-encrypt with the master key:
    ```bash

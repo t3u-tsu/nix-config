@@ -80,7 +80,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 [新規ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
 
 ### Step 2: バックアップの取得・復元
-1. 代替ホスト上でのリストア:
+1. 代替ホスト上でバックアップデータを一時ディレクトリへリストアする．
    ```bash
    export RESTIC_PASSWORD="<バックアップパスワード>"
    export RESTIC_REPOSITORY="sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan"
@@ -91,7 +91,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    # 指定したディレクトリへデータをリストア
    restic restore latest --target /tmp/restore
    ```
-2. データファイルの配置:
+2. 復元したデータファイルを所定のディレクトリへ配置し，所有権（`minecraft:minecraft`）を設定する．
    ```bash
    # Minecraft データの復元
    sudo mkdir -p /srv/minecraft
@@ -103,7 +103,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    sudo cp -r /tmp/restore/var/lib/minecraft-discord-bridge/* /var/lib/minecraft-discord-bridge/
    sudo chown -R minecraft:minecraft /var/lib/minecraft-discord-bridge
    ```
-3. サービスの起動確認:
+3. 各サービスを起動して正常稼働を確認する．
    ```bash
    sudo systemctl restart minecraft-server-lobby.service
    sudo systemctl restart minecraft-server-nitac23s.service
@@ -116,9 +116,9 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 `shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で構成している．
 
-- 定期スクラブ: 自動実行タイマーは未設定のため，`sudo zpool scrub tank-1tb` を手動で定期実行する．
-- ステータス確認: `zpool status tank-1tb`
-- ディスク交換・リビルド: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
+- 自動実行タイマーは未設定のため，`sudo zpool scrub tank-1tb` で手動スクラブを定期実行する．
+- プールの健全性やリビルド状況は `zpool status tank-1tb` で確認する．
+- ディスク障害時の交換・リビルド手順は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照する．
 
 ---
 

@@ -48,13 +48,15 @@ Sensitive data is isolated in a private repository ([`nix-config-private`](https
 
 Available host configurations (defined in [`flake/hosts.nix`](flake/hosts.nix)):
 
-- **`x1c7`** — Primary laptop (ThinkPad X1 Carbon Gen 7)
-- **`BrokenPC`** — Portable gaming laptop (HP Victus 16-e1065AX)
-- **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — Tower server cluster
-- **`torii-chan-sd`** / **`torii-chan-hdd`** — Edge VPN gateway on Orange Pi Zero 3 SBC (SD / HDD boot)
-- **`torii-chan-vps`** — Failover gateway on ConoHa VPS (x86_64)
-- **`torii-chan-sd-installer`** — SD card installer image ([`hosts/torii-chan/build-sd-image.ysh`](hosts/torii-chan/build-sd-image.ysh))
-- **`torii-chan-vps-iso`** — VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`)
+| Configuration | Role / Target Environment |
+| :--- | :--- |
+| `x1c7` | Primary laptop (ThinkPad X1 Carbon Gen 7) |
+| `BrokenPC` | Portable gaming laptop (HP Victus 16-e1065AX) |
+| `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | Tower server cluster |
+| `torii-chan-sd` / `torii-chan-hdd` | Edge VPN gateway on Orange Pi Zero 3 SBC (SD / HDD boot) |
+| `torii-chan-vps` | Failover gateway on ConoHa VPS (x86_64) |
+| `torii-chan-sd-installer` | SD card installer image ([`hosts/torii-chan/build-sd-image.ysh`](hosts/torii-chan/build-sd-image.ysh)) |
+| `torii-chan-vps-iso` | VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`) |
 
 Apply configuration locally:
 ```bash
@@ -77,8 +79,10 @@ See [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) for h
 
 ## CI/CD & Automation
 
-- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco`.
-- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [`flake.lock`](flake.lock), validates in CI, and pushes updates to `main`.
+| Workflow | Trigger & Details |
+| :--- | :--- |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco` |
+| [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [`flake.lock`](flake.lock), validates in CI, and pushes updates to `main` |
 
 ## Documentation
 

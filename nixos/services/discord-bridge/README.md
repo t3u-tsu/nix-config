@@ -4,10 +4,10 @@ NixOS service module integrating the Go-based [minecraft-discord-bridge](https:/
 
 ## Module Architecture
 
-- **Build Pipeline:** Uses the `minecraft-discord-bridge` flake input package.
-- **IPC Interface:** Exposes a local UNIX domain socket at `/run/minecraft-discord-bridge/bridge.sock` for operator queries.
-- **Privilege Separation:** Operates under dedicated unprivileged `minecraft` user and group.
-- **Secret Delivery:** Injects Discord bot tokens and server RCON passwords via SOPS-templated environment files.
+- Builds from the `minecraft-discord-bridge` flake input package.
+- Exposes a local UNIX domain socket at `/run/minecraft-discord-bridge/bridge.sock` for operator queries.
+- Operates under a dedicated unprivileged `minecraft` user and group for privilege separation.
+- Injects Discord bot tokens and server RCON passwords via SOPS-templated environment files.
 
 ## Configuration Example
 

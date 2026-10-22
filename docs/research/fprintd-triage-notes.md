@@ -72,14 +72,10 @@
 
 ## 推奨アクション（トリアージ実施時の所見）
 
-1. polkit-1 / sudo / su の指紋 UX 改善
-   greetd と同様に `pam_unix` を優先するか，`pam_fprintd.so` の `timeout` / `max-tries` を短縮して待機時間を削減する（`security.pam.services.<name>.rules.auth.fprintd.settings` で指定可能）．
-2. polkit エージェント設定の一本化
-   Noctalia の `polkit_agent` 設定（[`home/desktop/noctalia/default.nix`](../../home/desktop/noctalia/default.nix)）を無効化するか，`niri-flake-polkit` を停止して競合を防ぐ（現状は KDE エージェントが優先され Noctalia 側は無効化されている）．
-3. resume サービスの不採用
-   fprintd は D-Bus 自動終了と復帰時の再 Claim で正常動作するため，個別復帰サービスは追加しない．
-4. error 789 の扱い
-   ドライバ層で回復するため実害はなく，追加の対処は不要とする．ファームウェア更新の有無については fwupd で継続確認する．
+- `polkit-1`，`sudo`，`su` は greetd と同様に `pam_unix` を優先するか，`pam_fprintd.so` の `timeout` や `max-tries` を短縮して待機時間を削減する（`security.pam.services.<name>.rules.auth.fprintd.settings` で指定可能）．
+- polkit エージェント設定の一本化のため，Noctalia の `polkit_agent` 設定（[`home/desktop/noctalia/default.nix`](../../home/desktop/noctalia/default.nix)）を無効化するか，`niri-flake-polkit` を停止して競合要因を排除する（現状は KDE エージェントが優先され Noctalia 側は自動無効化されている）．
+- fprintd は D-Bus 自動終了と復帰時の再 Claim で正常動作するため，個別の resume 復帰サービスは追加しない．
+- error 789 はドライバ層のリトライで回復し実害がないため追加の対処は不要とし，ファームウェア更新の有無のみ fwupd で継続確認する．
 
 ---
 

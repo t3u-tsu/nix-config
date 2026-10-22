@@ -73,14 +73,14 @@ Cloudflare ダッシュボード（または API）で，ドメインの A レ�
 
 拠点Tの物理 SBC（`torii-chan`）復旧後の切戻し手順:
 
-1. 拠点T SBC の疎通確認: 物理マシンを起動し，LAN 内および Nebula 内で `torii-chan`（`10.0.0.1`）の稼働を確認する．
-2. DNS の切戻し: Cloudflare の A レコードを拠点Tのグローバル IP へ戻す．
-3. VPS の破棄: 不要になった VPS を破棄し，課金を停止する:
+1. 物理マシンを起動し，LAN 内および Nebula 内で拠点T SBC（`torii-chan`，`10.0.0.1`）の疎通を確認する．
+2. Cloudflare の A レコードを拠点Tのグローバル IP へ戻して DNS を切り戻す．
+3. 不要になった VPS を破棄し，課金を停止する:
    ```bash
    cd terraform
    tofu destroy
    ```
-4. ステートファイルの保全: `terraform/terraform.tfstate` をバックアップ・保管する．
+4. 実行後のステートファイル `terraform/terraform.tfstate` をバックアップ・保管する．
 
 ---
 

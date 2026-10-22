@@ -42,10 +42,10 @@ flowchart TD
 ### 1.1 Linux-PAM upstream: Issue #301 ("Parallel or 'any' PAM modules")
 GitHub `linux-pam/linux-pam` の Issue #301（2020 年〜）では，顔認証（Howdy）や指紋とパスワードの同時待ち受けが議論されたが，コアメンテナ（Tomas Mraz, Thorsten Kukuk）から以下の技術的限界が示され，停滞している．
 
-1. pam_conv のキャンセル不能性: `pam_conv`（会話関数）は同期ブロッキング関数であり，POSIX スレッドのキャンセルポイントとしても定義されていない．別スレッドで指紋が成功しても，ブロック中のパスワード入力を安全に中断する公式 API が存在しない．
-2. スタック設定構文の限界: 現在の構文（`sufficient`, `required`, `[success=1 ...]`）は単一の線形スタックの逐次評価しか記述できず，分岐・合流（並行評価）を表現できない．
-3. プロセス共通リソースの競合: PAM モジュールは認証中に `setresuid()` や環境変数，シグナルマスク，ファイルディスクリプタを操作する．マルチスレッドで別々のモジュールが動くと致命的な競合状態が発生する．
-4. メンテナのリソース不足: 後方互換性を維持した完全な再設計とコードを外部から持ち込まない限り，メンテナ側に新設するリソースはない（Thorsten Kukuk，2026 年）．
+- 会話関数 `pam_conv` は同期ブロッキング関数であり，別スレッドで指紋照合が成功してもブロック中のパスワード入力を安全に中断する公式 API が存在しない．
+- スタック設定構文（`sufficient`，`required`，`[success=1 ...]`）が単一線形スタックの逐次評価を前提としており，並行分岐・合流を表現できない．
+- PAM モジュールが認証中に `setresuid()`，環境変数，シグナルマスク，ファイルディスクリプタなどのプロセス共通リソースを操作するため，マルチスレッド実行で競合状態に陥る．
+- 後方互換性を維持した再設計と実装を外部から持ち込まない限り，コアメンテナ側に新規開発のリソースが存在しない（Thorsten Kukuk，2026 年）．
 
 ### 1.2 コミュニティ製ラッパーモジュール（grosshack, pam-any, pam-parallel）の破綻
 単一 PAM モジュール内部で `pthread` を立ち上げ，片方でパスワード，片方で `fprintd` D-Bus を待つハックが試作された:
@@ -60,8 +60,8 @@ GitHub `linux-pam/linux-pam` の Issue #301（2020 年〜）では，顔認証�
 ### 1.3 fprintd upstream: 責務分離と対症療法
 `fprintd` はハードウェア排他制御（Device Claim）と照合 API のみに特化しており，パスワード認証をデーモン側に内包することはセキュリティ監査上拒絶されている．
 upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提のもとで以下の対症療法が進められた:
-- タイムアウト短縮: MR !201 / MR !195（タイムアウト設定の改善）
-- Lid Closed スキップ: MR !256（ノート PC のフタが閉じている場合は即座に `pam_fprintd` をスキップしてパスワードに進む）
+- MR !201 / MR !195 でタイムアウト設定を改善し，無応答時の待機時間を短縮した．
+- MR !256 でノート PC のリッド開閉検知を導入し，フタが閉じている場合は即座に `pam_fprintd` をスキップしてパスワードへフォールスルーするよう改修した．
 
 ### 1.4 systemd-homed: 原理的障壁 (Issue #22123)
 `systemd-homed` は LUKS / fscrypt でホームディレクトリを暗号化する．一般的な指紋センサー（Match-on-Chip）は照合成否の真偽値（True / False）しか返さず，復号鍵（高エントロピーなシークレット）を生成・提供できない．初回ログインで暗号化ボリュームを復号することは原理的に不可能である．
@@ -71,37 +71,23 @@ upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提
 ## 2. ディスプレイマネージャ & グリーター
 
 ### 2.1 GDM: Split Authentication の成功と GNOME 51 での指紋廃止
-- Split Authentication（2011 年〜）:
-  GDM は特権デーモンとして動作し，`gdm-password` と `gdm-fingerprint` という 2 つの異なる PAM サービスに対して別プロセスの `gdm-session-worker` を立ち上げ，レースさせる（`-Dsplit-authentication=true`）．
-- GNOME 51 での指紋ログイン廃止方針:
-  GDM NEWS および upstream 議論において，初期ログイン画面での指紋認証を廃止し，ロック画面解除のみに限定する方針が進行中である．
-  理由: 指紋では LUKS や Gnome Keyring の復号鍵が得られないこと，不用意な接触による誤ログインリスク，およびセキュリティ懸念（CVE-2024-37408）のためである．
+- GDM は特権デーモンとして動作し，`gdm-password` と `gdm-fingerprint` の 2 つの PAM サービスに対して別プロセスの `gdm-session-worker` を立ち上げて並行レースさせる（Split Authentication，2011 年〜，`-Dsplit-authentication=true`）．
+- GNOME 51 以降は初期ログイン画面での指紋認証を廃止し，ロック画面解除のみに限定する方針が進められている．指紋認証では LUKS や GNOME Keyring の復号鍵を生成できず，不用意な接触による誤認証や特権昇格リスク（CVE-2024-37408）を伴うためである．
 
 ### 2.2 greetd: 単一セッション制約とミニマリズム
-- デーモンの構造的拒否:
-  `greetd/src/context.rs` の `ContextInner` は `configuring: Option<SessionSet>` を 1 つしか保持できず，2 つ目のセッション作成要求に対して `"a session is already being configured"` というエラーを返して即座に拒絶する．
-  IPC プロトコル（`greetd-ipc(7)`）も 1 ソケット = 1 PAM 会話固定である．
-- 作者（Kenny Levinsen）の思想:
-  `agetty` + `login` の近代的な代替という最小主義の方針を採っており，GDM のような複雑なマルチワーカー調停ロジックを本体に持ち込むことは明確に拒絶されている．
-- Greeter の妥協:
-  `tuigreet` や `ReGreet`（Issue #76）など，すべての greetd 向けグリーターは空 Enter 送信によるフォールスルーまたはタイムアウト待ちの逐次運用を余儀なくされている．
+- デーモン本体の `ContextInner`（`greetd/src/context.rs`）は `configuring` を 1 つしか保持できず，2 つ目のセッション要求を即座に拒絶する．IPC プロトコル（`greetd-ipc(7)`）も 1 ソケット = 1 PAM 会話に固定されている．
+- 作者（Kenny Levinsen）が `agetty` + `login` の近代的な代替という最小主義を堅持しており，GDM 風のマルチワーカー調停ロジックを本体へ組み込む要求は拒絶されている．
+- `tuigreet` や `ReGreet`（Issue #76）をはじめとする既存グリーターは，空 Enter 送信によるフォールスルーやタイムアウト待ちといった逐次運用で妥協せざるを得ない．
 
 ### 2.3 SDDM: 10 年にわたる未マージの歴史
-- Issue #284（2014 年〜）:
-  10 年以上開かれたままの長期未解決 Issue．
-- PR #1220（2018 年） / PR #2176（2024 年〜）:
-  `sddm-fingerprint` という別 PAM サービスをバックグラウンドで走らせるパッチ．
-  未マージ理由: 勝者確定時に敗者プロセスを `QProcess::terminate()` で強制終了する実装に無理があること，ディストリビューションごとの PAM 差異（`pam_faillock` 等）で認証エラーが多発することから，upstream で承認されず停滞している．
+- 指紋とパスワードの並行対応は Issue #284（2014 年〜）として提起されたまま 10 年以上未解決の状態で残っている．
+- 別 PAM サービス `sddm-fingerprint` をバックグラウンド起動する PR #1220（2018 年）および PR #2176（2024 年〜）が提案されたが，勝者確定時に敗者プロセスを `QProcess::terminate()` で強制終了する設計の粗さや，ディストリビューション間の PAM 差異（`pam_faillock` など）に起因するエラー多発により承認されず漂流している．
 
 ### 2.4 COSMIC Greeter (pop-os/cosmic-greeter): クラッシュ検証と PR #480
-- pam-fprint-grosshack の検証事故（Issue #173）:
-  ロック画面で単一スタック並行化ハックを試したところ，tokio ランタイムが SIGSEGV でクラッシュした．
-  PAM 会話コールバックが非リエントラントであるため，単一セッション内のマルチスレッド化は破綻することが実証された．
-- PR #480 ("RFC: Unlock using fingerprint scanner"):
-  ロック画面向けに GDM 風 dual-worker（`cosmic-greeter-password` と `cosmic-greeter-fingerprint`）を試作．
-  得られた知見:
-  1. ログイン画面は greetd が管理しており，greetd が並行セッションを拒否する以上，ログイン画面の並行化には greetd を捨てる必要がある．
-  2. パスワード側の PAM から `pam_fprintd` を完全に除外した専用 PAM ファイルを用意しないと，パスワード側まで指紋待ちになり 30 秒ブロックされる（分離により待機時間が 30.66 秒から 0.09 秒に激減）．
+- ロック画面で単一スタックのマルチスレッド並行化ハック（`pam-fprint-grosshack`）を検証した際，非リエントラントな PAM 会話コールバックが原因で tokio ランタイムが SIGSEGV クラッシュを起こし，単一セッション並行化の破綻が実証された（Issue #173）．
+- ロック画面向けに GDM 風の dual-worker（`cosmic-greeter-password` と `cosmic-greeter-fingerprint`）を試作した PR #480 では，以下の知見が得られた:
+  - ログイン画面は greetd が並行セッションを拒否するため，ログイン画面を並行化するには greetd の採用を見直す必要がある．
+  - パスワード側の PAM 定義から `pam_fprintd` を除外した専用 PAM ファイルを分離しないとパスワード側も指紋待ちで 30 秒間ブロックされる（分離によって待機時間が 30.66 秒から 0.09 秒へ短縮）．
 
 ---
 
@@ -109,38 +95,29 @@ upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提
 
 ### 3.1 hyprlock: デュアルチャネル方式の確立とハードウェア対応
 hyprlock は GDM 風 Dual-PAM を見送り，「PAM（パスワード） + D-Bus 経由での直接呼び出し（指紋）」のデュアルチャネル方式（PR #514）を選択した．
-- Dual-PAM を見送った理由:
-  サスペンド復帰時に PAM が `StopVerify` を呼ぶと `device is busy` エラーになり 30 秒ロックアウトすること．
-  `pam_fprintd.so` の最大 99 秒タイムアウト制限により，常時待ち受けで再接続ループが複雑化すること．
-- 直面したハードウェア固有の課題と対策:
-  1. センサー過熱（`TOO_HOT`）(Issue #702): 常時アームで放置するとセンサーが過熱保護で切断されるため，無操作タイムアウトによる動的アーム（マウス・キー操作検知時のみ Claim）を導入．
-  2. サスペンド復帰時の stale プロキシ (PR #1066): ThinkPad x1c7 の Synaptics Prometheus (`06cb:00bd`) で検証され，バックオフ付きリトライ（500ms，最大10回）が実装された．
+- サスペンド復帰時に PAM が `StopVerify` を呼ぶと `device is busy` エラーで 30 秒間ロックアウトすることや，`pam_fprintd.so` の最大 99 秒タイムアウト制限で再接続ループが肥大化することから Dual-PAM の採用を見送った．
+- 常時アームで放置するとセンサーが過熱保護（`TOO_HOT`）で切断されるため，無操作タイムアウトによる動的アーム（マウス・キー操作検知時のみ Claim）を導入した（Issue #702）．
+- サスペンド復帰時に D-Bus プロキシが失効（stale）する現象に対し，ThinkPad x1c7（Synaptics Prometheus `06cb:00bd`）の実機検証を通じてバックオフ付きリトライ（500ms，最大 10 回）を実装した（PR #1066）．
 
 ### 3.2 Noctalia (noctalia-dev/noctalia): 直列化の理由
 Noctalia は hyprlock を参考にしてデュアルチャネルを導入した（PR #3006）．
-- stopFingerprint() で止めている理由:
-  1. 二重 Claim 競合 (Issue #3277): ユーザー環境の `/etc/pam.d/login` に `pam_fprintd` が含まれていた場合，パスワード送信時に PAM 側の `pam_fprintd` が走り，D-Bus 経由での直接呼び出しとセンサーを取り合って 30 秒フリーズするため．
-  2. 二重解放クラッシュ: パスワード検証中に指紋が通ると，Wayland セッションのアンロックが 2 回発行されてクラッシュするため．
-- 本リポジトリの設定（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では #3277 のフリーズ要因は排除されている．
+- ユーザー環境の `/etc/pam.d/login` に `pam_fprintd` が含まれる環境でパスワード送信時にセンサーの奪い合い（二重 Claim）が発生し 30 秒間フリーズする不具合（Issue #3277）を回避するため，パスワード入力開始時に `stopFingerprint()` で指紋照合を明示的に停止させている．
+- パスワード検証中に指紋認証が成立してアンロックイベントが二重発行されるクラッシュを防ぐため，片方の検証中は他方を止める直列化を行っている．
+- 本リポジトリの設定（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では Issue #3277 のフリーズ要因は排除されている．
 
 ### 3.3 swaylock & gtklock: upstream の拒絶とコミュニティフォーク
-- swaylock: PR #283 (D-Bus), PR #445 (Dual-PAM) が出されたが，メンテナ（emersion）が「KISS 原則を維持したい．ロッカーに D-Bus や複雑なオーケストレーションを持ち込みたくない」として拒絶．
-  代替: `swaylock-effects` PR #77，および `fprintd-unlock`（指紋が通ったら swaylock に `SIGUSR1` を送るデーモン wrapper）が作られた．
-- gtklock: Codeberg 上で `gtklock-plugin-parallel-auth` というモジュールプラグインが有志により開発された．
+- swaylock では PR #283（D-Bus）や PR #445（Dual-PAM）が提案されたが，メンテナ（emersion）が KISS 原則を理由に複雑なオーケストレーションの導入を拒絶した．コミュニティではフォーク（`swaylock-effects` PR #77）や外付けデーモン（`fprintd-unlock`，指紋照合成功時に `SIGUSR1` を送信）で対応している．
+- gtklock 向けには Codeberg 上で有志により外部モジュール `gtklock-plugin-parallel-auth` が開発された．
 
 ---
 
 ## 4. 特権昇格ツール（sudo, polkit）
 
 ### 4.1 sudo (Issue #112)
-- 最大の技術的・セキュリティ的障壁（TTY 入力誤爆）:
-  CLI（標準入力）は単一ストリームである．パスワード入力（`termios` で echo off）中に指紋センサーが通った場合，ユーザーが入力途中だったパスワード文字列が昇格完了後の root シェルにそのまま流し込まれ，不正なコマンドとして実行される重大なセキュリティリスクが生じる．
-  入力バッファのフラッシュ（`tcflush`）とブロッキング `read()` の安全な中断は端末間での保証が困難であり，upstream は並行化の要求を拒否している．
+- 単一の TTY ストリーム上でパスワード入力（echo off）中に指紋認証が通ると，入力途中だったパスワード文字列が昇格後の root シェルにそのまま流し込まれ，不正なコマンドとして実行される重大なセキュリティリスクがある．入力バッファのフラッシュ（`tcflush`）とブロッキング `read()` の安全な中断を端末間で保証できないため，upstream は並行化を拒否している．
 
 ### 4.2 polkit (Issue #650, #713)
-- 3 層特権分離モデルの制約:
-  非特権 GUI Agent が勝手に D-Bus fprintd を呼んで成功と偽造できないよう，Polkit のセキュリティは setuid root の `polkit-agent-helper-1` が単一の PAM トランザクションを同期実行することに依存している．
-  2011 年に GDM の Ray Strode と Polkit の生みの親 David Zeuthen が「Polkit に Multi-stack PAM を統合しよう」と議論したが，認可とセッション管理の責務分離の観点から見送られ，今日まで手付かずのままである．
+- 非特権 GUI Agent による認証成否の偽造を防ぐため，setuid root の `polkit-agent-helper-1` が単一 PAM トランザクションを同期実行する 3 層特権分離モデルに依存している．GDM と Polkit の開発者間で Multi-stack PAM 統合が議論されたものの，認可とセッション管理の責務分離の観点から見送られた経緯がある．
 
 ### 4.3 CVE-2024-37408（安易な指紋認証への懸念）
 `pam_fprintd.so` がユーザーの意図的な接触（Presence Check）を確認せず，触れただけで sudo 権限を与えてしまう問題がセキュリティコミュニティで指摘された．現代の Linux では CLI やバックグラウンド権限昇格に指紋を安易に使うべきではない（画面ロック解除などの注意が確保できる場面に限定すべき）という方針が主流となっている．
@@ -149,9 +126,9 @@ Noctalia は hyprlock を参考にしてデュアルチャネルを導入した�
 
 ## 5. 各レイヤーにおける到達点と知見
 
-1. PAM スタック内並行化の破綻: 単一 PAM モジュール内でのマルチスレッド化は，呼び出し元アプリの非リエントラント性により SIGSEGV クラッシュ（COSMIC 等で実証）を招くため実用不可能である．
-2. CLI / 特権昇格での並行化の拒絶: 単一 TTY での入力誤爆リスクや特権分離モデルの制約により，sudo や polkit での並行化は今後も実現する見込みはない．
-3. 現実的な成功領域: ロック画面におけるデュアルチャネル方式（PAM パスワード + D-Bus 経由での直接呼び出し指紋）のみが，先人のノウハウ（動的アーム，レジューム時リトライ）を活かして安定稼働できるアプローチである．
+- 単一 PAM モジュール内でのマルチスレッド化は，呼び出し元アプリの非リエントラント性に起因する SIGSEGV クラッシュを招くため実用不可能である．
+- 単一 TTY での入力誤爆リスクや特権分離モデルの制約から，sudo や polkit などの特権昇格レイヤーでの並行化は実現の見込みがない．
+- ロック画面におけるデュアルチャネル方式（PAM パスワード + D-Bus 直接呼び出しによる指紋照合）のみが，動的アームや復帰時リトライ等の知見によって安定稼働できる現実的な解である．
 
 ---
 

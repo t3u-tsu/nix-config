@@ -53,63 +53,65 @@ CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOL
 
 ワーカー実行後，直前の会話履歴・差分・検討内容を引き継いで追加修正する場合は `CONTINUE=1` を使用する（`TASK_ID` 併用で特定タスクのセッションを継続可能）．
 
-- **使用シーン**:
-  - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
-  - **ビルド・検証エラーの修正**: ワーカーの変更後に `nix build` や `flake check` を実行してエラーが発生した際，エラーログを渡して「このエラーを修正してほしい」と修正を指示する場合．
-  - **段階的なリファクタリング**: 実装完了後に同一コンテキストで「関数名をより簡潔にリファクタリングしてほしい」などの追加指示を出す場合．
-- **ワークツリーごとの状態分離**:
-  各兄弟ワークツリー配下の `.agents/skills/coding-worker/.state/` は独立して保持されているため，ツリー内で安全に対話を継続できる．別ツリーで並列稼働している他ワーカーのセッションと干渉・混同することはない．
-- **具体例**:
-  ```bash
-  # 兄弟ツリー (.worktrees/dns-migration/worker-dns) 内での対話例:
+#### 使用シーン
+- 初回ワーカーの変更や stat を確認した後に，テストケースの追加やエッジケース対応などの追加指示を出す場合．
+- ワーカーの変更後に `nix build` や `flake check` でエラーが発生し，ログを渡してエラー修正を指示する場合．
+- 実装完了後に同一コンテキストで関数名や構造の段階的なリファクタリングを指示する場合．
 
-  # 1. 初回実装を指示
-  .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration in hosts/torii-chan/dns.nix"
+#### ワークツリーごとの状態分離
+各兄弟ワークツリー配下の `.agents/skills/coding-worker/.state/` は独立して保持されているため，ツリー内で安全に対話を継続できる．別ツリーで並列稼働している他ワーカーのセッションと干渉・混同することはない．
 
-  # （結果の diff や検証を確認後，ビルドエラーや追加要件が発生）
+#### 対話継続の具体例
+```bash
+# 兄弟ツリー (.worktrees/dns-migration/worker-dns) 内での対話例:
 
-  # 2. 直前のセッションを引き継いでエラー修正・テスト追加を指示
-  CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "The build failed with 'attribute dns_records missing'. Fix the syntax and add a unit test in tests/dns.nix."
-  ```
-  `TASK_ID` を指定してセッションを個別に管理する:
-  ```bash
-  # 特定タスク ID で初回起動
-  TASK_ID="dns-zone" .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration..."
+# 1. 初回実装を指示
+.agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration in hosts/torii-chan/dns.nix"
 
-  # 同じタスク ID を指定して継続
-  TASK_ID="dns-zone" CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix build failure..."
-  ```
+# （結果の diff や検証を確認後，ビルドエラーや追加要件が発生）
+
+# 2. 直前のセッションを引き継いでエラー修正・テスト追加を指示
+CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "The build failed with 'attribute dns_records missing'. Fix the syntax and add a unit test in tests/dns.nix."
+```
+`TASK_ID` を指定してセッションを個別に管理する:
+```bash
+# 特定タスク ID で初回起動
+TASK_ID="dns-zone" .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration..."
+
+# 同じタスク ID を指定して継続
+TASK_ID="dns-zone" CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "Fix build failure..."
+```
 
 ### 進捗ストリーミングと出力形式
 
 `worker=pi` は `--mode json` でイベントストリームを逐次処理し，ツールの進捗を stderr へ，最終結果を stdout へ出力する．
 
-- **stderr（進捗ストリーミング）**:
-  ツール実行開始ごとに1行出力:
-  ```text
-  [pi] tool: <toolName> (<target>)
-  ```
-  - `read` / `edit` / `write`: `<target>` はファイルパス．
-  - `bash`: `<target>` はコマンド文字列（60文字超は省略）．
-  - その他ツール: 主要引数のキー・値要約．
+#### stderr（進捗ストリーミング）
+ツール実行開始ごとに1行出力される:
+```text
+[pi] tool: <toolName> (<target>)
+```
+- `read` / `edit` / `write`: `<target>` はファイルパス．
+- `bash`: `<target>` はコマンド文字列（60文字超は省略）．
+- その他ツール: 主要引数のキー・値要約．
 
-- **stdout（構造化結果）**:
-  ```text
-  worker: <worker> (session: <session_id>, exit: <exit_code>)
-  log: <log_path>
+#### stdout（構造化結果）
+```text
+worker: <worker> (session: <session_id>, exit: <exit_code>)
+log: <log_path>
 
-  [response]
-  <assistant の最終応答テキスト>
+[response]
+<assistant の最終応答テキスト>
 
-  [status]
-  <git status --short，変更なしは "  (clean)">
+[status]
+<git status --short，変更なしは "  (clean)">
 
-  [stat]
-  <git diff --stat，差分なしは "  (no diff)">
-  ```
-  - `session:` はセッションが存在する場合のみ表示される（`--read-only` 時は省略）．
-  - 終了コードが 0 以外の場合は末尾に `[error]` セクション（ログ末尾20行）が付加される．
-  - 全イベントストリームと診断ログは `log:` のパスに記録される．
+[stat]
+<git diff --stat，差分なしは "  (no diff)">
+```
+- `session:` はセッションが存在する場合のみ表示される（`--read-only` 時は省略）．
+- 終了コードが 0 以外の場合は末尾に `[error]` セクション（ログ末尾20行）が付加される．
+- 全イベントストリームと診断ログは `log:` のパスに記録される．
 
 `worker=dsh` / `worker=codewhale` はストリーミングを行わず，stdout に応答テキスト，stderr にログを出力する．
 

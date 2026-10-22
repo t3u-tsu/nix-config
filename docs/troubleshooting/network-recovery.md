@@ -51,17 +51,17 @@ ssh -o ProxyCommand="cloudflared access ssh --hostname <hostname>-cf-ssh.t3u.uk"
 
 #### 復旧手順
 
-1. Nebula デーモンの状態確認と再起動
+1. Nebula デーモンの状態を確認し，必要に応じて再起動する．
    ```bash
    sudo systemctl status nebula@nebula0.service
    sudo systemctl restart nebula@nebula0.service
    sudo journalctl -u nebula@nebula0.service -e --no-pager
    ```
-2. ファイアウォールの一時開放（LAN 側ポート 22 の暫定許可）
+2. ファイアウォールを一時的に開放し，LAN 側ポート 22 を暫定許可する．
    ```bash
    sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
    ```
-3. 直前世代へのロールバックまたは設定修正・適用
+3. 直前の健全な世代へロールバックするか，設定を修正して再適用する．
    ```bash
    # 直前の健全な世代へロールバック
    sudo nixos-rebuild switch --rollback
