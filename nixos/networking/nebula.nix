@@ -153,6 +153,8 @@ in
 
       tun.device = "nebula0";
 
+      listen.host = "[::]";
+
       firewall = {
         inbound = inboundRules;
         outbound = [
@@ -168,6 +170,10 @@ in
         inherit (cfg) ip groups;
         tun.mtu = cfg.mtu;
         pki.blocklist = cfg.blocklist;
+        punchy = {
+          punch = true;
+          respond = true;
+        };
       }
       // optionalAttrs cfg.isLighthouse { advertise_addrs = cfg.advertiseAddrs; };
     };
