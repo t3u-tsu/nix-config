@@ -76,7 +76,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 
 マシンの破棄や OS 再インストールに伴い SSH ホスト鍵が変更された場合は，古い鍵のアクセス権を剥奪してシークレットを再暗号化する．
 
-### Step 1: `.sops.yaml` の更新
+### Step 1: [.sops.yaml](../../.sops.yaml) の更新
 [.sops.yaml](../../.sops.yaml) を更新する．破棄する場合は該当ホストの公開鍵アンカー (`&<hostKey> age1...`)，ホスト個別の `creation_rules`，およびサービス側 `creation_rules` に残る参照 (`*<hostKey>`) を削除し，再インストールの場合はアンカーを新しい公開鍵へ差し替える．
 
 ### Step 2: 共通・サービスシークレットの再暗号化

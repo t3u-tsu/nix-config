@@ -69,19 +69,12 @@ in
             }
           }/bin/fix-ja-punctuation";
         };
-        markdown-link-check = {
-          enable = true;
-          name = "markdown-link-check";
-          description = "Validate relative links and heading anchors in markdown files";
-          files = "\\.md$";
-          entry = "${pkgs.python3}/bin/python3 scripts/check-markdown-links.py";
-        };
         docs-check = {
           enable = true;
           name = "docs-check";
-          description = "Lint markdown prose for full-width parentheses, prohibited words, and pseudo-headings";
+          description = "Lint markdown prose and validate relative links and heading anchors";
           files = "\\.md$";
-          entry = "${pkgs.oils-for-unix}/bin/ysh scripts/check-docs.ysh";
+          entry = "${pkgs.perl}/bin/perl scripts/check-docs.pl";
         };
       };
 
@@ -99,6 +92,7 @@ in
           pkgs.nvfetcher
           pkgs.oils-for-unix
           pkgs.opentofu
+          pkgs.perl
           pkgs.sops
           pkgs.ssh-to-age
         ];
