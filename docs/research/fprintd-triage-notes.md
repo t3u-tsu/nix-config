@@ -15,7 +15,7 @@
 ## 判定サマリ
 
 | # | 項目 | 判定 |
-| :- | :--- | :--- |
+| :--- | :--- | :--- |
 | 1 | D-Bus activation 30s auto-exit | Working as Designed |
 | 2 | polkit-1 / sudo の PAM 順序 | Direct Root Cause |
 | 3 | 指紋不一致 / MoC テンプレート | Working as Designed |
@@ -67,7 +67,7 @@
 - udev と TLP の双方で抑止されており，追加の対処は不要である．
 
 ### 8. error 789 — Working as Designed
-- `synaptics.c` の probe 冒頭，SENSOR_CMD_GET_VERSION の初回応答 status が 0 以外だと `g_warning("Device responded with error: %d retry: %d", status, retry)` を出力して 1 回だけ即時リトライする (`retry` 初期値 TRUE → FALSE)．リトライは常に成功し probe 処理は継続する．
+- `synaptics.c` の probe 冒頭，SENSOR_CMD_GET_VERSION の初回応答 status が 0 以外だと `g_warning ("Device responded with error: %d retry: %d", status, retry)` を出力して 1 回だけ即時リトライする (`retry` 初期値 TRUE → FALSE)．リトライは常に成功し probe 処理は継続する．
 - 発生は電源投入後やデバイス初期化後の最初の 1 回のみである．直近 57 boot 中 46 boot で各 1 回記録 (boot あたり最大 1 回)．severity は warning であり照合結果には影響しない．
 - 789 (0x0315)は Prometheus ファームウェアが返す初期化ステータスであり，ドライバ層でリトライによる回復処理が実装されている．
 

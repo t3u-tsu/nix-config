@@ -1,4 +1,4 @@
-# Desktop Home Modules
+# Desktop Modules (`home/desktop/`)
 
 User-specific desktop environment configuration managed with Home Manager.
 

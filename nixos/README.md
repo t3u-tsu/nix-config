@@ -2,7 +2,7 @@
 
 System-level NixOS configuration modules, aggregated in [nixos/default.nix](default.nix) and applied across all fleet machines.
 
-## Module Categories
+## Modules
 
 | Directory | Scope & Responsibilities |
 | :--- | :--- |

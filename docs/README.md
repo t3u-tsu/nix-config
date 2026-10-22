@@ -39,8 +39,9 @@
 
 ---
 
-## 関連リファレンス
-- ルート概要: [../README.md](../README.md) / [../README.ja.md](../README.ja.md)
-- エージェント作業ルール: [../AGENTS.md](../AGENTS.md)
-- ドキュメント執筆・保守ガイド: [../.agents/skills/documentation-guide/SKILL.md](../.agents/skills/documentation-guide/SKILL.md)
-- 未完了タスク一覧: [../TODO.md](../TODO.md)
+## 関連ドキュメント
+- [ルート概要](../README.md) — リポジトリ全体の構成とクイックスタート
+- [日本語概要](../README.ja.md) — 日本語版リポジトリ概要
+- [エージェント行動規範](../AGENTS.md) — 全作業エージェント共通の運用ガイド
+- [執筆・保守ガイド](../.agents/skills/documentation-guide/SKILL.md) — ドキュメントの執筆・構造化ガイドライン
+- [タスク台帳](../TODO.md) — リポジトリの未完了タスク・ロードマップ

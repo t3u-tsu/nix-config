@@ -336,7 +336,7 @@ BSD における垂直統合の目的はシステム全体の信頼性とセキ�
 ## 4. 調査設問への回答
 
 | 設問 | 回答 |
-| --- | --- |
+| :--- | :--- |
 | OpenPAM の `openpam_dispatch()` は Linux-PAM と同じ同期・逐次パイプラインか | 同期・逐次パイプラインである．モジュールチェーンに対する単一の `for` ループで 1 モジュールずつ順次実行し，`pamh->current` で再帰呼び出しを禁止する．Linux-PAM は `PAM_INCOMPLETE` による再開機構を備えるが，OpenPAM には存在しない． |
 | `pam_conv` は Linux-PAM と同じ単一コールバックか | 単一コールバックである．`pam_start` 時に登録された `struct pam_conv` は PAM ハンドルごとに 1 個であり，モジュールから同期的に呼び出される．メッセージ配列の送受信は可能だが，複数イベントのレース機構はない． |
 | FreeBSD に生体認証／fprintd のサポートはあるか | ports 経由でのみ提供される．`security/fprintd` が `fprintd` デーモンおよび `pam_fprintd.so` を提供し，バックエンドに `security/libfprint` を用いる．base システムには含まれず，PAM スタック内で逐次実行される． |
