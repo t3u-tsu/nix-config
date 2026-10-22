@@ -7,7 +7,7 @@
 ### 1. [アーキテクチャ設計](architecture/)
 - [architecture/overview.md](architecture/overview.md) — リポジトリの層構成とモジュール評価フロー
 - [architecture/network-topology.md](architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，ポートフォワード，DNS 設計
-- [architecture/flake-and-modules.md](architecture/flake-and-modules.md) — Flake 構成，`mkSystem`，`my.*` オプション設計原則
+- [architecture/flake-and-modules.md](architecture/flake-and-modules.md) — Flake 構成，`mkSystem`, `my.*` オプション設計原則
 
 ### 2. [運用手順書](operations/)
 - [operations/adding-a-host.md](operations/adding-a-host.md) — 新規マシンの追加・初期セットアップ手順 (SSOT)
@@ -20,7 +20,7 @@
 ### 3. [ハードウェア固有ガイド](hardware/)
 - [hardware/thinkpad-x1c7.md](hardware/thinkpad-x1c7.md) — ThinkPad X1C7: 電源管理，指紋認証，オーディオワークアラウンド
 - [hardware/hybrid-gpu.md](hardware/hybrid-gpu.md) — BrokenPC: AMD + 故障 NVIDIA ハイブリッド GPU 分離，CUDA/LLM オフロード
-- [hardware/orange-pi-zero3.md](hardware/orange-pi-zero3.md) — torii-chan: Allwinner H618 SBC，U-Boot，低スペック制約
+- [hardware/orange-pi-zero3.md](hardware/orange-pi-zero3.md) — torii-chan: Allwinner H618 SBC, U-Boot，低スペック制約
 - [hardware/storage-zfs.md](hardware/storage-zfs.md) — shosoin-tan / sando-kun: レガシー BIOS ブート，ZFS Mirror 保守・リビルド
 
 ### 4. [トラブルシューティング](troubleshooting/)

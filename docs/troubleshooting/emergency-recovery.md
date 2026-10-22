@@ -173,4 +173,4 @@ reboot
 - [ビルド・デプロイ障害トラブルシューティング](build-and-deploy.md) — ビルド・評価時の OOM，lock 不整合，権限昇格エラーの復旧
 - [バックアップ運用 & ディザスタリカバリ (DR)](../operations/backup-and-restore.md) — Restic バックアップ運用，障害時リストア手順
 - [ZFS 保守・リビルドガイド](../hardware/storage-zfs.md) — レガシー BIOS ブート，ZFS Mirror 保守・ディスク交換手順
-- [Orange Pi Zero 3 ハードウェアガイド](../hardware/orange-pi-zero3.md) — Allwinner H618 SBC，U-Boot，低スペック制約
+- [Orange Pi Zero 3 ハードウェアガイド](../hardware/orange-pi-zero3.md) — Allwinner H618 SBC, U-Boot，低スペック制約

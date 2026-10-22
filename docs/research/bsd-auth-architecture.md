@@ -1,6 +1,6 @@
 # BSD 認証アーキテクチャ — 同期か並行か
 
-FreeBSD (OpenPAM)，NetBSD (OpenPAM)，OpenBSD (BSD Authentication)の認証スタックは，いずれも厳密に同期・逐次処理であり，生体認証とパスワードの並行待ち受けプリミティブを持たない．
+FreeBSD (OpenPAM), NetBSD (OpenPAM), OpenBSD (BSD Authentication)の認証スタックは，いずれも厳密に同期・逐次処理であり，生体認証とパスワードの並行待ち受けプリミティブを持たない．
 
 | OS / 実装 | アーキテクチャの特性 | 生体認証の現状 |
 | :--- | :--- | :--- |
@@ -13,7 +13,7 @@ FreeBSD (OpenPAM)，NetBSD (OpenPAM)，OpenBSD (BSD Authentication)の認証ス�
 
 ## 1. FreeBSD と NetBSD — OpenPAM
 
-OpenPAM は FreeBSD (`contrib/openpam`)と NetBSD (`external/bsd/openpam/dist`)が採用するリファレンス実装である．Dag-Erling Smørgrav が開発し，X/Open Single Sign-on (XSSO)PAM 仕様，Solaris PAM，Linux-PAM を起源とする．README には次の記述がある:
+OpenPAM は FreeBSD (`contrib/openpam`)と NetBSD (`external/bsd/openpam/dist`)が採用するリファレンス実装である．Dag-Erling Smørgrav が開発し，X/Open Single Sign-on (XSSO) PAM 仕様，Solaris PAM, Linux-PAM を起源とする．README には次の記述がある:
 
 > OpenPAM is an open source PAM library that focuses on simplicity, correctness,
 > and cleanliness. [...] In areas where these implementations disagree, OpenPAM
@@ -212,7 +212,7 @@ default:
 /usr/libexec/auth/login_reject    unconditional reject
 ```
 
-これらは mode `4555`，owner `root`，group `auth` でインストールされる (`libexec/login_passwd/Makefile`)．このスタイル群はサーバ・クレデンシャル指向である: パスワード，ワンタイムパスワード，ハードウェアトークン，RADIUS，LDAP．
+これらは mode `4555`, owner `root`, group `auth` でインストールされる (`libexec/login_passwd/Makefile`)．このスタイル群はサーバ・クレデンシャル指向である: パスワード，ワンタイムパスワード，ハードウェアトークン，RADIUS, LDAP．
 
 ### 2.3 逐次選択 — 1 スタイル・1 ヘルパ・1 試行
 
@@ -261,7 +261,7 @@ if (*authtypes) {
 
 `login.conf(5)` もこれに沿って capability を記述している: "`auth` (list, default `passwd`): Allowed authentication styles. The first value is the default style."
 
-利用側の `login(1)` (`usr.bin/login/login.c`，`$OpenBSD: login.c,v 1.75 ...$`)は，対話的な試行ごとにリトライループ内でこれを 1 回呼ぶ:
+利用側の `login(1)` (`usr.bin/login/login.c`, `$OpenBSD: login.c,v 1.75 ...$`)は，対話的な試行ごとにリトライループ内でこれを 1 回呼ぶ:
 
 ```c
 style = login_getstyle(lc, style, type);
@@ -275,7 +275,7 @@ if ((authok & AUTH_ALLOW) == 0)
 
 `failed:` はユーザに再プロンプトしてループする．複数スタイルを回すループは存在せず，各試行は `style` (任意の `user:style` 接頭辞，無ければ先頭／既定のスタイル)を再導出し，ヘルパを正確に 1 つ実行する．管理者が `auth = yubikey,passwd` と列挙しても，ユーザが明示的に `user:style` と入力しない限り `login` は先頭のみを使う．多要素構成は，内部で両方を処理する単一ヘルパか，サービスごとに選択される `auth-type` リストとして表現される．並行レースとしては表現されない．
 
-`su(1)`，`passwd(1)`，OpenSSH の `bsd_auth` バックエンド (`auth-bsdauth.c`, `auth_userokay` を呼ぶ)も同様に，それぞれ 1 スタイルを選ぶ．
+`su(1)`, `passwd(1)`，OpenSSH の `bsd_auth` バックエンド (`auth-bsdauth.c`, `auth_userokay` を呼ぶ)も同様に，それぞれ 1 スタイルを選ぶ．
 
 ### 2.4 `bsd_auth` は逐次か並行か
 
@@ -306,17 +306,17 @@ BSD プロジェクトにおける「垂直統合」の範囲は，カーネル�
 
 | OS | base システムの範囲 | ports / pkgsrc への分離 |
 | :--- | :--- | :--- |
-| FreeBSD | カーネル，libc，OpenPAM，`login`, `su`, `sshd` など | デスクトップ環境 (GNOME，KDE，Xfce，Wayland コンポジタ，ディスプレイマネージャなど)．OS リリースとは独立して管理 |
-| NetBSD | カーネル，libc，OpenPAM，`lib/libpam` など | 生体認証ライブラリ (`libfprint`)を含む各種デスクトップソフトウェア |
-| OpenBSD | カーネル，libc，BSD Auth，`login` など | デスクトップ環境全般．D-Bus や fprintd などのデーモンは base から意図的に除外 |
+| FreeBSD | カーネル，libc, OpenPAM, `login`, `su`, `sshd` など | デスクトップ環境 (GNOME, KDE, Xfce，Wayland コンポジタ，ディスプレイマネージャなど)．OS リリースとは独立して管理 |
+| NetBSD | カーネル，libc, OpenPAM, `lib/libpam` など | 生体認証ライブラリ (`libfprint`)を含む各種デスクトップソフトウェア |
+| OpenBSD | カーネル，libc, BSD Auth, `login` など | デスクトップ環境全般．D-Bus や fprintd などのデーモンは base から意図的に除外 |
 
-どの BSD プロジェクトもファーストパーティのデスクトップシェルやディスプレイマネージャを持たない．グラフィカルセッションへの認証は第三者ソフトウェア (GDM，SDDM，LightDM，greetd 等)が行い，そのコンポーネントが「指紋かパスワードのどちらかを待つ」処理をオーケストレーションする必要がある．そのコンポーネントが垂直統合された base の外にあるため，base のセキュリティ優先の認証設計が並行マルチモーダルプロンプトへ拡張されることはなかった．
+どの BSD プロジェクトもファーストパーティのデスクトップシェルやディスプレイマネージャを持たない．グラフィカルセッションへの認証は第三者ソフトウェア (GDM, SDDM, LightDM, greetd 等)が行い，そのコンポーネントが「指紋かパスワードのどちらかを待つ」処理をオーケストレーションする必要がある．そのコンポーネントが垂直統合された base の外にあるため，base のセキュリティ優先の認証設計が並行マルチモーダルプロンプトへ拡張されることはなかった．
 
 ### 3.2 Apple・Microsoft との対比
 
-Apple の Darwin/XNU は BSD 由来であるが，Apple はその上位スタック全体 (DirectoryService/OpenDirectory，Pluggable Authentication Modules，`CryptoTokenKit`，Touch ID 向けの `LocalAuthentication` および Secure Enclave)を垂直統合している．単一ベンダーがカーネル，認証デーモン，ログインウィンドウ，センサーを包括して制御するため，指紋とパスワードの並行受け付けを容易に構築できる．
+Apple の Darwin/XNU は BSD 由来であるが，Apple はその上位スタック全体 (DirectoryService/OpenDirectory, Pluggable Authentication Modules, `CryptoTokenKit`，Touch ID 向けの `LocalAuthentication` および Secure Enclave)を垂直統合している．単一ベンダーがカーネル，認証デーモン，ログインウィンドウ，センサーを包括して制御するため，指紋とパスワードの並行受け付けを容易に構築できる．
 
-Microsoft においても，LSA，SSPI，Winlogon，Credential Providers などの認証スタック全体がファーストパーティで提供されている．そのため，Windows Hello の顔・指紋・PIN 認証をパスワードフォールバックと並行して提示できる．
+Microsoft においても，LSA, SSPI, Winlogon，Credential Providers などの認証スタック全体がファーストパーティで提供されている．そのため，Windows Hello の顔・指紋・PIN 認証をパスワードフォールバックと並行して提示できる．
 
 どちらの場合も，デスクトップと生体認証ハードウェア統合までを同梱する OS ベンダが存在する．BSD にはそのような主体がいない．
 

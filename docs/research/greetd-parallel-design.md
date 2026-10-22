@@ -134,11 +134,11 @@ Rust を用いてゼロから `greetd-parallel` を自己実装する場合の�
 
 | コンポーネント | 想定コード量 (Rust) | 実装内容・技術要素 |
 | :--- | :--- | :--- |
-| IPC サーバー | 約 300〜400 行 | `tokio::net::UnixListener`，`greetd-ipc` の JSON パース・シリアライズ |
+| IPC サーバー | 約 300〜400 行 | `tokio::net::UnixListener`, `greetd-ipc` の JSON パース・シリアライズ |
 | PAM Worker | 約 300〜500 行 | `fork` + `exec`，パイプ経由の同期 PAM 会話 (`pam` crate 併用) |
 | D-Bus 指紋監視 | 約 200〜300 行 | `zbus` による `net.reactivated.Fprint` の非同期 Claim / VerifyStart / シグナル監視 |
 | Arbiter & 調停 | 約 300〜400 行 | レース調停 (`tokio::select!`)，子プロセスのシグナル終了，タイムアウト管理 |
-| セッションランナー | 約 300〜400 行 | `pam_open_session`，`pam_setcred`，`setuid`，環境変数注入，`execve` |
+| セッションランナー | 約 300〜400 行 | `pam_open_session`, `pam_setcred`, `setuid`，環境変数注入，`execve` |
 | 合計 | 約 1,400〜2,000 行 | 一般的な Rust デーモンの小〜中規模レベル |
 
 ### 既存の参考実装・流用元

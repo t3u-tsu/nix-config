@@ -60,7 +60,7 @@ flowchart TD
 
 ### メモリ・スワップチューニング (OOM 回避)
 
-16 GB 物理メモリ環境で `rustc`，`nix`，`zig` などの並列ビルド (最大 8 スレッド) を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する．これを解決するため，以下のチューニングを実施している ([hosts/x1c7/hardware.nix](../../hosts/x1c7/hardware.nix))．
+16 GB 物理メモリ環境で `rustc`, `nix`, `zig` などの並列ビルド (最大 8 スレッド) を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する．これを解決するため，以下のチューニングを実施している ([hosts/x1c7/hardware.nix](../../hosts/x1c7/hardware.nix))．
 
 | 項目 | 設定値 | 目的・動作 |
 | :--- | :--- | :--- |

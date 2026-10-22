@@ -10,7 +10,7 @@
 | 主要ソフトウェア | fprintd 1.94.5 / libfprint 1.94.10 / Noctalia 5.2.1 / polkit 127 / polkit-kde-agent-1 6.6.6 |
 | センサー | Synaptics Prometheus MIS `06cb:00bd` (match-on-chip，テンプレートはデバイス内保存) |
 | 登録指 | right-index-finger / left-index-finger (`fprintd-list t3u`) |
-| `fprintd.service` | `Type=dbus`，`BusName=net.reactivated.Fprint`，Idle 30 秒で自動終了 (`src/fprintd.h: #define TIMEOUT 30`) |
+| `fprintd.service` | `Type=dbus`, `BusName=net.reactivated.Fprint`，Idle 30 秒で自動終了 (`src/fprintd.h: #define TIMEOUT 30`) |
 
 ## 判定サマリ
 
@@ -33,8 +33,8 @@
 - トリアージ当日の長時間稼働 (07:36–07:54)は，別プロセスが pkexec を連続実行して Claim を維持したことによる一時的挙動である．
 
 ### 2. polkit-1 / sudo の PAM 順序 — Direct Root Cause
-- `/etc/pam.d/polkit-1`，`/etc/pam.d/sudo`，`/etc/pam.d/su` はいずれも `auth sufficient pam_fprintd.so` (order 11400) → `auth sufficient pam_unix ... try_first_pass` (11700)．
-- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`，`DEFAULT_MAX_TRIES 3`．`conv` は `PAM_TEXT_INFO` ("Place your finger...")の送信のみに使用する．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへフォールスルーする．
+- `/etc/pam.d/polkit-1`, `/etc/pam.d/sudo`, `/etc/pam.d/su` はいずれも `auth sufficient pam_fprintd.so` (order 11400) → `auth sufficient pam_unix ... try_first_pass` (11700)．
+- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`, `DEFAULT_MAX_TRIES 3`．`conv` は `PAM_TEXT_INFO` ("Place your finger...")の送信のみに使用する．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへフォールスルーする．
 - 指を置かない限り最大 30 秒パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
 - `greetd` は先行設定 (`0ae6aae` / `d09c7ac`)で `pam_unix` 優先 (`use_first_pass`)に変更済みであったが，`polkit-1`, `sudo`, `su` は未適用であった．
 - 副次効果: pam_fprintd が最大 30 秒デバイスを Claim し続けるため，同時に複数の認証要求が来ると後続が `Device was already claimed` で即座に失敗し，パスワード認証へフォールスルーする．
@@ -48,7 +48,7 @@
 ### 4. suspend/resume の stale USB ハンドル — Ruled Out / Mitigated
 - resume 時に `xhci_hcd 0000:2d:00.0: xHC error in resume, USBSTS 0x401, Reinit` が記録され USB が再初期化される (カーネル / BIOS 側の既知挙動)．
 - Noctalia は resume 後に `using fingerprint device` → `claimed` → `released` と毎回新しいハンドルで Claim し直す．fprintd 自体は 30 秒で自動終了し suspend 中は保持しないため，専用の resume 復帰サービスは不要である．
-- `power/control=on` / `power/persist=1` (udev)と TLP denylist が 2026-10-09 に導入済みである．stale ハンドル系エラー (`No such device`，`get_usbfs_fd`，`unsupported firmware version`)は 2026-09-29 を最後に発生していない．
+- `power/control=on` / `power/persist=1` (udev)と TLP denylist が 2026-10-09 に導入済みである．stale ハンドル系エラー (`No such device`, `get_usbfs_fd`, `unsupported firmware version`)は 2026-09-29 を最後に発生していない．
 - 2026-09-29 に fprintd の SIGSEGV が 1 回記録されたが (`fprintd.service: Failed with result 'core-dump'`)，以降の再発は確認されていない．
 
 ### 5. Noctalia ロック画面の stopVerify / Claim 保持 — Working as Designed
@@ -62,8 +62,8 @@
 - [home/desktop/noctalia/default.nix](../../home/desktop/noctalia/default.nix) の `polkit_agent` はトリアージ当時 `true` であったが，現在は `false` に設定されている (重複登録を避けるため)．
 
 ### 7. USB autosuspend / TLP — Ruled Out / Mitigated
-- `/sys/bus/usb/devices/1-9/`: `power/control=on`，`power/persist=1`，`power/autosuspend=2` (control=on のため autosuspend は無効化)．
-- udev ルール ([hosts/x1c7/default.nix](../../hosts/x1c7/default.nix))が適用済み．TLP は `USB_DENYLIST="06cb:00bd"` (`/run/tlp/run.conf`，`/etc/tlp.conf`)．
+- `/sys/bus/usb/devices/1-9/`: `power/control=on`, `power/persist=1`, `power/autosuspend=2` (control=on のため autosuspend は無効化)．
+- udev ルール ([hosts/x1c7/default.nix](../../hosts/x1c7/default.nix))が適用済み．TLP は `USB_DENYLIST="06cb:00bd"` (`/run/tlp/run.conf`, `/etc/tlp.conf`)．
 - udev と TLP の双方で抑止されており，追加の対処は不要である．
 
 ### 8. error 789 — Working as Designed

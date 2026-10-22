@@ -37,7 +37,7 @@ description: このリポジトリにおけるドキュメントの執筆・構�
 | 用途 | 記号 | 例 |
 | :--- | :--- | :--- |
 | 日本語の読点，語句・文節の区切り | 全角 `，` | 設定を変更し，検証する． |
-| 非日本語 (英数字，コード，技術用語，パラメータ，識別子) の列挙 | 半角 `,` | `AMD, NVIDIA, Intel`，`x86_64-linux, aarch64-linux`，`1.80 GHz, 4.60 GHz` |
+| 非日本語 (英数字，コード，技術用語，パラメータ，識別子) の列挙 | 半角 `,` | `AMD, NVIDIA, Intel`, `x86_64-linux, aarch64-linux`, `1.80 GHz, 4.60 GHz` |
 
 日本語だけで意味が通じる語の直後に，英語原語をカッコ併記しない．
 
@@ -398,7 +398,7 @@ sequenceDiagram
 
 1. タイトル (`# <Directory Name>` にパスを併記)
 2. ディレクトリの責務 (1〜2 文)
-3. モジュール一覧 (`| File | Purpose | Notes |`)
+3. モジュール一覧 (`| File | Description | Options / Notes |`)
 4. 主要コマンド (任意)
 5. `## References`
 
@@ -409,7 +409,7 @@ sequenceDiagram
 
 ## Modules
 
-| File | Purpose | Notes |
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
 | [<module-file>.nix](<module-file>.nix) | <What it does.> | Enabled with `my.<category>.<option>` |
 | [default.nix](default.nix) | Aggregator and shared configuration. | — |
@@ -472,7 +472,7 @@ docs/
 ├── architecture/                         # 設計仕様
 │   ├── overview.md                       # リポジトリ層構成とモジュール評価フロー
 │   ├── network-topology.md               # Nebula メッシュ，IP 体系，DNS，ポートフォワード
-│   └── flake-and-modules.md              # flake-parts，lib/mkSystem，my.* 命名規則
+│   └── flake-and-modules.md              # flake-parts, lib/mkSystem, my.* 命名規則
 ├── operations/                           # 運用手順書
 │   ├── adding-a-host.md                  # 新ホスト追加・登録の統一手順 (SSOT)
 │   ├── secret-management.md              # SOPS / age / 1Password 鍵ライフサイクル
@@ -483,7 +483,7 @@ docs/
 ├── hardware/                             # ハードウェア・基盤別ガイド
 │   ├── thinkpad-x1c7.md                  # ThinkPad X1C7: 電源管理，指紋認証，オーディオ
 │   ├── hybrid-gpu.md                     # BrokenPC: AMD+NVIDIA ハイブリッド，PRIME offload
-│   ├── orange-pi-zero3.md                # torii-chan: Allwinner H618，U-Boot，低リソース制約
+│   ├── orange-pi-zero3.md                # torii-chan: Allwinner H618, U-Boot，低リソース制約
 │   └── storage-zfs.md                    # shosoin-tan / sando-kun: レガシー BIOS 構成，ZFS Mirror 保守
 ├── troubleshooting/                      # トラブルシューティング・FAQ
 │   ├── build-and-deploy.md               # ビルド・評価・キャッシュ・デプロイ失敗時

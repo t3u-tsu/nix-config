@@ -44,7 +44,7 @@ flowchart TD
 
 ### GRUB ブートローダ設定
 
-ブートローダ設定 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)):
+ブートローダ設定 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix), [hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)):
 
 ```nix
 # hosts/shosoin-tan/default.nix
@@ -107,7 +107,7 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 
 ### NixOS 宣言と自動マウント
 
-NixOS での ZFS 宣言 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)):
+NixOS での ZFS 宣言 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix), [hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)):
 
 ```nix
 # default.nix

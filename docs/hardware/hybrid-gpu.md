@@ -41,7 +41,7 @@ flowchart TD
 | iGPU | AMD Radeon 680M (Rembrandt, RDNA2, 12 CU / 768 シェーダー, PCI `07:00.0`) |
 | dGPU | NVIDIA GeForce RTX 3050 Ti Mobile (GA107, Ampere, 4 GB GDDR6, PCI `01:00.0`, 物理障害あり) |
 | RAM | 16 GB DDR5-4800 |
-| ストレージ | 512 GB NVMe (OS / Boot)，1 TB NVMe (`/data`) |
+| ストレージ | 512 GB NVMe (OS / Boot), 1 TB NVMe (`/data`) |
 
 ### 障害の症状と切り分け
 

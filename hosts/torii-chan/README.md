@@ -20,6 +20,15 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 - Restricts SSH access (port 22) to `nebula0` while publicly exposing UDP `4242` (Nebula) and TCP `25565` (Minecraft).
 - Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
 
+## Configuration Summary
+
+| Property | Value |
+| :--- | :--- |
+| **Profile** | `gateway` |
+| **Bootloader** | U-Boot SPL on MicroSD, root on USB SATA HDD or MicroSD |
+| **Nebula Mesh** | `10.0.0.1` (lighthouse & relay, groups: `mgmt`) |
+| **Key Services** | Nebula lighthouse & relay, Cloudflare DDNS, `tcp/25565` proxy to `shosoin-tan` |
+
 ## Flake Targets
 
 | Target | Architecture | Target Medium / Purpose |

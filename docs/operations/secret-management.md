@@ -1,6 +1,6 @@
 # シークレット & 鍵ライフサイクル管理
 
-SOPS (sops-nix)，age，1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，更新手順，および失効・廃棄手順．
+SOPS (sops-nix), age, 1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，更新手順，および失効・廃棄手順．
 
 ## 1. 鍵階層とアクセスモデル
 
@@ -29,7 +29,7 @@ graph TD
 | 鍵の種別 | 配置場所 | 権限範囲 | 用途 |
 | :--- | :--- | :--- | :--- |
 | `master_key` | 1Password / 管理者のオフライン端末 | 全ファイルの復号・暗号化 | 新ホスト追加，鍵のローテーション，暗号化ファイルの編集 |
-| ホスト鍵 | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`，[secrets/common.yaml](../../secrets/common.yaml)，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
+| ホスト鍵 | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`, [secrets/common.yaml](../../secrets/common.yaml)，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
 | ユーザー鍵 | `~/.ssh/id_ed25519` | [secrets/services/signing.yaml](../../secrets/services/signing.yaml) および [secrets/services/conoha-vps-mcp.yaml](../../secrets/services/conoha-vps-mcp.yaml) | コミット署名鍵，ConoHa API クレデンシャルの復号 (デスクトップ環境) |
 
 ---
