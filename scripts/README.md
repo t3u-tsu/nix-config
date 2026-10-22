@@ -6,10 +6,12 @@ Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fle
 
 | Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
-| `nebula-lib.ysh` | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
-| `nebula-import-secrets.ysh` | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
-| `nebula-rotate-ca.ysh` | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
-| `set-host-password.ysh` | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
+| [`nebula-lib.ysh`](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
+| [`nebula-import-secrets.ysh`](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
+| [`nebula-rotate-ca.ysh`](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
+| [`set-host-password.ysh`](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
+| [`check-markdown-links.py`](check-markdown-links.py) | Validates that all relative markdown links point to existing files. | Python 3 (run via pre-commit) |
+| [`linkify-markdown.py`](linkify-markdown.py) | Scans markdown files and converts raw in-text file paths into relative links. | Python 3 |
 
 ## Usage Examples
 

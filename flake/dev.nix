@@ -69,6 +69,13 @@ in
             }
           }/bin/fix-ja-punctuation";
         };
+        markdown-link-check = {
+          enable = true;
+          name = "markdown-link-check";
+          description = "Validate relative links in markdown files";
+          files = "\\.md$";
+          entry = "${pkgs.python3}/bin/python3 scripts/check-markdown-links.py";
+        };
       };
 
       devShells.default = pkgs.mkShell {
