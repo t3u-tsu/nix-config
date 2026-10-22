@@ -57,9 +57,9 @@ in
                 for f in (ARGV) {
                   var content = ""
                   read --all (&content) < $f
-                  if (content.contains("、") or content.contains("。")) {
+                  var fixed = content.replace("、", "，").replace("。", "．")
+                  if (fixed !== content) {
                     echo $"FIXED: $f replaced 、。 with ，．"
-                    var fixed = content.replace("、", "，").replace("。", "．")
                     write --end "" -- $fixed > $f
                     setvar status = 1
                   }
