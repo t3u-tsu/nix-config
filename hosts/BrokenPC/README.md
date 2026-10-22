@@ -48,4 +48,3 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 - Hybrid GPU architecture & LLM tuning: [docs/hardware/hybrid-gpu.md](../../docs/hardware/hybrid-gpu.md)
 - Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
 - Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)
-
