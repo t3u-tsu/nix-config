@@ -13,6 +13,7 @@ Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fle
 | [check-markdown-links.py](check-markdown-links.py) | Validates that all relative markdown links point to existing files and heading anchors. | Python 3 (run via pre-commit) |
 | [check-docs.ysh](check-docs.ysh) | Detects full-width parentheses, prohibited words, and pseudo-heading bullets in markdown prose. | YSH (run via pre-commit) |
 | [linkify-markdown.py](linkify-markdown.py) | Scans markdown files and converts raw in-text file paths into relative links. | Python 3 |
+| [restart-touchpad.ysh](restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 
 ## Usage Examples
 

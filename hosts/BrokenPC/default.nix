@@ -31,6 +31,7 @@
       "amd_iommu=on"
       "iommu=pt"
       "i8042.nopnp"
+      "acpi.ec_no_wakeup=1"
     ];
     extraModulePackages = [ ];
     kernelPackages = pkgs.linuxPackages_xanmod;
@@ -42,6 +43,19 @@
     };
     loader.efi.canTouchEfiVariables = true;
   };
+
+  # Prevent AMD I2C controller from autosuspending into an unrecoverable sleep state,
+  # which causes i2c_designware controller timeouts and freezes the Synaptics touchpad.
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="platform", KERNEL=="AMDI0010:03", ATTR{power/control}="on"
+  '';
+
+  # Ensure the I2C controller and touchpad are active after suspend/resume
+  powerManagement.resumeCommands = ''
+    if [ -d /sys/bus/platform/devices/AMDI0010:03 ]; then
+      echo "on" > /sys/bus/platform/devices/AMDI0010:03/power/control || true
+    fi
+  '';
 
   # NOTE (2026-08-02): the RTX 3050 Ti dGPU is FAULTY (hardware). Minecraft hangs
   # it under load (OpenGL SIGSEGV in libnvidia-glcore.so / Vulkan GPU hang) while

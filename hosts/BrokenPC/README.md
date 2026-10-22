@@ -41,7 +41,17 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 ```bash
 # Local system rebuild
 sudo nixos-rebuild switch --flake .#BrokenPC
+
+# Recover touchpad and I2C controller without rebooting
+ysh scripts/restart-touchpad.ysh
 ```
+
+## Hardware Quirks & Troubleshooting
+
+| Quirk / Symptom | Cause | Mitigation & Workaround |
+| :--- | :--- | :--- |
+| Touchpad Freezing & I2C Timeout | Synaptics touchpad (`SYNA32CD:00`) on AMD DesignWare I2C bus (`AMDI0010:03`) freezes when controller enters runtime autosuspend. | Locked to `on` via udev rule and restored in `powerManagement.resumeCommands`. Manual recovery via `ysh scripts/restart-touchpad.ysh`. |
+| Boot Hang (Black Screen & Spinning Fans) | HP Victus 16 motherboard (`8A22`) EC state hang during power transitions. | Disconnect AC charger and perform a hard EC reset by holding the power button for 20–30 seconds. |
 
 ## References
 
