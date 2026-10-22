@@ -33,6 +33,12 @@
 - [`troubleshooting/network-recovery.md`](troubleshooting/network-recovery.md) — Nebula 不通，NAT loopback，SSH 遮断時の復旧
 - [`troubleshooting/emergency-recovery.md`](troubleshooting/emergency-recovery.md) — 世代ロールバック，インストーラ USB レスキュー
 
+### 5. [調査ノート (Research)](research/)
+認証スタックなど，実機調査と upstream ソースコードの読解に基づく調査記録．
+- [`research/parallel-auth-architecture.md`](research/parallel-auth-architecture.md) — 指紋 + パスワード並行待ち受けの可否と，GDM / Noctalia / greetd / polkit / sudo の実装比較
+- [`research/bsd-auth-architecture.md`](research/bsd-auth-architecture.md) — FreeBSD / NetBSD（OpenPAM）と OpenBSD（BSD Authentication）の同期性・並行性
+- [`research/fprintd-triage-notes.md`](research/fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録（PAM 順序，D-Bus 自動終了，Noctalia の Claim 挙動）
+
 ---
 
 ## 関連リファレンス
