@@ -28,12 +28,30 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 | **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
 | **Key Services** | Local LLM inference server (`my.home.programs.llama`), SOPS secrets |
 
+## Host Services & Modules
+
+| File | Description | Options / Notes |
+| :--- | :--- | :--- |
+| [services/default.nix](services/default.nix) | Host service aggregator importing local LLM inference and Nebula overlay modules. | Imported in [default.nix](default.nix) |
+| [services/llama.nix](services/llama.nix) | Local LLM inference server using CUDA on the compute-only RTX 3050 Ti Mobile dGPU. | `my.home.programs.llama.enable = true;` |
+| [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.100`, groups: `mgmt`, `app` |
+
 ## Quick Operations
 
 ```bash
 # Local system rebuild
 sudo nixos-rebuild switch --flake .#BrokenPC
+
+# Recover touchpad and I2C controller without rebooting
+ysh scripts/restart-touchpad.ysh
 ```
+
+## Hardware Quirks & Troubleshooting
+
+| Quirk / Symptom | Cause | Mitigation & Workaround |
+| :--- | :--- | :--- |
+| Touchpad Freezing & I2C Timeout | Synaptics touchpad (`SYNA32CD:00`) on AMD DesignWare I2C bus (`AMDI0010:03`) freezes when controller enters runtime autosuspend. | Locked to `on` via udev rule and restored in `powerManagement.resumeCommands`. Manual recovery via `ysh scripts/restart-touchpad.ysh`. |
+| Boot Hang (Black Screen & Spinning Fans) | HP Victus 16 motherboard (`8A22`) EC state hang during power transitions. | Disconnect AC charger and perform a hard EC reset by holding the power button for 20–30 seconds. |
 
 ## References
 
