@@ -1,6 +1,6 @@
 # レガシー BIOS ブート & ZFS ストレージ運用ガイド
 
-レガシー BIOS（MBR）環境で稼働するタワー型サーバ群（`shosoin-tan`，`sando-kun`）のブート設計，および `shosoin-tan` における ZFS Mirror プール（`tank-1tb`）の構築，定期スクラブ，障害検知，ディスク交換・リビルド（`zpool replace`）手順．
+レガシー BIOS (MBR) 環境で稼働するタワー型サーバ群 (`shosoin-tan`, `sando-kun`) のブート設計，および `shosoin-tan` における ZFS Mirror プール (`tank-1tb`) の構築，定期スクラブ，障害検知，ディスク交換・リビルド (`zpool replace`) 手順．
 
 ```mermaid
 flowchart TD
@@ -37,14 +37,14 @@ flowchart TD
 
 | ホスト名 | CPU | RAM | システムドライブ | ブート方式 | 主な役割 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `shosoin-tan` | Intel Core i7-870（Nehalem / 4C8T） | 16 GB | 480 GB SATA SSD | Legacy BIOS (MBR) | Minecraft サーバ，ZFS ストレージ |
-| `sando-kun` | Intel Core i7-860（Nehalem / 4C8T） | 8 GB | 250 GB SATA HDD | Legacy BIOS (MBR) | 汎用タワーサーバ，検証環境 |
+| `shosoin-tan` | Intel Core i7-870 (Nehalem / 4C8T) | 16 GB | 480 GB SATA SSD | Legacy BIOS (MBR) | Minecraft サーバ，ZFS ストレージ |
+| `sando-kun` | Intel Core i7-860 (Nehalem / 4C8T) | 8 GB | 250 GB SATA HDD | Legacy BIOS (MBR) | 汎用タワーサーバ，検証環境 |
 
-両機は第1世代 Intel Core プロセッサ時代のマザーボードを搭載しており，UEFI ブートに非対応（またはファームウェアの挙動が不安定）であるため，Legacy BIOS（MBR パーティションテーブル）による起動を採用している．
+両機は第1世代 Intel Core プロセッサ時代のマザーボードを搭載しており，UEFI ブートに非対応 (またはファームウェアの挙動が不安定) であるため，Legacy BIOS (MBR パーティションテーブル) による起動を採用している．
 
 ### GRUB ブートローダ設定
 
-ブートローダ設定（[hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)）:
+ブートローダ設定 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)):
 
 ```nix
 # hosts/shosoin-tan/default.nix
@@ -65,28 +65,28 @@ boot.loader.grub = {
 #### 設計の要点
 
 ##### `efiSupport = false`
-UEFI 用の ESP（EFI システムパーティション）へのブートローダ配置を無効化し，ディスクの先頭 512 バイト（MBR ブートセクタ）に GRUB ステージ 1 を直接書き込む．
+UEFI 用の ESP (EFI システムパーティション) へのブートローダ配置を無効化し，ディスクの先頭 512 バイト (MBR ブートセクタ) に GRUB ステージ 1 を直接書き込む．
 
 ##### `device` の永続的 ID 指定
 `/dev/sda` のような動的デバイス名は認識順序で変動するため，シリアル番号を含む `/dev/disk/by-id/...` を指定する．これにより，SATA ケーブルの挿し替えや複数ディスクの認識順序変動によるブートセクタ書き込み先の誤認および起動不能を防止する．
 
 ### MBR パーティションレイアウト
 
-初期プロビジョニング時，システムドライブは `parted` により `msdos`（MBR）ラベルで初期化される．
+初期プロビジョニング時，システムドライブは `parted` により `msdos` (MBR) ラベルで初期化される．
 
 | パーティション | 種別 / フラグ | 容量 | マウント先 / 用途 |
 | :--- | :--- | :--- | :--- |
-| `part1` | `linux-swap` | 8 GiB | メモリ枯渇防止（初期インストール時に swapon，定常稼働時の NixOS 設定には swapDevices 未指定） |
-| `part2` | `fat32`（boot フラグ有効） | 500 MiB | `/boot` |
+| `part1` | `linux-swap` | 8 GiB | メモリ枯渇防止 (初期インストール時に swapon, 定常稼働時の NixOS 設定には swapDevices 未指定) |
+| `part2` | `fat32` (boot フラグ有効) | 500 MiB | `/boot` |
 | `part3` | `ext4` | 残り全域 | `/` |
 
 ### ZFS 必須要件: `networking.hostId`
 
-NixOS で ZFS サポートを有効化する場合，意図しないホストによるプールの多重インポート・データ破壊を防ぐため，32 ビットの 16 進数ホスト ID の定義が必須である（未定義の場合は評価時にアサーションエラーとなる）．現在クラスタ内で ZFS プールを運用しているホストは `shosoin-tan` のみであり，以下のように定義されている．
+NixOS で ZFS サポートを有効化する場合，意図しないホストによるプールの多重インポート・データ破壊を防ぐため，32 ビットの 16 進数ホスト ID の定義が必須である (未定義の場合は評価時にアサーションエラーとなる)．現在クラスタ内で ZFS プールを運用しているホストは `shosoin-tan` のみであり，以下のように定義されている．
 
 - `shosoin-tan`: `networking.hostId = "8425e349";`
 
-※ 他のサーバーホスト（`sando-kun`: `"5a4d0001"`，`kagutsuchi-sama`: `"c0ffee01"`）にも `networking.hostId` が定義されているが，これらは ext4 / vfat 構成であり ZFS プールは運用していない．
+※ 他のサーバーホスト (`sando-kun`: `"5a4d0001"`, `kagutsuchi-sama`: `"c0ffee01"`) にも `networking.hostId` が定義されているが，これらは ext4 / vfat 構成であり ZFS プールは運用していない．
 
 ---
 
@@ -99,15 +99,15 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 | 項目 | 設定値 / 内容 |
 | :--- | :--- |
 | プール名 | `tank-1tb` |
-| トポロジ | 2-way Mirror（ミラー構成） |
+| トポロジ | 2-way Mirror (ミラー構成) |
 | 構成ドライブ | 1 TB SATA HDD × 2 台 |
-| 実効容量 | 約 930 GiB（耐障害性: 1 台の故障まで許容） |
+| 実効容量 | 約 930 GiB (耐障害性: 1 台の故障まで許容) |
 | マウントポイント | `/mnt/tank-1tb` |
-| 主な役割 | Minecraft サーバデータの高信頼性ローカルバックアップ保管（`/mnt/tank-1tb/backups/minecraft`），Restic による世代別スナップショット保管，大容量スクラッチデータ領域 |
+| 主な役割 | Minecraft サーバデータの高信頼性ローカルバックアップ保管 (`/mnt/tank-1tb/backups/minecraft`)，Restic による世代別スナップショット保管，大容量スクラッチデータ領域 |
 
 ### NixOS 宣言と自動マウント
 
-NixOS での ZFS 宣言（[hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)）:
+NixOS での ZFS 宣言 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)):
 
 ```nix
 # default.nix
@@ -136,7 +136,7 @@ sudo zpool create -m /mnt/tank-1tb tank-1tb mirror /dev/disk/by-id/<DISK1> /dev/
 
 ZFS は全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラ誤動作に伴うサイレントデータ破損を自動検知・自己修復する．
 
-自動スクラブタイマー（`services.zfs.autoScrub`）は未設定のため，定期的に手動でスクラブを実行し，データ整合性を検証する．
+自動スクラブタイマー (`services.zfs.autoScrub`) は未設定のため，定期的に手動でスクラブを実行し，データ整合性を検証する．
 
 ### 手動スクラブ操作
 
@@ -171,7 +171,7 @@ errors: No known data errors
 ```
 
 - `repaired`: ミラーのもう一方の正常ブロックを用いて自動修復されたデータ量．
-- `CKSUM`: チェックサム不整合が検知された回数（非ゼロの場合はドライブの物理劣化を疑う）．
+- `CKSUM`: チェックサム不整合が検知された回数 (非ゼロの場合はドライブの物理劣化を疑う)．
 
 ---
 
@@ -193,9 +193,9 @@ zpool status -x
 | ステータス | 意味 | 健全度・影響 | 推奨される初動対応 |
 | :--- | :--- | :--- | :--- |
 | `ONLINE` | 全デバイスが正常に稼働している． | 正常 | 定期スクラブの継続 |
-| `DEGRADED` | ミラー内の 1 台がオフラインまたは故障しているが，残る 1 台で読み書きは継続可能． | 警告（冗長性の喪失） | 故障ドライブの特定と速やかな `zpool replace` 交換 |
-| `FAULTED` | デバイスまたはプールが重篤な障害で隔離されている（プール全体が FAULTED の場合はアクセス不能）． | 致命的（データアクセス不可） | ディスク接続確認，レスキュー環境からのインポート検証 |
-| `UNAVAIL` | デバイスファイルが見つからない（物理切断，電源断，SATA 認識不良など）． | エラー（物理障害の疑い） | ケーブル接続確認，カーネルログ（`dmesg`）の確認 |
+| `DEGRADED` | ミラー内の 1 台がオフラインまたは故障しているが，残る 1 台で読み書きは継続可能． | 警告 (冗長性の喪失) | 故障ドライブの特定と速やかな `zpool replace` 交換 |
+| `FAULTED` | デバイスまたはプールが重篤な障害で隔離されている (プール全体が FAULTED の場合はアクセス不能)． | 致命的 (データアクセス不可) | ディスク接続確認，レスキュー環境からのインポート検証 |
+| `UNAVAIL` | デバイスファイルが見つからない (物理切断, 電源断, SATA 認識不良など)． | エラー (物理障害の疑い) | ケーブル接続確認，カーネルログ (`dmesg`) の確認 |
 
 ### SMART 情報によるハードウェア予兆検知
 
@@ -206,9 +206,9 @@ sudo smartctl -a /dev/disk/by-id/<DISK_ID>
 ```
 
 以下の属性がゼロより大きくなっている場合は，ディスクの寿命が近づいている:
-- `Reallocated_Sector_Ct`（代替処理済のセクタ数）
-- `Current_Pending_Sector`（代替処理保留中のセクタ数）
-- `Offline_Uncorrectable`（回復不可能セクタ数）
+- `Reallocated_Sector_Ct` (代替処理済のセクタ数)
+- `Current_Pending_Sector` (代替処理保留中のセクタ数)
+- `Offline_Uncorrectable` (回復不可能セクタ数)
 
 ---
 
@@ -230,7 +230,7 @@ sequenceDiagram
     Admin->>Host: 電源投入・ログイン
     Admin->>Host: lsblk で新ディスクの ID 確認 (/dev/disk/by-id/...)
     Admin->>ZFS: sudo zpool replace tank-1tb <旧ディスク識別子> <新ディスクID>
-    Note over ZFS,NewDisk: リシルバリング (Resilvering) 自動開始
+    Note over ZFS,NewDisk: リシルバリング自動開始
     Admin->>ZFS: zpool status tank-1tb (進捗 100% まで監視)
     Admin->>ZFS: sudo zpool clear tank-1tb (エラーカウンタ消去)
     Admin->>Host: zpool status -x ("all pools are healthy" 確認)
@@ -238,13 +238,13 @@ sequenceDiagram
 
 ### Step 1: 故障ディスクの特定と物理換装
 
-1. `zpool status tank-1tb` を実行し，エラーが多発しているディスクの識別子（またはシリアル番号）を特定する．
-2. システムをシャットダウン（`sudo poweroff`）し，故障した HDD を新しい HDD へ物理的に交換する．
+1. `zpool status tank-1tb` を実行し，エラーが多発しているディスクの識別子 (またはシリアル番号) を特定する．
+2. システムをシャットダウン (`sudo poweroff`) し，故障した HDD を新しい HDD へ物理的に交換する．
 3. システムを起動し，新しいディスクが認識されていることを確認する:
    ```bash
    lsblk -o NAME,SIZE,SERIAL,MODEL,PATH
    ```
-4. `/dev/disk/by-id/` 配下で新しいディスクの永続的デバイスパスを確認する（例: `/dev/disk/by-id/ata-WDC_WD10EZEX-xx_WD-WCC4Nxx`）．
+4. `/dev/disk/by-id/` 配下で新しいディスクの永続的デバイスパスを確認する (例: `/dev/disk/by-id/ata-WDC_WD10EZEX-xx_WD-WCC4Nxx`)．
 
 ### Step 2: プールへのリプレース指示
 
@@ -254,11 +254,11 @@ sequenceDiagram
 sudo zpool replace tank-1tb <旧ディスク識別子> /dev/disk/by-id/<新ディスクID>
 ```
 
-※旧ディスクがすでに完全故障して切断されている場合，`zpool status` に表示されている数値（GUID）を `<旧ディスク識別子>` として指定する．
+※旧ディスクがすでに完全故障して切断されている場合，`zpool status` に表示されている数値 (GUID) を `<旧ディスク識別子>` として指定する．
 
 ### Step 3: リシルバリングの監視
 
-リプレース指示を発行すると，生き残っている正常ディスクから新ディスクへデータの同期（リシルバリング）が自動的に開始される．
+リプレース指示を発行すると，生き残っている正常ディスクから新ディスクへデータの同期 (リシルバリング) が自動的に開始される．
 
 ```bash
 zpool status tank-1tb
@@ -278,7 +278,7 @@ zpool status tank-1tb
 
 リシルバリングが完了すると，プールのステータスが `ONLINE` に復帰する．
 
-1. スキャン結果が `resilvered <SIZE> in ... with 0 errors` となっていることを確認する．
+1. スキャン結果が `resilvered <SIZE> in ... with 0 errors` であることを確認する．
 2. 過去のエラーカウンタをリセットする:
    ```bash
    sudo zpool clear tank-1tb
@@ -293,9 +293,9 @@ zpool status tank-1tb
 
 ## 関連ドキュメント
 
-- [ホスト概要: hosts/shosoin-tan/README.md](../../hosts/shosoin-tan/README.md)
-- [システム構成: hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)
-- [ハードウェア定義: hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)
-- [ホスト概要: hosts/sando-kun/README.md](../../hosts/sando-kun/README.md)
-- [システム構成: hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)
-- [バックアップ運用手順: docs/operations/backup-and-restore.md](../operations/backup-and-restore.md)
+- [shosoin-tan ホスト概要](../../hosts/shosoin-tan/README.md) — shosoin-tan の概要と運用方針
+- [shosoin-tan システム構成](../../hosts/shosoin-tan/default.nix) — shosoin-tan 固有のシステムモジュール設定
+- [shosoin-tan ハードウェア定義](../../hosts/shosoin-tan/hardware.nix) — ZFS プールマウントと GRUB 設定
+- [sando-kun ホスト概要](../../hosts/sando-kun/README.md) — sando-kun の概要と運用方針
+- [sando-kun システム構成](../../hosts/sando-kun/default.nix) — sando-kun 固有のシステムモジュール設定
+- [バックアップ・リストア運用手順](../operations/backup-and-restore.md) — Restic バックアップと復旧手順

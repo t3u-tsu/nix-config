@@ -1,12 +1,12 @@
-# 非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）
+# 非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)
 
-Nebula メッシュ VPN 障害時や Lighthouse 停止時，物理コンソールとは独立した帯域外管理（Out-of-Band Management: OOBM）手段として，Cloudflare Tunnel 経由の SSH アクセス手順を定める．
+Nebula メッシュ VPN 障害時や Lighthouse 停止時，物理コンソールとは独立した帯域外管理手段として，Cloudflare Tunnel 経由の SSH アクセス手順を定める．
 
 ## 1. 概要とアーキテクチャ
 
-通常時のリモート管理は Nebula メッシュ VPN（`10.0.0.0/24`）を経由するが，デーモン停止，証明書失効，Lighthouse ダウン，NAT loopback 障害等が発生すると通常の SSH 接続経路が遮断される．
+通常時のリモート管理は Nebula メッシュ VPN (`10.0.0.0/24`) を経由するが，デーモン停止，証明書失効，Lighthouse ダウン，NAT loopback 障害等が発生すると通常の SSH 接続経路が遮断される．
 
-各サーバー上で稼働する `cloudflared` が Cloudflare エッジに対して常時アウトバウンド接続（HTTPS / QUIC）を確立する．このアウトバウンド経路のみで拠点ルータを越え，外部から各ノードへ到達できる帯域外管理プレーンを確保する．
+各サーバー上で稼働する `cloudflared` が Cloudflare エッジに対して常時アウトバウンド接続 (HTTPS / QUIC) を確立する．このアウトバウンド経路のみで拠点ルータを越え，外部から各ノードへ到達できる帯域外管理プレーンを確保する．
 
 ```mermaid
 sequenceDiagram
@@ -35,15 +35,15 @@ sequenceDiagram
 
 ---
 
-## 2. 認証アーキテクチャ（多層防御）
+## 2. 認証アーキテクチャ (多層防御)
 
 不正アクセス防止のため，以下の 3 層による多層防御を適用する．
 
 | 階層 | 防御機構 | 検証場所 | 役割・セキュリティ特性 |
 | :--- | :--- | :--- | :--- |
-| レイヤー 1 | Cloudflare Zero Trust (Access) | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
-| レイヤー 2 | Cloudflare SSH CA（短期証明書） | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
-| レイヤー 3 | ED25519 ユーザー公開鍵認証 | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
+| レイヤー 1 | Cloudflare Zero Trust (Access) | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード (OTP) または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
+| レイヤー 2 | Cloudflare SSH CA (短期証明書) | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定 (`/etc/ssh/auth_principals/t3u`) で検証し，失効リスクを最小化する． |
+| レイヤー 3 | ED25519 ユーザー公開鍵認証 | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー (`t3u`) の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
 
 ---
 
@@ -53,10 +53,10 @@ sequenceDiagram
 
 | ホスト名 | 接続ドメイン (FQDN) | シークレットキー (`secrets/hosts/<hostname>.yaml`) | 役割・配置拠点 |
 | :--- | :--- | :--- | :--- |
-| `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse（拠点T） |
-| `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー（拠点A） |
-| `kagutsuchi-sama` | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫（拠点A） |
-| `shosoin-tan` | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー（拠点A） |
+| `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse (拠点T) |
+| `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー (拠点A) |
+| `kagutsuchi-sama` | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫 (拠点A) |
+| `shosoin-tan` | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー (拠点A) |
 
 ---
 
@@ -64,17 +64,17 @@ sequenceDiagram
 
 PC CLI および Web ブラウザの 2 系統から接続できる．
 
-### 4.1 方法 A: PC CLI からの接続 (`cloudflared access ssh`)
+### 方法 A: PC CLI からの接続 (`cloudflared access ssh`)
 
 #### 前提条件
-接続元端末に `cloudflared` が必要となる（`nix develop` や `network-tools` 有効環境には同梱）．未導入環境では一時シェルで実行する:
+接続元端末に `cloudflared` が必要となる (`nix develop` や `network-tools` 有効環境には同梱)．未導入環境では一時シェルで実行する:
 ```bash
 # 外部 Nix 環境の場合
 nix shell nixpkgs#cloudflared
 ```
 
 #### SSH クライアント設定 (`~/.ssh/config`)
-Home Manager 設定（[home/programs/ssh.nix](../../home/programs/ssh.nix)）に以下のエントリおよび短縮エイリアスを定義している:
+Home Manager 設定 ([home/programs/ssh.nix](../../home/programs/ssh.nix)) に以下のエントリおよび短縮エイリアスを定義している:
 
 ```ssh-config
 # Cloudflare Tunnel 経由 非常用帯域外アクセス
@@ -115,15 +115,15 @@ ssh -o ProxyCommand="cloudflared access ssh --hostname torii-chan-cf-ssh.t3u.uk"
 
 ---
 
-### 4.2 方法 B: 出先スマホ・他端末からの接続（Web ブラウザ / xterm.js ターミナル）
+### 方法 B: Web ブラウザからの接続 (スマートフォン・他端末)
 
 1. スマートフォンまたは PC の Web ブラウザで，対象ホストの URL を開く:
    ```text
    https://<hostname>-cf-ssh.t3u.uk
    ```
-   （例: `https://torii-chan-cf-ssh.t3u.uk`）
-2. Cloudflare Access の認証画面でメールアドレスを入力し，ワンタイムパスコード（OTP）または SSO 認証を通過させる．
-3. 認証完了後，ブラウザ画面内に xterm.js ベースの Web ターミナルが描画され，自動的に SSH セッション（ユーザー `t3u`）が起動する．
+   (例: `https://torii-chan-cf-ssh.t3u.uk`)
+2. Cloudflare Access の認証画面でメールアドレスを入力し，ワンタイムパスコード (OTP) または SSO 認証を通過させる．
+3. 認証完了後，ブラウザ画面内に xterm.js ベースの Web ターミナルが描画され，自動的に SSH セッション (ユーザー `t3u`) が起動する．
 4. ブラウザ上のターミナルからシェルコマンドを実行し，障害調査やサービス再起動を実施する．
 
 ---
@@ -133,7 +133,7 @@ ssh -o ProxyCommand="cloudflared access ssh --hostname torii-chan-cf-ssh.t3u.uk"
 各ホストが Cloudflare Tunnel を確立するための認証トークンは，SOPS により暗号化して管理する．
 
 ### Step 1: Cloudflare Tunnel の作成とトークン取得
-Cloudflare Zero Trust ダッシュボード（Networks → Tunnels）で各ホスト用の Tunnel を作成し，発行された Tunnel Token（`eyJh...` から始まる Base64 トークン文字列）を取得する．
+Cloudflare Zero Trust ダッシュボード (Networks → Tunnels) で各ホスト用の Tunnel を作成し，発行された Tunnel Token (`eyJh...` から始まる Base64 トークン文字列) を取得する．
 Public Hostname には `<hostname>-cf-ssh.t3u.uk` を設定し，サービス先として `SSH -> localhost:22` を指定する．
 
 ### Step 2: SOPS シークレットへの登録
@@ -144,7 +144,7 @@ Public Hostname には `<hostname>-cf-ssh.t3u.uk` を設定し，サービス先
 sops secrets/hosts/<hostname>.yaml
 ```
 
-ファイル内に `<hostKey>_cloudflared_ssh_token` キーを定義し，取得した Token 文字列を貼り付ける（`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）:
+ファイル内に `<hostKey>_cloudflared_ssh_token` キーを定義し，取得した Token 文字列を貼り付ける (`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの):
 
 ```yaml
 # secrets/hosts/torii-chan.yaml の例
@@ -154,7 +154,7 @@ torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
 編集後，ファイルを保存して暗号化を完了する．
 
 ### Step 3: NixOS 設定の有効化と反映
-各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または [hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix)）で本機能を有効化する:
+各ホストの設定 (例: `hosts/<hostname>/services/emergency-ssh.nix` または [hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix)) で本機能を有効化する:
 
 ```nix
 my.services.emergencySsh.enable = true;
@@ -169,9 +169,9 @@ sudo systemctl status cloudflared-emergency-ssh.service
 
 ## 6. 非常時トラブルシューティングと運用上の注意
 
-### 短期証明書の有効期限（3分）
+### 短期証明書の有効期限 (3分)
 Cloudflare SSH CA から発行されるクライアント証明書の有効期限は 3 分間である．
-- SSH 接続ハンドシェイク（セッション確立）の制限時間であり，確立済みの SSH セッションは証明書の有効期限を超えて継続する．
+- SSH 接続ハンドシェイク (セッション確立) の制限時間であり，確立済みの SSH セッションは証明書の有効期限を超えて継続する．
 - 長時間の作業中に接続が意図せず切断された場合，再接続時に再度 Access 認証またはトークン更新が実行される．
 
 ### Nebula 障害発生時の緊急復旧コマンド例
@@ -192,8 +192,8 @@ sudo nixos-rebuild switch --rollback
 ---
 
 ## 関連ドキュメント
-- [目次（設計・運用ドキュメント）](../README.md)
-- [ネットワークアーキテクチャ](../architecture/network-topology.md)
-- [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md)
-- [シークレット & 鍵ライフサイクル管理](secret-management.md)
-- [ConoHa VPS プロビジョニング & フェイルオーバー手順](vps-failover.md)
+- [目次 (設計・運用ドキュメント)](../README.md) — 全体ナビゲーション・目次
+- [ネットワークアーキテクチャ](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
+- [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md) — Nebula メッシュ不通，物理 LAN SSH 遮断，NAT loopback 回避
+- [シークレット & 鍵ライフサイクル管理](secret-management.md) — SOPS / age 鍵管理と証明書ローテーション
+- [ConoHa VPS プロビジョニング & フェイルオーバー手順](vps-failover.md) — VPS フェイルオーバー起動と切り戻し手順

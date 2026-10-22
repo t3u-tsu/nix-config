@@ -1,11 +1,11 @@
 # シークレット・認証トラブルシューティング
 
-SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
+SOPS (sops-nix) 復号エラー，プライベートリポジトリ (`nix-config-private`) 認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
 | SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，[.sops.yaml](../../.sops.yaml) 更新，`sops updatekeys` |
-| private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
+| private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
 ---
@@ -16,7 +16,7 @@ SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-con
 - `sops-install-secrets: error: failed to decrypt ...`
 - `Error decrypting file: None of the keys could decrypt the message`
 - システムの activation 時に `activationScripts "0-sops-key-import" failed` または `sops-install-secrets.service` が失敗する．
-- ユーザーのログイン時にパスワードが認識されない（`hashedPasswordFile` の読み込み失敗）．
+- ユーザーのログイン時にパスワードが認識されない (`hashedPasswordFile` の読み込み失敗)．
 
 ### 原因
 
@@ -48,11 +48,11 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 #### Step 2: [.sops.yaml](../../.sops.yaml) の登録情報と突合
-リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
+リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する (アンカー名はハイフンがアンダースコア, 例: `&shosoin_tan`, `&torii_chan`):
 ```bash
 grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
 ```
-鍵が異なる場合（再インストール等），[.sops.yaml](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
+鍵が異なる場合 (再インストール等)，[.sops.yaml](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
 
 #### Step 3: `/var/lib/sops-nix/key.txt` の確認・手動生成
 [nixos/security/sops.nix](../../nixos/security/sops.nix) の activation スクリプト `0-sops-key-import` が何らかの理由で実行されなかった場合，手動で age 秘密鍵を配置する:
@@ -70,9 +70,9 @@ export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 # ホスト個別ファイル・共通ファイル・該当サービスファイルの更新
 sops updatekeys secrets/hosts/<hostname>.yaml
 sops updatekeys secrets/common.yaml
-sops updatekeys secrets/services/<service>.yaml  # 例: shosoin-tan なら backup.yaml / minecraft.yaml
+sops updatekeys secrets/services/<service>.yaml  # 例: shosoin-tan なら backup.yaml, minecraft.yaml
 
-# recipients 整合性の検証（対象ホストの公開鍵が recipient に正しく反映されているか確認）
+# recipients 整合性の検証 (対象ホストの公開鍵が recipient に正しく反映されているか確認)
 git diff secrets/
 
 # 変更をコミット
@@ -97,9 +97,9 @@ error: Failed to fetch git repository 'ssh://git@github-nix-config-private/t3u-t
 ```
 
 ### 原因
-本リポジトリの [flake.nix](../../flake.nix) は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [nixos/base/private-config.nix](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する（ブートストラップ時の鶏と卵の問題）．
+本リポジトリの [flake.nix](../../flake.nix) は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [nixos/base/private-config.nix](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する (ブートストラップ時の鶏と卵の問題)．
 
-### 復旧手順（初期ブートストラップ）
+### 切り分け・復旧手順
 
 #### Step 1: root の SSH 環境の準備
 Flake の評価および Git フェッチは root 権限で実行されるため，root の SSH 設定を初期化する:
@@ -109,7 +109,7 @@ sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/know
 ```
 
 #### Step 2: デプロイキーの配備
-[secrets/common.yaml](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する（`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用）:
+[secrets/common.yaml](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する (`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用):
 ```bash
 sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
   --extract "[\"nix_config_private_deploy_key\"]" \
@@ -118,7 +118,7 @@ sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 ```
 > [!TIP]
-> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵（`~/.ssh/id_ed25519`）を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．
+> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵 (`~/.ssh/id_ed25519`) を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．
 
 #### Step 3: 一時 SSH エイリアスの設定
 ```bash
@@ -138,7 +138,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 ```
 
 #### Step 5: 一時設定のクリーンアップ
-正常に世代が適用されると，[nixos/base/private-config.nix](../../nixos/base/private-config.nix) によりシステム全体（`/etc/ssh/ssh_config`）にエイリアスが恒久設定されるため，root の一時設定を削除する:
+正常に世代が適用されると，[nixos/base/private-config.nix](../../nixos/base/private-config.nix) によりシステム全体 (`/etc/ssh/ssh_config`) にエイリアスが恒久設定されるため，root の一時設定を削除する:
 ```bash
 sudo rm /root/.ssh/config
 ```
@@ -153,10 +153,11 @@ sudo rm /root/.ssh/config
 You are in emergency mode. After logging in, type "journalctl -xb" to view system logs...
 Give root password for maintenance (or press Control-D to continue):
 ```
-> [!CAUTION]
-> 本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定される．シークレット復号失敗により emergency mode に入った場合，root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
 
-### 脱出・復旧手順
+### 原因
+システムの activation スクリプト (シークレット復号, ユーザー・グループ作成, ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
+
+### 切り分け・復旧手順
 
 #### パターン A: メンテナンスログインが可能な場合
 1. root パスワードを入力してシェルに入る．
@@ -167,27 +168,27 @@ Give root password for maintenance (or press Control-D to continue):
    ```
 3. 直前の健全な世代へロールバックする:
    ```bash
-   # 世代一覧を確認し，直前の健全な世代リンク（例: system-35-link）を指定して切り替える
+   # 世代一覧を確認し，直前の健全な世代リンク (例: system-35-link) を指定して切り替える
    ls -d /nix/var/nix/profiles/system-*-link
    /nix/var/nix/profiles/system-<世代番号>-link/bin/switch-to-configuration switch
    ```
 
 #### パターン B: パスワード入力が通らずログイン不能な場合
 
-##### 正常世代での起動（GRUB メニュー）
-マシンを再起動してブートローダー（GRUB）メニューを表示し，「NixOS - All configurations」から直前の正常世代を選択して起動する．正常世代でのログイン後，設定を修正またはロールバックする．
+##### 正常世代での起動 (GRUB メニュー)
+マシンを再起動してブートローダー (GRUB) メニューを表示し，「NixOS - All configurations」から直前の正常世代を選択して起動する．正常世代でのログイン後，設定を修正またはロールバックする．
 
 ##### 代替手段: `init=/bin/sh` 緊急シェルによる世代切り替え
 GRUB メニューからの通常起動で解決しない場合，カーネルパラメータを変更して緊急シェルから前世代をブート既定に設定する:
 
-1. マシンを強制再起動し，ブートローダー（GRUB）メニューを表示する．
+1. マシンを強制再起動し，ブートローダー (GRUB) メニューを表示する．
 2. 起動エントリを選択した状態で `e` キーを押し，エントリ編集画面に入る．
 3. `linux /nix/store/.../bzImage` で始まる行の末尾に以下を追記する:
    ```text
    init=/bin/sh
    ```
-   （または `systemd.unit=rescue.target`）
-4. `Ctrl+X`（または `F10`）を押して直接ルートシェルを起動する．
+   (または `systemd.unit=rescue.target`)
+4. `Ctrl+X` (または `F10`) を押して直接ルートシェルを起動する．
 5. ルートファイルシステムを書き込み可能で再マウントする:
    ```bash
    mount -o remount,rw /
@@ -196,7 +197,7 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
    ```bash
    # 直前の世代リンクを確認
    ls -l /nix/var/nix/profiles/system-*-link
-   # 前世代のブートスクリプトを実行（init=/bin/sh 環境には systemd がないため boot サブコマンドを指定）
+   # 前世代のブートスクリプトを実行 (init=/bin/sh 環境には systemd がないため boot サブコマンドを指定)
    /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration boot
    reboot -f
    ```
@@ -204,9 +205,9 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
 ---
 
 ## 関連ドキュメント
-- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md)
-- [新ホスト追加手順](../operations/adding-a-host.md)
-- [緊急時システム復旧・レスキューガイド](emergency-recovery.md)
-- [SOPS 設計リファレンス](../../secrets/README.md)
-- [SOPS モジュール実装](../../nixos/security/sops.nix)
-- [プライベートリポジトリ認証モジュール](../../nixos/base/private-config.nix)
+- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — SOPS / age 鍵管理と Nebula 証明書ローテーション
+- [新規ホスト追加手順](../operations/adding-a-host.md) — 新規マシンの追加・初期セットアップ手順
+- [緊急時システム復旧・レスキューガイド](emergency-recovery.md) — 世代ロールバック，インストーラ USB レスキュー手順
+- [SOPS 設計リファレンス](../../secrets/README.md) — 鍵階層，シークレット暗号化モデル，ファイル構成
+- [SOPS モジュール実装](../../nixos/security/sops.nix) — 本リポジトリの sops-nix 共通モジュール定義
+- [プライベートリポジトリ認証モジュール](../../nixos/base/private-config.nix) — nix-config-private フェッチ用 SSH エイリアス設定
