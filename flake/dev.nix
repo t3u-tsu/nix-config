@@ -1,4 +1,7 @@
-{ inputs, ... }:
+{ inputs, config, ... }:
+let
+  flakeConfig = config;
+in
 {
   imports = [ inputs.git-hooks.flakeModule ];
 
@@ -9,6 +12,9 @@
       system,
       ...
     }:
+    let
+      pkgsYsh = pkgs.extend flakeConfig.flake.overlays.default;
+    in
     {
       formatter = pkgs.nixfmt;
 
@@ -44,19 +50,21 @@
           files = "\\.md$";
           # Rewrites files in place and exits 1 when it changed one, so the fix is re-staged.
           entry = "${
-            pkgs.writeShellApplication {
+            pkgsYsh.writeYshApplication {
               name = "fix-ja-punctuation";
               text = ''
-                export LC_ALL=C.UTF-8
-                status=0
-                for f in "$@"; do
-                  if grep -q '[、。]' "$f"; then
-                    echo "FIXED: $f replaced 、。 with ，．"
-                    sed -i 's/、/，/g; s/。/．/g' "$f"
-                    status=1
-                  fi
-                done
-                exit "$status"
+                var status = 0
+                for f in (ARGV) {
+                  var content = ""
+                  read --all (&content) < $f
+                  var fixed = content.replace("、", "，").replace("。", "．")
+                  if (fixed !== content) {
+                    echo $"FIXED: $f replaced 、。 with ，．"
+                    write --end "" -- $fixed > $f
+                    setvar status = 1
+                  }
+                }
+                exit $status
               '';
             }
           }/bin/fix-ja-punctuation";
