@@ -36,6 +36,8 @@
 ### 5. [調査ノート (Research)](research/)
 認証スタックなど，実機調査と upstream ソースコードの読解に基づく調査記録．
 - [`research/parallel-auth-architecture.md`](research/parallel-auth-architecture.md) — 指紋 + パスワード並行待ち受けの可否と，GDM / Noctalia / greetd / polkit / sudo の実装比較
+- [`research/parallel-auth-upstream-history.md`](research/parallel-auth-upstream-history.md) — 各 upstream における並行認証の歴史と挫折理由（Linux-PAM, SDDM, COSMIC, hyprlock 等）
+- [`research/greetd-parallel-design.md`](research/greetd-parallel-design.md) — greetd 互換並行認証デーモン（greetd-parallel）の設計・自己実装仕様
 - [`research/bsd-auth-architecture.md`](research/bsd-auth-architecture.md) — FreeBSD / NetBSD（OpenPAM）と OpenBSD（BSD Authentication）の同期性・並行性
 - [`research/fprintd-triage-notes.md`](research/fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録（PAM 順序，D-Bus 自動終了，Noctalia の Claim 挙動）
 
