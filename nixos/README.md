@@ -1,20 +1,23 @@
-# NixOS System Modules
+# NixOS System Modules (`nixos/`)
 
-System-wide NixOS configuration, imported for all hosts via `nixos/default.nix`.
+System-level NixOS configuration modules, aggregated in [`nixos/default.nix`](default.nix) and applied across all fleet machines.
 
-## Modules
+## Module Categories
 
-- [`base/`](base/): OS foundation — users (`user.nix`), Nix settings (`nix.nix`), the private flake input's credentials (`private-config.nix`), time sync (`time.nix`).
-- [`core/`](core/): OS core settings — i18n / locales (`i18n.nix`).
-- [`security/`](security/): Security and secrets — SOPS integration (`sops.nix`).
-- [`networking/`](networking/): Network settings — Nebula mesh VPN (`nebula.nix`), local DNS overrides (`local-network.nix`).
-- [`environment/`](environment/): System package groups (`my.packages.*`).
-- [`hardware/`](hardware/): Hardware-specific modules — NVIDIA hybrid GPU (`nvidia.nix`), PC/server tools (`pc-tools.nix`).
-- [`dev-tools/`](dev-tools/): Development hardware — debug-probe udev rules and installer-USB approval.
-- [`profiles/`](profiles/): Role-based host profiles (desktop, gateway, sbc, tower-server).
-- [`services/`](services/): System services — backups, Minecraft network, desktop services, Discord bridge.
-- [`virtualisation/`](virtualisation/): Virtualisation — container environments and microVM guests.
+| Directory | Scope & Responsibilities |
+| :--- | :--- |
+| [`base/`](base/README.md) | OS baseline: users, Nix daemon settings, private Flake input, and NTP time sync. |
+| [`core/`](core/README.md) | OS localization and keyboard mapping (`ja_JP.UTF-8` / `en_US.UTF-8`, console keymap). |
+| [`security/`](security/README.md) | SOPS secrets integration via SSH host key derivation. |
+| [`networking/`](networking/README.md) | Nebula mesh overlay network and LAN routing optimizations. |
+| [`environment/`](environment/README.md) | Modular system package categories (`my.packages.*`). |
+| [`hardware/`](hardware/README.md) | Hardware drivers, NVIDIA hybrid graphics / PRIME offload, and storage diagnostic tools. |
+| [`dev-tools/`](dev-tools/README.md) | Hardware probe udev rules (WCH-LinkE) and installer utilities. |
+| [`profiles/`](profiles/README.md) | Machine role profiles (`desktop`, `gateway`, `sbc`, `tower-server`). |
+| [`services/`](services/README.md) | Fleet services: Minecraft, Discord bridge, Restic backup, desktop daemons. |
+| [`virtualisation/`](virtualisation/README.md) | Container environments (Distrobox / Podman) and MicroVM runner. |
 
 ## References
+
 - System evaluation architecture: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
 - Custom module options (`my.*`): [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)

@@ -1,21 +1,27 @@
-# Hardware Modules
+# Hardware Modules (`nixos/hardware/`)
 
-Hardware-specific system configuration and driver integration.
+Hardware drivers, GPU acceleration, and system diagnostic tooling.
 
 ## Modules
 
-- **`nvidia.nix`**: Centralized NVIDIA driver settings, hardware acceleration, and hybrid GPU configurations (PRIME offload/sync).
-  - Provides options under `my.hardware.nvidia.*` to toggle NVIDIA support, select the kernel module variant, configure power management, and set bus IDs.
-  - **Offload mode** (`my.hardware.nvidia.prime.offload.enable`, default): hybrid graphics for battery saving on laptops — the iGPU renders by default and the dGPU is activated on demand via the generated `nvidia-offload` command.
-  - **Sync mode** (`my.hardware.nvidia.prime.sync.enable`): discrete GPU always active for gaming/workstations. **X11-only** — it has no effect under Wayland compositors (e.g. niri); use `WLR_DRM_DEVICES` to pick the primary renderer instead.
-  - `my.hardware.nvidia.open`: use the open-source NVIDIA kernel modules (Turing or newer, e.g. RTX 30-series). Requires a package that provides an `.open` attribute.
-  - `my.hardware.nvidia.powerManagement`: systemd suspend/resume integration (`enable`) and Runtime D3 power gating (`finegrained`). Note the nixpkgs assertions: `finegrained` requires PRIME offload and is incompatible with sync mode.
-- **`pc-tools.nix`**: Storage and health-monitoring tools for physical PCs/servers, behind `my.hardware.pc-tools.enable`.
-- **`default.nix`**: Imports the hardware modules.
+| File | Purpose | Key Options |
+| :--- | :--- | :--- |
+| [`nvidia.nix`](nvidia.nix) | NVIDIA driver management, PRIME offload/sync, and dynamic power management. | `my.hardware.nvidia.*` |
+| [`pc-tools.nix`](pc-tools.nix) | Hardware health and diagnostic tools (`nvme-cli`, `smartmontools`). | `my.hardware.pc-tools.enable` |
+| [`default.nix`](default.nix) | Hardware module aggregator. | — |
 
-## Configuration Example
+## NVIDIA Driver Configurations
 
-Battery-first PRIME offload with open modules, RTD3 power management and a CachyOS-built driver:
+The [`nvidia.nix`](nvidia.nix) module supports integrated offload and dedicated sync modes:
+
+| Feature / Mode | Nix Option | Description |
+| :--- | :--- | :--- |
+| **PRIME Offload** | `my.hardware.nvidia.prime.offload.enable = true` | Default battery-saving configuration. iGPU renders display; dGPU executes on demand via `nvidia-offload`. |
+| **PRIME Sync** | `my.hardware.nvidia.prime.sync.enable = true` | Dedicated rendering on the dGPU under X11. Under Wayland compositors (Niri), set `WLR_DRM_DEVICES`. |
+| **Open Modules** | `my.hardware.nvidia.open = true` | Uses open-source kernel modules (Turing and newer architectures). |
+| **Power Management** | `my.hardware.nvidia.powerManagement.finegrained = true` | Enables Runtime D3 (RTD3) dynamic power gating (requires PRIME offload). |
+
+### Example: PRIME Offload with Open Modules
 
 ```nix
 my.hardware.nvidia = {
@@ -23,14 +29,19 @@ my.hardware.nvidia = {
   open = true;
   powerManagement = {
     enable = true;
-    finegrained = true; # requires offload
+    finegrained = true;
   };
   prime = {
     enable = true;
-    offload.enable = true; # default; nvidia-offload command is generated
+    offload.enable = true;
     sync.enable = false;
     nvidiaBusId = "PCI:1:0:0";
     amdgpuBusId = "PCI:7:0:0";
   };
 };
 ```
+
+## References
+
+- Hybrid GPU architecture: [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md)
+- Storage & ZFS configuration: [`docs/hardware/storage-zfs.md`](../../docs/hardware/storage-zfs.md)

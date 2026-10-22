@@ -1,62 +1,73 @@
-# Backup System (Restic)
+# Backup Services (`nixos/services/backup/`)
 
-This directory manages the global backup configuration using Restic.
+Fleet backup automation using [Restic](https://restic.net/) for encrypted, deduplicated, and authenticated snapshots.
 
-## Structure
+## Architecture & Topology
 
-- **Sender Module (`default.nix`)**: Automates local and remote backups when `my.services.backup` is enabled on a host.
-- **Receiver Module (`receiver.nix`)**: Configuration for the server receiving backup data (currently `kagutsuchi-sama`). Enabled via `my.services.backup.receiver.enable = true;` rather than direct file import. Includes dedicated user and SFTP restrictions.
+Backups follow a two-tier strategy combining local high-speed recovery with off-site disaster recovery:
 
-## Policy
+| Destination | Target Storage | Transport / Protocol | Schedule |
+| :--- | :--- | :--- | :--- |
+| **Local Snapshot** | `/mnt/tank-1tb/backups/minecraft` (ZFS Mirror) | Local filesystem repository | Every 2 hours |
+| **Remote Snapshot** | `sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan` | SFTP over Nebula mesh (`kagutsuchi-sama`) | Every 2 hours |
 
-### Destinations
-1. **Local**: High-reliability disks on each machine (e.g., ZFS Mirror on shosoin-tan).
-2. **Remote**: Large HDD on `kagutsuchi-sama` (10.0.0.3).
+### Backup Targets
 
-### Backup Targets (shosoin-tan)
-- `/srv/minecraft`: All Minecraft world data.
-- `/var/lib/minecraft-discord-bridge`: Discord Bridge database (bridge.db).
+- `/srv/minecraft`: Minecraft Paper server directories and world files.
+- `/var/lib/minecraft-discord-bridge`: Discord bridge SQLite database (`bridge.db`).
+
+## Modules
+
+| File | Purpose | Key Option |
+| :--- | :--- | :--- |
+| [`default.nix`](default.nix) | Client sender module scheduling periodic local and remote snapshots via systemd timers. | `my.services.backup.enable` |
+| [`receiver.nix`](receiver.nix) | Server receiver module configuring the SFTP-only user `restic-shosoin` with a forced `internal-sftp` command. | `my.services.backup.receiver.enable` |
 
 ## Operational Commands
 
-### Check Status
+### Check Timer and Service Status
+
 ```bash
-# Local backup status
-sudo systemctl status restic-backups-local-backup.service
-# Remote backup status
-sudo systemctl status restic-backups-remote-backup.service
+# Check timer and last execution status
+systemctl status restic-backups-local-backup.timer
+systemctl status restic-backups-remote-backup.service
 ```
 
-### Manual Run
+### Manual Trigger
+
 ```bash
+# Trigger immediate backup run
 sudo systemctl start restic-backups-remote-backup.service
 ```
 
-### List Snapshots
+### Snapshot Inspection
+
 ```bash
-# For local repo
+# Inspect local repository
 sudo restic -r /mnt/tank-1tb/backups/minecraft snapshots
-# For remote repo
+
+# Inspect remote repository over Nebula
 sudo restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan snapshots
 ```
 
-## Restoration Procedure
+### Restoration Workflows
 
-1. **Mount the backup to browse files (recommended):**
-   ```bash
-   mkdir /tmp/restore-view
-   sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
-   ```
-2. **Or restore specific files directly:**
-   ```bash
-   sudo restic -r <repo_path> restore <ID> --target / --include "/var/lib/minecraft-discord-bridge/bridge.db"
-   ```
-3. **Restore to custom target:**
-   ```bash
-   sudo restic -r <repo_path> restore <ID> --target /path/to/restore
-   ```
+```bash
+# Method 1: Mount repository as a read-only FUSE filesystem
+mkdir -p /tmp/restore-view
+sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
 
-## Notes
-- Remote identity comes from `sshKeyFile` (emitted as an `IdentityFile` in ssh_config);
-  `programs.ssh.extraConfig` supplies host-key checking.
-- The receiver side (`receiver.nix`) is restricted to SFTP only for security reasons.
+# Method 2: Restore specific database directly
+sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest \
+  --target / \
+  --include "/var/lib/minecraft-discord-bridge/bridge.db"
+
+# Method 3: Restore full snapshot to alternate directory
+sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest --target /tmp/restored-data
+```
+
+## References
+
+- Backup & disaster recovery runbook: [`docs/operations/backup-and-restore.md`](../../../docs/operations/backup-and-restore.md)
+- Storage & ZFS configuration: [`docs/hardware/storage-zfs.md`](../../../docs/hardware/storage-zfs.md)
+- Host specifications: [`hosts/shosoin-tan/`](../../../hosts/shosoin-tan/README.md) and [`hosts/kagutsuchi-sama/`](../../../hosts/kagutsuchi-sama/README.md)

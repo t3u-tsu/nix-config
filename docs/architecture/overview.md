@@ -1,28 +1,26 @@
 # リポジトリ全体アーキテクチャ
 
-本ドキュメントは，リポジトリのレイヤ構成，ファイル配置，およびモジュールの評価フローを説明する．
-
----
+関心の分離と責務の明確化に基づき，リポジトリを以下のレイヤに分割する．
 
 ## 1. レイヤ構成
 
-リポジトリは責務に応じて明確に分離されている．
-
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
-| **`flake/`** | flake-parts モジュール群（`hosts`, `lib`, `overlays`, `packages`, `dev`）．Flake エントリポイントの分割． |
-| **[`lib/`](../../lib/)** | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット（`palette.nix`）． |
-| **[`nixos/`](../../nixos/)** | 全ホストで共有される NixOS システムモジュール群（基盤，セキュリティ，ネットワーク，各種サービス）． |
-| **[`home/`](../../home/)** | Home Manager モジュール群（シェル，CLI ツール，GUI アプリケーション，デスクトップ環境）． |
-| **[`hosts/`](../../hosts/)** | マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
-| **[`secrets/`](../../secrets/)** | SOPS で暗号化された秘密情報（ホスト固有および共通シークレット）． |
-| **[`scripts/`](../../scripts/)** | クラスタ運用・保守スクリプト（Nebula 証明書，パスワード生成等）． |
-| **[`terraform/`](../../terraform/)** | ConoHa VPS インフラの OpenTofu 定義． |
-| **`docs/`** | システム全体の設計仕様，運用手順，ハードウェア解説，トラブルシューティング（SSOT）． |
+| `flake/` | flake-parts サブモジュール群（`hosts`, `lib`, `overlays`, `packages`, `dev`）．Flake エントリポイントの分割． |
+| [`lib/`](../../lib/) | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット（`palette.nix`）． |
+| [`nixos/`](../../nixos/) | 全ホスト共有の NixOS システムモジュール群（基盤，セキュリティ，ネットワーク，各種サービス）． |
+| [`home/`](../../home/) | Home Manager モジュール群（シェル，CLI ツール，GUI アプリケーション，デスクトップ環境）． |
+| [`hosts/`](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
+| [`secrets/`](../../secrets/) | SOPS で暗号化された秘密情報（ホスト固有およびクラスタ共通シークレット）． |
+| [`scripts/`](../../scripts/) | クラスタ運用・保守スクリプト（Nebula 証明書運用，パスワード生成等）． |
+| [`terraform/`](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
+| `docs/` | システム全体の設計仕様，運用ランブック，ハードウェア解説，障害復旧手順（SSOT）． |
 
 ---
 
 ## 2. モジュール読み込み・評価フロー
+
+各ホストの NixOS 設定が評価されるフロー:
 
 ```text
 flake.nix
@@ -51,13 +49,13 @@ flake.nix
 ```
 
 > [!NOTE]
-> サービスやデスクトップ機能に固有の外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，`lib/default.nix` でグローバルに注入せず，それらを利用するコンシューマモジュール（`nixos/services/` や `home/desktop/`）が直接インポートしてスコープを局所化している．
+> 外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，利用先のモジュール（`nixos/services/` や `home/desktop/`）で直接インポートし，スコープを局所化する．
 
 ---
 
 ## 3. ホストからモジュールへの展開
 
-`lib/default.nix` の `mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールが合成される．
+`mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
 
 ```text
 mkLib.mkSystem によるモジュール合成
@@ -83,17 +81,19 @@ mkLib.mkSystem によるモジュール合成
 
 ## 4. モジュール評価順序と優先度制御
 
-1. **構成モジュールの注入順序**:
-   - `modules` リストは `../nixos → profile → hosts/<name>/default.nix → extraModules` の順序で渡される．
-   - プロファイルで基本設定（または `lib.mkDefault`）を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する設計となっている．
-2. **優先度制御（Priority System）**:
-   - 単純なスカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
-3. **コレクション型オプションの結合**:
-   - `environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．
+### 構成モジュールの注入順序
+`modules` リストは `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
+
+### 優先度制御（Priority System）
+スカラー値オプションの競合時はエラー（conflicting definitions）となる．プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
+
+### コレクション型オプションの結合
+`environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．
 
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [ネットワークアーキテクチャ](network-topology.md)
-- [Flake & モジュール設計原則](flake-and-modules.md)
-- [新ホスト追加手順](../operations/adding-a-host.md)
+- [Flake とモジュール設計原則](flake-and-modules.md)
+- [新規ホスト追加手順](../operations/adding-a-host.md)

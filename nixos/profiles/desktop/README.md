@@ -1,11 +1,24 @@
-# Desktop Profile
+# Desktop Profile (`nixos/profiles/desktop/`)
 
-A role-based preset that bridges system-level services and user-level home configurations for a desktop experience.
+Configures system-level services and Home Manager user environments for graphical desktop workstations.
 
-## Features
+## Profile Architecture
 
-- **Lightweight Core (default)**: `my.services.desktop.enable` and `my.home.desktop.enable` enable the base desktop stack — compositor, login manager, audio, file manager, fonts, graphics, networking, browsers, communication, theming, XDG, locales, GPG signing, and lightweight dev tools.
-- **Full Stack (opt-in)**: `my.services.desktop.full.enable` and `my.home.desktop.full.enable` (per host) opt into the heavier stack — gaming, game-engine toolchains in containers (rootless podman), creative, media, office, and AI/hardware dev tools. Intended for machines that can afford the extra disk, build and eval time.
-- **Aggregate Flags**: Most sub-flags default to `true` for the core and follow the `full` flag for the heavy categories; individual sub-flags can be overridden per host.
-- **Declarative User Sync**: Automatically configures the primary user's environment (Home Manager) when the profile is enabled.
-- **Container Backing**: `my.virtualisation.distrobox.enable` (rootless podman) is enabled with the full stack so the containerised engine toolchain works.
+Desktop modules are divided into a lightweight baseline core and an opt-in full workstation stack:
+
+| Tier | Option Flags | Included Components |
+| :--- | :--- | :--- |
+| **Baseline Core** (Default) | `my.services.desktop.enable = true;`<br>`my.home.desktop.enable = true;` | Niri Wayland compositor, Noctalia greeter & shell, PipeWire low-latency audio, Thunar file manager, CJK & coding fonts, Mesa GPU drivers, NetworkManager, Chromium/Zen baseline, GPG signing, LibreOffice, and core dev tools (Neovim, Ghostty). |
+| **Full Stack** (Opt-in) | `my.services.desktop.full.enable = true;`<br>`my.home.desktop.full.enable = true;` | Steam & GameMode, containerized game engine toolchain (Distrobox / Podman), creative suite (GIMP, Blender, OBS Studio), media players, and local AI coding tooling (`agy`, `pi`, `dsh`). |
+
+## Features & Integration
+
+- Automatically wires `home/desktop` configurations into the primary user profile (`t3u`) when enabled.
+- Enables `my.virtualisation.distrobox.enable` (rootless Podman) under `full.enable` to support containerized developer workflows.
+- Exposes profile flags as defaults for all individual desktop module options, allowing granular per-host overrides.
+
+## References
+
+- System-level desktop services: [`nixos/services/desktop/`](../../services/desktop/README.md)
+- User-level desktop configuration: [`home/desktop/`](../../../home/desktop/README.md)
+- Shared palette definitions: [`lib/palette.nix`](../../../lib/palette.nix)

@@ -1,15 +1,18 @@
 # Home Modules
 
-User-specific configurations managed via Home Manager.
+User-specific configurations managed with Home Manager.
 
 ## Modules
 
-- [`shell/`](shell/): Interactive shell, prompt and history.
-- [`programs/`](programs/): Workstation tools shared by all hosts.
-- [`desktop/`](desktop/): Desktop environment configuration — lightweight core plus an opt-in full stack.
-- **`sops.nix`**: SOPS age key setup (generates the age private key from the daily SSH key).
-- **`default.nix`**: Imports all base home modules.
+| Directory / File | Description |
+| :--- | :--- |
+| [`shell/`](shell/README.md) | Interactive shell environment, prompt, and command history. |
+| [`programs/`](programs/README.md) | CLI tools, Git, SSH client, and local LLM services. |
+| [`desktop/`](desktop/README.md) | Desktop environment (Wayland compositor, shell, browsers, apps). |
+| [`sops.nix`](sops.nix) | Derives SOPS age key from user SSH key. |
+| [`default.nix`](default.nix) | Aggregates base home modules. |
 
 ## References
+
 - System evaluation architecture: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
 - Custom module options (`my.*`): [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)

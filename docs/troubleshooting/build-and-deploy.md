@@ -1,6 +1,12 @@
 # ビルド・デプロイ障害トラブルシューティング
 
-本ドキュメントは，NixOS システムの評価・ビルド・デプロイ段階で発生する代表的な障害（メモリ不足，Flake lock 不整合，権限昇格エラー）の原因と復旧手順を記述する．
+NixOS システムの評価・ビルド・デプロイ時に発生する障害（メモリ不足，Flake lock 不整合，権限昇格エラー）の原因と復旧手順．
+
+| 障害種別 | 主なエラー兆候 | 影響ホスト | 推奨される初動対応 |
+| :--- | :--- | :--- | :--- |
+| メモリ枯渇 (OOM) | `Killed (signal 9)`, `exit code 137` | `torii-chan`（1GB RAM），VPS | 作業機からのリモートビルド（`--build-host localhost`）または Swap 一時拡張 |
+| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，[`flake.lock`](../../flake.lock) 復元 |
+| 特権昇格失敗 | `pkexec: must be run as root`, `Not authorized` | ヘッドレス機，SSH セッション | 一般ユーザーでの事前ビルド + `sudo` または `--target-host` によるリモート適用 |
 
 ---
 
@@ -12,12 +18,12 @@
 - ターミナルに `error: builder for '...' failed with exit code 137` が出力される．
 
 ### 原因
-Nix の評価（モジュールの再帰的マージやオーバーレイ解決）およびパッケージのコンパイルは大量のメモリを消費する．特に `torii-chan`（Orange Pi Zero 3: 物理 RAM 1GB）や ConoHa VPS（512MB プラン）などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．
+Nix の評価（モジュールの再帰的マージやオーバーレイ解決）およびパッケージのコンパイルは大量のメモリを消費する．`torii-chan`（Orange Pi Zero 3: 物理 RAM 1GB）や ConoHa VPS（512MB プラン）などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．
 
 ### 切り分け・復旧手順
 
 #### 対策 1: リモートビルド / 作業機からのデプロイ（推奨）
-低スペック機ローカルでのビルドを避け，十分なリソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
+リソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
 
 ```bash
 # 1. 事前ビルド（作業機上でビルドを完了させ，ビルドキャッシュを生成）
@@ -34,7 +40,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
 > Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [`../hardware/orange-pi-zero3.md`](../hardware/orange-pi-zero3.md#サンドボックスと-seccomp-bpf-の無効化) 参照）．
 
 #### 対策 2: Swap の確保・一時拡張
-SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が標準定義されている．ディスク移行作業中や swap が無効化されている場合は，手動で一時 swap を有効化する:
+SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が定義されている．ディスク移行作業中などで swap が無効な場合は手動で一時 swap を有効化する:
 
 ```bash
 # 一時 swapfile (4GB) の作成と有効化
@@ -65,9 +71,12 @@ nixos-rebuild switch --flake .#<hostname> --max-jobs 1 --cores 1
 - `nix flake check` で pre-commit フックや評価エラーが発生する．
 
 ### 原因
-1. **Git 未追跡ファイル**: Nix Flakes は Git の index に登録されているファイルのみを評価対象とするため，新規作成した `.nix` ファイルが未ステージングの場合に評価失敗となる．
-2. **`follows` 制約の競合**: `flake.nix` 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる．
-3. **一括更新による不整合**: `nix flake update` で全 input を一括更新した結果，nvfetcher 管理ファイル（`_sources/generated.{json,nix}`）とのバージョン齟齬や不要な大規模リビルドが発生する．
+
+| 原因 | 発生メカニズムと影響 |
+| :--- | :--- |
+| Git 未追跡ファイル | Nix Flakes は Git の index に登録されているファイルのみを評価対象とするため，新規作成した `.nix` ファイルが未ステージングの場合に評価失敗となる． |
+| `follows` 制約の競合 | [`flake.nix`](../../flake.nix) 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる． |
+| 一括更新による不整合 | `nix flake update` で全 input を一括更新した結果，nvfetcher 管理ファイル（`_sources/generated.{json,nix}`）とのバージョン齟齬や不要な大規模リビルドが発生する． |
 
 ### 切り分け・復旧手順
 
@@ -79,7 +88,7 @@ git add -A
 ```
 
 #### 手順 2: 特定 input の限定的更新
-全 input を一括更新せず，対象の input のみを明示して更新する（[`nix-cache-optimization` スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
+対象の input のみを明示して更新する（[`nix-cache-optimization` スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
 
 ```bash
 # 特定の input のみ更新
@@ -112,7 +121,7 @@ nix flake check
   - プロンプトが表示されずセッションがタイムアウトする．
 
 ### 原因
-`pkexec` はデスクトップ環境で常駐する Polkit 認証エージェントに依存する（エージェントがユーザーに GUI 承認を求めるために使用）．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，あるいは非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．人間が直接作業する場合は通常の `sudo` を使用する．
+`pkexec` は Polkit 認証エージェントに依存する．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．手動作業時は `sudo` を使用する．
 
 ### 切り分け・フォールバック手順
 

@@ -1,9 +1,11 @@
-# Virtualisation Modules
+# Virtualisation Modules (`nixos/virtualisation/`)
 
-Virtualisation and container support.
+Container runtimes and lightweight virtual machine guest environments.
 
 ## Modules
 
-- **`distrobox.nix`**: Rootless container environment behind `my.virtualisation.distrobox.enable` (Podman with Docker compatibility).
-- **`microvm.nix`**: MicroVM guest runner behind `my.virtualisation.microvm.enable` (imports `microvm.nixosModules.host`).
-- **`default.nix`**: Imports the virtualisation modules.
+| File | Purpose | Option |
+| :--- | :--- | :--- |
+| [`distrobox.nix`](distrobox.nix) | Rootless container environment using Podman with Docker CLI compatibility. | `my.virtualisation.distrobox.enable` |
+| [`microvm.nix`](microvm.nix) | Lightweight MicroVM host runner integration using [`microvm.nix`](microvm.nix). | `my.virtualisation.microvm.enable` |
+| [`default.nix`](default.nix) | Virtualisation module aggregator. | — |

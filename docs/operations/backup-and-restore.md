@@ -1,12 +1,10 @@
 # バックアップ運用 & ディザスタリカバリ (DR)
 
-本ドキュメントは，Restic および ZFS によるサーバーデータの多重バックアップ構成，日々の保守運用，およびシステム全損時の完全復旧（ディザスタリカバリ）手順を記述する．
-
----
+Restic および ZFS によるサーバーデータの多重バックアップ構成，保守運用，および障害復旧（ディザスタリカバリ）手順．
 
 ## 1. バックアップアーキテクチャ
 
-主要な永続データ（Minecraft ワールド，Discord Bridge DB）は，データ損失を防ぐため **ローカルストレージとリモートサーバーへの二重バックアップ** を行っている．
+永続データ（Minecraft ワールド，Discord Bridge DB）は，同一ホスト内のローカルストレージと同一拠点内の別マシン（`kagutsuchi-sama`）へ二重バックアップする．両ホストは拠点Aに所在するため，この構成はホスト障害には有効だが，拠点全体の被災には別途外部保管が必要である．
 
 ```mermaid
 flowchart LR
@@ -29,9 +27,9 @@ flowchart LR
 ```
 
 ### バックアップ仕様
-- **実行頻度**: 2 時間ごと（`systemd.timers`）
-- **暗号化**: Restic 固有の暗号化パスワード（`secrets/services/backup.yaml` 内の `restic_password`）
-- **保持世代ポリシー**:
+- 実行頻度: 2 時間ごと（`systemd.timers`）
+- 暗号化: Restic 固有の暗号化パスワード（[`secrets/services/backup.yaml`](../../secrets/services/backup.yaml) 内の `restic_password`）
+- 保持世代ポリシー:
   - `keep-daily: 7`（直近 7 日分）
   - `keep-weekly: 4`（直近 4 週分）
   - `keep-monthly: 6`（直近 6 ヶ月分）
@@ -40,10 +38,8 @@ flowchart LR
 
 ## 2. 初期セットアップ手順 (`restic init`)
 
-新しいバックアップ先を構築する際，またはリポジトリを初期化する際の手順である．
-
 ### 初期化の自動化と手動初期化
-本リポジトリの Restic 設定（`nixos/services/backup/default.nix`）では `initialize = true` が有効化されているため，各サービスユニットの初回実行時にリポジトリは自動的に初期化（`restic init`）される．手動で初期化・検証を行う場合は以下のように実行する:
+Restic 設定（[`nixos/services/backup/default.nix`](../../nixos/services/backup/default.nix)）で `initialize = true` を指定しているため，初回実行時にリポジトリは自動で初期化される．手動で初期化・検証する場合のコマンド:
 
 ```bash
 export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
@@ -78,13 +74,15 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 ## 4. ディザスタリカバリ (DR) 手順
 
-`shosoin-tan` のディスクが全損，またはマシン自体が失われた場合，`kagutsuchi-sama` のリモートバックアップから代替マシンへデータを完全復元する手順である．
+`shosoin-tan` の全損時に `kagutsuchi-sama` のリモートバックアップから代替マシンへデータを復元する手順:
 
 ### Step 1: 新規ホストの準備
-[新ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
+[新規ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
 
 ### Step 2: バックアップの取得・復元
-1. **代替ホスト上で Restic を実行**:
+受信側の `restic-shosoin` は，[`secrets/services/backup.yaml`](../../secrets/services/backup.yaml) の `restic_shosoin_ssh_key` に対応する鍵のみを許可する．代替ホストでは同鍵を配置し，`~/.ssh/config` の `Host 10.0.0.3` に `IdentityFile` を設定する（`shosoin-tan` では [`hosts/shosoin-tan/services/backup.nix`](../../hosts/shosoin-tan/services/backup.nix) の `sshKeyFile` が同等の設定を適用する）．
+
+1. 代替ホスト上でバックアップデータを一時ディレクトリへリストアする．
    ```bash
    export RESTIC_PASSWORD="<バックアップパスワード>"
    export RESTIC_REPOSITORY="sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan"
@@ -95,7 +93,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    # 指定したディレクトリへデータをリストア
    restic restore latest --target /tmp/restore
    ```
-2. **データファイルの配置**:
+2. 復元したデータファイルを所定のディレクトリへ配置し，所有権（`minecraft:minecraft`）を設定する．
    ```bash
    # Minecraft データの復元
    sudo mkdir -p /srv/minecraft
@@ -107,7 +105,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    sudo cp -r /tmp/restore/var/lib/minecraft-discord-bridge/* /var/lib/minecraft-discord-bridge/
    sudo chown -R minecraft:minecraft /var/lib/minecraft-discord-bridge
    ```
-3. **サービスの起動確認**:
+3. 各サービスを起動して正常稼働を確認する．
    ```bash
    sudo systemctl restart minecraft-server-lobby.service
    sudo systemctl restart minecraft-server-nitac23s.service
@@ -118,16 +116,16 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 ## 5. ZFS 保守運用 (`tank-1tb`)
 
-`shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で保護されている．
+`shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で構成している．
 
-- **定期スクラブ**: 現在自動実行（systemd タイマー）は設定されていないため，定期的に手動でスクラブを実行する（詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照）．
-- **手動スクラブ実行**: `sudo zpool scrub tank-1tb`
-- **ステータス確認**: `zpool status tank-1tb`
-- **ディスク交換・リビルド手順**: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
+- 自動実行タイマーは未設定のため，`sudo zpool scrub tank-1tb` で手動スクラブを定期実行する．
+- プールの健全性やリビルド状況は `zpool status tank-1tb` で確認する．
+- ディスク障害時の交換・リビルド手順は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照する．
 
 ---
 
 ## 関連ドキュメント
+- [目次（設計・運用ドキュメント）](../README.md)
 - [ネットワークアーキテクチャ](../architecture/network-topology.md)
 - [ZFS & ストレージ保守](../hardware/storage-zfs.md)
-- [新ホスト追加手順](adding-a-host.md)
+- [新規ホスト追加手順](adding-a-host.md)

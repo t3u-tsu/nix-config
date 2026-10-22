@@ -1,79 +1,62 @@
-# secrets/ — SOPS-encrypted secrets
+# SOPS Encrypted Secrets (`secrets/`)
 
-Encrypted with [SOPS](https://github.com/getsops/sops) using
-[age](https://age-encryption.org/) keys. Never commit plaintext secrets.
+SOPS-encrypted secrets using Age encryption keys. Never commit plaintext secrets to version control.
 
-## Layout
+## Secret File Structure
 
-- `hosts/<hostname>.yaml` — host-specific secrets (password hashes, Nebula node
-  certs/keys, ...).
-- `services/<service>.yaml` — service-level secrets shared by the hosts that run
-  the service (DDNS, Minecraft, backup, signing, ...).
-- `common.yaml` — secrets shared by every host.
+| Directory / File | Scope | Description |
+| :--- | :--- | :--- |
+| `hosts/<hostname>.yaml` | Host-specific | User password hashes, Nebula private keys, and host credentials. |
+| `services/<service>.yaml` | Service-specific | Service secrets shared by assigned hosts (Cloudflare DDNS, Minecraft, Discord, Restic, ConoHa API). |
+| [`common.yaml`](common.yaml) | Fleet-wide | Secrets shared across all managed machines. |
 
-## Key model (`.sops.yaml`)
+## Key Distribution Model ([`.sops.yaml`](../.sops.yaml))
 
-- **master_key** — offline recovery key (password manager / offline storage).
-  Listed in the key group of every file, so any secret stays decryptable when a
-  host key is unavailable.
-- **host keys** — `torii_chan`, `shosoin_tan`, `kagutsuchi_sama`, `sando_kun`,
-  `brokenpc`, `x1c7`. Derived from each SSH host key
-  (`ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub`); a host uses its own key to
-  decrypt its secrets at boot.
-- **user keys** — `brokenpc_user` (`t3u@BrokenPC`) and `x1c7_user` (`x1c7`),
-  derived from `~/.ssh/id_ed25519` on the desktop workstations. They are
-  **excluded** from the host files and from `common.yaml`; only
-  `services/signing.yaml` and `services/conoha-vps-mcp.yaml` list them.
+- The master key (`master_key`) serves as an offline disaster-recovery Age key stored in a password manager (1Password) and is included in every encryption group.
+- Host keys are derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`, allowing machines to decrypt secrets automatically during boot.
+- User keys are derived from user workstation keys (`~/.ssh/id_ed25519`), restricting access to developer and service files ([`services/signing.yaml`](services/signing.yaml), [`services/conoha-vps-mcp.yaml`](services/conoha-vps-mcp.yaml)).
 
-Resulting key groups:
+### Access Matrix
 
-| File | Keys |
-| --- | --- |
-| `hosts/<hostname>.yaml` | master_key + that host's key |
-| `common.yaml` | master_key + all six host keys |
-| `services/minecraft.yaml`, `services/backup.yaml` | master_key + `shosoin_tan` |
-| `services/ddns.yaml` | master_key + `torii_chan` |
-| `services/signing.yaml`, `services/conoha-vps-mcp.yaml` | master_key + both user keys |
+| Secret Target | Master Key | Host Keys | User Workstation Keys |
+| :--- | :---: | :---: | :---: |
+| `hosts/<hostname>.yaml` | :white_check_mark: | :white_check_mark: (Target host only) | :x: |
+| [`common.yaml`](common.yaml) | :white_check_mark: | :white_check_mark: (All hosts) | :x: |
+| [`services/minecraft.yaml`](services/minecraft.yaml) | :white_check_mark: | :white_check_mark: (`shosoin_tan`) | :x: |
+| [`services/backup.yaml`](services/backup.yaml) | :white_check_mark: | :white_check_mark: (`shosoin_tan`) | :x: |
+| [`services/ddns.yaml`](services/ddns.yaml) | :white_check_mark: | :white_check_mark: (`torii_chan`) | :x: |
+| [`services/signing.yaml`](services/signing.yaml) | :white_check_mark: | :x: | :white_check_mark: |
+| [`services/conoha-vps-mcp.yaml`](services/conoha-vps-mcp.yaml) | :white_check_mark: | :x: | :white_check_mark: |
 
-A lost host key is recoverable: decrypt with master_key, register the new key in
-`.sops.yaml`, `sops updatekeys`, re-deploy. Host keys need no backup.
+## Common Workflows
 
-## Workflow
-
-### Open a secret for editing
-
-Host files exclude the user keys, so the default identity
-(`~/.config/sops/age/keys.txt`) cannot decrypt them. Pass the master key:
+### Editing a Secret File
 
 ```bash
+# For host secrets (requires master key)
 SOPS_AGE_KEY_FILE=/path/to/master-key sops secrets/hosts/<hostname>.yaml
+
+# For user-accessible services (opens with ~/.config/sops/age/keys.txt)
+sops secrets/services/signing.yaml
 ```
 
-`services/signing.yaml` and `services/conoha-vps-mcp.yaml` open with the default
-identity instead.
+### Rotating a Host Key
 
-### Key rotation & host onboarding
+Regenerate the host SSH key, e.g. after a clean reflash:
 
-For end-to-end secret onboarding and rotation procedures, refer to the canonical runbooks:
-- Adding a new host & registering age keys: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
-- Secret management, password hash setting, and rotation: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
-
-Failover hosts run one machine at a time, but each still needs its own host key —
-there is no shared `<hostname>_vps` entry. `torii-chan`'s VPS key is **not
-provisioned yet**: the VPS would decrypt `secrets/hosts/torii-chan.yaml` and
-`secrets/services/ddns.yaml` only once its SSH host key is added to both key
-groups (see `hosts/torii-chan/vps.nix`).
-
-## Operational notes
-
-- Keep the master_key private key offline; never commit it.
-- SSH host keys are regenerated on every flashed image. The `0-sops-key-import`
-  script (`nixos/security/sops.nix`) derives `/var/lib/sops-nix/key.txt` at boot,
-  so register the new key in `.sops.yaml` after flashing.
-- Keep `sops.age.generateKey = false`; a random age key cannot decrypt
-  host-key-encrypted secrets.
+1. Derive the new Age public key using `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`.
+2. Update [`.sops.yaml`](../.sops.yaml) with the new key.
+3. Re-encrypt with the master key:
+   ```bash
+   SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/hosts/<hostname>.yaml
+   SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/common.yaml
+   # Also update each service file the host can decrypt (e.g. services/backup.yaml and
+   # services/minecraft.yaml for shosoin_tan).
+   SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/services/<service>.yaml
+   ```
 
 ## References
-- Secret lifecycle & rotation guide: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
-- Secrets & authentication troubleshooting: [`docs/troubleshooting/secrets-and-auth.md`](../docs/troubleshooting/secrets-and-auth.md)
-- Adding a new host runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
+
+- Secret management runbook: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
+- Secret recovery troubleshooting: [`docs/troubleshooting/secrets-and-auth.md`](../docs/troubleshooting/secrets-and-auth.md)
+- Host onboarding runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)

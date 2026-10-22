@@ -1,54 +1,39 @@
-# Minecraft Network Configuration
+# Minecraft Network Services (`nixos/services/minecraft/`)
 
-This directory manages the Minecraft network: a proxy in front of the backend servers.
+Declarative multi-server Minecraft infrastructure deployed on `shosoin-tan` with automated proxy routing, Discord integration, and version-pinned plugins.
 
-## Operational Status
+## Architecture & Server Topology
 
-- **Current Host**: `shosoin-tan` (10.0.0.4)
-- **Data Directory**: `/srv/minecraft`
-- **Backup**: Every 2 hours using `restic`.
-    - Local: `/mnt/tank-1tb/backups/minecraft` (ZFS Mirror)
-    - Remote: `kagutsuchi-sama` (10.0.0.3) at `/mnt/data/backups/shosoin-tan`
-- **Update Workflow**: GitHub Actions automatically checks for core and plugin updates daily at 04:00 (JST) and pushes changes to the repository.
+The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing inbound traffic to segregated backend servers:
 
-## Overview
+| Component | Port | Inbound Hostname | Description |
+| :--- | :--- | :--- | :--- |
+| **Proxy** ([`proxy.nix`](proxy.nix)) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
+| **Lobby** ([`servers/lobby.nix`](servers/lobby.nix)) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
+| **Main Survival** ([`servers/nitac23s.nix`](servers/nitac23s.nix)) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
 
-- **Proxy**: `proxy.nix`
-  - Port: `25565`
-  - Domain-based routing:
-    - `mc.t3u.uk` -> `lobby`
-    - `nitac23s.mc.t3u.uk` -> `nitac23s`
-- **Backend (Lobby)**: `servers/lobby.nix`
-  - Port: `25566`
-  - Waiting lobby (Void world).
-- **Backend (nitac23s)**: `servers/nitac23s.nix`
-  - Port: `25567`
-  - Main survival server.
+## External Integrations
 
-## External Integration (Discord Bridge)
+- Integrates with [`nixos/services/discord-bridge/`](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via a UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
+- Declares server plugins (protocol translation, sitting animations, Japanese chat rendering) in [`nvfetcher.toml`](../../../nvfetcher.toml) at the repository root, updating them automatically via GitHub Actions ([`.github/workflows/auto-update.yml`](../../../.github/workflows/auto-update.yml)).
+- Runs Restic backups every 2 hours locally to a ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site to `kagutsuchi-sama`.
 
-A Discord management tool, [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge), is integrated for whitelist management and more.
+## CLI Operations (on `shosoin-tan`)
 
-- **Features**:
-  - `/whitelist <add|remove|list>` for player management.
-  - Multi-tenant support via invitation tokens for different Discord guilds.
-- **Local Management (on shosoin-tan)**:
-  - Check status: `echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
-  - Issue token: `echo 'invite-create <server_name>' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock`
+```bash
+# Check Discord bridge status
+echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock
 
-## Plugin Management (nvfetcher)
+# Create a guild invitation token
+echo 'invite-create nitac23s' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock
 
-Plugins are declared in `nvfetcher.toml` at the repository root and version-pinned by **nvfetcher**; they cover protocol translation, sitting/posing, and Japanese chat formatting.
+# Trigger manual plugin updates via nvfetcher
+nix run nixpkgs#nvfetcher
+```
 
-- **Automated Update**: Managed via GitHub Actions (`auto-update.yml`). It runs `nvfetcher` periodically and commits any new plugin versions directly to the repository.
-- **Manual Update**:
-  ```bash
-  nix run nixpkgs#nvfetcher
-  ```
+## References
 
-## Lobby Server Specifications
-- **Terrain**: Void (Completely empty world with air only)
-- **Biome**: `minecraft:the_void`
-- **Mobs**: Natural spawning and initial placement are completely disabled (Peaceful + Spawn Limits 0).
-- **Mode**: Forced Adventure mode.
-- **Structures**: Disabled.
+- Discord Bridge module: [`nixos/services/discord-bridge/`](../discord-bridge/README.md)
+- Backup configuration & runbook: [`nixos/services/backup/`](../backup/README.md) and [`docs/operations/backup-and-restore.md`](../../../docs/operations/backup-and-restore.md)
+- Host specifications: [`hosts/shosoin-tan/`](../../../hosts/shosoin-tan/README.md)
+- Gateway forwarding: [`nixos/services/gateway/`](../gateway/README.md)

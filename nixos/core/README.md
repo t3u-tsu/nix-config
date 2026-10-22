@@ -1,8 +1,10 @@
-# Core Modules
+# Core Modules (`nixos/core/`)
 
-OS core settings.
+Core operating system localization and console configuration.
 
 ## Modules
 
-- **`i18n.nix`**: Locale settings behind `my.core.i18n.enable` (default on) — `ja_JP.UTF-8` / `en_US.UTF-8`, console keymap (`us`).
-- **`default.nix`**: Imports the core modules.
+| File | Description | Option |
+| :--- | :--- | :--- |
+| [`i18n.nix`](i18n.nix) | Locale (`ja_JP.UTF-8`, `en_US.UTF-8`) and console keymap configuration (`us`). | `my.core.i18n.enable` (Default: `true`) |
+| [`default.nix`](default.nix) | Core module aggregator. | — |

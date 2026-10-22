@@ -1,17 +1,15 @@
-# Minecraft Discord Bridge Service
+# Minecraft Discord Bridge (`nixos/services/discord-bridge/`)
 
-This directory manages the NixOS module for the Go-based [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge).
+NixOS service module integrating the Go-based [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge) for automated Discord-Minecraft player whitelist management.
 
-## Overview
+## Module Architecture
 
-- **`default.nix`**:
-  - Fetches and builds the source directly from GitHub.
-  - Injects secrets via `sops-nix` using environment variables.
-  - Configures the Unix domain socket and Systemd service.
+- Builds from the `minecraft-discord-bridge` flake input package.
+- Exposes a local UNIX domain socket at `/run/minecraft-discord-bridge/bridge.sock` for operator queries.
+- Operates under a dedicated unprivileged `minecraft` user and group for privilege separation.
+- Injects Discord bot tokens and server RCON passwords via SOPS-templated environment files.
 
-## Configuration
-
-Enable the service in your host configuration (e.g., `shosoin-tan`):
+## Configuration Example
 
 ```nix
 my.services.minecraft-discord-bridge = {
@@ -30,13 +28,19 @@ my.services.minecraft-discord-bridge = {
 };
 ```
 
-## Operational Commands (Local)
+## CLI Operations
 
-To control the bridge from the command line (note: it uses a Unix socket, not tmux):
+Communicate with the running daemon over its UNIX domain socket using `nc`:
+
 ```bash
+# Query daemon status
 echo 'status' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock
+
+# Generate an invitation token for a guild
+echo 'invite-create nitac23s' | sudo nc -U -N /run/minecraft-discord-bridge/bridge.sock
 ```
 
-## Security
-- **Secret Injection**: RCON passwords and Bot tokens are securely passed through an `environmentFile`. RCON passwords for specific servers are dynamically injected using `sops.templates`.
-- **Permissions**: The service runs as the `minecraft` user with minimal privileges.
+## References
+
+- Minecraft network configuration: [`nixos/services/minecraft/`](../minecraft/README.md)
+- Host deployment: [`hosts/shosoin-tan/`](../../../hosts/shosoin-tan/README.md)
