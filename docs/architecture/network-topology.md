@@ -88,7 +88,7 @@ flowchart TD
 
 ### 3.2 外部公開とポートフォワーディング
 - 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード (`torii-chan.t3u.uk`, `mc.t3u.uk`, `*.mc.t3u.uk` 等) を自動更新する．
-- 外部から届いた Minecraft トラフィック (TCP 25565) は，`torii-chan` の NixOS 標準ファイアウォール (iptables バックエンド, `networking.nat`) により Nebula トンネルを経由して拠点Aの `shosoin-tan` (`10.0.0.4:25565`) へ DNAT 転送する．
+- 外部から届いた Minecraft トラフィック (TCP 25565) は，`torii-chan` の NixOS 標準ファイアウォール (iptables バックエンド，`networking.nat`) により Nebula トンネルを経由して拠点Aの `shosoin-tan` (`10.0.0.4:25565`) へ DNAT 転送する．
 
 ### 3.3 同一 LAN 内での直接接続と名前解決
 - 拠点Tの LAN 内から外部公開ドメイン (`torii-chan.t3u.uk`) へアクセスする際，ルータのヘアピン NAT (NAT Loopback) 対応状況や IPv6 優先挙動によって通信障害が発生する場合がある．
@@ -108,7 +108,7 @@ flowchart TD
 
 ### グループによるゾーン分離
 - `mgmt`: 全ノードに付与する基本管理グループ．
-- `app`: アプリケーション通信 (Minecraft, Discord Bridge, デスクトップ作業) を許可するグループ．
+- `app`: アプリケーション通信 (Minecraft, Discord Bridge，デスクトップ作業) を許可するグループ．
 
 ### 証明書の有効期限管理
 Nebula ルート CA およびノード証明書は有効期間 10 年で発行する (更新手順は [../operations/secret-management.md](../operations/secret-management.md) 参照)．

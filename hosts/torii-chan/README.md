@@ -29,6 +29,19 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | **Nebula Mesh** | `10.0.0.1` (lighthouse & relay, groups: `mgmt`) |
 | **Key Services** | Nebula lighthouse & relay, Cloudflare DDNS, `tcp/25565` proxy to `shosoin-tan` |
 
+## Host Modules & Architecture Files
+
+| File | Description | Target / Role |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | Platform-neutral orchestrator importing role configurations. | Shared gateway role |
+| [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP, emergency SSH). | `torii-chan-hdd`, `torii-chan-sd` |
+| [vps.nix](vps.nix) | Hardware and networking layer for ConoHa VPS failover instance. | `torii-chan-vps` |
+| [fs-hdd.nix](fs-hdd.nix) | Filesystem declarations for USB SATA HDD root deployment. | `torii-chan-hdd` |
+| [fs-sd.nix](fs-sd.nix) | Filesystem declarations for MicroSD root deployment. | `torii-chan-sd` |
+| [sd-installer.nix](sd-installer.nix) | Minimal bootstrap installer definition for Orange Pi Zero 3. | `torii-chan-sd-installer` |
+| [vps-installer.nix](vps-installer.nix) | Minimal installer ISO generator for ConoHa VPS rescue environment. | `torii-chan-vps-iso` |
+| [installer-common.nix](installer-common.nix) | Common SSH keys and networking setup for bootstrap installers. | Shared by installers |
+
 ## Flake Targets
 
 | Target | Architecture | Target Medium / Purpose |

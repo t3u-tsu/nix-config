@@ -43,13 +43,13 @@ flowchart TD
 
 | 項目 | 構成内容 |
 | :--- | :--- |
-| CPU | Intel Core i7-8565U (Whiskey Lake-U, 4コア / 8スレッド, 1.80 GHz - 4.60 GHz) |
+| CPU | Intel Core i7-8565U (Whiskey Lake-U, 4コア / 8スレッド，1.80 GHz - 4.60 GHz) |
 | iGPU | Intel UHD Graphics 620 (Gen 9.5) |
-| RAM | 16 GB LPDDR3-2133 (オンボード実装, 増設不可) |
+| RAM | 16 GB LPDDR3-2133 (オンボード実装，増設不可) |
 | ストレージ | Samsung PM981 256 GB NVMe SSD (`MZVLB256HBHQ-000L7`) |
 | ディスプレイ | 14インチ FHD (1920x1080) IPS BOE NE140FHM-N61 (`eDP-1`) |
 | ネットワーク | Intel Wireless-AC 9560 (CNVi, `iwlwifi`) / Bluetooth 5.0 (`8087:0aaa`) |
-| Thunderbolt 3 | Intel JHL6540 (Alpine Ridge, カーネルネイティブ管理) |
+| Thunderbolt 3 | Intel JHL6540 (Alpine Ridge，カーネルネイティブ管理) |
 | オーディオ | Intel HDA with Sound Open Firmware (SOF DSP) |
 | 入力 / センサー | Synaptics I2C タッチパッド & TrackPoint，Synaptics Prometheus 指紋センサー (`06cb:00bd`) |
 | セキュリティ | STMicroelectronics TPM 2.0 (LUKS 移行準備用) |

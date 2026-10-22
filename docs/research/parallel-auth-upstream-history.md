@@ -71,7 +71,7 @@ upstream (GitLab: `libfprint/fprintd`) では，並行化ができない前提�
 ## 3. ディスプレイマネージャ & グリーター
 
 ### 3.1 GDM: Split Authentication の成功と GNOME 51 での指紋廃止
-- GDM は特権デーモンとして動作し，`gdm-password` と `gdm-fingerprint` の 2 つの PAM サービスに対して別プロセスの `gdm-session-worker` を立ち上げて並行レースさせる (Split Authentication, 2011 年〜, `-Dsplit-authentication=true`)．
+- GDM は特権デーモンとして動作し，`gdm-password` と `gdm-fingerprint` の 2 つの PAM サービスに対して別プロセスの `gdm-session-worker` を立ち上げて並行レースさせる (Split Authentication，2011 年〜，`-Dsplit-authentication=true`)．
 - GNOME 51 以降は初期ログイン画面での指紋認証を廃止し，ロック画面解除のみに限定する方針が進められている．指紋認証では LUKS や GNOME Keyring の復号鍵を生成できず，不用意な接触による誤認証や特権昇格リスク (CVE-2024-37408) を伴うためである．
 
 ### 3.2 greetd: 単一セッション制約とミニマリズム
@@ -97,7 +97,7 @@ upstream (GitLab: `libfprint/fprintd`) では，並行化ができない前提�
 hyprlock は GDM 風 Dual-PAM を見送り，「PAM (パスワード) + D-Bus 経由での直接呼び出し (指紋)」のデュアルチャネル方式 (PR #514) を選択した．
 - サスペンド復帰時に PAM が `StopVerify` を呼ぶと `device is busy` エラーで 30 秒間ロックアウトすることや，`pam_fprintd.so` の最大 99 秒タイムアウト制限で再接続ループが肥大化することから Dual-PAM の採用を見送った．
 - 常時アームで放置するとセンサーが過熱保護 (`TOO_HOT`) で切断されるため，無操作タイムアウトによる動的アーム (マウス・キー操作検知時のみ Claim) を導入した (Issue #702)．
-- サスペンド復帰時に D-Bus プロキシが失効する現象に対し，ThinkPad x1c7 (Synaptics Prometheus `06cb:00bd`) の実機検証を通じてバックオフ付きリトライ (500ms, 最大 10 回) を実装した (PR #1066)．
+- サスペンド復帰時に D-Bus プロキシが失効する現象に対し，ThinkPad x1c7 (Synaptics Prometheus `06cb:00bd`) の実機検証を通じてバックオフ付きリトライ (500ms，最大 10 回) を実装した (PR #1066)．
 
 ### 4.2 Noctalia (noctalia-dev/noctalia): 直列化の理由
 Noctalia は hyprlock を参考にしてデュアルチャネルを導入した (PR #3006)．

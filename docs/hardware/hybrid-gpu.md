@@ -37,9 +37,9 @@ flowchart TD
 | 項目 | 諸元・仕様 |
 | :--- | :--- |
 | 対象ホスト | `BrokenPC` (HP Victus 16-e1065AX): サブ機 (可搬ノートPC) |
-| CPU | AMD Ryzen 7 6800H (Zen 3+, 8コア / 16スレッド, 基本 3.2 GHz / 最大 4.7 GHz) |
-| iGPU | AMD Radeon 680M (Rembrandt, RDNA2, 12 CU / 768 シェーダー, PCI `07:00.0`) |
-| dGPU | NVIDIA GeForce RTX 3050 Ti Mobile (GA107, Ampere, 4 GB GDDR6, PCI `01:00.0`, 物理障害あり) |
+| CPU | AMD Ryzen 7 6800H (Zen 3+, 8コア / 16スレッド，基本 3.2 GHz / 最大 4.7 GHz) |
+| iGPU | AMD Radeon 680M (Rembrandt, RDNA2, 12 CU / 768 シェーダー，PCI `07:00.0`) |
+| dGPU | NVIDIA GeForce RTX 3050 Ti Mobile (GA107, Ampere, 4 GB GDDR6, PCI `01:00.0`，物理障害あり) |
 | RAM | 16 GB DDR5-4800 |
 | ストレージ | 512 GB NVMe (OS / Boot), 1 TB NVMe (`/data`) |
 

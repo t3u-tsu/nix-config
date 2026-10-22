@@ -48,7 +48,7 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 #### Step 2: [.sops.yaml](../../.sops.yaml) の登録情報と突合
-リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する (アンカー名はハイフンがアンダースコア, 例: `&shosoin_tan`, `&torii_chan`):
+リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する (アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`):
 ```bash
 grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
 ```
@@ -155,7 +155,7 @@ Give root password for maintenance (or press Control-D to continue):
 ```
 
 ### 原因
-システムの activation スクリプト (シークレット復号, ユーザー・グループ作成, ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
+システムの activation スクリプト (シークレット復号，ユーザー・グループ作成，ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
 
 ### 切り分け・復旧手順
 

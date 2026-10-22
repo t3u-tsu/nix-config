@@ -8,11 +8,11 @@
 | :--- | :--- |
 | `flake/` | flake-parts サブモジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
 | [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット (`palette.nix`)． |
-| [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤, セキュリティ, ネットワーク, 各種サービス)． |
-| [home/](../../home/) | Home Manager モジュール群 (シェル, CLI ツール, GUI アプリケーション, デスクトップ環境)． |
+| [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
+| [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
 | [secrets/](../../secrets/) | SOPS で暗号化された秘密情報 (ホスト固有およびクラスタ共通シークレット)． |
-| [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (Nebula 証明書運用, パスワード生成等)． |
+| [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (Nebula 証明書運用，パスワード生成等)． |
 | [terraform/](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
 | `docs/` | システム全体の設計仕様，運用手順書，ハードウェア解説，障害復旧手順 (SSOT)． |
 
@@ -41,7 +41,7 @@ flake.nix
              sops-nix / home-manager / nix-index-database のモジュール
              home-manager 共通設定 (sharedModules: nix-index, sops)
              nixpkgs.overlays
-             ../nixos                        # システム共通モジュール群 (基盤, セキュリティ, サービス等)
+             ../nixos                        # システム共通モジュール群 (基盤，セキュリティ，サービス等)
              ../nixos/profiles/${profile}    # プロファイル (desktop, tower-server, gateway 等)
              ../hosts/${name}/default.nix    # ホスト固有エントリ
            ] ++ extraModules;                # ホスト固有の追加モジュール (例: sbc.nix)
@@ -71,7 +71,7 @@ mkLib.mkSystem によるモジュール合成
  │   └─ sbc/                  # 低スペック SBC 制約緩和 (sbc.nix 経由で適用)
  │
  ├─ hosts/<name>/default.nix  # ホスト固有定義
- │   ├─ ./hardware.nix        # ハードウェア固有設定 (fileSystems, swap, カーネル)
+ │   ├─ ./hardware.nix        # ハードウェア固有設定 (fileSystems, swap，カーネル)
  │   └─ ./services/           # ホスト固有サービス (該当する場合)
  │
  └─ extraModules              # ホスト固有の追加モジュール (例: sbc.nix, fs-hdd.nix)

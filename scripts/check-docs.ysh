@@ -26,6 +26,7 @@ const PROHIBITED_EN = [
 ]
 
 const ASCII_WORD_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+const ASCII_CHARS = r' !"#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~' ++ "'" ++ u'\t'
 
 # The guide quotes every prohibited word while defining the rule.
 const PROHIBITED_WORD_EXEMPT = [
@@ -82,22 +83,59 @@ func strip_inline_code(line) {
       setvar out = out ++ delimiter
       setvar rest = after
     } else {
+      setvar out = out ++ 'CODE'
       setvar rest = after[close + run:]
     }
   }
   return (out)
 }
 
+func is_ascii_char(ch) {
+  return (ch !== '' and ASCII_CHARS.contains(ch))
+}
+
+func has_comma_adjacent_to_non_ascii(line) {
+  var n = len(line)
+  var i = 0
+  while (i < n) {
+    if (line[i:i + 1] === ',') {
+      if (i > 0) {
+        var prev = line[i - 1:i]
+        if (not is_ascii_char(prev)) {
+          return (true)
+        }
+      }
+      var next_idx = i + 1
+      if (next_idx < n and line[next_idx:next_idx + 1] === ' ') {
+        setvar next_idx += 1
+      }
+      if (next_idx < n) {
+        var nxt = line[next_idx:next_idx + 1]
+        if (not is_ascii_char(nxt)) {
+          return (true)
+        }
+      }
+    }
+    setvar i += 1
+  }
+  return (false)
+}
+
 func is_pseudo_heading(line) {
-  if (not line.startsWith('- **')) {
+  var stripped = line.trimStart()
+  var marker = stripped[:2]
+  if (marker !== '- ' and marker !== '* ' and marker !== '+ ') {
     return (false)
   }
-  var rest = line[4:]
+  var rest = stripped[2:]
+  if (not rest.startsWith('**')) {
+    return (false)
+  }
   var end = rest.find('**:')
-  if (end <= 0) {
+  if (end <= 2) {
     return (false)
   }
-  return (not rest[:end].contains('*'))
+  return (not rest[2:end].contains('*'))
 }
 
 func is_ascii_word_char(ch) {
@@ -183,6 +221,9 @@ func check_file(path, errors) {
     var clean = strip_inline_code(line)
     if (clean.contains('（') or clean.contains('）')) {
       call errors->append($"${path}:${lineno}: full-width parentheses: ${line}")
+    }
+    if (has_comma_adjacent_to_non_ascii(clean)) {
+      call errors->append($"${path}:${lineno}: half-width comma adjacent to Japanese prose: ${line}")
     }
     for word in (PROHIBITED_JA) {
       if (word_checks_enabled and clean.contains(word)) {

@@ -6,7 +6,7 @@
 
 作業着手前の確認項目:
 
-- [ ] マシンのハードウェア構成 (CPU アーキテクチャ, ストレージ構成, GPU, MAC アドレス)
+- [ ] マシンのハードウェア構成 (CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス)
 - [ ] 割り当てる Nebula IP ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照)
 - [ ] 適用するプロファイル (`desktop` / `tower-server` / `gateway` / `sbc`)
 - [ ] 管理者マシンの master 鍵 (`~/.config/sops/age/keys.txt`)

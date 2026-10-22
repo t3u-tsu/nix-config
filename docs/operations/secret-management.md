@@ -12,8 +12,8 @@ graph TD
     HostKey["ホスト固有 age 鍵<br>/etc/ssh/ssh_host_ed25519_key から導出<br>/var/lib/sops-nix/key.txt"]
     UserKey["ユーザー age 鍵<br>~/.ssh/id_ed25519 から導出"]
 
-    CommonSecret["secrets/common.yaml<br>全ホスト共通シークレット<br>(Nebula CA, デプロイ鍵等)"]
-    HostSecret["secrets/hosts/[hostname].yaml<br>各ホスト専用シークレット<br>(ユーザーパスワード, Nebula 秘密鍵等)"]
+    CommonSecret["secrets/common.yaml<br>全ホスト共通シークレット<br>(Nebula CA，デプロイ鍵等)"]
+    HostSecret["secrets/hosts/[hostname].yaml<br>各ホスト専用シークレット<br>(ユーザーパスワード，Nebula 秘密鍵等)"]
     ServiceSecret["secrets/services/[service].yaml<br>サービス個別シークレット<br>(ホスト常駐用 / ユーザー端末用)"]
 
     Master -->|暗号化 / 復号| CommonSecret
@@ -39,8 +39,8 @@ graph TD
 | ファイルパス | 格納対象・主なシークレット |
 | :--- | :--- |
 | [secrets/common.yaml](../../secrets/common.yaml) | 全ホストで共有される共通シークレット (Nebula ルート CA 公開証明書 `nebula_ca`, `nix-config-private` 取得用 GitHub デプロイ鍵など) |
-| `secrets/hosts/<hostname>.yaml` | ホスト個別のシークレット (ログインユーザーのハッシュ化パスワード, 当該ホストの Nebula ノード秘密鍵など) |
-| `secrets/services/<service>.yaml` | 用途別のサービスシークレット (Cloudflare API トークン `ddns.yaml`, Restic `backup.yaml`, Minecraft `minecraft.yaml`, ConoHa API `conoha-vps-mcp.yaml`, コミット署名鍵 `signing.yaml` など) |
+| `secrets/hosts/<hostname>.yaml` | ホスト個別のシークレット (ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵など) |
+| `secrets/services/<service>.yaml` | 用途別のサービスシークレット (Cloudflare API トークン `ddns.yaml`，Restic `backup.yaml`, Minecraft `minecraft.yaml`, ConoHa API `conoha-vps-mcp.yaml`，コミット署名鍵 `signing.yaml` など) |
 
 ---
 

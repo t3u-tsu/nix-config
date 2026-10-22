@@ -1,12 +1,12 @@
 # ビルド・デプロイ障害トラブルシューティング
 
-NixOS システムの評価・ビルド・デプロイ時に発生する障害 (メモリ不足, Flake lock 不整合, 権限昇格エラー) の原因と復旧手順．
+NixOS システムの評価・ビルド・デプロイ時に発生する障害 (メモリ不足，Flake lock 不整合，権限昇格エラー) の原因と復旧手順．
 
 | 障害種別 | 主なエラー兆候 | 影響ホスト | 推奨される初動対応 |
 | :--- | :--- | :--- | :--- |
 | メモリ枯渇 (OOM) | `Killed (signal 9)`, `exit code 137` | `torii-chan` (1GB RAM), VPS | 作業機からのリモートビルド (`--build-host localhost`) または Swap 一時拡張 |
-| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング, 単一 input 更新, [flake.lock](../../flake.lock) 復元 |
-| 特権昇格失敗 | `pkexec: must be run as root`, `Not authorized` | ヘッドレス機, SSH セッション | 一般ユーザーでの事前ビルド + `sudo` または `--target-host` によるリモート適用 |
+| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，[flake.lock](../../flake.lock) 復元 |
+| 特権昇格失敗 | `pkexec: must be run as root`, `Not authorized` | ヘッドレス機，SSH セッション | 一般ユーザーでの事前ビルド + `sudo` または `--target-host` によるリモート適用 |
 
 ---
 

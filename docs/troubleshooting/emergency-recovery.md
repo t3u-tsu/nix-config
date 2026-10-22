@@ -30,7 +30,7 @@ sudo /nix/var/nix/profiles/system-42-link/bin/switch-to-configuration switch
 ```
 
 ### パターン B: 起動時ブートローダーメニューでの世代選択
-設定ミスやカーネル更新により OS が起動不能 (カーネルパニック, systemd クラッシュ) になった場合，再起動時のブートローダーメニューから直接過去の世代を選択して起動する．
+設定ミスやカーネル更新により OS が起動不能 (カーネルパニック，systemd クラッシュ) になった場合，再起動時のブートローダーメニューから直接過去の世代を選択して起動する．
 
 #### 1. GRUB メニュー (`BrokenPC`, `x1c7`, `kagutsuchi-sama`, `shosoin-tan`, `sando-kun`)
 1. マシン起動時，マザーボードロゴが表示された直後に `Shift` キーまたは `Esc` キーを連打して GRUB メニューを表示させる．

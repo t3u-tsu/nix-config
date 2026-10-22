@@ -37,7 +37,7 @@ flowchart TD
 ## 2. greetd-ipc プロトコルの分析と課題
 
 ### 2.1 既存の `greetd-ipc(7)` 仕様
-greetd の IPC は JSON を長さ付きプレフィックス (4 バイト, ネイティブバイトオーダーの `u32`) でやり取りする同期型プロトコルである (`greetd_ipc` の `u32::from_ne_bytes`)．
+greetd の IPC は JSON を長さ付きプレフィックス (4 バイト，ネイティブバイトオーダーの `u32`) でやり取りする同期型プロトコルである (`greetd_ipc` の `u32::from_ne_bytes`)．
 
 - クライアント $\to$ サーバー:
   - `create_session { username }`
@@ -124,7 +124,7 @@ sequenceDiagram
 ### 現実的な 3 つの設計パターン
 - GDM 方式のように指紋ログイン時は Keyring をロックしたまま起動し，後から Secret Service を要求するアプリが起動した時点でパスワード入力を促す (ログイン後フォールバック)．
 - GNOME 51 のように初回ログインではパスワード入力を必須とし，指紋並行認証は画面ロック解除のみに限定する．
-- 指紋照合成功を契機に TPM2 や Secure Enclave から暗号化シークレットをアンラップして Keyring に注入する (TPM2 / FIDO2 HMAC-secret 連携, カスタム PAM モジュールを要する)．
+- 指紋照合成功を契機に TPM2 や Secure Enclave から暗号化シークレットをアンラップして Keyring に注入する (TPM2 / FIDO2 HMAC-secret 連携，カスタム PAM モジュールを要する)．
 
 ---
 

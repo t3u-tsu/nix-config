@@ -86,7 +86,7 @@ sudo journalctl -u nebula@nebula0.service -e --no-pager
 ##### Step 2: 証明書有効期限・妥当性の検証
 Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
 ```bash
-# 証明書の詳細確認 (有効期限 Not After を検証, hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの)
+# 証明書の詳細確認 (有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの)
 sudo nebula-cert print \
   -path /run/secrets/<hostKey>_nebula_cert
 ```

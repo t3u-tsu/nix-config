@@ -22,7 +22,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 mkLib.mkSystem {
   name = "hostname";              # ホスト名 (必須)
   system = "x86_64-linux";        # アーキテクチャ (必須: x86_64-linux / aarch64-linux)
-  username = "t3u";               # プライマリユーザー名 (任意, 既定値: "t3u")
+  username = "t3u";               # プライマリユーザー名 (任意，既定値: "t3u")
   profile = "desktop";            # プロファイル名 (必須: desktop / tower-server / gateway / sbc)
   extraModules = [ ... ];         # ホスト固有の追加モジュール (任意)
 }
