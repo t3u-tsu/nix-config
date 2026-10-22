@@ -57,7 +57,7 @@ greetd の IPC は JSON を長さ付きプレフィックス（4 バイト，ネ
 
 ユーザーがパスワードを入力せずに指紋センサーにタッチした場合:
 - デーモン側で指紋認証が成功する．
-- クライアント（greeter）は `post_auth_message_response` を送信するのを待機している．
+- greeter クライアントは `post_auth_message_response` を送信するのを待機している．
 - オリジナルの greetd-ipc 仕様には，クライアントからのリクエストがない状態でサーバーが自発的に認証成功を通知するイベント機構が存在しない．
 
 ---
@@ -186,7 +186,7 @@ NixOS では `services.displayManager.greetd` モジュールが提供されて�
 
 ## 7. 結論: 自己実装すべきか否かの判断基準
 
-- GDM が 15 年間運用してきた dual-worker アーキテクチャを Rust で再実装する形となるため，技術的実現性は高く（Feasible），単一スタックの未定義動作や SEGV クラッシュを回避できる．
+- GDM が 15 年間運用してきた dual-worker アーキテクチャを Rust で再実装する形となるため，技術的実現性は高く，単一スタックの未定義動作や SEGV クラッシュを回避できる．
 - `noctalia-greeter` や `tuigreet` をそのまま活かしながら，ログイン画面でパスワード・指紋の即時解錠体験を得られる利点がある．
 - 一方で，約 1,500〜2,000 行の特権デーモンの保守責任が発生することや，指紋ログイン時に Gnome Keyring が解錠されずデスクトップ起動後にパスワード要求ダイアログが出るというトレードオフを伴う．
 
@@ -197,6 +197,6 @@ NixOS では `services.displayManager.greetd` モジュールが提供されて�
 
 ## 関連ドキュメント
 
-- [`parallel-auth-upstream-history.md`](parallel-auth-upstream-history.md) — 各 upstream の並行化の歴史と挫折理由
-- [`parallel-auth-architecture.md`](parallel-auth-architecture.md) — 単一 PAM スタックの逐次性と各種実装比較
-- [`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix) — 本リポジトリの greetd / PAM 設定
+- [parallel-auth-upstream-history.md](parallel-auth-upstream-history.md) — 各 upstream の並行化の歴史と挫折理由
+- [parallel-auth-architecture.md](parallel-auth-architecture.md) — 単一 PAM スタックの逐次性と各種実装比較
+- [nixos/services/desktop/greetd.nix](../../nixos/services/desktop/greetd.nix) — 本リポジトリの greetd / PAM 設定

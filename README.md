@@ -29,24 +29,24 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 
 ## Directory Structure
 
-- [`flake.nix`](flake.nix) — flake-parts entrypoint
-- [`flake/`](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
-- [`lib/`](lib/) — `mkSystem` builder and shared color palette
-- [`nixos/`](nixos/) — Shared system-level NixOS modules
-- [`home/`](home/) — Home Manager user-level configurations
-- [`hosts/`](hosts/) — Host definitions and hardware configurations
-- [`secrets/`](secrets/) — Encrypted secrets managed via SOPS
-- [`scripts/`](scripts/) — Fleet management and maintenance scripts
-- [`terraform/`](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
-- [`docs/`](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures (SSOT)
+- [flake.nix](flake.nix) — flake-parts entrypoint
+- [flake/](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
+- [lib/](lib/) — `mkSystem` builder and shared color palette
+- [nixos/](nixos/) — Shared system-level NixOS modules
+- [home/](home/) — Home Manager user-level configurations
+- [hosts/](hosts/) — Host definitions and hardware configurations
+- [secrets/](secrets/) — Encrypted secrets managed via SOPS
+- [scripts/](scripts/) — Fleet management and maintenance scripts
+- [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
+- [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures (SSOT)
 
-See [`docs/architecture/overview.md`](docs/architecture/overview.md) for system architecture and module evaluation flow.
+See [docs/architecture/overview.md](docs/architecture/overview.md) for system architecture and module evaluation flow.
 
-Sensitive data is isolated in a private repository ([`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)) and imported as a flake input. For initial machine setup and authentication bootstrap, refer to [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md).
+Sensitive data is isolated in a private repository ([nix-config-private](https://github.com/t3u-tsu/nix-config-private)) and imported as a flake input. For initial machine setup and authentication bootstrap, refer to [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md).
 
 ## Quick Start
 
-Available host configurations (defined in [`flake/hosts.nix`](flake/hosts.nix)):
+Available host configurations (defined in [flake/hosts.nix](flake/hosts.nix)):
 
 | Configuration | Role / Target Environment |
 | :--- | :--- |
@@ -55,7 +55,7 @@ Available host configurations (defined in [`flake/hosts.nix`](flake/hosts.nix)):
 | `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | Tower server cluster |
 | `torii-chan-sd` / `torii-chan-hdd` | Edge VPN gateway on Orange Pi Zero 3 SBC (SD / HDD boot) |
 | `torii-chan-vps` | Failover gateway on ConoHa VPS (x86_64) |
-| `torii-chan-sd-installer` | SD card installer image ([`hosts/torii-chan/build-sd-image.ysh`](hosts/torii-chan/build-sd-image.ysh)) |
+| `torii-chan-sd-installer` | SD card installer image ([hosts/torii-chan/build-sd-image.ysh](hosts/torii-chan/build-sd-image.ysh)) |
 | `torii-chan-vps-iso` | VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`) |
 
 Apply configuration locally:
@@ -75,18 +75,18 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## Adding a New Host
 
-See [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) for host setup: skeleton copy ([`hosts/_template/`](hosts/_template)), SOPS age key registration, Nebula certificate issuance, and deployment verification.
+See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for host setup: skeleton copy ([hosts/_template/](hosts/_template)), SOPS age key registration, Nebula certificate issuance, and deployment verification.
 
 ## CI/CD & Automation
 
 | Workflow | Trigger & Details |
 | :--- | :--- |
 | [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco` |
-| [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [`flake.lock`](flake.lock), validates in CI, and pushes updates to `main` |
+| [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [flake.lock](flake.lock), validates in CI, and pushes updates to `main` |
 
 ## Documentation
 
-Operational runbooks, architecture designs, hardware notes, and recovery procedures are indexed in [`docs/README.md`](docs/README.md).
+Operational runbooks, architecture designs, hardware notes, and recovery procedures are indexed in [docs/README.md](docs/README.md).
 
 ## References
 

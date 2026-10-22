@@ -26,7 +26,7 @@ Allwinner H618 搭載シングルボードコンピュータ `torii-chan` の U-
 | Nebula Gateway / Lighthouse | メッシュネットワーク `10.0.0.0/24` の固定灯台ノード（`10.0.0.1:4242`）およびリレーとして常時稼働 |
 | ポートフォワーディング | 外部からの Minecraft 接続（TCP 25565）を受け，Nebula オーバーレイ経由で拠点Aの `shosoin-tan`（`10.0.0.4`）へ透過的に NAT 転送 |
 | Cloudflare DDNS | 拠点Tの動的グローバル IP アドレスの変化を検知し，`torii-chan.t3u.uk`，`mc.t3u.uk`，および `*.mc.t3u.uk` の A レコードを自動更新 |
-| VPS フェイルオーバー設計 | SBC のハードウェア障害時は，同一ホスト名と暗号化シークレットを共有する ConoHa VPS（`torii-chan-vps`）へ役割を移譲可能（詳細は [`docs/operations/vps-failover.md`](../operations/vps-failover.md) を参照） |
+| VPS フェイルオーバー設計 | SBC のハードウェア障害時は，同一ホスト名と暗号化シークレットを共有する ConoHa VPS（`torii-chan-vps`）へ役割を移譲可能（詳細は [docs/operations/vps-failover.md](../operations/vps-failover.md) を参照） |
 
 ---
 
@@ -44,7 +44,7 @@ flowchart TD
     KERNEL -->|"rootdelay=10 待機 & USB-SATA 認識"| ROOT["ルートファイルシステム (/dev/disk/by-label/NIXOS_HDD)"]
 ```
 
-#### U-Boot の注入 ([`hosts/torii-chan/sd-installer.nix`](../../hosts/torii-chan/sd-installer.nix))
+#### U-Boot の注入 ([hosts/torii-chan/sd-installer.nix](../../hosts/torii-chan/sd-installer.nix))
 
 SD カードイメージ生成時に，Flake オーバーレイでビルドされた `ubootOrangePiZero3` の SPL バイナリをオフセット 8 KiB（ブロックサイズ 1024，seek 8）の位置へ直接書き込む．
 
@@ -55,7 +55,7 @@ sdImage.postBuildCommands = ''
 '';
 ```
 
-#### extlinux ブートローダの採用 ([`hosts/torii-chan/sbc.nix`](../../hosts/torii-chan/sbc.nix))
+#### extlinux ブートローダの採用 ([hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix))
 
 U-Boot の標準仕様に準拠した extlinux 互換ローダを使用する．
 
@@ -70,12 +70,12 @@ boot.loader = {
 
 ### SD / HDD 分離アーキテクチャ (`torii-chan-hdd`)
 
-SD カードはランダム書き込み耐性が低く，24時間稼働のエッジゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．本番の HDD 運用構成（`torii-chan-hdd`）ではブート部とルートファイルシステムを物理的に分離する（SD 単体運用構成 `torii-chan-sd` の場合は [`hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix) を使用）．
+SD カードはランダム書き込み耐性が低く，24時間稼働のエッジゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．本番の HDD 運用構成（`torii-chan-hdd`）ではブート部とルートファイルシステムを物理的に分離する（SD 単体運用構成 `torii-chan-sd` の場合は [hosts/torii-chan/fs-sd.nix](../../hosts/torii-chan/fs-sd.nix) を使用）．
 
 | 領域 | デバイス | ラベル / マウント先 | ファイルシステム | 定義モジュール |
 | :--- | :--- | :--- | :--- | :--- |
-| ブート | microSD カード | `NIXOS_SD` (`/boot`) | `ext4` | [`hosts/torii-chan/fs-hdd.nix`](../../hosts/torii-chan/fs-hdd.nix) |
-| ルート | 外付け USB HDD | `NIXOS_HDD` (`/`) | `ext4` (`noatime`) | [`hosts/torii-chan/fs-hdd.nix`](../../hosts/torii-chan/fs-hdd.nix) |
+| ブート | microSD カード | `NIXOS_SD` (`/boot`) | `ext4` | [hosts/torii-chan/fs-hdd.nix](../../hosts/torii-chan/fs-hdd.nix) |
+| ルート | 外付け USB HDD | `NIXOS_HDD` (`/`) | `ext4` (`noatime`) | [hosts/torii-chan/fs-hdd.nix](../../hosts/torii-chan/fs-hdd.nix) |
 
 #### USB HDD の安定化とハードウェア quirk
 
@@ -97,7 +97,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
 
 ## 3. SD カードインストーライメージと初期プロビジョニング
 
-### イメージ生成手順 ([`hosts/torii-chan/build-sd-image.ysh`](../../hosts/torii-chan/build-sd-image.ysh))
+### イメージ生成手順 ([hosts/torii-chan/build-sd-image.ysh](../../hosts/torii-chan/build-sd-image.ysh))
 
 新規セットアップ時のインストーラ SD イメージ作成手順:
 
@@ -109,12 +109,12 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
 
 1. ランダムな一時パスワード（16進数 16文字）を自動生成し，平文を `result-sd-temp-password.txt`（パーミッション `0600`）に出力する．
 2. `openssl passwd -6` で SHA-512 crypt ハッシュを算出する．
-3. 環境変数 `TORII_INSTALLER_TEMP_PASSWORD_HASH` を介して `--impure` ビルドを実行し，インストーラ構成（[`hosts/torii-chan/sd-installer.nix`](../../hosts/torii-chan/sd-installer.nix)）へハッシュを注入する．
+3. 環境変数 `TORII_INSTALLER_TEMP_PASSWORD_HASH` を介して `--impure` ビルドを実行し，インストーラ構成（[hosts/torii-chan/sd-installer.nix](../../hosts/torii-chan/sd-installer.nix)）へハッシュを注入する．
 4. ビルド成果物（`result-sd-image/sd-image/*.img`）は `compressImage = false`（非圧縮）であり，高速に SD カードへ書き込める．
 
 ### aarch64 ネイティブビルド環境
 
-インストーライメージは aarch64 ネイティブビルドで構成される．x86_64 ホスト（`BrokenPC` 等）では，[`nixos/base/nix.nix`](../../nixos/base/nix.nix) の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
+インストーライメージは aarch64 ネイティブビルドで構成される．x86_64 ホスト（`BrokenPC` 等）では，[nixos/base/nix.nix](../../nixos/base/nix.nix) の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
 
 ### 初期導入・HDD 移行手順
 
@@ -128,7 +128,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
    ```bash
    ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
    ```
-   得られた公開鍵をリポジトリの [`.sops.yaml`](../../.sops.yaml)（`&torii_chan`）へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
+   得られた公開鍵をリポジトリの [.sops.yaml](../../.sops.yaml)（`&torii_chan`）へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
 4. 本番 SD 構成への切り替え
    ```bash
    nixos-rebuild switch --flake .#torii-chan-sd \
@@ -159,7 +159,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
 
 ## 4. 低スペック制約 (1 GB RAM) とカーネル制約への対応
 
-メモリ容量 1 GB およびカーネル機能制限への対応策（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）:
+メモリ容量 1 GB およびカーネル機能制限への対応策（[nixos/profiles/sbc/default.nix](../../nixos/profiles/sbc/default.nix)）:
 
 ### 制約事項と対策一覧
 
@@ -228,10 +228,10 @@ sysctl vm.swappiness
 
 ## 関連ドキュメント
 
-- [ホスト概要: `hosts/torii-chan/README.md`](../../hosts/torii-chan/README.md)
-- [SBC プラットフォーム定義: `hosts/torii-chan/sbc.nix`](../../hosts/torii-chan/sbc.nix)
-- [HDD ルートファイルシステム定義: `hosts/torii-chan/fs-hdd.nix`](../../hosts/torii-chan/fs-hdd.nix)
-- [SD ルートファイルシステム定義: `hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix)
-- [SD インストーラ定義: `hosts/torii-chan/sd-installer.nix`](../../hosts/torii-chan/sd-installer.nix)
-- [SBC 共通プロファイル: `nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)
-- [VPS フェイルオーバー運用手順: `docs/operations/vps-failover.md`](../operations/vps-failover.md)
+- [ホスト概要: hosts/torii-chan/README.md](../../hosts/torii-chan/README.md)
+- [SBC プラットフォーム定義: hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix)
+- [HDD ルートファイルシステム定義: hosts/torii-chan/fs-hdd.nix](../../hosts/torii-chan/fs-hdd.nix)
+- [SD ルートファイルシステム定義: hosts/torii-chan/fs-sd.nix](../../hosts/torii-chan/fs-sd.nix)
+- [SD インストーラ定義: hosts/torii-chan/sd-installer.nix](../../hosts/torii-chan/sd-installer.nix)
+- [SBC 共通プロファイル: nixos/profiles/sbc/default.nix](../../nixos/profiles/sbc/default.nix)
+- [VPS フェイルオーバー運用手順: docs/operations/vps-failover.md](../operations/vps-failover.md)

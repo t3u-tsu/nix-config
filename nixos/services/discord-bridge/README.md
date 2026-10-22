@@ -42,5 +42,5 @@ echo 'invite-create nitac23s' | sudo nc -U -N /run/minecraft-discord-bridge/brid
 
 ## References
 
-- Minecraft network configuration: [`nixos/services/minecraft/`](../minecraft/README.md)
-- Host deployment: [`hosts/shosoin-tan/`](../../../hosts/shosoin-tan/README.md)
+- Minecraft network configuration: [nixos/services/minecraft/](../minecraft/README.md)
+- Host deployment: [hosts/shosoin-tan/](../../../hosts/shosoin-tan/README.md)

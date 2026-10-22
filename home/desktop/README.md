@@ -15,28 +15,28 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 
 | Module / Directory | Description |
 | :--- | :--- |
-| [`bitwarden.nix`](bitwarden.nix) | Bitwarden desktop client with persistent autostart configuration. |
+| [bitwarden.nix](bitwarden.nix) | Bitwarden desktop client with persistent autostart configuration. |
 | `browsers/` | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
-| [`communication.nix`](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
-| [`creative.nix`](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
-| [`dev-tools/`](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
-| [`gaming.nix`](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. |
-| [`gpg-signing.nix`](gpg-signing.nix) | GnuPG agent setup and SOPS-managed commit signing key import. |
-| [`locales.nix`](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
-| [`media.nix`](media.nix) | Media playback (Spotify via Spicetify, VLC). |
+| [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
+| [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
+| [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
+| [gaming.nix](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. |
+| [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and SOPS-managed commit signing key import. |
+| [locales.nix](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
+| [media.nix](media.nix) | Media playback (Spotify via Spicetify, VLC). |
 | `niri/` | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
 | `noctalia/` | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
-| [`office.nix`](office.nix) | Office suite (LibreOffice). |
-| [`theme.nix`](theme.nix) | GTK, Qt, and cursor theming derived from [`lib/palette.nix`](../../lib/palette.nix). |
-| [`thunar.nix`](thunar.nix) | Thunar file manager user preferences. |
-| [`xdg.nix`](xdg.nix) | XDG base directories and default MIME application associations. |
-| [`default.nix`](default.nix) | Desktop module aggregator and profile definitions. |
+| [office.nix](office.nix) | Office suite (LibreOffice). |
+| [theme.nix](theme.nix) | GTK, Qt, and cursor theming derived from [lib/palette.nix](../../lib/palette.nix). |
+| [thunar.nix](thunar.nix) | Thunar file manager user preferences. |
+| [xdg.nix](xdg.nix) | XDG base directories and default MIME application associations. |
+| [default.nix](default.nix) | Desktop module aggregator and profile definitions. |
 
 > [!NOTE]
 > Zen Browser loads unsigned userscript extensions (`xpinstall.signatures.required = false`). After rebuilding the Nix configuration, restart Zen Browser to rescan the extension directory.
 
 ## References
 
-- Palette definitions: [`lib/palette.nix`](../../lib/palette.nix)
-- System desktop services: [`nixos/services/desktop/`](../../nixos/services/desktop/README.md)
-- Development tools: [`home/desktop/dev-tools/`](dev-tools/README.md)
+- Palette definitions: [lib/palette.nix](../../lib/palette.nix)
+- System desktop services: [nixos/services/desktop/](../../nixos/services/desktop/README.md)
+- Development tools: [home/desktop/dev-tools/](dev-tools/README.md)

@@ -1,6 +1,6 @@
 # ConoHa VPS プロビジョニング & フェイルオーバー手順
 
-物理エッジゲートウェイ（`torii-chan`）停止時に ConoHa VPS 上で待機系（`torii-chan-vps`）へ切り替え，物理復旧後に切戻す（Failback）緊急時手順．
+物理エッジゲートウェイ（`torii-chan`）停止時に ConoHa VPS 上で待機系（`torii-chan-vps`）へ切り替え，物理復旧後に切り戻す緊急時手順．
 
 ## 1. フェイルオーバー概要
 
@@ -31,7 +31,7 @@ sequenceDiagram
 
 ---
 
-## 2. フェイルオーバー起動手順 (Failover)
+## 2. フェイルオーバー起動手順
 
 ### Step 1: OpenTofu による VPS プロビジョニング
 `terraform/` ディレクトリで VPS を作成する:
@@ -69,9 +69,9 @@ Cloudflare ダッシュボード（または API）で，ドメインの A レ�
 
 ---
 
-## 3. 切戻し手順 (Failback & 課金停止)
+## 3. 切り戻し手順（課金停止）
 
-拠点Tの物理 SBC（`torii-chan`）復旧後の切戻し手順:
+拠点Tの物理 SBC（`torii-chan`）復旧後の切り戻し手順:
 
 1. 物理マシンを起動し，LAN 内および Nebula 内で拠点T SBC（`torii-chan`，`10.0.0.1`）の疎通を確認する．
 2. Cloudflare の A レコードを拠点Tのグローバル IP へ戻して DNS を切り戻す．

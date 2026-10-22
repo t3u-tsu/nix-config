@@ -99,7 +99,7 @@ Linux-PAM には，モジュールが `PAM_INCOMPLETE` を返して `pam_authent
 | `/etc/pam.d/polkit-1` / `sudo` / `su`（NixOS 既定） | `pam_fprintd` (11400) → `pam_unix try_first_pass` (11700) | 指を置かない限り最大 30 秒パスワード欄が出ない |
 | `/etc/pam.d/greetd`（本リポジトリ） | `pam_unix` (unix-early, 11700) → `pam_gnome_keyring` → `pam_unix use_first_pass` (12900) → `pam_fprintd` (12910) | `unix-early` が 1 回だけパスワードをプロンプトして `PAM_AUTHTOK` を入れ，空送信なら `use_first_pass` の `pam_unix` が失敗して `pam_fprintd` にフォールスルーする |
 
-greetd の構成は，単一スタックの逐次制約に対する空送信フォールスルーによる回避策である．[`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix) に設計意図が記載されており，グリーター側で `auth.allow_empty_password = true` の設定を前提とする．
+greetd の構成は，単一スタックの逐次制約に対する空送信フォールスルーによる回避策である．[nixos/services/desktop/greetd.nix](../../nixos/services/desktop/greetd.nix) に設計意図が記載されており，グリーター側で `auth.allow_empty_password = true` の設定を前提とする．
 
 ```nix
 # nixos/services/desktop/greetd.nix（本リポジトリ）
@@ -112,13 +112,13 @@ rules.auth.unix.settings = {
 rules.auth.fprintd.order = config.security.pam.services.greetd.rules.auth.unix.order + 10;
 ```
 
-x1c7 では `sudo` と `polkit-1` について，[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix) で `fprintd` ルールを `pam_unix` の直後（11710）へ移し，`max-tries=1` / `timeout=10` に短縮している．`su` は既定スタック（`pam_fprintd` 11400 → `pam_unix` 11700）のままである．
+x1c7 では `sudo` と `polkit-1` について，[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で `fprintd` ルールを `pam_unix` の直後（11710）へ移し，`max-tries=1` / `timeout=10` に短縮している．`su` は既定スタック（`pam_fprintd` 11400 → `pam_unix` 11700）のままである．
 
 ---
 
 ## 2. GDM の実装方式 — dual-PAM オーケストレータ
 
-GDM は「単一スタックの限界」を PAM の外側で回避する．PAM サービスごとに会話（conversation）と専用の worker プロセスを持ち，複数を同時に進行させる．
+GDM は「単一スタックの限界」を PAM の外側で回避する．PAM サービスごとに会話処理と専用の worker プロセスを持ち，複数を同時に進行させる．
 
 ### 2.1 会話の多重化
 
@@ -346,18 +346,18 @@ Noctalia は 2 つの認証トランザクションを直列化して処理す�
 - `greetd` / `polkit-1` / `sudo` は，いずれも「1 リクエスト = 1 PAM トランザクション」を前提としたプロトコル / API / 実装であり，設定や PAM 順序の工夫では並行化できない．並行化には各プロジェクト本体の改修が必要である．
 - 本リポジトリでの現実的な選択肢として，以下のアプローチが挙げられる．
   - greetd では，本体や noctalia-greeter を改修しない限り完全な並行化は行えない．現在の「空送信フォールスルー」を維持しつつ，`pam_fprintd` の `timeout` を短縮して体感待ち時間を低減する設計が妥当である．
-  - polkit-1，sudo，su では，`pam_unix try_first_pass` を優先するか，`pam_fprintd` に `timeout=10` などを設定して 30 秒間のブロックを回避する（[`fprintd-triage-notes.md`](fprintd-triage-notes.md) の推奨と一致）．
+  - polkit-1，sudo，su では，`pam_unix try_first_pass` を優先するか，`pam_fprintd` に `timeout=10` などを設定して 30 秒間のブロックを回避する（[fprintd-triage-notes.md](fprintd-triage-notes.md) の推奨と一致）．
   - 完全な並行認証が必要な場合は，GDM 相当の dual-PAM オーケストレータを実装するか，Noctalia ロック画面のような D-Bus 直接呼び出しと明示調停を組み合わせる方式を採用する．
 
 ---
 
 ## 関連ドキュメント
 
-- [`fprintd-triage-notes.md`](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録（polkit-1 / sudo の 30 秒ブロックの一次切り分け）
-- [`bsd-auth-architecture.md`](bsd-auth-architecture.md) — BSD 系（OpenPAM / BSD Authentication）における同期性・並行性の調査
-- [`thinkpad-x1c7.md`](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合の現状
-- [`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix) — 本リポジトリの greetd / PAM 構成
-- [`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix) — `services.fprintd.enable` と udev / TLP 設定
+- [fprintd-triage-notes.md](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録（polkit-1 / sudo の 30 秒ブロックの一次切り分け）
+- [bsd-auth-architecture.md](bsd-auth-architecture.md) — BSD 系（OpenPAM / BSD Authentication）における同期性・並行性の調査
+- [thinkpad-x1c7.md](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合の現状
+- [nixos/services/desktop/greetd.nix](../../nixos/services/desktop/greetd.nix) — 本リポジトリの greetd / PAM 構成
+- [hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) — `services.fprintd.enable` と udev / TLP 設定
 
 ## 出典
 

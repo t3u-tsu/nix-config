@@ -5,7 +5,7 @@ NixOS システムの評価・ビルド・デプロイ時に発生する障害�
 | 障害種別 | 主なエラー兆候 | 影響ホスト | 推奨される初動対応 |
 | :--- | :--- | :--- | :--- |
 | メモリ枯渇 (OOM) | `Killed (signal 9)`, `exit code 137` | `torii-chan`（1GB RAM），VPS | 作業機からのリモートビルド（`--build-host localhost`）または Swap 一時拡張 |
-| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，[`flake.lock`](../../flake.lock) 復元 |
+| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，[flake.lock](../../flake.lock) 復元 |
 | 特権昇格失敗 | `pkexec: must be run as root`, `Not authorized` | ヘッドレス機，SSH セッション | 一般ユーザーでの事前ビルド + `sudo` または `--target-host` によるリモート適用 |
 
 ---
@@ -37,10 +37,10 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
   --option sandbox false --option filter-syscalls false
 ```
 > [!NOTE]
-> Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [`../hardware/orange-pi-zero3.md`](../hardware/orange-pi-zero3.md#サンドボックスと-seccomp-bpf-の無効化) 参照）．
+> Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [../hardware/orange-pi-zero3.md](../hardware/orange-pi-zero3.md#サンドボックスと-seccomp-bpf-の無効化) 参照）．
 
 #### 対策 2: Swap の確保・一時拡張
-SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が定義されている．ディスク移行作業中などで swap が無効な場合は手動で一時 swap を有効化する:
+SBC プロファイル（[nixos/profiles/sbc/default.nix](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が定義されている．ディスク移行作業中などで swap が無効な場合は手動で一時 swap を有効化する:
 
 ```bash
 # 一時 swapfile (4GB) の作成と有効化
@@ -75,7 +75,7 @@ nixos-rebuild switch --flake .#<hostname> --max-jobs 1 --cores 1
 | 原因 | 発生メカニズムと影響 |
 | :--- | :--- |
 | Git 未追跡ファイル | Nix Flakes は Git の index に登録されているファイルのみを評価対象とするため，新規作成した `.nix` ファイルが未ステージングの場合に評価失敗となる． |
-| `follows` 制約の競合 | [`flake.nix`](../../flake.nix) 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる． |
+| `follows` 制約の競合 | [flake.nix](../../flake.nix) 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる． |
 | 一括更新による不整合 | `nix flake update` で全 input を一括更新した結果，nvfetcher 管理ファイル（`_sources/generated.{json,nix}`）とのバージョン齟齬や不要な大規模リビルドが発生する． |
 
 ### 切り分け・復旧手順
@@ -88,7 +88,7 @@ git add -A
 ```
 
 #### 手順 2: 特定 input の限定的更新
-対象の input のみを明示して更新する（[`nix-cache-optimization` スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
+対象の input のみを明示して更新する（[nix-cache-optimization スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
 
 ```bash
 # 特定の input のみ更新
@@ -111,7 +111,7 @@ nix flake check
 
 ---
 
-## 3. エージェント適用時（pkexec）の認証失敗とフォールバック
+## 3. pkexec による特権適用の認証失敗とフォールバック
 
 ### 現象・エラーメッセージ
 - AI エージェントが特権昇格のために `pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>` を実行した際，GUI 認証ダイアログが表示されずエラーとなる:
@@ -126,7 +126,7 @@ nix flake check
 ### 切り分け・フォールバック手順
 
 #### Step 1: 事前ビルド（必須）
-認証保留時間の長期化やタイムアウトを防ぐため，必ず一般ユーザー権限で事前ビルドを完了させる（[`GEMINI.md`](../../GEMINI.md) 運用ルール）:
+認証保留時間の長期化やタイムアウトを防ぐため，必ず一般ユーザー権限で事前ビルドを完了させる（[GEMINI.md](../../GEMINI.md) 運用ルール）:
 
 ```bash
 nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link
