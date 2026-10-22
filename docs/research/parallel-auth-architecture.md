@@ -49,7 +49,7 @@ for (depth = 0; h != NULL; prev_level = stack_level, h = h->next, ++depth) {
 }
 ```
 
-`sufficient` / `required` / `optional` といった制御フラグも，この逐次ループの各ステップで「打ち切るか継続するか」を決めるだけである．したがって，同一スタック内の `pam_fprintd.so` と `pam_unix.so` が同時に実行されることはなく，必ず逐次実行となる．
+`sufficient` / `required` / `optional` などの制御フラグも，この逐次ループの各ステップで「打ち切るか継続するか」を決めるだけである．したがって，同一スタック内の `pam_fprintd.so` と `pam_unix.so` が同時に実行されることはなく，必ず逐次実行となる．
 
 ```mermaid
 flowchart TD
@@ -283,7 +283,7 @@ pam_status = pam_start (pam_service, pw->pw_name, &pam_conv, &pamh);
 
 `def_passwd_tries` によるリトライループはあるが，これは逐次リトライであり並行ではない．
 
-**判定**: `def_passwd_tries` による再試行ループは逐次実行であり，並行処理ではない．sudo での並行認証の実現には内部認証エンジンの抜本的な書き換えを要するため，設定レベルでの対応は不可能である．
+**判定**: `def_passwd_tries` による再試行ループは逐次実行であり，並行処理ではない．sudo での並行認証には内部認証エンジンの抜本的な書き換えを要するため，設定レベルでの対応は不可能である．
 
 ### 3.4 Noctalia ロック画面 — デュアルチャネル調停と直列化検証
 

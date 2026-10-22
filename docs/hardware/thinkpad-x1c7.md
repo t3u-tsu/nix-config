@@ -56,7 +56,7 @@ flowchart TD
 
 ### カーネル選定とハードウェアモジュール
 
-- **カーネル**: [`pkgs.linuxPackages_xanmod`](../../hosts/x1c7/default.nix) を採用．デスクトップの対話的応答性とタスクスケジューリングの低レイテンシ化を図る．
+- **カーネル**: [`pkgs.linuxPackages_xanmod`](../../hosts/x1c7/default.nix) を採用．デスクトップの対話的応答性とタスクスケジューリングを低レイテンシ化する．
 - **nixos-hardware 連携**: [`nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen`](../../hosts/x1c7/default.nix) をインポートし，トラックポイント，Intel マイクロコード，VA-API，およびラップトップ／SSD 共通モジュールを導入している．
 
 ### メモリ・スワップチューニング (OOM 回避)

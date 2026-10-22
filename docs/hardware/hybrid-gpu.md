@@ -72,7 +72,7 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 #### 設定の要点と設計判断
 
 1. **`/dev/dri/by-path` の採用理由**:
-   `/dev/dri/card0` や `card1` といった動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
+   `/dev/dri/card0` や `card1` などの動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
 2. **Home Manager ドロップインによる定義理由**:
    NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，肝心の `ExecStart` 行が欠落する．また，`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができない．そのため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
 
