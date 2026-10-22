@@ -92,7 +92,7 @@
               setglobal ENV.PATH = "${lib.makeBinPath runtimeInputs}" ++ (":" ++ get(ENV, 'PATH', "") if (get(ENV, 'PATH', "") !== "") else "")
             ''
             + text;
-            checkPhase = if checkPhase == null then "${interpreter} -n $target > /dev/null" else checkPhase;
+            checkPhase = if checkPhase == null then "${interpreter} -n \"$target\" > /dev/null" else checkPhase;
           };
       }
     )
