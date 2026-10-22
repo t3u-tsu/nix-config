@@ -1,6 +1,6 @@
 # NixOS System Modules (`nixos/`)
 
-System-level NixOS configuration modules, aggregated in `nixos/default.nix` and applied across all fleet machines.
+System-level NixOS configuration modules, aggregated in [`nixos/default.nix`](default.nix) and applied across all fleet machines.
 
 ## Module Categories
 

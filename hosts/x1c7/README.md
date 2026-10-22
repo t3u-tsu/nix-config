@@ -28,7 +28,7 @@ Lenovo ThinkPad X1 Carbon Gen 7 (20QES11500) running NixOS with Niri (Wayland), 
 
 - **Power & Thermals:** TLP battery thresholds (75/80%), `throttled` PL1/PL2 power envelope management, Noctalia power-profile D-Bus widget.
 - **Memory & Swap:** zram (100% RAM) + 16 GiB swapfile with `vm.watermark_scale_factor = 125` to prevent OOM kills during parallel Nix builds.
-- **Audio Routing:** `services/audio.nix` patches ALSA UCM / PipeWire to keep internal speakers active when external HDMI displays connect.
+- **Audio Routing:** [`services/audio.nix`](services/audio.nix) patches ALSA UCM / PipeWire to keep internal speakers active when external HDMI displays connect.
 - **Authentication:** Noctalia greeter on `eDP-1`, fingerprint authentication via `fprintd` integrated across PAM services (TLP `USB_DENYLIST` disables autosuspend on `06cb:00bd`).
 
 ## Quick Operations

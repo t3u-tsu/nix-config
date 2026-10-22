@@ -8,14 +8,14 @@ The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing
 
 | Component | Port | Inbound Hostname | Description |
 | :--- | :--- | :--- | :--- |
-| **Proxy** (`proxy.nix`) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
-| **Lobby** (`servers/lobby.nix`) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
-| **Main Survival** (`servers/nitac23s.nix`) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
+| **Proxy** ([`proxy.nix`](proxy.nix)) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
+| **Lobby** ([`servers/lobby.nix`](servers/lobby.nix)) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
+| **Main Survival** ([`servers/nitac23s.nix`](servers/nitac23s.nix)) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
 
 ## External Integrations
 
 - **Discord Bridge:** Integrated via [`nixos/services/discord-bridge/`](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
-- **Plugin Management:** Server plugins (protocol translation, sitting animations, Japanese chat rendering) are declared in `nvfetcher.toml` at the repository root and updated automatically via GitHub Actions (`.github/workflows/auto-update.yml`).
+- **Plugin Management:** Server plugins (protocol translation, sitting animations, Japanese chat rendering) are declared in [`nvfetcher.toml`](../../../nvfetcher.toml) at the repository root and updated automatically via GitHub Actions ([`.github/workflows/auto-update.yml`](../../../.github/workflows/auto-update.yml)).
 - **Backup Schedule:** Backed up every 2 hours locally to ZFS Mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site to `kagutsuchi-sama` via Restic.
 
 ## CLI Operations (on `shosoin-tan`)

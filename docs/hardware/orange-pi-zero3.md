@@ -44,7 +44,7 @@ flowchart TD
     KERNEL -->|"rootdelay=10 待機 & USB-SATA 認識"| ROOT["ルートファイルシステム (/dev/disk/by-label/NIXOS_HDD)"]
 ```
 
-#### U-Boot の注入 (`hosts/torii-chan/sd-installer.nix`)
+#### U-Boot の注入 ([`hosts/torii-chan/sd-installer.nix`](../../hosts/torii-chan/sd-installer.nix))
 
 SD カードイメージ生成時に，Flake オーバーレイでビルドされた `ubootOrangePiZero3` の SPL バイナリをオフセット 8 KiB（ブロックサイズ 1024，seek 8）の位置へ直接書き込む．
 
@@ -55,7 +55,7 @@ sdImage.postBuildCommands = ''
 '';
 ```
 
-#### extlinux ブートローダの採用 (`hosts/torii-chan/sbc.nix`)
+#### extlinux ブートローダの採用 ([`hosts/torii-chan/sbc.nix`](../../hosts/torii-chan/sbc.nix))
 
 U-Boot の標準仕様に準拠した extlinux 互換ローダを使用する．
 
@@ -97,7 +97,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
 
 ## 3. SD カードインストーライメージと初期プロビジョニング
 
-### イメージ生成手順 (`hosts/torii-chan/build-sd-image.ysh`)
+### イメージ生成手順 ([`hosts/torii-chan/build-sd-image.ysh`](../../hosts/torii-chan/build-sd-image.ysh))
 
 新規セットアップ時のインストーラ SD イメージ作成手順:
 
@@ -114,7 +114,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
 
 ### aarch64 ネイティブビルド環境
 
-インストーライメージは aarch64 ネイティブビルドで構成される．x86_64 ホスト（`BrokenPC` 等）では，`nixos/base/nix.nix` の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
+インストーライメージは aarch64 ネイティブビルドで構成される．x86_64 ホスト（`BrokenPC` 等）では，[`nixos/base/nix.nix`](../../nixos/base/nix.nix) の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
 
 ### 初期導入・HDD 移行手順
 
@@ -128,7 +128,7 @@ USB ブリッジ越しの自動プローブは異常動作を招く恐れがあ�
    ```bash
    ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
    ```
-   得られた公開鍵をリポジトリの `.sops.yaml`（`&torii_chan`）へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
+   得られた公開鍵をリポジトリの [`.sops.yaml`](../../.sops.yaml)（`&torii_chan`）へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
 4. 本番 SD 構成への切り替え
    ```bash
    nixos-rebuild switch --flake .#torii-chan-sd \

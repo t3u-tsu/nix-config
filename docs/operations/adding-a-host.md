@@ -32,8 +32,8 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．
 
-### Step 2: Flake へのホスト登録 (`flake/hosts.nix`)
-`flake/hosts.nix` に新しいホストのエントリを追加する:
+### Step 2: Flake へのホスト登録 ([`flake/hosts.nix`](../../flake/hosts.nix))
+[`flake/hosts.nix`](../../flake/hosts.nix) に新しいホストのエントリを追加する:
 ```nix
 <hostname> = mkLib.mkSystem {
   name = "<hostname>";
@@ -54,7 +54,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-3. `.sops.yaml` にホストのアンカーと creation rules を追加する．
+3. [`.sops.yaml`](../../.sops.yaml) にホストのアンカーと creation rules を追加する．
    ```yaml
    keys:
      - &<hostname> age1...
@@ -73,7 +73,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 ### Step 4: Nebula 証明書の発行と登録
 
-1. 管理者のオフライン CA（`scripts/nebula-rotate-ca.ysh` の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
+1. 管理者のオフライン CA（[`scripts/nebula-rotate-ca.ysh`](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
    ```bash
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
@@ -85,7 +85,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
      -out-crt "$CA_DIR/<hostname>.crt" \
      -out-key "$CA_DIR/<hostname>.key"
    ```
-2. `scripts/nebula-lib.ysh` の `FLEET` リストにエントリを追加する．
+2. [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```

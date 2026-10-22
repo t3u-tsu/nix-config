@@ -46,7 +46,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 
 ## クイックスタート
 
-利用可能なホスト構成（`flake/hosts.nix` で定義）:
+利用可能なホスト構成（[`flake/hosts.nix`](flake/hosts.nix) で定義）:
 
 | 構成名 | 役割・対象環境 |
 | :--- | :--- |
@@ -55,7 +55,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 | `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | タワーサーバークラスタ |
 | `torii-chan-sd` / `torii-chan-hdd` | Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ（SD / HDD ブート） |
 | `torii-chan-vps` | ConoHa VPS 上のフェイルオーバーゲートウェイ（x86_64） |
-| `torii-chan-sd-installer` | SD カードインストーライメージ（`hosts/torii-chan/build-sd-image.ysh`） |
+| `torii-chan-sd-installer` | SD カードインストーライメージ（[`hosts/torii-chan/build-sd-image.ysh`](hosts/torii-chan/build-sd-image.ysh)） |
 | `torii-chan-vps-iso` | VPS レスキューインストーラ ISO パッケージ（`nix build .#torii-chan-vps-iso`） |
 
 ローカルマシンへの設定適用:
@@ -82,7 +82,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 | ワークフロー | トリガー・内容 |
 | :--- | :--- |
 | [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`）の実行，`convco` による Conventional Commits 検証 |
-| [Scheduled Auto Update](.github/workflows/auto-update.yml) | 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，`flake.lock` 更新，CI 検証を経て `main` へ反映 |
+| [Scheduled Auto Update](.github/workflows/auto-update.yml) | 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，[`flake.lock`](flake.lock) 更新，CI 検証を経て `main` へ反映 |
 
 ## ドキュメント
 

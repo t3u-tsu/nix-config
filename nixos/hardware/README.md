@@ -6,13 +6,13 @@ Hardware drivers, GPU acceleration, and system diagnostic tooling.
 
 | File | Purpose | Key Options |
 | :--- | :--- | :--- |
-| `nvidia.nix` | NVIDIA driver management, PRIME offload/sync, and dynamic power management. | `my.hardware.nvidia.*` |
-| `pc-tools.nix` | Hardware health and diagnostic tools (`nvme-cli`, `smartmontools`). | `my.hardware.pc-tools.enable` |
-| `default.nix` | Hardware module aggregator. | — |
+| [`nvidia.nix`](nvidia.nix) | NVIDIA driver management, PRIME offload/sync, and dynamic power management. | `my.hardware.nvidia.*` |
+| [`pc-tools.nix`](pc-tools.nix) | Hardware health and diagnostic tools (`nvme-cli`, `smartmontools`). | `my.hardware.pc-tools.enable` |
+| [`default.nix`](default.nix) | Hardware module aggregator. | — |
 
 ## NVIDIA Driver Configurations
 
-The `nvidia.nix` module supports integrated offload and dedicated sync modes:
+The [`nvidia.nix`](nvidia.nix) module supports integrated offload and dedicated sync modes:
 
 | Feature / Mode | Nix Option | Description |
 | :--- | :--- | :--- |

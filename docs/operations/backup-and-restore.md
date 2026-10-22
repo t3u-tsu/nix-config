@@ -28,7 +28,7 @@ flowchart LR
 
 ### バックアップ仕様
 - 実行頻度: 2 時間ごと（`systemd.timers`）
-- 暗号化: Restic 固有の暗号化パスワード（`secrets/services/backup.yaml` 内の `restic_password`）
+- 暗号化: Restic 固有の暗号化パスワード（[`secrets/services/backup.yaml`](../../secrets/services/backup.yaml) 内の `restic_password`）
 - 保持世代ポリシー:
   - `keep-daily: 7`（直近 7 日分）
   - `keep-weekly: 4`（直近 4 週分）
@@ -39,7 +39,7 @@ flowchart LR
 ## 2. 初期セットアップ手順 (`restic init`)
 
 ### 初期化の自動化と手動初期化
-Restic 設定（`nixos/services/backup/default.nix`）で `initialize = true` を指定しているため，初回実行時にリポジトリは自動で初期化される．手動で初期化・検証する場合のコマンド:
+Restic 設定（[`nixos/services/backup/default.nix`](../../nixos/services/backup/default.nix)）で `initialize = true` を指定しているため，初回実行時にリポジトリは自動で初期化される．手動で初期化・検証する場合のコマンド:
 
 ```bash
 export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)

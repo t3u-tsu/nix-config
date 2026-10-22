@@ -16,7 +16,7 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 ## GPU Separation & Workload Allocation
 
 - **Display & UI Isolation:** Route Niri and 3D graphics (Steam) to the AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload.enable = false`; dGPU 3D rasterization is defective.
-- **CUDA Matrix Acceleration:** Matrix compute (GEMM) units remain functional. The dGPU runs local LLM matrix workloads via CUDA (`services/llama.nix`, targeting SM 8.6).
+- **CUDA Matrix Acceleration:** Matrix compute (GEMM) units remain functional. The dGPU runs local LLM matrix workloads via CUDA ([`services/llama.nix`](services/llama.nix), targeting SM 8.6).
 - **Power Optimization:** When idle, the dGPU powers down via open kernel modules and RTD3 (`powerManagement.finegrained = true`).
 
 ## Configuration Summary

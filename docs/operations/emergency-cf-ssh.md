@@ -74,7 +74,7 @@ nix shell nixpkgs#cloudflared
 ```
 
 #### SSH クライアント設定 (`~/.ssh/config`)
-Home Manager 設定（`home/programs/ssh.nix`）に以下のエントリおよび短縮エイリアスを定義している:
+Home Manager 設定（[`home/programs/ssh.nix`](../../home/programs/ssh.nix)）に以下のエントリおよび短縮エイリアスを定義している:
 
 ```ssh-config
 # Cloudflare Tunnel 経由 非常用帯域外アクセス
@@ -154,7 +154,7 @@ torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
 編集後，ファイルを保存して暗号化を完了する．
 
 ### Step 3: NixOS 設定の有効化と反映
-各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または `hosts/torii-chan/sbc.nix`）で本機能を有効化する:
+各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または [`hosts/torii-chan/sbc.nix`](../../hosts/torii-chan/sbc.nix)）で本機能を有効化する:
 
 ```nix
 my.services.emergencySsh.enable = true;

@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 ## 実行スクリプト仕様
 
-コーディングタスクの委譲には，`scripts/run.ysh` を使用する．
+コーディングタスクの委譲には，[`scripts/run.ysh`](scripts/run.ysh) を使用する．
 
 ### 基本使用方法
 
@@ -127,7 +127,7 @@ CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOL
 親オーケストレーターが外部コーディングワーカー（`run.ysh`）を使用する際の固有原則．
 
 > [!NOTE]
-> 兄弟ワークツリーの作成，並列投入，非同期逐次合流，排他指定，差分統合の手順は `GEMINI.md` を参照．
+> 兄弟ワークツリーの作成，並列投入，非同期逐次合流，排他指定，差分統合の手順は [`GEMINI.md`](../../../GEMINI.md) を参照．
 
 ### 1. 英語プロンプトの原則
 外部コーディングワーカー（`pi`, `dsh` 等）へのプロンプトは **簡潔で明確な英語（English）** で指示する．日本語の指示や過剰な文脈は推論精度の低下や不要な探索を招く．

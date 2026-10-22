@@ -9,8 +9,8 @@ User-specific configurations managed with Home Manager.
 | [`shell/`](shell/README.md) | Interactive shell environment, prompt, and command history. |
 | [`programs/`](programs/README.md) | CLI tools, Git, SSH client, and local LLM services. |
 | [`desktop/`](desktop/README.md) | Desktop environment (Wayland compositor, shell, browsers, apps). |
-| `sops.nix` | Derives SOPS age key from user SSH key. |
-| `default.nix` | Aggregates base home modules. |
+| [`sops.nix`](sops.nix) | Derives SOPS age key from user SSH key. |
+| [`default.nix`](default.nix) | Aggregates base home modules. |
 
 ## References
 

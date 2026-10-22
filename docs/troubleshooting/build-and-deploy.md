@@ -5,7 +5,7 @@ NixOS システムの評価・ビルド・デプロイ時に発生する障害�
 | 障害種別 | 主なエラー兆候 | 影響ホスト | 推奨される初動対応 |
 | :--- | :--- | :--- | :--- |
 | メモリ枯渇 (OOM) | `Killed (signal 9)`, `exit code 137` | `torii-chan`（1GB RAM），VPS | 作業機からのリモートビルド（`--build-host localhost`）または Swap 一時拡張 |
-| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，`flake.lock` 復元 |
+| Flake lock 不整合 | `cannot update locked input`, `Git tree is dirty` | 全ホスト | 未追跡ファイルのステージング，単一 input 更新，[`flake.lock`](../../flake.lock) 復元 |
 | 特権昇格失敗 | `pkexec: must be run as root`, `Not authorized` | ヘッドレス機，SSH セッション | 一般ユーザーでの事前ビルド + `sudo` または `--target-host` によるリモート適用 |
 
 ---
@@ -75,7 +75,7 @@ nixos-rebuild switch --flake .#<hostname> --max-jobs 1 --cores 1
 | 原因 | 発生メカニズムと影響 |
 | :--- | :--- |
 | Git 未追跡ファイル | Nix Flakes は Git の index に登録されているファイルのみを評価対象とするため，新規作成した `.nix` ファイルが未ステージングの場合に評価失敗となる． |
-| `follows` 制約の競合 | `flake.nix` 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる． |
+| `follows` 制約の競合 | [`flake.nix`](../../flake.nix) 内で各 input が同一の `nixpkgs` を参照するよう `follows` を設定している際，上流 flake の更新によって互換性が崩れる． |
 | 一括更新による不整合 | `nix flake update` で全 input を一括更新した結果，nvfetcher 管理ファイル（`_sources/generated.{json,nix}`）とのバージョン齟齬や不要な大規模リビルドが発生する． |
 
 ### 切り分け・復旧手順

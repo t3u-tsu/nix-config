@@ -121,7 +121,7 @@ Noctalia は hyprlock を参考にしてデュアルチャネルを導入した�
 - stopFingerprint() で止めている理由:
   1. 二重 Claim 競合 (Issue #3277): ユーザー環境の `/etc/pam.d/login` に `pam_fprintd` が含まれていた場合，パスワード送信時に PAM 側の `pam_fprintd` が走り，D-Bus 経由での直接呼び出しとセンサーを取り合って 30 秒フリーズするため．
   2. 二重解放クラッシュ: パスワード検証中に指紋が通ると，Wayland セッションのアンロックが 2 回発行されてクラッシュするため．
-- 本リポジトリの設定（`hosts/x1c7/default.nix`）ではすでに `login.fprintAuth = false` にしているため，実機では #3277 のフリーズ要因は排除されている．
+- 本リポジトリの設定（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では #3277 のフリーズ要因は排除されている．
 
 ### 3.3 swaylock & gtklock: upstream の拒絶とコミュニティフォーク
 - swaylock: PR #283 (D-Bus), PR #445 (Dual-PAM) が出されたが，メンテナ（emersion）が「KISS 原則を維持したい．ロッカーに D-Bus や複雑なオーケストレーションを持ち込みたくない」として拒絶．

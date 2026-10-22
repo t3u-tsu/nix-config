@@ -13,10 +13,10 @@ Baseline configuration shared across all headless tower servers (`shosoin-tan`, 
 
 | File | Purpose |
 | :--- | :--- |
-| `boot.nix` | Stock default kernel deployment (`pkgs.linuxPackages`). |
-| `security.nix` | Inbound firewall isolation restricting SSH to `nebula0`. |
-| `ssh.nix` | Key-only OpenSSH server hardening. |
-| `default.nix` | Aggregates server profile modules and hardware monitoring tools. |
+| [`boot.nix`](boot.nix) | Stock default kernel deployment (`pkgs.linuxPackages`). |
+| [`security.nix`](security.nix) | Inbound firewall isolation restricting SSH to `nebula0`. |
+| [`ssh.nix`](ssh.nix) | Key-only OpenSSH server hardening. |
+| [`default.nix`](default.nix) | Aggregates server profile modules and hardware monitoring tools. |
 
 ## References
 

@@ -58,7 +58,7 @@
 ### 6. polkit エージェント衝突 — Ruled Out / Mitigated
 - 実効エージェントは `niri-flake-polkit.service`（user unit）が起動する `polkit-kde-authentication-agent-1`（cgroup: `.../niri-flake-polkit.service`）である．
 - Noctalia は `[app] polkit agent disabled: ... An authentication agent already exists` を出力して自主的に無効化する．polkit 認証自体は KDE エージェントで正常動作するためユーザー影響はない．
-- `home/desktop/noctalia/default.nix` の `polkit_agent = true` は実質無効（重複設定のため不要）．
+- [`home/desktop/noctalia/default.nix`](../../home/desktop/noctalia/default.nix) の `polkit_agent = true` は実質無効（重複設定のため不要）．
 
 ### 7. USB autosuspend / TLP — Ruled Out / Mitigated
 - `/sys/bus/usb/devices/1-9/`: `power/control=on`，`power/persist=1`，`power/autosuspend=2`（control=on のため autosuspend は無効化）．

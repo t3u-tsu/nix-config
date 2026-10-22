@@ -11,7 +11,7 @@ Fleet-wide system services and background daemons managed by NixOS modules.
 | [`discord-bridge/`](discord-bridge/README.md) | Go-based Minecraft Discord bridge bot (whitelist management, status query UNIX socket). | `shosoin-tan` | [`discord-bridge/`](discord-bridge/README.md) |
 | [`gateway/`](gateway/README.md) | Edge gateway routing, Nebula Lighthouse/Relay, Cloudflare DDNS, and Minecraft port forwarding. | `torii-chan` | [`gateway/`](gateway/README.md) |
 | [`minecraft/`](minecraft/README.md) | Minecraft Paper network (domain-routed proxy, lobby, and survival servers). | `shosoin-tan` | [`minecraft/`](minecraft/README.md) |
-| `default.nix` | Service module aggregator. | Fleet-wide | — |
+| [`default.nix`](default.nix) | Service module aggregator. | Fleet-wide | — |
 
 ## References
 

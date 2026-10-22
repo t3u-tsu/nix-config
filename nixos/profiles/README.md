@@ -1,6 +1,6 @@
 # Host Profiles (`nixos/profiles/`)
 
-Role-based host profiles applied automatically during system evaluation via `mkSystem` (`lib/default.nix`). Every managed machine specifies one primary profile.
+Role-based host profiles applied automatically during system evaluation via `mkSystem` ([`lib/default.nix`](../../lib/default.nix)). Every managed machine specifies one primary profile.
 
 ## Profile Catalog
 

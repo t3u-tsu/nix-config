@@ -20,8 +20,8 @@ Backups follow a two-tier strategy combining local high-speed recovery with off-
 
 | File | Purpose | Key Option |
 | :--- | :--- | :--- |
-| `default.nix` | Client sender module scheduling periodic local and remote snapshots via systemd timers. | `my.services.backup.enable` |
-| `receiver.nix` | Server receiver module configuring the SFTP-only user `restic-shosoin` with a forced `internal-sftp` command. | `my.services.backup.receiver.enable` |
+| [`default.nix`](default.nix) | Client sender module scheduling periodic local and remote snapshots via systemd timers. | `my.services.backup.enable` |
+| [`receiver.nix`](receiver.nix) | Server receiver module configuring the SFTP-only user `restic-shosoin` with a forced `internal-sftp` command. | `my.services.backup.receiver.enable` |
 
 ## Operational Commands
 

@@ -6,8 +6,8 @@
 
 GitHub Actions のスケジュールワークフローが毎日日本時間 04:00 に自動実行される．処理の流れ:
 
-1. `nvfetcher` の実行: `nvfetcher.toml` に定義された最新パッケージのコミット・ハッシュ値を更新し，`_sources/generated.nix` を更新する．
-2. `flake.lock` の更新: 依存 Flake 入力を最新に更新する．
+1. `nvfetcher` の実行: [`nvfetcher.toml`](../../nvfetcher.toml) に定義された最新パッケージのコミット・ハッシュ値を更新し，[`_sources/generated.nix`](../../_sources/generated.nix) を更新する．
+2. [`flake.lock`](../../flake.lock) の更新: 依存 Flake 入力を最新に更新する．
 3. CI 検証: 全ホストの評価と pre-commit hooks（`nix flake check`）を実行する．
 4. 自動コミット: すべての検証に成功した場合のみ，コミットを作成して `main` ブランチへ自動プッシュする．
 

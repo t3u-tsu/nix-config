@@ -4,19 +4,19 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 ## 1. Flake 構成と分割 (`flake/`)
 
-`flake.nix` は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとにサブモジュールを分割して読み込む．
+[`flake.nix`](../../flake.nix) は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとにサブモジュールを分割して読み込む．
 
-- `flake/hosts.nix`: 各ホストの `nixosConfigurations` を定義する．
-- `flake/lib.nix`: `mkLib` を公開し，flake inputs と overlays を合成したライブラリを提供する．
-- `flake/overlays.nix`: nixpkgs のオーバーレイ群（`nix-minecraft`，`niri`，`unstable` 等）と，YSH スクリプト生成関数（`writeYsh`，`writeYshBin`，`writeYshApplication`）を定義する．
-- `flake/packages.nix`: カスタムビルド成果物（例: `torii-chan-vps-iso`）を `packages.${system}` に公開する．
-- `flake/dev.nix`: pre-commit hooks（`git-hooks.nix`）および開発シェル（`devShells`）を提供する．
+- [`flake/hosts.nix`](../../flake/hosts.nix): 各ホストの `nixosConfigurations` を定義する．
+- [`flake/lib.nix`](../../flake/lib.nix): `mkLib` を公開し，flake inputs と overlays を合成したライブラリを提供する．
+- [`flake/overlays.nix`](../../flake/overlays.nix): nixpkgs のオーバーレイ群（`nix-minecraft`，`niri`，`unstable` 等）と，YSH スクリプト生成関数（`writeYsh`，`writeYshBin`，`writeYshApplication`）を定義する．
+- [`flake/packages.nix`](../../flake/packages.nix): カスタムビルド成果物（例: `torii-chan-vps-iso`）を `packages.${system}` に公開する．
+- [`flake/dev.nix`](../../flake/dev.nix): pre-commit hooks（`git-hooks.nix`）および開発シェル（`devShells`）を提供する．
 
 ---
 
 ## 2. システムビルダー (`mkSystem`)
 
-全ホストは `lib/default.nix` に定義された `mkSystem` 関数を経由してインスタンス化する．
+全ホストは [`lib/default.nix`](../../lib/default.nix) に定義された `mkSystem` 関数を経由してインスタンス化する．
 
 ```nix
 mkLib.mkSystem {
@@ -42,7 +42,7 @@ mkLib.mkSystem {
 
 | オプション階層 | 配置場所 | 役割と具体例 |
 | :--- | :--- | :--- |
-| `my.user.name` | `nixos/base/user.nix` | プライマリユーザー名の定義（全モジュールで参照） |
+| `my.user.name` | [`nixos/base/user.nix`](../../nixos/base/user.nix) | プライマリユーザー名の定義（全モジュールで参照） |
 | `my.networking.<name>` | `nixos/networking/` | ネットワークおよびメッシュ機能（例: `my.networking.nebula`） |
 | `my.services.<name>` | `nixos/services/` | システムレベルの共有サービス（例: `my.services.minecraft`，`my.services.gateway`） |
 | `my.packages.<category>` | `nixos/environment/` | 目的別の共通パッケージ群（例: `my.packages.core`，`my.packages.network-tools`） |
@@ -62,7 +62,7 @@ mkLib.mkSystem {
 
 1. nixpkgs (stable / unstable): 標準リポジトリにパッケージが存在する場合に最優先で採用する（`pkgs.<name>` または `pkgs.unstable.<name>`）．
 2. nvfetcher (`_sources/`): nixpkgs に存在しない，または最新リリースの追従が必要な単体バイナリや Git リポジトリ．日次自動更新ワークフロー（`auto-update.yml`）でハッシュ値を更新する．
-3. Flake inputs (`flake.nix`): 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合（例: `niri`，`nix-minecraft`）．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断する（詳細は `nix-cache-optimization` スキル参照）．
+3. Flake inputs ([`flake.nix`](../../flake.nix)): 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合（例: `niri`，`nix-minecraft`）．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断する（詳細は `nix-cache-optimization` スキル参照）．
 
 ---
 
