@@ -4,9 +4,9 @@ SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-con
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
-| **SOPS 復号エラー** (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，`.sops.yaml` 更新，`sops updatekeys` |
-| **private flake input フェッチ失敗** | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
-| **activation 失敗で emergency mode** | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
+| SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，`.sops.yaml` 更新，`sops updatekeys` |
+| private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
+| activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
 ---
 
@@ -19,9 +19,12 @@ SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-con
 - ユーザーのログイン時にパスワードが認識されない（`hashedPasswordFile` の読み込み失敗）．
 
 ### 原因
-1. **ホスト秘密鍵の欠落・権限不正**: `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている．
-2. **age 公開鍵の不一致**: マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が `.sops.yaml` や暗号化ファイルの recipient と乖離している．
-3. **recipient 更新漏れ**: 新ホストの公開鍵を `.sops.yaml` に追加したものの，`sops updatekeys` を実行しておらず，`secrets/common.yaml` や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない．
+
+| 原因 | 内容と影響 |
+| :--- | :--- |
+| ホスト秘密鍵の欠落・権限不正 | `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている． |
+| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が `.sops.yaml` や暗号化ファイルの recipient と乖離している． |
+| recipient 更新漏れ | 新ホストの公開鍵を `.sops.yaml` に追加したものの `sops updatekeys` を実行しておらず，`secrets/common.yaml` や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない． |
 
 ### 切り分け・復旧手順
 
@@ -171,7 +174,7 @@ Give root password for maintenance (or press Control-D to continue):
 #### パターン B: パスワード入力が通らずログイン不能な場合
 
 ##### 正常世代での起動（GRUB メニュー）
-マシンを再起動してブートローダー（GRUB）メニューを表示し，**「NixOS - All configurations」から直前の正常世代を選択して起動** する．正常世代でのログイン後，設定を修正またはロールバックする．
+マシンを再起動してブートローダー（GRUB）メニューを表示し，「NixOS - All configurations」から直前の正常世代を選択して起動する．正常世代でのログイン後，設定を修正またはロールバックする．
 
 ##### 代替手段: `init=/bin/sh` 緊急シェルによる世代切り替え
 GRUB メニューからの通常起動で解決しない場合，カーネルパラメータを変更して緊急シェルから前世代をブート既定に設定する:

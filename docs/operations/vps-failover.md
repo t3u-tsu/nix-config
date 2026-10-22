@@ -65,7 +65,7 @@ cd ..
 ```
 
 ### Step 3: DNS 切替
-Cloudflare ダッシュボード（または API）で，ドメインの A レコードを拠点T回線の IP から **VPS のパブリック IP** へ手動で切り替える（VPS 上の Cloudflare DDNS サービス起動後は自動更新される）．
+Cloudflare ダッシュボード（または API）で，ドメインの A レコードを拠点T回線の IP から VPS のパブリック IP へ手動で切り替える（VPS 上の Cloudflare DDNS サービス起動後は自動更新される）．
 
 ---
 

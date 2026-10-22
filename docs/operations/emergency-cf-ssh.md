@@ -41,9 +41,9 @@ sequenceDiagram
 
 | 階層 | 防御機構 | 検証場所 | 役割・セキュリティ特性 |
 | :--- | :--- | :--- | :--- |
-| **レイヤー 1** | **Cloudflare Zero Trust (Access)** | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
-| **レイヤー 2** | **Cloudflare SSH CA（短期証明書）** | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書（Short-lived Certificate）．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
-| **レイヤー 3** | **ED25519 ユーザー公開鍵認証** | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
+| レイヤー 1 | Cloudflare Zero Trust (Access) | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
+| レイヤー 2 | Cloudflare SSH CA（短期証明書） | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書（Short-lived Certificate）．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
+| レイヤー 3 | ED25519 ユーザー公開鍵認証 | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
 
 ---
 
@@ -53,10 +53,10 @@ sequenceDiagram
 
 | ホスト名 | 接続ドメイン (FQDN) | シークレットキー (`secrets/hosts/<hostname>.yaml`) | 役割・配置拠点 |
 | :--- | :--- | :--- | :--- |
-| **`torii-chan`** | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse（拠点T） |
-| **`sando-kun`** | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー（拠点A） |
-| **`kagutsuchi-sama`** | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫（拠点A） |
-| **`shosoin-tan`** | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー（拠点A） |
+| `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse（拠点T） |
+| `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー（拠点A） |
+| `kagutsuchi-sama` | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫（拠点A） |
+| `shosoin-tan` | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー（拠点A） |
 
 ---
 

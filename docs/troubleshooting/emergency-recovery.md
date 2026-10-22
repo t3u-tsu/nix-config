@@ -4,10 +4,10 @@
 
 | 障害シナリオ | システム状態 | 推奨復旧手段 | 所要時間・難易度 |
 | :--- | :--- | :--- | :--- |
-| **適用直後のサービス不具合** | OS 稼働中（SSH / TTY ログイン可） | `sudo nixos-rebuild switch --rollback` | 数秒（最小） |
-| **カーネルパニック / 起動停止** | ブートローダー動作可 | GRUB / extlinux メニューから健全な過去世代を選択起動 | 1〜2 分（低） |
-| **復号不全による emergency mode** | ブートローダー動作可，ログイン不可 | GRUB 編集で `init=/bin/sh` 緊急シェルより前世代 boot 設定 | 3〜5 分（中） |
-| **ブートセクタ破壊 / 設定崩壊** | OS 起動不可 | NixOS インストーラ USB 起動 + `nixos-enter` レスキュー | 10〜15 分（高） |
+| 適用直後のサービス不具合 | OS 稼働中（SSH / TTY ログイン可） | `sudo nixos-rebuild switch --rollback` | 数秒（最小） |
+| カーネルパニック / 起動停止 | ブートローダー動作可 | GRUB / extlinux メニューから健全な過去世代を選択起動 | 1〜2 分（低） |
+| 復号不全による emergency mode | ブートローダー動作可，ログイン不可 | GRUB 編集で `init=/bin/sh` 緊急シェルより前世代 boot 設定 | 3〜5 分（中） |
+| ブートセクタ破壊 / 設定崩壊 | OS 起動不可 | NixOS インストーラ USB 起動 + `nixos-enter` レスキュー | 10〜15 分（高） |
 
 ---
 
@@ -34,7 +34,7 @@ sudo /nix/var/nix/profiles/system-42-link/bin/switch-to-configuration switch
 
 #### 1. GRUB メニュー（`BrokenPC`, `x1c7`, `kagutsuchi-sama`, `shosoin-tan`, `sando-kun`）
 1. マシン起動時，マザーボードロゴが表示された直後に `Shift` キーまたは `Esc` キーを連打して GRUB メニューを表示させる．
-2. メニューから「**NixOS - All configurations**」を選択して `Enter` を押す．
+2. メニューから「NixOS - All configurations」を選択して `Enter` を押す．
 3. 過去の日時および世代番号の一覧が表示されるため，直前の正常に起動していた世代を選択して起動する．
 
 #### 2. extlinux メニュー（`torii-chan` SBC / Orange Pi Zero 3）

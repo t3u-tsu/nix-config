@@ -4,18 +4,20 @@
 
 ## 環境
 
-- Host: x1c7 / Kernel 6.18.56-xanmod1 / NixOS 26.05.20261012.7993f34
-- fprintd 1.94.5 / libfprint 1.94.10 / Noctalia 5.2.1 / polkit 127 / polkit-kde-agent-1 6.6.6
-- Sensor: Synaptics Prometheus MIS `06cb:00bd`（match-on-chip，テンプレートはデバイス内保存）
-- 登録指: right-index-finger / left-index-finger（`fprintd-list t3u`）
-- fprintd.service: `Type=dbus`，`BusName=net.reactivated.Fprint`，Idle 30 秒で自動終了（`src/fprintd.h: #define TIMEOUT 30`）
+| 項目 | 設定・バージョン |
+| :--- | :--- |
+| ホスト・OS | x1c7 / Kernel 6.18.56-xanmod1 / NixOS 26.05.20261012.7993f34 |
+| 主要ソフトウェア | fprintd 1.94.5 / libfprint 1.94.10 / Noctalia 5.2.1 / polkit 127 / polkit-kde-agent-1 6.6.6 |
+| センサー | Synaptics Prometheus MIS `06cb:00bd`（match-on-chip，テンプレートはデバイス内保存） |
+| 登録指 | right-index-finger / left-index-finger（`fprintd-list t3u`） |
+| `fprintd.service` | `Type=dbus`，`BusName=net.reactivated.Fprint`，Idle 30 秒で自動終了（`src/fprintd.h: #define TIMEOUT 30`） |
 
 ## 判定サマリ
 
 | # | 項目 | 判定 |
 | :- | :--- | :--- |
 | 1 | D-Bus activation 30s auto-exit | Working as Designed |
-| 2 | polkit-1 / sudo の PAM 順序 | **Direct Root Cause** |
+| 2 | polkit-1 / sudo の PAM 順序 | Direct Root Cause |
 | 3 | 指紋不一致 / MoC テンプレート | Working as Designed |
 | 4 | suspend/resume の stale USB ハンドル | Ruled Out / Mitigated |
 | 5 | Noctalia ロック画面の stopVerify / Claim 保持 | Working as Designed（競合時のみ Conditional） |
@@ -32,10 +34,10 @@
 
 ### 2. polkit-1 / sudo の PAM 順序 — Direct Root Cause
 - `/etc/pam.d/polkit-1`，`/etc/pam.d/sudo`，`/etc/pam.d/su` はいずれも `auth sufficient pam_fprintd.so`（order 11400）→ `auth sufficient pam_unix ... try_first_pass`（11700）．
-- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`，`DEFAULT_MAX_TRIES 3`．`conv` は `PAM_TEXT_INFO`（"Place your finger..."）の送信のみに使用する．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへ落ちる．
-- 指を置かない限り **最大 30 秒** パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
+- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`，`DEFAULT_MAX_TRIES 3`．`conv` は `PAM_TEXT_INFO`（"Place your finger..."）の送信のみに使用する．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへフォールスルーする．
+- 指を置かない限り最大 30 秒パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
 - `greetd` は先行設定で `pam_unix` 優先（`use_first_pass`）に変更済みであったが，`polkit-1`，`sudo`，`su` は未適用であった．
-- 副次効果: pam_fprintd が最大 30 秒デバイスを Claim し続けるため，同時に複数の認証要求が来ると後続が `Device was already claimed` で即座に失敗し，パスワード認証へ落ちる．
+- 副次効果: pam_fprintd が最大 30 秒デバイスを Claim し続けるため，同時に複数の認証要求が来ると後続が `Device was already claimed` で即座に失敗し，パスワード認証へフォールスルーする．
 
 ### 3. 指紋不一致 / MoC テンプレート — Working as Designed
 - ログの `Failed to match fingerprint`（pam_fprintd / greeter / polkit-kde）は `verify-no-match` の正常通知である．Synaptics ドライバは `fpi_print_set_device_stored(print, TRUE)` で照合をチップ内で行い，不一致時に `BMKT_FP_NO_MATCH` → `FPI_MATCH_FAIL` を返す．
@@ -64,16 +66,20 @@
 - udev と TLP の双方で抑止されており，追加の対処は不要である．
 
 ### 8. error 789 — Working as Designed
-- `synaptics.c` の probe 冒頭，SENSOR_CMD_GET_VERSION の初回応答 status が 0 以外だと `g_warning ("Device responded with error: %d retry: %d", status, retry)` を出力して **1 回だけ即時リトライ** する（`retry` 初期値 TRUE → FALSE）．リトライは常に成功し probe 処理は継続する．
+- `synaptics.c` の probe 冒頭，SENSOR_CMD_GET_VERSION の初回応答 status が 0 以外だと `g_warning ("Device responded with error: %d retry: %d", status, retry)` を出力して 1 回だけ即時リトライする（`retry` 初期値 TRUE → FALSE）．リトライは常に成功し probe 処理は継続する．
 - 発生は電源投入後やデバイス初期化後の最初の 1 回のみである．直近 57 boot 中 46 boot で各 1 回記録（boot あたり最大 1 回）．severity は warning であり照合結果には影響しない．
 - 789（0x0315）は Prometheus ファームウェアが返す初期化ステータスであり，ドライバ層でリトライによる回復処理が実装されている．
 
 ## 推奨アクション（トリアージ実施時の所見）
 
-1. **polkit-1 / sudo / su の指紋 UX 改善**: greetd と同様に `pam_unix` を優先するか，`pam_fprintd.so` の `timeout` / `max-tries` を短縮して待機時間を削減する（`security.pam.services.<name>.rules.auth.fprintd.settings` で指定可能）．
-2. **polkit エージェント設定の一本化**: Noctalia の `polkit_agent` 設定（[`home/desktop/noctalia/default.nix`](../../home/desktop/noctalia/default.nix)）を無効化するか，`niri-flake-polkit` を停止して競合を防ぐ（現状は KDE エージェントが優先され Noctalia 側は無効化されている）．
-3. **resume サービスの不採用**: fprintd は D-Bus 自動終了と復帰時の再 Claim で正常動作するため，個別復帰サービスは追加しない．
-4. **error 789 の扱い**: ドライバ層で回復するため実害はなく静観とする．ファームウェア更新の有無については fwupd で継続確認する．
+1. polkit-1 / sudo / su の指紋 UX 改善
+   greetd と同様に `pam_unix` を優先するか，`pam_fprintd.so` の `timeout` / `max-tries` を短縮して待機時間を削減する（`security.pam.services.<name>.rules.auth.fprintd.settings` で指定可能）．
+2. polkit エージェント設定の一本化
+   Noctalia の `polkit_agent` 設定（[`home/desktop/noctalia/default.nix`](../../home/desktop/noctalia/default.nix)）を無効化するか，`niri-flake-polkit` を停止して競合を防ぐ（現状は KDE エージェントが優先され Noctalia 側は無効化されている）．
+3. resume サービスの不採用
+   fprintd は D-Bus 自動終了と復帰時の再 Claim で正常動作するため，個別復帰サービスは追加しない．
+4. error 789 の扱い
+   ドライバ層で回復するため実害はなく，追加の対処は不要とする．ファームウェア更新の有無については fwupd で継続確認する．
 
 ---
 

@@ -44,18 +44,17 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 ```
 
 ### Step 3: パスワード初期化と SOPS 鍵の登録
-1. 初期パスワードの生成:
+
+1. 初期パスワードを生成する．
    ```bash
    ysh scripts/set-host-password.ysh <hostname>
    ```
-2. ホスト age 公開鍵の取得:
-   新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）を age 鍵へ変換する:
+2. 新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）からホスト age 公開鍵を取得する．
    ```bash
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-3. `.sops.yaml` への登録:
-   ホストのアンカーと creation rules を追加する:
+3. `.sops.yaml` にホストのアンカーと creation rules を追加する．
    ```yaml
    keys:
      - &<hostname> age1...
@@ -66,16 +65,15 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
              - *master_key
              - *<hostname>
    ```
-4. 鍵の同期:
+4. 鍵を同期してシークレットを再暗号化する．
    ```bash
    sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-5. 非常用 SSH トークンの登録（サーバーホストのみ）:
-   サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
+5. サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
 
 ### Step 4: Nebula 証明書の発行と登録
-1. 証明書の署名:
-   管理者のオフライン CA（`scripts/nebula-rotate-ca.ysh` の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する:
+
+1. 管理者のオフライン CA（`scripts/nebula-rotate-ca.ysh` の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
    ```bash
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
@@ -87,12 +85,11 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
      -out-crt "$CA_DIR/<hostname>.crt" \
      -out-key "$CA_DIR/<hostname>.key"
    ```
-2. クラスタ管理スクリプトへの登録:
-   `scripts/nebula-lib.ysh` の `FLEET` リストにエントリを追加する:
+2. `scripts/nebula-lib.ysh` の `FLEET` リストにエントリを追加する．
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```
-3. シークレットへのインポート:
+3. ノード証明書をシークレットへインポートする．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
    ```
@@ -157,10 +154,8 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 
 ### 3.1 ライブ環境の起動とディスク準備
 
-1. インストーラ USB の起動:
-   NixOS 公式の minimal インストーラ USB で実機を起動し，ネットワーク（有線 LAN または Wi-Fi）を接続する．
-2. パーティショニング:
-   対象マシンの `hardware.nix` に合わせてパーティションを作成する（全データ消去）．
+1. NixOS 公式の minimal インストーラ USB で実機を起動し，ネットワーク（有線 LAN または Wi-Fi）を接続する．
+2. 対象マシンの `hardware.nix` に合わせてパーティションを作成する（全データ消去）．
    - UEFI 機の場合 (GPT 例):
      ```bash
      sudo parted /dev/nvme0n1 -- mklabel gpt
@@ -181,7 +176,7 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
      sudo mkfs.fat -F 32 /dev/sda2
      sudo mkfs.ext4 /dev/sda3
      ```
-3. ターゲット領域のマウント:
+3. ターゲット領域をマウントする．
    ```bash
    # UEFI 機の場合:
    sudo mount /dev/nvme0n1p2 /mnt              # ルートパーティション

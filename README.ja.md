@@ -14,18 +14,18 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 
 | 構成要素 | 採用技術 |
 | :--- | :--- |
-| **OS** | NixOS 26.05 |
-| **WM / コンポジタ** | niri (Wayland) |
-| **デスクトップシェル / バー** | Noctalia |
-| **シェル** | zsh + pure + Atuin |
-| **ターミナル** | Ghostty |
-| **エディタ** | Neovim |
-| **ブラウザ** | Zen Browser |
-| **カラーテーマ** | Vesper |
-| **シークレット管理** | SOPS (sops-nix) + age |
-| **メッシュ VPN** | Nebula |
-| **バックアップ** | Restic + ZFS Mirror |
-| **IaC** | OpenTofu |
+| OS | NixOS 26.05 |
+| WM / コンポジタ | niri (Wayland) |
+| デスクトップシェル / バー | Noctalia |
+| シェル | zsh + pure + Atuin |
+| ターミナル | Ghostty |
+| エディタ | Neovim |
+| ブラウザ | Zen Browser |
+| カラーテーマ | Vesper |
+| シークレット管理 | SOPS (sops-nix) + age |
+| メッシュ VPN | Nebula |
+| バックアップ | Restic + ZFS Mirror |
+| IaC | OpenTofu |
 
 ## ディレクトリ構成
 
@@ -48,13 +48,15 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 
 利用可能なホスト構成（`flake/hosts.nix` で定義）:
 
-- **`x1c7`** — メインラップトップ（ThinkPad X1 Carbon Gen 7）
-- **`BrokenPC`** — 可搬ゲーミングノートPC（HP Victus 16-e1065AX）
-- **`shosoin-tan`**, **`kagutsuchi-sama`**, **`sando-kun`** — タワーサーバークラスタ
-- **`torii-chan-sd`** / **`torii-chan-hdd`** — Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ（SD / HDD ブート）
-- **`torii-chan-vps`** — ConoHa VPS 上のフェイルオーバーゲートウェイ（x86_64）
-- **`torii-chan-sd-installer`** — SD カードインストーライメージ（`hosts/torii-chan/build-sd-image.ysh`）
-- **`torii-chan-vps-iso`** — VPS レスキューインストーラ ISO パッケージ（`nix build .#torii-chan-vps-iso`）
+| 構成名 | 役割・対象環境 |
+| :--- | :--- |
+| `x1c7` | メインラップトップ（ThinkPad X1 Carbon Gen 7） |
+| `BrokenPC` | 可搬ゲーミングノートPC（HP Victus 16-e1065AX） |
+| `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | タワーサーバークラスタ |
+| `torii-chan-sd` / `torii-chan-hdd` | Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ（SD / HDD ブート） |
+| `torii-chan-vps` | ConoHa VPS 上のフェイルオーバーゲートウェイ（x86_64） |
+| `torii-chan-sd-installer` | SD カードインストーライメージ（`hosts/torii-chan/build-sd-image.ysh`） |
+| `torii-chan-vps-iso` | VPS レスキューインストーラ ISO パッケージ（`nix build .#torii-chan-vps-iso`） |
 
 ローカルマシンへの設定適用:
 ```bash
@@ -77,8 +79,10 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## CI/CD & 自動化
 
-- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価，pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`）の実行，`convco` による Conventional Commits 検証．
-- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，`flake.lock` 更新，CI 検証を経て `main` へ反映．
+| ワークフロー | トリガー・内容 |
+| :--- | :--- |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`）の実行，`convco` による Conventional Commits 検証 |
+| [Scheduled Auto Update](.github/workflows/auto-update.yml) | 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，`flake.lock` 更新，CI 検証を経て `main` へ反映 |
 
 ## ドキュメント
 

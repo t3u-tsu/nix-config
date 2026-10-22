@@ -28,17 +28,19 @@ graph TD
 
 | 鍵の種別 | 配置場所 | 権限範囲 | 用途 |
 | :--- | :--- | :--- | :--- |
-| **`master_key`** | 1Password / 管理者のオフライン端末 | 全ファイルの復号・暗号化 | 新ホスト追加，鍵のローテーション，暗号化ファイルの編集 |
-| **ホスト鍵** | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`，`secrets/common.yaml`，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
-| **ユーザー鍵** | `~/.ssh/id_ed25519` | `secrets/services/signing.yaml` および `secrets/services/conoha-vps-mcp.yaml` | コミット署名鍵，ConoHa API クレデンシャルの復号（デスクトップ環境） |
+| `master_key` | 1Password / 管理者のオフライン端末 | 全ファイルの復号・暗号化 | 新ホスト追加，鍵のローテーション，暗号化ファイルの編集 |
+| ホスト鍵 | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`，`secrets/common.yaml`，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
+| ユーザー鍵 | `~/.ssh/id_ed25519` | `secrets/services/signing.yaml` および `secrets/services/conoha-vps-mcp.yaml` | コミット署名鍵，ConoHa API クレデンシャルの復号（デスクトップ環境） |
 
 ---
 
 ## 2. 秘密情報のファイル構成
 
-- `secrets/common.yaml`: 全ホストで共有される共通シークレット．Nebula ルート CA 公開証明書（`nebula_ca`），`nix-config-private` 取得用 GitHub デプロイ鍵等を含む．
-- `secrets/hosts/<hostname>.yaml`: ホスト個別のシークレット．ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵等を含む．
-- `secrets/services/<service>.yaml`: 用途別のサービスシークレット．Cloudflare API トークン（`ddns.yaml`），Restic（`backup.yaml`），Minecraft（`minecraft.yaml`），ConoHa API（`conoha-vps-mcp.yaml`），コミット署名鍵（`signing.yaml`）等を含む．
+| ファイルパス | 格納対象・主なシークレット |
+| :--- | :--- |
+| `secrets/common.yaml` | 全ホストで共有される共通シークレット（Nebula ルート CA 公開証明書 `nebula_ca`，`nix-config-private` 取得用 GitHub デプロイ鍵など） |
+| `secrets/hosts/<hostname>.yaml` | ホスト個別のシークレット（ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵など） |
+| `secrets/services/<service>.yaml` | 用途別のサービスシークレット（Cloudflare API トークン `ddns.yaml`，Restic `backup.yaml`，Minecraft `minecraft.yaml`，ConoHa API `conoha-vps-mcp.yaml`，コミット署名鍵 `signing.yaml` など） |
 
 ---
 
@@ -74,13 +76,13 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 
 マシンの破棄や OS 再インストールに伴い SSH ホスト鍵が変更された場合は，古い鍵のアクセス権を剥奪してシークレットを再暗号化する．
 
-1. `.sops.yaml` の編集: 該当ホストの公開鍵アンカー（`&<hostname> age1...`）および `creation_rules` を削除する．
-2. 既存シークレットの再暗号化:
+1. `.sops.yaml` から該当ホストの公開鍵アンカー（`&<hostname> age1...`）および `creation_rules` を削除する．
+2. 既存シークレットを再暗号化する．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-3. 不要シークレットファイルの削除: ホストを完全破棄する場合は `git rm secrets/hosts/<hostname>.yaml` を実行する．
-4. Nebula 台帳からの削除: `scripts/nebula-lib.ysh` の `FLEET` リストから該当ホストのエントリを削除する．
+3. ホストを完全に破棄する場合は，不要になったシークレットファイルを削除する（`git rm secrets/hosts/<hostname>.yaml`）．
+4. `scripts/nebula-lib.ysh` の `FLEET` リストから該当ホストのエントリを削除する．
 
 ---
 

@@ -65,17 +65,17 @@ flowchart TD
 
 ## 2. Nebula IP アロケーション台帳
 
-全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置する（正本: [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` 定義）．
+全ノードは `10.0.0.0/24` のプライベートアドレス空間に配置する（定義元: [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` 定義）．
 
 | ホスト名 | Nebula IP | 物理拠点 / 内部 LAN | ロール / グループ | 役割・用途 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`torii-chan`** | `10.0.0.1` | **拠点T** (`192.168.0.128`) | `mgmt` | プライマリ Lighthouse & Relay，エッジゲートウェイ |
-| **`sando-kun`** | `10.0.0.2` | **拠点A** (`192.168.42.x`) | `mgmt` | 汎用タワーサーバー（レガシー BIOS） |
-| **`kagutsuchi-sama`** | `10.0.0.3` | **拠点A** (`192.168.42.x`) | `mgmt` | 計算サーバー，Restic リモートバックアップ保管庫 |
-| **`shosoin-tan`** | `10.0.0.4` | **拠点A** (`192.168.42.x`) | `mgmt,app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
-| **`BrokenPC`** | `10.0.0.100` | **拠点A** / モバイル | `mgmt,app` | サブ機（可搬ノートPC），ローカル LLM 推論 |
-| **`x1c7`** | `10.0.0.101` | **拠点A** / モバイル | `mgmt,app` | モバイルノートPC（ThinkPad X1C7） |
-| **`torii-chan-vps`** | `10.0.0.1` (待機系) | **クラウド** (ConoHa VPS) | `mgmt` | 待機系 Lighthouse & Relay（SBC 停止時に 10.0.0.1 を引き継ぐ） |
+| `torii-chan` | `10.0.0.1` | 拠点T (`192.168.0.128`) | `mgmt` | プライマリ Lighthouse & Relay，エッジゲートウェイ |
+| `sando-kun` | `10.0.0.2` | 拠点A (`192.168.42.x`) | `mgmt` | 汎用タワーサーバー（レガシー BIOS） |
+| `kagutsuchi-sama` | `10.0.0.3` | 拠点A (`192.168.42.x`) | `mgmt` | 計算サーバー，Restic リモートバックアップ保管庫 |
+| `shosoin-tan` | `10.0.0.4` | 拠点A (`192.168.42.x`) | `mgmt,app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
+| `BrokenPC` | `10.0.0.100` | 拠点A / モバイル | `mgmt,app` | サブ機（可搬ノートPC），ローカル LLM 推論 |
+| `x1c7` | `10.0.0.101` | 拠点A / モバイル | `mgmt,app` | モバイルノートPC（ThinkPad X1C7） |
+| `torii-chan-vps` | `10.0.0.1` (待機系) | クラウド (ConoHa VPS) | `mgmt` | 待機系 Lighthouse & Relay（SBC 停止時に 10.0.0.1 を引き継ぐ） |
 
 ---
 

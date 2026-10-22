@@ -2,9 +2,12 @@
 
 FreeBSD（OpenPAM），NetBSD（OpenPAM），OpenBSD（BSD Authentication）の認証スタックは，いずれも厳密に同期・逐次処理であり，生体認証とパスワードの並行待ち受けプリミティブを持たない．
 
-- **FreeBSD / NetBSD (OpenPAM)**: Linux-PAM と同様の「モジュールチェーンを順次辿る単一スレッドループ」であり，PAM ハンドルごとに単一の conversation コールバックのみを持つ．FreeBSD の生体認証は ports の `security/fprintd`（`pam_fprintd.so`）による逐次実行にとどまり，NetBSD には fprintd パッケージ自体が存在しない．
-- **OpenBSD (BSD Authentication)**: socketpair 経由で特権分離された外部ヘルパプロセスを起動するモデルを採るが，1 回の試行につき 1 スタイルのみを選択し，単一ヘルパを `waitpid()` でブロック待機する逐次構造である．生体認証の統合機構は base システムに存在しない．
-- **縦統合の境界**: いずれの BSD もカーネル＋base ユーザランドのみを垂直統合しており，デスクトップ環境や認証 UI は ports / pkgsrc の管轄となる．ディスプレイマネージャや認証プロンプトを横断して並行待ち受けをオーケストレーションする基盤は存在しない．
+| OS / 実装 | アーキテクチャの特性 | 生体認証の現状 |
+| :--- | :--- | :--- |
+| FreeBSD / NetBSD (OpenPAM) | Linux-PAM と同様の「モジュールチェーンを順次辿る単一スレッドループ」であり，PAM ハンドルごとに単一の conversation コールバックのみを持つ． | FreeBSD は ports の `security/fprintd`（`pam_fprintd.so`）による逐次実行にとどまり，NetBSD には fprintd パッケージ自体が存在しない． |
+| OpenBSD (BSD Authentication) | socketpair 経由で特権分離された外部ヘルパプロセスを起動するが，1 回の試行につき 1 スタイルのみを選択し，単一ヘルパを `waitpid()` でブロック待機する逐次構造である． | 生体認証の統合機構は base システムに存在しない． |
+
+いずれの BSD もカーネルと base ユーザランドのみを垂直統合しており，デスクトップ環境や認証 UI は ports / pkgsrc の管轄となる．そのため，ディスプレイマネージャや認証プロンプトを横断して並行待ち受けを制御・連携する基盤は存在しない．
 
 ---
 
@@ -51,12 +54,11 @@ for (; chain != NULL; chain = chain->next) {
 }
 ```
 
-**ディスパッチ構造の特徴**:
+OpenPAM のディスパッチ構造には，以下の技術的特徴がある．
 
-- **厳密な逐次実行**: 1 つのモジュールの完了を待ってから次が呼ばれる．スレッドや `select()` / `poll()` による多重化はなく，複数モジュールを競合させる機構は存在しない．
-- **再入・並行性の排除**: `pamh->current != NULL` ガードにより，ディスパッチ実行中のネストした `pam_*` 呼び出しは `PAM_ABORT` で拒絶される．単一の PAM ハンドルが保持できるディスパッチ状態は常に 1 つに限られる．
-- **制御フラグの性質**: `PAM_REQUISITE`，`PAM_SUFFICIENT`，`PAM_BINDING` の各フラグは，ループの走査順序と早期終了条件を制御するのみであり，並行実行をもたらさない．
-- **NetBSD との共通性**: NetBSD の `openpam_dispatch.c` も同一実装である．FreeBSD との差分は `__RCSID()` の追加と `(enum openpam_sm_primitives)` キャストのみであり，ループ本体（`for (; chain != NULL; chain = chain->next)`）は完全に一致する．
+モジュールの実行は厳密に逐次処理であり，1 つのモジュールの完了を待ってから次が呼び出される．スレッドや `select()` / `poll()` による多重化はなく，複数モジュールを競合させる機構は存在しない．また `pamh->current != NULL` ガードにより，ディスパッチ実行中のネストした `pam_*` 呼び出しは `PAM_ABORT` で拒絶されるため，単一の PAM ハンドルが保持できるディスパッチ状態は常に 1 つに限られる．
+
+`PAM_REQUISITE`，`PAM_SUFFICIENT`，`PAM_BINDING` などの制御フラグも，ループの走査順序と早期終了条件を制御するだけであり，並行実行をもたらすものではない．なお NetBSD の `openpam_dispatch.c` も同一実装であり，FreeBSD との差分は `__RCSID()` の追加と `(enum openpam_sm_primitives)` キャストのみで，ループ本体は完全に一致する．
 
 ### 1.2 PAM ハンドルごとに conversation コールバックは 1 つ
 
@@ -101,9 +103,12 @@ Linux と BSD の PAM 実装はいずれも同期・単一コールバックの�
 
 ### 1.4 FreeBSD / NetBSD の生体認証
 
-- **FreeBSD**: port `security/fprintd`（現在 1.94.4）が freedesktop の `fprintd` D-Bus デーモン*と* `lib/security/pam_fprintd.so` を提供し，バックエンドは `security/libfprint` である．Linux と同じ upstream スタックをそのまま移植したもので，FreeBSD base には入っていない．FreeBSD の認証は OpenPAM なので，`pam_fprintd` は PAM スタック内の 1 モジュールとして `pam_unix`/`pam_ssh` 等と順番に呼ばれる．指紋プロンプトとパスワードプロンプトを競争させるフレームワーク支援は無い．
-- **NetBSD**: pkgsrc は `security/libfprint` を提供する．`security/fprintd` パッケージは存在せず，パッケージ化された生体認証ログインデーモン／PAM モジュールも無い．
-- どちらも base で OpenPAM を使う．これらのシステムの OpenSSH は `pam` デバイスを使う．
+| OS | 提供形態とパッケージ | 動作概要と制約 |
+| :--- | :--- | :--- |
+| FreeBSD | port `security/fprintd`（`fprintd` デーモンおよび `pam_fprintd.so`，バックエンドは `security/libfprint`） | base には含まれず，OpenPAM スタック内の 1 モジュールとして `pam_unix` などと順次評価される．指紋とパスワードを競合させるフレームワーク支援はない． |
+| NetBSD | pkgsrc の `security/libfprint` のみ | `security/fprintd` パッケージは存在せず，パッケージ化された生体認証ログインデーモンや PAM モジュールもない． |
+
+どちらの OS も base システムで OpenPAM を使用し，OpenSSH は `pam` デバイスを利用する．
 
 ---
 
@@ -113,18 +118,25 @@ Linux と BSD の PAM 実装はいずれも同期・単一コールバックの�
 
 BSD Authentication は BSD/OS（BSDI）に起源を持ち，FreeBSD を経て OpenBSD 2.9 で採用された．OpenBSD が base システムで PAM を排した設計理由は以下のとおりである．
 
-1. **特権アドレス空間内の共有ライブラリ**．PAM モジュールは `dlopen` される動的共有オブジェクトであり，認証を行うプロセス*内部*で動作する．`login`，`su`，`sshd`，`passwd`，`ftpd` では，そのプロセスが setuid/setgid root か，それに準ずる高い特権を持つ．モジュールのバグ・バックドア・メモリ安全性の誤りは，呼び出し元の特権とアドレス空間をそのまま得て実行される．隔離境界が存在しない．この危険性は "the fact that it's a shared library means that any vulnerability in a poorly vetted authentication module gives attackers direct access to the internals of your application." と要約される．
-2. **構造としての特権分離**．BSD Auth は各認証スタイルを*独立した実行ファイル*として起動し，狭い IPC チャネルで通信する．これは Provos, Friedl, Honeyman の "Preventing Privilege Escalation"（USENIX Security 2003）に記述された原則と同じであり，BSD Auth はその着想元として引用されている．独立プロセスは `pledge(2)`/`unveil(2)` で特権を落とせる．例えば `libexec/login_passwd/login_passwd.c` は次のようにする:
-   ```c
-   /* get the password hash before pledge(2) or it will return '*' */
-   pwd = getpwnam_shadow(username);
-   if (pledge("stdio rpath tty id", NULL) == -1) { ... }
-   ...
-   if (pledge("stdio rpath", NULL) == -1) { ... }
-   ```
-   このようなサンドボックス化はプロセス内で動く PAM モジュールには不可能である．
-3. **複雑さ・設定ミス**．PAM の階層化された `pam.conf`/`pam.d` 制御フラグとモジュールスタックは設定を誤りやすい（Michael W. Lucas の言う "unstandardized black magic"）．OpenBSD は `login.conf(5)` の小さく監査可能な設定と，単一目的のヘルパプログラムを好む．
-4. **文化的・保守的な立場**．`pppd` から PAM の残骸を削除した OpenBSD `tech@` のスレッドで，Ted Unangst は「我々には無関係な PAM と shadow のコードが大量にある」と述べ，削除対象を "tangly morass" と呼んだ．置き換え先は BSD auth か素の `crypt_checkpass` であった．
+#### 特権アドレス空間内の共有ライブラリ
+PAM モジュールは `dlopen` される動的共有オブジェクトであり，認証を行うプロセス内部で動作する．`login`，`su`，`sshd`，`passwd`，`ftpd` では，そのプロセスが setuid/setgid root か，それに準ずる高い特権を持つ．モジュールのバグ・バックドア・メモリ安全性の誤りは，呼び出し元の特権とアドレス空間をそのまま得て実行される．隔離境界が存在しない．この危険性は "the fact that it's a shared library means that any vulnerability in a poorly vetted authentication module gives attackers direct access to the internals of your application." と要約される．
+
+#### 構造としての特権分離
+BSD Auth は各認証スタイルを独立した実行ファイルとして起動し，狭い IPC チャネルで通信する．これは Provos, Friedl, Honeyman の "Preventing Privilege Escalation"（USENIX Security 2003）に記述された原則と同じであり，BSD Auth はその着想元として引用されている．独立プロセスは `pledge(2)`/`unveil(2)` で特権を落とせる．例えば `libexec/login_passwd/login_passwd.c` は次のようにする:
+```c
+/* get the password hash before pledge(2) or it will return '*' */
+pwd = getpwnam_shadow(username);
+if (pledge("stdio rpath tty id", NULL) == -1) { ... }
+...
+if (pledge("stdio rpath", NULL) == -1) { ... }
+```
+このようなサンドボックス化はプロセス内で動く PAM モジュールには不可能である．
+
+#### 設定の複雑化と設定ミスの懸念
+PAM の階層化された `pam.conf`/`pam.d` 制御フラグとモジュールスタックは設定を誤りやすい（Michael W. Lucas の言う "unstandardized black magic"）．OpenBSD は `login.conf(5)` の小さく監査可能な設定と，単一目的のヘルパプログラムを好む．
+
+#### 文化的・保守的な立場
+`pppd` から PAM の残骸を削除した OpenBSD `tech@` のスレッドで，Ted Unangst は「我々には無関係な PAM と shadow のコードが大量にある」と述べ，削除対象を "tangly morass" と呼んだ．置き換え先は BSD auth か素の `crypt_checkpass` であった．
 
 OpenBSD の ports ツリーには，PAM を要求する外部ソフトウェアのビルド用に `security/openpam`（および `security/libfprint`）が提供されている．排除の対象はあくまで base システムである．
 
@@ -142,7 +154,7 @@ BSD Auth の API は libc にある: `lib/libc/gen/auth_subr.c`（低レベル�
 #define LOGIN_DEFSERVICE  "login"
 ```
 
-中核プリミティブは `auth_subr.c` の `auth_call()` である．fork してヘルパを exec し，子の fd 3 に socketpair を配線する（fd 4 は任意で fd 受け渡しに使う）:
+中核プリミティブは `auth_subr.c` の `auth_call()` である．fork してヘルパを exec し，子の fd 3 に socketpair を接続する（fd 4 は任意で fd 受け渡しに使う）:
 
 ```c
 if (socketpair(PF_LOCAL, SOCK_STREAM, 0, pfd) == -1) { ... }
@@ -234,7 +246,7 @@ auth_call(as, path, auth_getitem(as, AUTHV_STYLE), "-s",
     auth_getitem(as, AUTHV_SERVICE), "--", name, (char *)NULL);
 ```
 
-`lib/libc/gen/login_cap.c` の `login_getstyle()` は，`login.conf(5)` のカンマ区切り `auth` / `auth-<type>` capability リストを解析するが，返すのは**単一**のスタイル文字列である．呼び出し元がスタイルを指定した場合はそれを，無ければリストの先頭要素を返す:
+`lib/libc/gen/login_cap.c` の `login_getstyle()` は，`login.conf(5)` のカンマ区切り `auth` / `auth-<type>` capability リストを解析するが，返すのは単一のスタイル文字列である．呼び出し元がスタイルを指定した場合はそれを，無ければリストの先頭要素を返す:
 
 ```c
 if (!style)
@@ -247,7 +259,7 @@ if (*authtypes) {
 }
 ```
 
-`login.conf(5)` もこれに沿って capability を記述している: "`auth` (list, default `passwd`): Allowed authentication styles. **The first value is the default style.**"
+`login.conf(5)` もこれに沿って capability を記述している: "`auth` (list, default `passwd`): Allowed authentication styles. The first value is the default style."
 
 利用側の `login(1)`（`usr.bin/login/login.c`，`$OpenBSD: login.c,v 1.75 ...$`）は，対話的な試行ごとにリトライループ内でこれを 1 回呼ぶ:
 
@@ -261,7 +273,7 @@ if ((authok & AUTH_ALLOW) == 0)
     goto failed;
 ```
 
-`failed:` はユーザに再プロンプトしてループする．**複数スタイルを回すループは無い**: 各試行は `style`（任意の `user:style` 接頭辞，無ければ先頭／既定のスタイル）を再導出し，ヘルパを正確に 1 つ実行する．管理者が `auth = yubikey,passwd` と列挙しても，ユーザが明示的に `user:style` と入力しない限り `login` は先頭のみを使う．多要素構成は，内部で両方を処理する単一ヘルパか，サービスごとに選択される `auth-type` リストとして表現される．並行レースとしては表現されない．
+`failed:` はユーザに再プロンプトしてループする．複数スタイルを回すループは存在せず，各試行は `style`（任意の `user:style` 接頭辞，無ければ先頭／既定のスタイル）を再導出し，ヘルパを正確に 1 つ実行する．管理者が `auth = yubikey,passwd` と列挙しても，ユーザが明示的に `user:style` と入力しない限り `login` は先頭のみを使う．多要素構成は，内部で両方を処理する単一ヘルパか，サービスごとに選択される `auth-type` リストとして表現される．並行レースとしては表現されない．
 
 `su(1)`，`passwd(1)`，OpenSSH の `bsd_auth` バックエンド（`auth-bsdauth.c`，`auth_userokay` を呼ぶ）も同様に，それぞれ 1 スタイルを選ぶ．
 
@@ -288,20 +300,23 @@ OpenBSD の ports には `security/libfprint` が存在するが，`fprintd` デ
 
 ## 3. 縦統合のスコープとデスクトップ認証の不在
 
-BSD プロジェクトにおける「縦統合（vertical integration）」の範囲は，**カーネル＋base ユーザランド**（単一リポジトリ，一元化されたリリースエンジニアリング，統一されたセキュリティ監査）に限定され，**デスクトップ環境**までは含まない．このアーキテクチャ境界が，並行マルチモーダル認証が実装されなかった直接の要因である．
+BSD プロジェクトにおける「縦統合（vertical integration）」の範囲は，カーネルと base ユーザランド（単一リポジトリ，一元化されたリリースエンジニアリング，統一されたセキュリティ監査）に限定され，デスクトップ環境までは含まない．このアーキテクチャ境界が，並行マルチモーダル認証が実装されなかった直接の要因である．
 
 ### 3.1 縦統合が実際に止まる境界
 
-- **FreeBSD**: base にはカーネル，libc，OpenPAM，`login`，`su`，`sshd` などが入る．デスクトップ（GNOME，KDE，Xfce，Wayland コンポジタ，ディスプレイマネージャ）は ports ツリーにあり，リリースとは独立にビルド・バージョン管理される．
-- **NetBSD**: base には OpenPAM と `lib/libpam` が入り，`libfprint` は pkgsrc 経由でのみ存在する．
-- **OpenBSD**: base には BSD Auth が入り，デスクトップは ports である．base は D-Bus，fprintd などのデスクトップデーモンを意図的に避ける．
+| OS | base システムの範囲 | ports / pkgsrc への分離 |
+| :--- | :--- | :--- |
+| FreeBSD | カーネル，libc，OpenPAM，`login`，`su`，`sshd` など | デスクトップ環境（GNOME，KDE，Xfce，Wayland コンポジタ，ディスプレイマネージャなど）．OS リリースとは独立して管理 |
+| NetBSD | カーネル，libc，OpenPAM，`lib/libpam` など | 生体認証ライブラリ（`libfprint`）を含む各種デスクトップソフトウェア |
+| OpenBSD | カーネル，libc，BSD Auth，`login` など | デスクトップ環境全般．D-Bus や fprintd などのデーモンは base から意図的に除外 |
 
 どの BSD プロジェクトもファーストパーティのデスクトップシェルやディスプレイマネージャを持たない．グラフィカルセッションへの認証は第三者ソフトウェア（GDM，SDDM，LightDM，greetd 等）が行い，そのコンポーネントが「指紋かパスワードのどちらかを待つ」処理をオーケストレーションする必要がある．そのコンポーネントが縦統合された base の外にあるため，base のセキュリティ優先の認証設計が並行マルチモーダルプロンプトへ拡張されることはなかった．
 
 ### 3.2 Apple・Microsoft との対比
 
-- **Apple**: Darwin/XNU は BSD 由来だが，Apple はその上のスタック全体を所有している．DirectoryService/OpenDirectory，Pluggable Authentication Modules と `CryptoTokenKit`，Touch ID 用の `LocalAuthentication`／Secure Enclave である．単一ベンダがカーネル，認証デーモン，ログインウィンドウ，センサーを制御するため，「指紋かパスワードの早い方」を構築するのは容易である．
-- **Microsoft**: LSA + SSPI + Winlogon/Credential Providers である．Credential Provider（Windows Hello の顔・指紋・PIN）はすべてファーストパーティであり，パスワードフォールバックと並べて提供できる．
+Apple の Darwin/XNU は BSD 由来であるが，Apple はその上位スタック全体（DirectoryService/OpenDirectory，Pluggable Authentication Modules，`CryptoTokenKit`，Touch ID 向けの `LocalAuthentication` および Secure Enclave）を垂直統合している．単一ベンダーがカーネル，認証デーモン，ログインウィンドウ，センサーを包括して制御するため，指紋とパスワードの並行受け付けを容易に構築できる．
+
+Microsoft においても，LSA，SSPI，Winlogon，Credential Providers などの認証スタック全体がファーストパーティで提供されている．そのため，Windows Hello の顔・指紋・PIN 認証をパスワードフォールバックと並行して提示することが可能である．
 
 どちらの場合も，デスクトップと生体認証ハードウェア統合までを同梱する OS ベンダが存在する．BSD にはそのような主体がいない．
 
