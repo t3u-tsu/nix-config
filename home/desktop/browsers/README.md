@@ -4,10 +4,12 @@ Web browser configuration and integration modules for graphical workstations, ma
 
 ## Architecture & Integration
 
-- **Zen Browser**: Configured declaratively via `inputs.zen-browser.homeModules.default` with hardened policies (telemetry disabled), extensions installed from AMO via IDs, workspace container routing, and custom CSS styled with the shared Vesper palette.
-- **Bitwarden IPC Bridge**: Installs the native messaging manifest `com.8bit.bitwarden.json` directly into `~/.mozilla/native-messaging-hosts/` during Home Manager activation, allowing the Zen extension to communicate with `bitwarden-desktop`.
-- **Standalone Userscript Packaging**: Uses `mkUserscriptXpi` to package upstream `.user.js` files into isolated WebExtension XPIs installed into `share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}`, eliminating the overhead and privileged APIs of third-party userscript manager extensions.
-- **Chromium**: Maintained as a secondary browser for site compatibility and web development, configured with minimal startup flags.
+| Component | Architecture & Integration Details |
+| :--- | :--- |
+| Zen Browser | Configured declaratively via `inputs.zen-browser.homeModules.default` with hardened policies (telemetry disabled), AMO extensions, workspace container routing, and Vesper palette CSS. |
+| Bitwarden IPC Bridge | Installs the native messaging manifest `com.8bit.bitwarden.json` directly into `~/.mozilla/native-messaging-hosts/` during Home Manager activation, allowing extension communication with `bitwarden-desktop`. |
+| Standalone Userscript Packaging | Packages upstream `.user.js` files into isolated WebExtension XPIs via `mkUserscriptXpi` under `share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}` without privileged third-party managers. |
+| Chromium | Maintained as a secondary browser for web compatibility and testing, configured with minimal startup flags. |
 
 ## Modules
 
