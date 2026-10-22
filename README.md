@@ -38,7 +38,7 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 - [secrets/](secrets/) — Encrypted secrets managed via SOPS
 - [scripts/](scripts/) — Fleet management and maintenance scripts
 - [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
-- [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures (SSOT)
+- [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures
 
 See [docs/architecture/overview.md](docs/architecture/overview.md) for system architecture and module evaluation flow.
 
@@ -81,7 +81,7 @@ See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for hos
 
 | Workflow | Trigger & Details |
 | :--- | :--- |
-| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`), and enforces Conventional Commits via `convco` |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`, `markdown-link-check`, `docs-check`), and enforces Conventional Commits via `convco` |
 | [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [flake.lock](flake.lock), validates in CI, and pushes updates to `main` |
 
 ## Documentation

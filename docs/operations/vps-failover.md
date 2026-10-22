@@ -1,10 +1,10 @@
 # ConoHa VPS プロビジョニング & フェイルオーバー手順
 
-物理エッジゲートウェイ（`torii-chan`）停止時に ConoHa VPS 上で待機系（`torii-chan-vps`）へ切り替え，物理復旧後に切り戻す緊急時手順．
+物理エッジゲートウェイ (`torii-chan`) 停止時に ConoHa VPS 上で待機系 (`torii-chan-vps`) へ切り替え，物理復旧後に切り戻す緊急時手順．
 
 ## 1. フェイルオーバー概要
 
-平時は拠点Tの SBC（Orange Pi Zero 3）がエッジゲートウェイとして稼働する．物理障害時のみ ConoHa VPS（従量課金）を起動する．
+平時は拠点Tの SBC (Orange Pi Zero 3) がエッジゲートウェイとして稼働する．物理障害時のみ ConoHa VPS (従量課金) を起動する．
 
 ```mermaid
 sequenceDiagram
@@ -65,27 +65,34 @@ cd ..
 ```
 
 ### Step 3: DNS 切替
-Cloudflare ダッシュボード（または API）で，ドメインの A レコードを拠点T回線の IP から VPS のパブリック IP へ手動で切り替える（VPS 上の Cloudflare DDNS サービス起動後は自動更新される）．
+Cloudflare ダッシュボード (または API) で，ドメインの A レコードを拠点T回線の IP から VPS のパブリック IP へ手動で切り替える (VPS 上の Cloudflare DDNS サービス起動後は自動更新される)．
 
 ---
 
-## 3. 切り戻し手順（課金停止）
+## 3. 切り戻し手順 (課金停止)
 
-拠点Tの物理 SBC（`torii-chan`）復旧後の切り戻し手順:
+拠点Tの物理 SBC (`torii-chan`) 復旧後の切り戻し手順:
 
-1. 物理マシンを起動し，LAN 内および Nebula 内で拠点T SBC（`torii-chan`，`10.0.0.1`）の疎通を確認する．
-2. Cloudflare の A レコードを拠点Tのグローバル IP へ戻して DNS を切り戻す．
-3. 不要になった VPS を破棄し，課金を停止する:
-   ```bash
-   cd terraform
-   tofu destroy
-   ```
-4. 実行後のステートファイル `terraform/terraform.tfstate` をバックアップ・保管する．
+### Step 1: 物理 SBC の起動と疎通確認
+物理マシンを起動し，LAN 内および Nebula 内で拠点T SBC (`torii-chan`, `10.0.0.1`) の疎通を確認する．
+
+### Step 2: DNS 切り戻し
+Cloudflare の A レコードを拠点Tのグローバル IP へ戻して DNS を切り戻す．
+
+### Step 3: VPS 破棄と課金停止
+不要になった VPS を破棄し，課金を停止する:
+```bash
+cd terraform
+tofu destroy
+```
+
+### Step 4: ステートファイルの保管
+実行後のステートファイル `terraform/terraform.tfstate` をバックアップ・保管する．
 
 ---
 
 ## 関連ドキュメント
-- [目次（設計・運用ドキュメント）](../README.md)
-- [ネットワークアーキテクチャ](../architecture/network-topology.md)
-- [Terraform モジュール仕様](../../terraform/README.md)
-- [トラブルシューティング: ネットワーク](../troubleshooting/network-recovery.md)
+- [目次 (設計・運用ドキュメント)](../README.md) — 設計・運用ドキュメント一覧
+- [ネットワークアーキテクチャ](../architecture/network-topology.md) — ネットワーク構成とメッシュ VPN 仕様
+- [Terraform モジュール仕様](../../terraform/README.md) — ConoHa VPS プロビジョニング用 OpenTofu 定義
+- [トラブルシューティング: ネットワーク](../troubleshooting/network-recovery.md) — ネットワーク障害時の切り分けと復旧手順

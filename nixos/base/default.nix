@@ -5,6 +5,7 @@
     ./nix.nix
     ./private-config.nix
     ./time.nix
+    ./i18n.nix
   ];
 
   nixpkgs.config.allowUnfree = true;

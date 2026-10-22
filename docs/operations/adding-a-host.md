@@ -1,16 +1,16 @@
 # 新規ホスト追加手順
 
-新しい NixOS マシンを追加し，暗号化シークレット，メッシュネットワーク，およびプライベート Flake 入力をセットアップして稼働させる手順（SSOT）．
+新しい NixOS マシンを追加し，暗号化シークレット，メッシュネットワーク，およびプライベート Flake 入力をセットアップして稼働させる標準手順．
 
 ## 1. 事前準備とチェックリスト
 
 作業着手前の確認項目:
 
-- [ ] マシンのハードウェア構成（CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス）
-- [ ] 割り当てる Nebula IP（[ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照）
-- [ ] 適用するプロファイル（`desktop` / `tower-server` / `gateway` / `sbc`）
-- [ ] 管理者マシンの master 鍵（`~/.config/sops/age/keys.txt`）
-- [ ] 開発環境（`nix develop` または direnv）の有効化
+- [ ] マシンのハードウェア構成 (CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス)
+- [ ] 割り当てる Nebula IP ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照)
+- [ ] 適用するプロファイル (`desktop` / `tower-server` / `gateway` / `sbc`)
+- [ ] 管理者マシンの master 鍵 (`~/.config/sops/age/keys.txt`)
+- [ ] 開発環境 (`nix develop` または direnv) の有効化
 
 作業はトピックブランチを作成し，開発シェルに入って行う:
 ```bash
@@ -20,7 +20,7 @@ nix develop  # direnv を使用していない場合
 
 ---
 
-## 2. ステップ・バイ・ステップ手順
+## 2. 既存 NixOS 環境への追加手順
 
 ### Step 1: ホストディレクトリの作成
 テンプレートから複製し，`HOSTNAME` プレースホルダを置換する:
@@ -30,7 +30,7 @@ cd hosts/<hostname>
 sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 ```
 
-実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．`hosts/<hostname>/services/nebula.nix` は，`my.networking.nebula.ip`（[ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で次の空き IP）と `groups` を実機の役割に合わせて編集する．
+実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．`hosts/<hostname>/services/nebula.nix` は，`my.networking.nebula.ip` ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で次の空き IP) と `groups` を実機の役割に合わせて編集する．
 
 ### Step 2: Flake へのホスト登録 ([flake/hosts.nix](../../flake/hosts.nix))
 [flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する:
@@ -45,12 +45,12 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 ### Step 3: パスワード初期化と SOPS 鍵の登録
 
-1. 新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）からホスト age 公開鍵を取得する．
+1. 新マシンの SSH ホスト公開鍵 (`/etc/ssh/ssh_host_ed25519_key.pub`) からホスト age 公開鍵を取得する．
    ```bash
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-2. [.sops.yaml](../../.sops.yaml) にホストのアンカーと creation rules を追加する（アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）．
+2. [.sops.yaml](../../.sops.yaml) にホストのアンカーと creation rules を追加する (アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの)．
    ```yaml
    keys:
      - &<hostKey> age1...
@@ -69,11 +69,11 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-5. サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照）．
+5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する (詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照)．
 
 ### Step 4: Nebula 証明書の発行と登録
 
-1. 管理者のオフライン CA（[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
+1. 管理者のオフライン CA ([scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`) を用いてノード証明書を発行する．
    ```bash
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
@@ -97,9 +97,9 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 ### Step 5: プライベート Flake 入力のブートストラップ
 個人機密設定を管理するプライベートリポジトリ `nix-config-private` を flake input として参照する．初回の未適用状態では SSH エイリアス `github-nix-config-private` が未構成のため，そのままでは Flake 評価に失敗する．
 
-新ホスト側（root 権限）で初回ビルド前に一時的な SSH エイリアスを設定する:
+新ホスト側 (root 権限) で初回ビルド前に一時的な SSH エイリアスを設定する:
 ```bash
-# 新ホスト側で実行（secrets/common.yaml 内の nix_config_private_deploy_key を一時配置）
+# 新ホスト側で実行 (secrets/common.yaml 内の nix_config_private_deploy_key を一時配置)
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
@@ -126,7 +126,7 @@ Flake は Git 追跡下のファイルのみを参照するため，変更をイ
 git add -A
 nix flake check
 
-# 一般ユーザー権限での事前ビルド（シンボリックリンクを残さない）
+# 一般ユーザー権限での事前ビルド (シンボリックリンクを残さない)
 nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link
 ```
 
@@ -140,7 +140,7 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
   ```bash
   sudo nixos-rebuild switch --flake .#<hostname>
   ```
-  （デスクトップ環境でエージェントが実行する場合は `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能）
+  (デスクトップ環境でエージェントが実行する場合は `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能)
 - リモートサーバー / ヘッドレス機:
   ```bash
   nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
@@ -150,12 +150,12 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 
 ## 3. 新規ベアメタル導入手順 (Live USB クリーンインストール)
 
-物理マシン（ベアメタル）への導入，またはディスク初期化を伴うクリーンインストールの手順．
+物理マシン (ベアメタル) への導入，またはディスク初期化を伴うクリーンインストールの手順．
 
-### 3.1 ライブ環境の起動とディスク準備
+### Step 1: ライブ環境の起動とディスク準備
 
-1. NixOS 公式の minimal インストーラ USB で実機を起動し，ネットワーク（有線 LAN または Wi-Fi）を接続する．
-2. 対象マシンの `hardware.nix` に合わせてパーティションを作成する（全データ消去）．
+1. NixOS 公式の minimal インストーラ USB で実機を起動し，ネットワーク (有線 LAN または Wi-Fi) を接続する．
+2. 対象マシンの `hardware.nix` に合わせてパーティションを作成する (全データ消去)．
    - UEFI 機の場合 (GPT 例):
      ```bash
      sudo parted /dev/nvme0n1 -- mklabel gpt
@@ -183,13 +183,13 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
    sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
    sudo mount /dev/nvme0n1p1 /mnt/boot         # ESP / ブートパーティション
 
-   # Legacy BIOS 機の場合（例）:
+   # Legacy BIOS 機の場合 (例):
    # sudo mount /dev/sda3 /mnt                 # ルートパーティション
    # sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
    # sudo mount /dev/sda2 /mnt/boot            # ブートパーティション
    ```
 
-### 3.2 SSH ホスト鍵と SOPS age 秘密鍵の事前配置
+### Step 2: SSH ホスト鍵と SOPS age 秘密鍵の事前配置
 
 `nixos-install` のシステム activation でシークレット復号が行われるため，事前に age 秘密鍵を配置しておく必要がある．
 
@@ -207,11 +207,11 @@ ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key \
 sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
 ```
 > [!NOTE]
-> 管理作業機から直接プロビジョニングする場合は，`~/.config/sops/age/keys.txt`（master 鍵）を一時的に `/mnt/var/lib/sops-nix/key.txt` へコピーして代用してもよい（初回起動後にホスト鍵へ置換）．
+> 管理作業機から直接プロビジョニングする場合は，`~/.config/sops/age/keys.txt` (master 鍵) を一時的に `/mnt/var/lib/sops-nix/key.txt` へコピーして代用してもよい (初回起動後にホスト鍵へ置換)．
 
-### 3.3 プライベート Flake 入力用 deploy key の配置
+### Step 3: プライベート Flake 入力用 deploy key の配置
 
-インストーラ環境（ライブ環境の root 権限）からプライベートリポジトリ `nix-config-private` を取得できるよう，一時的な SSH 設定を配備する．
+インストーラ環境 (ライブ環境の root 権限) からプライベートリポジトリ `nix-config-private` を取得できるよう，一時的な SSH 設定を配備する．
 
 ```bash
 # ライブ環境の root SSH ディレクトリを準備
@@ -226,7 +226,7 @@ sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null <<'EOF'
 EOF
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 
-# 一時 SSH エイリアスを設定（追記）
+# 一時 SSH エイリアスを設定 (追記)
 sudo tee -a /root/.ssh/config >/dev/null <<'EOF'
 Host github-nix-config-private
   HostName github.com
@@ -239,7 +239,7 @@ EOF
 sudo ssh -T git@github-nix-config-private
 ```
 
-### 3.4 システムのインストールと再起動
+### Step 4: システムのインストールと再起動
 
 ターゲットホストの設定をビルド・インストールする:
 
@@ -252,14 +252,14 @@ sudo nixos-install --flake .#<hostname>
 ```bash
 sudo reboot
 ```
-初回起動後，Nebula メッシュ接続（`10.0.0.X`）および SSH 経由でのログインを確認する．
+初回起動後，Nebula メッシュ接続 (`10.0.0.X`) および SSH 経由でのログインを確認する．
 
 ---
 
 ## 関連ドキュメント
-- [目次（設計・運用ドキュメント）](../README.md)
-- [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](emergency-cf-ssh.md)
-- [リポジトリ全体アーキテクチャ](../architecture/overview.md)
-- [ネットワークアーキテクチャ](../architecture/network-topology.md)
-- [シークレット & 鍵ライフサイクル管理](secret-management.md)
-- [トラブルシューティング: 認証・シークレット](../troubleshooting/secrets-and-auth.md)
+- [目次 (設計・運用ドキュメント)](../README.md) — 全体ナビゲーション・目次
+- [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](emergency-cf-ssh.md) — Cloudflare Tunnel 経由の帯域外 SSH アクセス手順
+- [リポジトリ全体アーキテクチャ](../architecture/overview.md) — リポジトリの層構成とモジュール評価フロー
+- [ネットワークアーキテクチャ](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
+- [シークレット & 鍵ライフサイクル管理](secret-management.md) — SOPS / age 鍵管理と証明書ローテーション
+- [シークレット・認証トラブルシューティング](../troubleshooting/secrets-and-auth.md) — SOPS 復号エラー，private input 認証失敗の復旧

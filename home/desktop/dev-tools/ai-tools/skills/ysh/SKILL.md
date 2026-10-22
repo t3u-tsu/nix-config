@@ -193,17 +193,19 @@ YSH enables strict error checking (`errexit`) by default.
   }
   if failed { echo "Pattern not found" }
   ```
-* **Environment Variable Access vs. Strict Existence Checks**:
-  `ENV` is an `Obj`, not a `Dict` (the `in` operator is unsupported, and direct missing property access triggers an error).
-  * **Reading with default fallback (idiomatic)**: Use the built-in function `get(ENV, 'KEY', default_val)` directly without `try`:
-    ```ysh
-    var region = get(ENV, 'REGION', 'us-east-1')
-    ```
-  * **Strict existence check (no default)**: Contrast with `try`, which is only needed when strictly checking key existence without providing a default value:
-    ```ysh
-    try { var _ = ENV.API_KEY }
-    if failed { echo "API_KEY not set" }
-    ```
+### Environment Variable Access vs. Strict Existence Checks
+
+`ENV` is an `Obj`, not a `Dict` (the `in` operator is unsupported, and direct missing property access triggers an error).
+
+* To read a value with a default fallback, call `get(ENV, 'KEY', default_val)` directly without `try`:
+  ```ysh
+  var region = get(ENV, 'REGION', 'us-east-1')
+  ```
+* To check that a key exists without a default, use `try` and inspect whether the block failed:
+  ```ysh
+  try { var _ = ENV.API_KEY }
+  if failed { echo "API_KEY not set" }
+  ```
 
 ---
 

@@ -2,10 +2,10 @@
 
 with lib;
 let
-  cfg = moduleArgs.config.my.core.i18n;
+  cfg = moduleArgs.config.my.base.i18n;
 in
 {
-  options.my.core.i18n = {
+  options.my.base.i18n = {
     enable = mkEnableOption "System-wide i18n and locale settings" // {
       default = true;
     };
