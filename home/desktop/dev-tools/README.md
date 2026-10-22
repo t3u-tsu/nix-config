@@ -1,34 +1,24 @@
-# Development Tools
+# Development Tools (`home/desktop/dev-tools/`)
 
 User-specific developer tooling managed with Home Manager.
 
 ## Modules
 
-| Module / Directory | Description | Profile |
+Core modules are enabled by default; full modules require `my.home.desktop.full.enable`.
+
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [neovim.nix](neovim.nix) | Neovim configuration with palette-driven highlights and desktop entries. | Core (`dev-tools.enable`) |
-| [ghostty.nix](ghostty.nix) | Ghostty GPU-accelerated terminal emulator configuration. | Core (`dev-tools.enable`) |
-| [git-tools.nix](git-tools.nix) | Git TUIs (LazyGit), forge CLIs (`gh`), and credential helpers. | Core (`dev-tools.enable`) |
-| [nix.nix](nix.nix) | Nix developer utilities (`nix-tree`, `nix-output-monitor`, formatting/linting). | Core (`dev-tools.enable`) |
-| `ai-tools/` | AI coding agents (`agy`, `pi`, `dsh`, CodeWhale, ConoHa MCP, agent skills). | Full (`full.enable`) |
-| [hardware.nix](hardware.nix) | EDA tools (KiCad, Qucs-S), serial monitor (picocom), and Ventoy. | Full (`full.enable`) |
-| [unity.nix](unity.nix) | Unity Editor environment via Distrobox container. | Full (`full.enable`) |
-| [default.nix](default.nix) | Aggregator and default enablement rules. | — |
-
-## AI Tooling (`ai-tools/`)
-
-Coding assistant modules configured under `ai-tools/`:
-
-| File | Tool / Function | Source |
-| :--- | :--- | :--- |
-| `antigravity.nix` | Antigravity CLI (`agy`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
-| `pi.nix` | Pi coding agent (`pi`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
-| `deepseek-harness.nix` | DeepSeek Harness (`dsh`) | [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix) |
-| `codewhale.nix` | CodeWhale binary package | Tracked by `nvfetcher` |
-| `conoha-vps-mcp.nix` | ConoHa VPS MCP server | Local Node.js MCP server with SOPS API credentials |
-| `skills.nix` | Agent skills installation | Installs `hush` (via `nvfetcher`) and `ysh` (`skills/ysh`) |
+| [neovim.nix](neovim.nix) | Neovim configuration with palette-driven highlights and a desktop entry. | Core (`my.home.desktop.dev-tools.neovim.enable`) |
+| [ghostty.nix](ghostty.nix) | Ghostty GPU-accelerated terminal emulator configuration. | Core (`my.home.desktop.dev-tools.ghostty.enable`) |
+| [git-tools.nix](git-tools.nix) | Git TUI (`lazygit`), GitHub CLI (`gh`), and `gh`-backed Git credential helper. | Core (`my.home.desktop.dev-tools.git-tools.enable`) |
+| [nix.nix](nix.nix) | Nix utilities (`nh`, `nix-tree`, `nix-output-monitor`) and formatters/linters (`nixfmt`, `statix`). | Core (`my.home.desktop.dev-tools.nix.enable`) |
+| [ai-tools/](ai-tools/README.md) | AI coding agents (`agy`, `pi`, `dsh`, `codewhale`), MCP servers, and agent skills. | Full (`my.home.desktop.dev-tools.ai-tools.enable`) |
+| [hardware.nix](hardware.nix) | EDA tools (KiCad, Qucs-S), serial monitor (`picocom`), and Ventoy. | Full (`my.home.desktop.dev-tools.hardware.enable`) |
+| [unity.nix](unity.nix) | Unity Editor environment in a Distrobox container. | Full (`my.home.desktop.full.enable`) |
+| [default.nix](default.nix) | Dev-tools category aggregator and option declarations. | — |
 
 ## References
 
+- AI development tools index: [home/desktop/dev-tools/ai-tools/](ai-tools/README.md)
 - Hardware udev rules: [nixos/dev-tools/wch-linke.nix](../../../nixos/dev-tools/wch-linke.nix)
 - Agent skills documentation: [.agents/skills/](../../../.agents/skills/)

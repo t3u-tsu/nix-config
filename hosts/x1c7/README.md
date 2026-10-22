@@ -24,6 +24,15 @@ Lenovo ThinkPad X1 Carbon Gen 7 (20QES11500) running NixOS with Niri (Wayland), 
 | **Nebula Mesh** | `10.0.0.101` (groups: `mgmt`, `app`) |
 | **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
 
+## Host Services & Modules
+
+| File | Description | Options / Notes |
+| :--- | :--- | :--- |
+| [services/default.nix](services/default.nix) | Host service aggregator importing audio routing, Nebula mesh, and power management modules. | Imported in [default.nix](default.nix) |
+| [services/audio.nix](services/audio.nix) | PipeWire and ALSA UCM configuration ensuring internal speaker availability alongside external HDMI outputs. | Configures WirePlumber policy and UCM profile |
+| [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.101`, groups: `mgmt`, `app` |
+| [services/power.nix](services/power.nix) | TLP power profiles, charge thresholds, thermald/throttled limits, and D-Bus power-profiles-daemon shim. | Integrates with Noctalia power widget |
+
 ## Key Optimizations
 
 - Manages power and thermals via TLP battery thresholds (75/80%), `throttled` PL1/PL2 envelope limits, and a Noctalia power-profile D-Bus widget.

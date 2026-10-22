@@ -2,21 +2,14 @@
 
 Baseline configuration shared across all headless tower servers (`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`).
 
-## Profile Features
-
-- Deploys default stock kernel packages (`pkgs.linuxPackages`) to ensure predictable driver stability across legacy Nehalem and Ivy Bridge platforms.
-- Restricts SSH access to the Nebula overlay mesh network (`allowedTCPPorts = mkForce []`).
-- Hardens OpenSSH by enforcing key-based authentication (`PasswordAuthentication = false`) and disabling root logins (`PermitRootLogin = "no"`).
-- Preconfigures hardware diagnostics via `pc-tools` (nvme-cli, smartmontools) and assigns the primary user to the `wheel`, `video`, and `render` groups.
-
 ## Modules
 
-| File | Purpose |
-| :--- | :--- |
-| [boot.nix](boot.nix) | Stock default kernel deployment (`pkgs.linuxPackages`). |
-| [security.nix](security.nix) | Inbound firewall isolation restricting SSH to `nebula0`. |
-| [ssh.nix](ssh.nix) | Key-only OpenSSH server hardening. |
-| [default.nix](default.nix) | Aggregates server profile modules and hardware monitoring tools. |
+| File | Description | Options / Notes |
+| :--- | :--- | :--- |
+| [boot.nix](boot.nix) | Stock kernel packages (`pkgs.linuxPackages`). | Keeps legacy Nehalem and Ivy Bridge drivers stable |
+| [security.nix](security.nix) | Firewall policy clearing public TCP ports so SSH is reachable only over `nebula0`. | `allowedTCPPorts = mkForce []` |
+| [ssh.nix](ssh.nix) | OpenSSH server hardening. | `PasswordAuthentication = false`, `PermitRootLogin = "no"` |
+| [default.nix](default.nix) | Profile aggregator with hardware diagnostics. | Enables `pc-tools`; adds the primary user to `wheel`, `video`, `render` |
 
 ## References
 

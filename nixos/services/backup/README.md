@@ -18,7 +18,7 @@ Backups follow a two-tier strategy combining local high-speed recovery with off-
 
 ## Modules
 
-| File | Purpose | Key Option |
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | Client sender module scheduling periodic local and remote snapshots via systemd timers. | `my.services.backup.enable` |
 | [receiver.nix](receiver.nix) | Server receiver module configuring the SFTP-only user `restic-shosoin` with a forced `internal-sftp` command. | `my.services.backup.receiver.enable` |
@@ -50,21 +50,16 @@ sudo restic -r /mnt/tank-1tb/backups/minecraft snapshots
 sudo restic -r sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan snapshots
 ```
 
-### Restoration Workflows
+### Quick Restore
 
 ```bash
-# Method 1: Mount repository as a read-only FUSE filesystem
+# Mount repository read-only to inspect or extract files
 mkdir -p /tmp/restore-view
 sudo restic -r /mnt/tank-1tb/backups/minecraft mount /tmp/restore-view
-
-# Method 2: Restore specific database directly
-sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest \
-  --target / \
-  --include "/var/lib/minecraft-discord-bridge/bridge.db"
-
-# Method 3: Restore full snapshot to alternate directory
-sudo restic -r /mnt/tank-1tb/backups/minecraft restore latest --target /tmp/restored-data
 ```
+
+> [!NOTE]
+> For complete disaster recovery, database rollback procedures, and off-site restore workflows, refer to the disaster recovery runbook in [docs/operations/backup-and-restore.md](../../../docs/operations/backup-and-restore.md).
 
 ## References
 

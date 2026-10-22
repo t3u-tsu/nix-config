@@ -1,6 +1,6 @@
 # Operational Scripts (`scripts/`)
 
-Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fleet management, credential provisioning, and certificate rotation.
+Operator maintenance scripts for fleet management, credential provisioning, and certificate rotation, plus markdown validation scripts run by pre-commit.
 
 ## Scripts Overview
 
@@ -10,8 +10,8 @@ Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fle
 | [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
 | [set-host-password.ysh](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
-| [check-markdown-links.py](check-markdown-links.py) | Validates that all relative markdown links point to existing files. | Python 3 (run via pre-commit) |
-| [linkify-markdown.py](linkify-markdown.py) | Scans markdown files and converts raw in-text file paths into relative links. | Python 3 |
+| [check-docs.pl](check-docs.pl) | Lints markdown prose (parentheses, commas, prohibited words, pseudo-headings) and validates relative links and heading anchors. | Perl core (run via pre-commit) |
+| [linkify-markdown.pl](linkify-markdown.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | [restart-touchpad.ysh](restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 
 ## Usage Examples
@@ -38,6 +38,13 @@ ysh scripts/nebula-rotate-ca.ysh ~/.nebula-ca-new --prefix 10.0.0
 
 # Import new certs into SOPS host files
 SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-new
+```
+
+### Validate Markdown Links and Prose
+
+```bash
+# Lint markdown prose rules and validate relative links and heading anchors
+perl scripts/check-docs.pl
 ```
 
 ## References

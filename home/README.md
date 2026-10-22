@@ -1,4 +1,4 @@
-# Home Modules
+# Home Modules (`home/`)
 
 User-specific configurations managed with Home Manager.
 

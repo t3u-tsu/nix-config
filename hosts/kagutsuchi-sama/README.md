@@ -21,6 +21,14 @@ Tower server for compilation, GPU compute, and off-site Restic backup reception 
 | **Roles** | Remote compute / build offload, Restic backup repository receiver |
 | **SSH Policy** | Restricted to the `nebula0` overlay interface |
 
+## Host Services & Modules
+
+| File | Description | Options / Notes |
+| :--- | :--- | :--- |
+| [services/default.nix](services/default.nix) | Host service aggregator importing Nebula overlay, emergency SSH, and enabling the Restic backup receiver. | `my.services.backup.receiver.enable = true;` |
+| [services/emergency-ssh.nix](services/emergency-ssh.nix) | Out-of-band emergency SSH access via Cloudflare Tunnel. | `my.services.emergencySsh.enable = true;` |
+| [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.3`, group `mgmt` |
+
 ## Backup Storage
 
 Runs SFTP receiver account `restic-shosoin` storing encrypted Restic snapshots in `/mnt/data/backups/shosoin-tan`. A restricted `internal-sftp` authorized key authenticates access over Nebula.

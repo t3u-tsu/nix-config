@@ -1,4 +1,4 @@
-# Desktop Home Modules
+# Desktop Modules (`home/desktop/`)
 
 User-specific desktop environment configuration managed with Home Manager.
 
@@ -16,7 +16,7 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 | Module / Directory | Description |
 | :--- | :--- |
 | [bitwarden.nix](bitwarden.nix) | Bitwarden desktop client with persistent autostart configuration. |
-| `browsers/` | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
+| [browsers/](browsers/README.md) | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
 | [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
 | [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
 | [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
@@ -24,8 +24,8 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 | [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and SOPS-managed commit signing key import. |
 | [locales.nix](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
 | [media.nix](media.nix) | Media playback (Spotify via Spicetify, VLC). |
-| `niri/` | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
-| `noctalia/` | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
+| [niri/](niri/README.md) | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
+| [noctalia/](noctalia/README.md) | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
 | [office.nix](office.nix) | Office suite (LibreOffice). |
 | [theme.nix](theme.nix) | GTK, Qt, and cursor theming derived from [lib/palette.nix](../../lib/palette.nix). |
 | [thunar.nix](thunar.nix) | Thunar file manager user preferences. |
