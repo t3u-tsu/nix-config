@@ -1,12 +1,10 @@
 # バックアップ運用 & ディザスタリカバリ (DR)
 
-本ドキュメントは，Restic および ZFS によるサーバーデータの多重バックアップ構成，日々の保守運用，およびシステム全損時の完全復旧（ディザスタリカバリ）手順を解説する．
-
----
+Restic および ZFS によるサーバーデータの多重バックアップ構成，保守運用，および障害復旧（ディザスタリカバリ）手順．
 
 ## 1. バックアップアーキテクチャ
 
-主要な永続データ（Minecraft ワールド，Discord Bridge DB）は，データ損失を防ぐため **ローカルストレージとリモートサーバーへの二重バックアップ** を行っている．
+永続データ（Minecraft ワールド，Discord Bridge DB）は，同一ホスト内のローカルストレージと別拠点のリモートサーバーへ二重バックアップする．
 
 ```mermaid
 flowchart LR
@@ -29,9 +27,9 @@ flowchart LR
 ```
 
 ### バックアップ仕様
-- **実行頻度**: 2 時間ごと（`systemd.timers`）
-- **暗号化**: Restic 固有の暗号化パスワード（`secrets/services/backup.yaml` 内の `restic_password`）
-- **保持世代ポリシー**:
+- 実行頻度: 2 時間ごと（`systemd.timers`）
+- 暗号化: Restic 固有の暗号化パスワード（`secrets/services/backup.yaml` 内の `restic_password`）
+- 保持世代ポリシー:
   - `keep-daily: 7`（直近 7 日分）
   - `keep-weekly: 4`（直近 4 週分）
   - `keep-monthly: 6`（直近 6 ヶ月分）
@@ -40,10 +38,8 @@ flowchart LR
 
 ## 2. 初期セットアップ手順 (`restic init`)
 
-新しいバックアップ先を構築する際，またはリポジトリを初期化する際の手順である．
-
 ### 初期化の自動化と手動初期化
-本リポジトリの Restic 設定（`nixos/services/backup/default.nix`）では `initialize = true` が有効化されているため，各サービスユニットの初回実行時にリポジトリは自動的に初期化（`restic init`）される．手動で初期化・検証を行う場合は以下のように実行する:
+Restic 設定（`nixos/services/backup/default.nix`）で `initialize = true` を指定しているため，初回実行時にリポジトリは自動で初期化される．手動で初期化・検証する場合のコマンド:
 
 ```bash
 export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
@@ -78,13 +74,13 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 ## 4. ディザスタリカバリ (DR) 手順
 
-`shosoin-tan` のディスクが全損，またはマシン自体が失われた場合，`kagutsuchi-sama` のリモートバックアップから代替マシンへデータを完全復元する手順である．
+`shosoin-tan` の全損時に `kagutsuchi-sama` のリモートバックアップから代替マシンへデータを復元する手順:
 
 ### Step 1: 新規ホストの準備
 [新規ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ（`10.0.0.X`）へ接続する．
 
 ### Step 2: バックアップの取得・復元
-1. **代替ホスト上で Restic を実行**:
+1. 代替ホスト上でのリストア:
    ```bash
    export RESTIC_PASSWORD="<バックアップパスワード>"
    export RESTIC_REPOSITORY="sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan"
@@ -95,7 +91,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    # 指定したディレクトリへデータをリストア
    restic restore latest --target /tmp/restore
    ```
-2. **データファイルの配置**:
+2. データファイルの配置:
    ```bash
    # Minecraft データの復元
    sudo mkdir -p /srv/minecraft
@@ -107,7 +103,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
    sudo cp -r /tmp/restore/var/lib/minecraft-discord-bridge/* /var/lib/minecraft-discord-bridge/
    sudo chown -R minecraft:minecraft /var/lib/minecraft-discord-bridge
    ```
-3. **サービスの起動確認**:
+3. サービスの起動確認:
    ```bash
    sudo systemctl restart minecraft-server-lobby.service
    sudo systemctl restart minecraft-server-nitac23s.service
@@ -118,12 +114,11 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 ## 5. ZFS 保守運用 (`tank-1tb`)
 
-`shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で保護されている．
+`shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で構成している．
 
-- **定期スクラブ**: 現在自動実行（systemd タイマー）は設定されていないため，定期的に手動でスクラブを実行する（詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照）．
-- **手動スクラブ実行**: `sudo zpool scrub tank-1tb`
-- **ステータス確認**: `zpool status tank-1tb`
-- **ディスク交換・リビルド手順**: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
+- 定期スクラブ: 自動実行タイマーは未設定のため，手動で定期スクラブを実施する（`sudo zpool scrub tank-1tb`）．
+- ステータス確認: `zpool status tank-1tb`
+- ディスク交換・リビルド: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
 
 ---
 

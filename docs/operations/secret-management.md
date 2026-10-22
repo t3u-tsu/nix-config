@@ -1,12 +1,10 @@
 # シークレット & 鍵ライフサイクル管理
 
-本ドキュメントは，SOPS（sops-nix），age，1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，年次更新手順，および失効・廃棄プロトコルを解説する．
-
----
+SOPS（sops-nix），age，1Password，および Nebula 証明書による暗号化シークレットの管理方針，鍵モデル，更新手順，および失効・廃棄手順．
 
 ## 1. 鍵階層とアクセスモデル
 
-本リポジトリでは，最小権限の原則に基づき 3 種類の age 鍵を使い分ける．
+最小権限の原則に基づき，3 種類の age 鍵を使い分ける．
 
 ```mermaid
 graph TD
@@ -34,10 +32,8 @@ graph TD
 
 ## 2. 秘密情報のファイル構成
 
-- **`secrets/common.yaml`**:
-  全ホストで共有される共通シークレット．Nebula ルート CA 公開証明書（`nebula_ca`），`nix-config-private` 取得用 GitHub デプロイ鍵，Cloudflare API トークン等を含む．
-- **`secrets/hosts/<hostname>.yaml`**:
-  ホスト個別のシークレット．ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵等を含む．
+- `secrets/common.yaml`: 全ホストで共有される共通シークレット．Nebula ルート CA 公開証明書（`nebula_ca`），`nix-config-private` 取得用 GitHub デプロイ鍵，Cloudflare API トークン等を含む．
+- `secrets/hosts/<hostname>.yaml`: ホスト個別のシークレット．ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵等を含む．
 
 ---
 
@@ -56,11 +52,8 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/hosts/<hostname>.yaml
 
 ## 4. Nebula 証明書のローテーション
 
-Nebula のルート CA（`~/.nebula-ca/ca.crt`）は 10 年間有効（`-duration 87600h`）であり，各ノード証明書も CA の有効期間を継承する．
-鍵漏洩時やサブネット変更，あるいは定期的な証明書更新を行う場合は以下の手順に従う．
+Nebula ルート CA（`~/.nebula-ca/ca.crt`）の有効期限は 10 年（`-duration 87600h`）であり，各ノード証明書もこれを継承する．鍵漏洩やサブネット変更に伴う証明書更新の手順:
 
-### ノード証明書の更新・再インポート手順
-管理者のオフライン CA ディレクトリで各ノードの証明書を再署名し，シークレットへ取り込む:
 ```bash
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
@@ -74,19 +67,15 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 
 ## 5. ホスト廃棄・再インストール時の鍵失効プロトコル
 
-マシンを廃棄するか，OS をクリーン再インストールして SSH ホスト鍵が変わった場合，古い鍵へのアクセス権を速やかに剥奪する．
+マシン廃棄時や OS 再インストールに伴う SSH ホスト鍵変更時は，古い鍵へのアクセス権を剥奪する．
 
-1. **`.sops.yaml` の編集**:
-   - 廃棄するホストの公開鍵アンカー（`&<hostname> age1...`）および `creation_rules` から当該ホストを削除する．
-2. **既存シークレットの再暗号化**:
+1. `.sops.yaml` の編集: 該当ホストの公開鍵アンカー（`&<hostname> age1...`）および `creation_rules` を削除する．
+2. 既存シークレットの再暗号化:
    ```bash
-   # 古い鍵で復号できないよう全ファイルを再暗号化
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-3. **不要シークレットファイルの削除**:
-   ホストを完全破棄する場合は，`git rm secrets/hosts/<hostname>.yaml` を実行してコミットする．
-4. **Nebula 台帳からの削除**:
-   `scripts/nebula-lib.ysh` の `FLEET` リストから該当ホストのエントリを削除する．
+3. 不要シークレットファイルの削除: ホストを完全破棄する場合は `git rm secrets/hosts/<hostname>.yaml` を実行する．
+4. Nebula 台帳からの削除: `scripts/nebula-lib.ysh` の `FLEET` リストから該当ホストのエントリを削除する．
 
 ---
 

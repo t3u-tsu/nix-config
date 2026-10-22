@@ -6,7 +6,7 @@ System profile optimized for resource-constrained Single-Board Computers (e.g. O
 
 | Category | Setting | Description |
 | :--- | :--- | :--- |
-| **Build Sandbox** | `nix.settings.sandbox = false` | Disables build sandboxing to bypass missing `user_namespaces` support on embedded kernels. |
+| **Build Sandbox** | `nix.settings.sandbox = false` | Disables build sandboxing to work around missing `user_namespaces` support on embedded kernels. |
 | **Syscall Filter** | `nix.settings.filter-syscalls = false` | Disables seccomp BPF syscall filtering on unsupported kernel revisions. |
 | **Memory & Swap** | 4 GB swapfile (`/var/lib/swapfile`) | Pre-allocates swap space to prevent out-of-memory errors during Nix Flake evaluations. |
 | **Kernel Swappiness** | `vm.swappiness = 10` | Minimizes unnecessary swap disk thrashing while retaining headroom for memory spikes. |

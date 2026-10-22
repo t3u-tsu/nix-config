@@ -1,6 +1,6 @@
 # ビルド・デプロイ障害トラブルシューティング
 
-本ドキュメントは，NixOS システムの評価・ビルド・デプロイ段階で発生する代表的な障害（メモリ不足，Flake lock 不整合，権限昇格エラー）の原因と復旧手順をまとめたものである．
+NixOS システムの評価・ビルド・デプロイ時に発生する障害（メモリ不足，Flake lock 不整合，権限昇格エラー）の原因と復旧手順．
 
 | 障害種別 | 主なエラー兆候 | 影響ホスト | 推奨される初動対応 |
 | :--- | :--- | :--- | :--- |
@@ -23,7 +23,7 @@ Nix の評価（モジュールの再帰的マージやオーバーレイ解決�
 ### 切り分け・復旧手順
 
 #### 対策 1: リモートビルド / 作業機からのデプロイ（推奨）
-低スペック機ローカルでのビルドを避け，十分なリソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
+低スペック機でのローカルビルドを避け，リソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
 
 ```bash
 # 1. 事前ビルド（作業機上でビルドを完了させ，ビルドキャッシュを生成）
@@ -40,7 +40,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
 > Orange Pi Zero 3（Allwinner H618）のカーネルは `user_namespaces` や `seccomp BPF` に未対応のため，デプロイ時に `--option sandbox false --option filter-syscalls false` の付与が必須である（詳細は [`../hardware/orange-pi-zero3.md`](../hardware/orange-pi-zero3.md#サンドボックスと-seccomp-bpf-の無効化) 参照）．
 
 #### 対策 2: Swap の確保・一時拡張
-SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が標準定義されている．ディスク移行作業中や swap が無効化されている場合は，手動で一時 swap を有効化する:
+SBC プロファイル（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）では 4GB の swapfile（`/var/lib/swapfile`，`vm.swappiness = 10`）が定義されている．ディスク移行作業中などで swap が無効な場合は手動で一時 swap を有効化する:
 
 ```bash
 # 一時 swapfile (4GB) の作成と有効化
@@ -118,7 +118,7 @@ nix flake check
   - プロンプトが表示されずセッションがタイムアウトする．
 
 ### 原因
-`pkexec` はデスクトップ環境で常駐する Polkit 認証エージェントに依存する（エージェントがユーザーに GUI 承認を求めるために使用）．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，あるいは非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．人間が直接作業する場合は通常の `sudo` を使用する．
+`pkexec` は Polkit 認証エージェントに依存する．SSH 接続経由，ヘッドレスサーバー（`torii-chan`, `shosoin-tan`, `sando-kun`, `kagutsuchi-sama`），tmux/screen 内，非 GUI セッションでは Polkit ダイアログを起動できないため認証に失敗する．手動作業時は `sudo` を使用する．
 
 ### 切り分け・フォールバック手順
 

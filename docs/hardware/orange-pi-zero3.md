@@ -1,6 +1,6 @@
 # Orange Pi Zero3 (Allwinner H618) ハードウェア・SBC ガイド
 
-本ドキュメントは，Allwinner H618 SoC を搭載したシングルボードコンピュータ（SBC）である Orange Pi Zero3（ホスト名: `torii-chan`）における，U-Boot ブートチェーン，SD / HDD 分離ストレージ構成，インストーライメージビルド，および 1 GB RAM 環境下でのリソース制約回避に関する技術仕様をまとめたものである．
+Allwinner H618 搭載シングルボードコンピュータ `torii-chan` の U-Boot ブートチェーン，SD / HDD 分離ストレージ構成，インストーライメージビルド，および 1 GB RAM 環境下でのリソース制約回避の技術仕様．
 
 ---
 
@@ -24,7 +24,7 @@
 - **Nebula Gateway / Lighthouse**: メッシュネットワーク `10.0.0.0/24` の固定灯台ノード（`10.0.0.1:4242`）およびリレーとして拠点Tから常時稼働．
 - **ポートフォワーディング**: 外部からの Minecraft 接続（TCP 25565）を受け，Nebula オーバーレイ経由で拠点Aの `shosoin-tan`（`10.0.0.4`）へ透過的に NAT 転送．
 - **Cloudflare DDNS**: 拠点Tの動的グローバル IP アドレスの変化を検知し，`torii-chan.t3u.uk` および `*.mc.t3u.uk` の A レコードを自動更新．
-- **VPS フェイルオーバー設計**: SBC のハードウェア障害時は，同一のホスト名と暗号化シークレットを共有する ConoHa VPS（`torii-chan-vps`）へシームレスに役割を移譲可能（詳細は [`docs/operations/vps-failover.md`](../operations/vps-failover.md) を参照）．
+- **VPS フェイルオーバー設計**: SBC のハードウェア障害時は，同一のホスト名と暗号化シークレットを共有する ConoHa VPS（`torii-chan-vps`）へ役割を移譲できる（詳細は [`docs/operations/vps-failover.md`](../operations/vps-failover.md) を参照）．
 
 ---
 
@@ -64,11 +64,11 @@ boot.loader = {
 };
 ```
 
-これにより，`/boot/extlinux/extlinux.conf` に NixOS の世代別ブートエントリが自動生成され，カーネル更新や世代ロールバックが可能となる．
+これにより `/boot/extlinux/extlinux.conf` に世代別ブートエントリが自動生成され，カーネル更新や世代ロールバックを行える．
 
 ### SD / HDD 分離アーキテクチャ (`torii-chan-hdd`)
 
-SD カードはランダム書き込み耐性が低く，24時間稼働のエッジゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．そのため，本番の HDD 運用構成（`torii-chan-hdd`）では **ブート部とルートファイルシステムを物理的に分離** している（※SD 単体運用構成 `torii-chan-sd` の場合は [`hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix) を使用）．
+SD カードはランダム書き込み耐性が低く，24時間稼働のエッジゲートウェイ用途でログや Nix store 更新を行うとフラッシュメモリの早期摩耗死（クラッシュ）を招く．本番の HDD 運用構成（`torii-chan-hdd`）では **ブート部とルートファイルシステムを物理的に分離** する（SD 単体運用構成 `torii-chan-sd` の場合は [`hosts/torii-chan/fs-sd.nix`](../../hosts/torii-chan/fs-sd.nix) を使用）．
 
 | 領域 | デバイス | ラベル / マウント先 | ファイルシステム | 定義モジュール |
 | :--- | :--- | :--- | :--- | :--- |
@@ -77,16 +77,16 @@ SD カードはランダム書き込み耐性が低く，24時間稼働のエッ
 
 #### USB HDD の安定化とハードウェア quirk
 
-USB 接続された 2.5 インチ HDD をルートドライブとして安定動作させるため，以下の対策を適用している．
+USB 接続された 2.5 インチ HDD をルートドライブとして安定動作させるための対策:
 
 1. **UAS (USB Attached SCSI) の無効化**:
-   本機で使用している JMicron JMS583 USB-SATA ブリッジ（`152d:0583`）は UAS 動作時にタイムアウトや I/O エラーを起こしやすい．カーネルパラメータ `usb-storage.quirks=152d:0583:u` を指定して UAS を無効化し，クラシカルな USB Mass Storage ドライバで駆動させている．
+   本機で使用している JMicron JMS583 USB-SATA ブリッジ（`152d:0583`）は UAS 動作時にタイムアウトや I/O エラーを起こしやすい．カーネルパラメータ `usb-storage.quirks=152d:0583:u` を指定して UAS を無効化し，USB Mass Storage ドライバで駆動する．
 2. **ルートドライブ認識待ちの延長 (`rootdelay=10`)**:
-   USB デバイスはバスのリセットおよびスピンアップに時間を要するため，`rootdelay=10` を付与して initrd 内でのマウントタイムアウトを回避している．
+   USB デバイスはバスのリセットおよびスピンアップに時間を要するため，`rootdelay=10` を付与して initrd 内でのマウントタイムアウトを回避する．
 3. **過剰なヘッド退避の抑止 (`hdd-apm.service`)**:
-   WD Scorpio Blue などの 2.5 インチ HDD は，初期の APM（Advanced Power Management）設定によりアイドル数十秒でヘッドを退避し，`Load_Cycle_Count` が急増して短寿命化する．`hdparm -B 255 /dev/disk/by-label/NIXOS_HDD` を systemd サービスで実行し，APM によるスピンダウンを完全に無効化している．
+   WD Scorpio Blue などの 2.5 インチ HDD は，初期の APM（Advanced Power Management）設定によりアイドル数十秒でヘッドを退避し，`Load_Cycle_Count` が急増して短寿命化する．`hdparm -B 255 /dev/disk/by-label/NIXOS_HDD` を systemd サービスで実行し，APM によるスピンダウンを無効化する．
 4. **SMART 監視のピンポイント指定 (`smartd`)**:
-   USB ブリッジ越しの自動プローブは異常動作を招く恐れがあるため，`autodetect = false` とした上で `-d sat` オプションを指定し，明示的に監視対象を定義している．
+   USB ブリッジ越しの自動プローブは異常動作を招く恐れがあるため，`autodetect = false` とした上で `-d sat` オプションを指定し，明示的に監視対象を定義する．
 
 ---
 
@@ -94,7 +94,7 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 
 ### イメージ生成手順 (`hosts/torii-chan/build-sd-image.ysh`)
 
-新規セットアップ時は，スクリプトを用いてインストーラ SD イメージを作成する．
+新規セットアップ時のインストーラ SD イメージ作成手順:
 
 ```bash
 ./hosts/torii-chan/build-sd-image.ysh
@@ -105,11 +105,11 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 1. ランダムな一時パスワード（16進数 16文字）を自動生成し，平文を `result-sd-temp-password.txt`（パーミッション `0600`）に出力する．
 2. `openssl passwd -6` で SHA-512 crypt ハッシュを算出する．
 3. 環境変数 `TORII_INSTALLER_TEMP_PASSWORD_HASH` を介して `--impure` ビルドを実行し，インストーラ構成（[`hosts/torii-chan/sd-installer.nix`](../../hosts/torii-chan/sd-installer.nix)）へハッシュを注入する．
-4. ビルド成果物（`result-sd-image/sd-image/*.img`）は `compressImage = false`（非圧縮）となっており，高速に SD カードへ書き込める．
+4. ビルド成果物（`result-sd-image/sd-image/*.img`）は `compressImage = false`（非圧縮）であり，高速に SD カードへ書き込める．
 
 ### aarch64 ネイティブビルド環境
 
-インストーライメージはクロスコンパイルではなく，**aarch64 ネイティブビルド** として構成されている．x86_64 ホスト（`BrokenPC` 等）でビルドする場合，`nixos/base/nix.nix` で設定された QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`，x86_64 ホストでのみ自動有効化）を通じて透過的に実行される．
+インストーライメージはクロスコンパイルではなく **aarch64 ネイティブビルド** で構成される．x86_64 ホスト（`BrokenPC` 等）では，`nixos/base/nix.nix` の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
 
 ### 初期導入・HDD 移行手順
 
@@ -154,7 +154,7 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 
 ## 4. 低スペック制約 (1 GB RAM) とカーネル制約への対応
 
-Orange Pi Zero3 はメモリ容量が 1 GB と極めて少なく，カーネル機能にも一部制限があるため，[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix) にて以下の制約回避策を講じている．
+メモリ容量 1 GB およびカーネル機能制限への対応策（[`nixos/profiles/sbc/default.nix`](../../nixos/profiles/sbc/default.nix)）:
 
 ### 制約事項と対策一覧
 
@@ -176,7 +176,7 @@ nix.settings = {
 };
 ```
 
-リモートデプロイ時にも，ターゲット実機上でのビルドエラーを防ぐため，同様のフラグを付与してコマンドを実行する:
+リモートデプロイ時にも，実機上でのビルドエラーを防ぐため同一フラグを付与する:
 
 ```bash
 nixos-rebuild switch --flake .#torii-chan-hdd \
@@ -200,11 +200,11 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
   ];
   ```
 - **swappiness の引き下げ (`vm.swappiness = 10`)**:
-  極小メモリ環境ではあるものの，SD カードや USB HDD への過剰なスワップ I/O はシステム全体を著しくフリーズ（スラッシング）させる．そのため `swappiness` を `10` に設定し，極力物理 RAM を使い切るまでディスクスワップへの書き出しを遅延させている．
+  極小メモリ環境ではあるものの，SD カードや USB HDD への過剰なスワップ I/O はシステム全体を著しくフリーズ（スラッシング）させる．`swappiness = 10` を設定し，物理 RAM を使い切るまでディスクスワップへの書き出しを遅延させる．
 
 #### 状態検証コマンド
 
-実機ログイン後，以下のコマンドで各設定が正常に稼働しているか確認できる:
+実機ログイン後の状態確認コマンド:
 
 ```bash
 # ストレージラベルとマウント状況の確認

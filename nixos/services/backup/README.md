@@ -1,6 +1,6 @@
 # Backup Services (`nixos/services/backup/`)
 
-Fleet backup automation utilizing [Restic](https://restic.net/) for encrypted, deduplicated, and authenticated snapshots.
+Fleet backup automation using [Restic](https://restic.net/) for encrypted, deduplicated, and authenticated snapshots.
 
 ## Architecture & Topology
 

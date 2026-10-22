@@ -16,14 +16,14 @@ Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fle
 ### Set or Update Host Passwords
 
 ```bash
-# Prompts for t3u and root passwords, hashes with SHA-512, and updates SOPS
+# Prompt for t3u and root passwords, hash with SHA-512, and update SOPS
 SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/set-host-password.ysh <hostname>
 ```
 
 ### Import Nebula Certificates into SOPS
 
 ```bash
-# Imports certificates from ~/.nebula-ca into SOPS
+# Import certificates from ~/.nebula-ca into SOPS
 SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca
 ```
 

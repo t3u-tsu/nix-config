@@ -1,6 +1,6 @@
 # ThinkPad X1 Carbon Gen 7 ハードウェア構成と最適化ガイド
 
-本ドキュメントは，Lenovo ThinkPad X1 Carbon Gen 7（ホスト名: `x1c7`）におけるハードウェア仕様，電源・サーマル管理，ログイン認証，スリープ動作，およびオーディオ消失回避ワークアラウンドに関する技術仕様と設計要点をまとめたものである．
+Lenovo ThinkPad X1 Carbon Gen 7（`x1c7`）におけるハードウェア仕様，電源・サーマル管理，ログイン認証，スリープ動作，およびオーディオ消失回避ワークアラウンドの技術仕様と設計要点．
 
 ```mermaid
 flowchart TD
@@ -61,7 +61,7 @@ flowchart TD
 
 ### メモリ・スワップチューニング (OOM 回避)
 
-16 GB の限られた物理メモリ環境において，`rustc`，`nix`，`zig` などの並列ビルド（最大 8 スレッド）を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する課題が存在した．これを解決するため，[`hosts/x1c7/hardware.nix`](../../hosts/x1c7/hardware.nix) にて以下のチューニングを実施している．
+16 GB 物理メモリ環境で `rustc`，`nix`，`zig` などの並列ビルド（最大 8 スレッド）を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する．これを解決するためのチューニング（[`hosts/x1c7/hardware.nix`](../../hosts/x1c7/hardware.nix)）:
 
 - **zram**: `memoryPercent = 100`，`priority = 100`．メモリ内圧縮スワップを最優先で使用し，実効メモリ容量を拡張する．
 - **Swapfile**: 16 GiB（`/var/lib/swapfile`）．RAM 全体を退避可能なサイズを確保し，カーネルが割り当てる負の優先度により，通常時は zram が枯渇した後のオーバーフロー領域として機能する．
@@ -91,7 +91,7 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
 ### TLP 設定要点
 
 - **バッテリー充電閾値**: `START_CHARGE_THRESH_BAT0 = 75` / `STOP_CHARGE_THRESH_BAT0 = 80`．AC 常時接続環境におけるバッテリーセルの劣化を大幅に抑制する（満充電が必要な際は `sudo tlp fullcharge` で一時解除）．
-- **D-Bus 連携 (`tlp.pd`)**: `services.tlp.pd.enable = true` により `net.hadess.PowerProfiles` D-Bus インターフェースを提供し，Noctalia デスクトップの `power_profile` バーウィジェットからプロファイルをシームレスに切り替え可能としている．
+- **D-Bus 連携 (`tlp.pd`)**: `services.tlp.pd.enable = true` により `net.hadess.PowerProfiles` D-Bus インターフェースを提供し，Noctalia デスクトップの `power_profile` バーウィジェットからプロファイルを切り替えられる．
 - **XanMod と intel_pstate の競合解消**:
   - XanMod カーネルは `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y` でビルドされる．
   - しかし，`intel_pstate` のアクティブモード下で governor を `performance` にすると，EPP が 0（performance）に固定され，EPP の書き換えが `EBUSY` で拒否されてアイドル時にクロックが下がらなくなる．
@@ -101,11 +101,11 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
   - `PLATFORM_PROFILE = "balanced"`: AC / BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げ可能．
   - `PCIE_ASPM_ON_BAT = "powersave"`: バッテリー駆動時に PCIe リンク（NVMe，Wi-Fi，Thunderbolt）を低電力ステートへ移行．
 - **USB 自動サスペンドの除外 (`USB_DENYLIST = "06cb:00bd"`)**:
-  Synaptics 指紋リーダー（`06cb:00bd`）は USB autosuspend 状態から復帰する際にプロトコルタイムアウトを起こしやすい．そのため，TLP の `USB_DENYLIST` に本デバイスを追加して常時通電を維持している．
+  Synaptics 指紋リーダー（`06cb:00bd`）は USB autosuspend 状態からの復帰時にタイムアウトを起こしやすいため，TLP の `USB_DENYLIST` に追加して常時通電を維持する．
 
 ### throttled (Lenovo サーマルバグ対策)
 
-Linux 環境において，Lenovo の EC ファームウェアが CPU を過剰に早期スロットリングする既知バグが存在する．これを回避するため [`throttled`](https://github.com/erpalma/throttled) を運用している．
+Lenovo の EC ファームウェアによる過剰な早期スロットリングを回避するため，[`throttled`](https://github.com/erpalma/throttled) を運用する．
 
 薄型軽量筐体の冷却限界（シングルファン・デュアルヒートパイプ）を踏まえ，CPU 仕様（Intel Core i7-8565U）に適合した制限値へ調律している．
 
@@ -176,7 +176,7 @@ BIOS 設定の `Config -> Power -> Sleep State` は **Linux (S3)** に設定し�
 
 ### 運用上の留意事項
 
-1. **Bluetooth 接続中のサスペンド**: Bluetooth デバイスが接続された状態でサスペンドすると即座に起床する既知の問題がある．サスペンド前に周辺機器を切断することが推奨される．
+1. **Bluetooth 接続中のサスペンド**: Bluetooth デバイス接続状態でサスペンドすると即座に起床する問題があるため，サスペンド前の機器切断を推奨する．
 2. **リッドクローズ動作**: [`services.logind.settings.Login.HandleLidSwitchExternalPower = "lock"`](../../hosts/x1c7/default.nix) により，AC 給電時のディスプレイ開閉は画面ロックのみにとどめ，外部モニタ運用やビルドの中断を防ぐ．
 
 ---
@@ -232,7 +232,7 @@ in
 
 - **ConflictingDevice の追加**: HDMI 出力と Headphones デバイスを排他化（競合デバイス指定）することで，HDMI 接続時に Headphones プロファイルが誤発効することを防止する．
 - **PlaybackPriority の逆転**: 内蔵スピーカーの優先度を `200` から `900` へ引き上げ，常に選択可能なプライマリシンクとして維持する．
-- **両プロセスへの環境変数適用**: PipeWire だけでなく WirePlumber も ALSA カードを直接開いて UCM 設定を参照する．PipeWire 側のみに設定した場合，WirePlumber が標準の未パッチ UCM を読み込みスピーカーが再び消失するため，双方の systemd ユーザーサービスへ `ALSA_CONFIG_UCM2` を渡すことが不可欠である．
+- **両プロセスへの環境変数適用**: PipeWire だけでなく WirePlumber も ALSA カードを直接開いて UCM 設定を参照する．PipeWire 側のみに設定した場合，WirePlumber が標準の未パッチ UCM を読み込みスピーカーが再び消失するため，双方の systemd ユーザーサービスへ `ALSA_CONFIG_UCM2` を渡す必要がある．
 
 ---
 

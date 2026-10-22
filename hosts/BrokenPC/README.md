@@ -1,6 +1,6 @@
 # Host: BrokenPC (HP Victus 16-e1065AX)
 
-Secondary portable laptop deployed at Site A and off-site, featuring a hybrid AMD iGPU and defective NVIDIA dGPU architecture, running NixOS with Niri (Wayland).
+Secondary portable laptop deployed at Site A and off-site, running NixOS with Niri (Wayland) on an AMD iGPU and compute-only NVIDIA dGPU.
 
 ## Hardware Specifications
 
@@ -15,9 +15,9 @@ Secondary portable laptop deployed at Site A and off-site, featuring a hybrid AM
 
 ## GPU Separation & Workload Allocation
 
-- **Display & UI Isolation:** The dGPU suffers from a hardware-level 3D rasterization failure. Wayland compositor (Niri) and 3D graphics (Steam) are strictly locked to the AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload.enable = false`.
-- **CUDA Matrix Acceleration:** Matrix compute (GEMM) units remain functional. The dGPU operates as a dedicated CUDA inference engine for local LLMs (`services/llama.nix`, targeting SM 8.6).
-- **Power Optimization:** When idle, the dGPU powers down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), preserving battery life.
+- **Display & UI Isolation:** Hardware-level 3D rasterization is defective on the dGPU. Niri and 3D graphics (Steam) run exclusively on the AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload.enable = false`.
+- **CUDA Matrix Acceleration:** Matrix compute (GEMM) units remain functional. The dGPU runs local LLM matrix workloads via CUDA (`services/llama.nix`, targeting SM 8.6).
+- **Power Optimization:** When idle, the dGPU powers down via open kernel modules and RTD3 (`powerManagement.finegrained = true`), saving battery.
 
 ## Configuration Summary
 

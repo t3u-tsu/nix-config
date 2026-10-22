@@ -1,6 +1,6 @@
 # Desktop Profile (`nixos/profiles/desktop/`)
 
-Bridges system-level background services and Home Manager user environments to establish a cohesive graphical desktop workstation.
+Configures system-level services and Home Manager user environments for graphical desktop workstations.
 
 ## Profile Architecture
 

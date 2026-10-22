@@ -1,6 +1,6 @@
 # Development Tools
 
-User-specific developer tooling managed via Home Manager.
+User-specific developer tooling managed with Home Manager.
 
 ## Modules
 
@@ -17,7 +17,7 @@ User-specific developer tooling managed via Home Manager.
 
 ## AI Tooling (`ai-tools/`)
 
-The `ai-tools/` directory integrates local and upstream LLM coding assistants:
+Coding assistant modules configured under `ai-tools/`:
 
 | File | Tool / Function | Source |
 | :--- | :--- | :--- |

@@ -1,6 +1,6 @@
 # Host: torii-chan (Nebula Gateway / Lighthouse & Relay)
 
-Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), with automated failover capability to ConoHa VPS.
+Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), with automated failover to ConoHa VPS.
 
 ## Hardware Specifications
 
@@ -18,7 +18,7 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 - **Cloudflare DDNS:** Dynamic IP sync daemon updating `torii-chan.t3u.uk` and `*.mc.t3u.uk`.
 - **Minecraft Port Forward:** Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
 - **Security Boundary:** SSH port 22 is strictly bound to `nebula0`. Only UDP `4242` (Nebula) and TCP `25565` (Minecraft) are exposed publicly.
-- **Failover Compatibility:** Shares hostname and SOPS secrets with `torii-chan-vps` to support seamless failover.
+- **Failover Compatibility:** Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
 
 ## Flake Configurations
 

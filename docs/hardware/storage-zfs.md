@@ -1,6 +1,6 @@
 # レガシー BIOS ブート & ZFS ストレージ運用ガイド
 
-本ドキュメントは，レガシー BIOS（MBR）環境で稼働するタワー型サーバ群（`shosoin-tan`，`sando-kun`）のブート設計，および `shosoin-tan` における ZFS Mirror プール（`tank-1tb`）の構築，定期スクラブ，障害検知，ディスク交換・リビルド（`zpool replace`）手順をまとめたものである．
+レガシー BIOS（MBR）環境で稼働するタワー型サーバ群（`shosoin-tan`，`sando-kun`）のブート設計，および `shosoin-tan` における ZFS Mirror プール（`tank-1tb`）の構築，定期スクラブ，障害検知，ディスク交換・リビルド（`zpool replace`）手順．
 
 ```mermaid
 flowchart TD
@@ -44,7 +44,7 @@ flowchart TD
 
 ### GRUB ブートローダ設定
 
-[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix) および [`hosts/sando-kun/default.nix`](../../hosts/sando-kun/default.nix) におけるブートローダ設定は以下の通りである．
+ブートローダ設定（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)，[`hosts/sando-kun/default.nix`](../../hosts/sando-kun/default.nix)）:
 
 ```nix
 # hosts/shosoin-tan/default.nix
@@ -96,7 +96,7 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 - **プール名**: `tank-1tb`
 - **トポロジ**: 2-way Mirror（ミラー構成）
 - **構成ドライブ**: 1 TB SATA HDD x 2 台
-- **実効容量**: 約 930 GiB（耐障害性: 1 台の完全障害まで耐過可能）
+- **実効容量**: 約 930 GiB（耐障害性: 1 台の故障まで許容）
 - **マウントポイント**: `/mnt/tank-1tb`
 - **主な役割**:
   - Minecraft サーバデータの高信頼性ローカルバックアップ保管庫（`/mnt/tank-1tb/backups/minecraft`）
@@ -105,7 +105,7 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 
 ### NixOS 宣言と自動マウント
 
-[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix) および [`hosts/shosoin-tan/hardware.nix`](../../hosts/shosoin-tan/hardware.nix) にて以下を宣言している．
+NixOS での ZFS 宣言（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)，[`hosts/shosoin-tan/hardware.nix`](../../hosts/shosoin-tan/hardware.nix)）:
 
 ```nix
 # default.nix
@@ -132,9 +132,9 @@ sudo zpool create -m /mnt/tank-1tb tank-1tb mirror /dev/disk/by-id/<DISK1> /dev/
 
 ## 3. 定期スクラブとデータ整合性検証
 
-ZFS の最大の利点は，全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラの誤動作に伴う **サイレントデータ破損（Bit Rot / ビット化け）を自動検知・自己修復** できる点にある．
+ZFS は全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラ誤動作に伴う **サイレントデータ破損（Bit Rot）を自動検知・自己修復** する．
 
-現在，コード側（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)）には `services.zfs.autoScrub` による自動スクラブの systemd タイマーは設定されていない．そのため，管理者が定期的に手動でスクラブ（`sudo zpool scrub tank-1tb`）を実行し，整合性を検証する運用としている．
+自動スクラブタイマー（`services.zfs.autoScrub`）は未設定のため，定期的に手動でスクラブを実行し，データ整合性を検証する．
 
 ### 手動スクラブ操作
 
@@ -177,7 +177,7 @@ errors: No known data errors
 
 ### プールステータス診断
 
-日常的な確認やスクリプトによる異常検知には，サマリ表示を活用する．
+サマリ表示による状態確認:
 
 ```bash
 zpool status -x
@@ -212,7 +212,7 @@ sudo smartctl -a /dev/disk/by-id/<DISK_ID>
 
 ## 5. ディスク交換・リビルド手順 (`zpool replace`)
 
-ミラー内の 1 台に障害が発生し，プールが `DEGRADED` 状態となった場合の交換・復旧手順である．
+ミラー内の 1 台が故障し，プールが `DEGRADED` 状態となった場合の交換・復旧手順:
 
 ```mermaid
 sequenceDiagram

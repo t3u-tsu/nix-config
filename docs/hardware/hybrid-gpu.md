@@ -1,6 +1,6 @@
 # AMD + NVIDIA ハイブリッド GPU 分離設計ガイド
 
-本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．本機は拠点Aを拠点としつつ，外出時にも持ち出されるサブ機（可搬ノートPC）としての運用特性を持つ．
+AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）と 3D 回路障害を抱える NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様．
 
 ```mermaid
 flowchart TD
@@ -50,14 +50,14 @@ flowchart TD
   - `glmark2` ベンチマークは完走する．
   - VRAM の 90% 以上を確保するメモリストレステストはエラーなく通過する．
 - **結論**:
-  - VRAM チップそのものやカーネルドライバの欠陥ではなく，dGPU 内部の **3D レンダリングパイプラインおよびテクスチャアップロード回路に物理的破損** が生じている．
-  - 一方で，AMD Radeon 680M iGPU は極めて安定して 3D アプリケーションを実行可能である．
+  - VRAM チップやカーネルドライバの欠陥ではなく，dGPU 内部の **3D レンダリングパイプラインおよびテクスチャアップロード回路の物理的破損** が原因である．
+  - AMD Radeon 680M iGPU は 3D アプリケーションを安定して実行できる．
 
 ---
 
 ## 2. デスクトップ・描画パイプラインの隔離設計
 
-物理破損を抱える dGPU が描画パイプラインに関与すると，デスクトップ環境（コンポジタ）やアプリケーションが巻き込まれてクラッシュする．そのため，**表示・描画から dGPU を完全に排除し，AMD iGPU のみで完結させる** 設計を採用している．
+物理破損を抱える dGPU が描画パイプラインに関与するとデスクトップ環境やアプリケーションがクラッシュするため，**表示・描画から dGPU を排除し，AMD iGPU のみで完結させる**．
 
 ### Wayland (Niri) レンダラの iGPU 固定 (`WLR_DRM_DEVICES`)
 
@@ -79,11 +79,11 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 ### ゲーム描画における dGPU オフロード無効化
 
 - **ゲーム実行方針**: Steam や各種ゲームを起動する際，PRIME オフロード（`nvidia-offload`）を使用せず，Radeon 680M 上でネイティブ描画を行う．
-- **設定**: `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを未然に防止している．
+- **設定**: `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを防止する．
 
 ### 省電力制御 (RTD3 & finegrained)
 
-描画から除外された dGPU を常時通電させておくと，無駄な電力消費と発熱が発生する．特に BrokenPC は外部へ持ち出される可搬ノートPCでもあるため，dGPU の無駄な電力消費はバッテリー駆動時間を著しく損なう．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用することで，アイドル時に dGPU の電源を完全にオフにしている．
+描画から除外された dGPU を常時通電させておくと電力消費と発熱が生じ，バッテリー駆動時間を損なう．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用し，アイドル時に dGPU の電源を遮断する．
 
 ```nix
 # hosts/BrokenPC/default.nix
@@ -104,11 +104,11 @@ my.hardware.nvidia = {
 };
 ```
 
-これにより，後述の CUDA 計算タスクが実行されていない平常時，dGPU は自動的に省電力スリープ（電源遮断状態）を維持する．
+これにより，CUDA 計算タスクが実行されていない平常時は自動的に省電力スリープ（電源遮断状態）を維持する．
 
 #### dGPU 電源状態の確認手順
 
-dGPU が正常にサスペンド（D3cold）しているかは，以下の sysfs 経由で確認できる:
+dGPU のサスペンド（D3cold）状態確認コマンド:
 
 ```bash
 # dGPU の Runtime PM 状態を確認 (suspended であれば電源切断中)
@@ -126,18 +126,18 @@ cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
 
 ## 3. CUDA / llama.cpp 推論専用オフロード
 
-テクスチャアップロード回路が破損している一方で，テクスチャ転送を伴わない純粋な **行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する**．この特性を活かし，大規模言語モデル（LLM）の推論アクセラレータとして dGPU を活用している．
+テクスチャアップロード回路が破損している一方，**行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する**．この特性を活かし，LLM 推論アクセラレータとして dGPU を活用する．
 
 ### ビルドアーキテクチャの指定
 
-Nixpkgs に対し，GA107 コア（Ampere アーキテクチャ）向けの最適化コードを生成するよう指定している．
+GA107 コア（Ampere アーキテクチャ）向けコード生成指定（[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix)）:
 
 ```nix
 # hosts/BrokenPC/default.nix
 nixpkgs.config.cudaCapabilities = [ "8.6" ];
 ```
 
-これにより，不要なアーキテクチャのバイナリ肥大化を避け，RTX 3050 Ti（Compute Capability 8.6）に特化した最速の CUDA カーネルがビルドされる．
+これにより不要なバイナリ肥大化を避け，RTX 3050 Ti（Compute Capability 8.6）向けに特化した CUDA カーネルをビルドする．
 
 ### llama.cpp サービス構成とメモリチューニング
 
@@ -187,7 +187,7 @@ home-manager.users.${config.my.user.name} = {
 
 | モデル区分 | 該当モデル例 | GPU層 (`ngl`) | MoE (`ncmoe`) | コンテキスト長 (`ctxSize`) | オフロード戦略 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **3B / 4B クラス** | `G9v3-3B`, `Qwen3.5-4B` | `99` (全層) | `0` | 16,384 〜 32,768 | 4 GB VRAM 内へ全レイヤを格納し最速推論を実現 |
+| **3B / 4B クラス** | `G9v3-3B`, `Qwen3.5-4B` | `99` (全層) | `0` | 16,384 〜 32,768 | 4 GB VRAM 内へ全レイヤを格納して推論 |
 | **9B クラス** | `Qwen3.5-9B`, `Ornith-1.5-9B` | `12` (先頭12層) | `0` | 32,768 | VRAM を超えるため先頭層のみ GPU，残りは CPU+RAM |
 | **小型 MoE** | `Ling-3.0-tiny`, `LFM2.5-8B` | *未指定* | *未指定* | *未指定* | `--fit` フラグに委ね，VRAM 枠に応じた動的最適配分 |
 

@@ -1,6 +1,6 @@
 # Host: sando-kun (i7-860 Tower Server)
 
-General-purpose legacy tower server running on BIOS/MBR partitioning with Intel Core i7-860.
+Tower server running on BIOS/MBR partitioning with an Intel Core i7-860 processor.
 
 ## Hardware Specifications
 

@@ -1,6 +1,6 @@
 # Host: kagutsuchi-sama (Compute & Backup Server)
 
-High-power tower server used for heavy compilation workloads, GPU compute, and serving as the primary remote backup receiver for `shosoin-tan`.
+Tower server for compilation, GPU compute, and off-site Restic backup reception for `shosoin-tan`.
 
 ## Hardware Specifications
 
@@ -23,7 +23,7 @@ High-power tower server used for heavy compilation workloads, GPU compute, and s
 
 ## Backup Storage
 
-Hosts SFTP receiver account `restic-shosoin` saving encrypted Restic snapshots to `/mnt/data/backups/shosoin-tan`. Access is authenticated via SOPS-managed authorized keys over Nebula.
+Runs SFTP receiver account `restic-shosoin` storing encrypted Restic snapshots in `/mnt/data/backups/shosoin-tan`. SOPS-managed authorized keys authenticate access over Nebula.
 
 ## Quick Operations
 

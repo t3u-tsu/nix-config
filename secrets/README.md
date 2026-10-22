@@ -12,9 +12,9 @@ SOPS-encrypted secrets using Age encryption keys. Plaintext secrets are never co
 
 ## Key Distribution Model (`.sops.yaml`)
 
-- **Master Key (`master_key`):** Offline disaster-recovery Age key stored securely in 1Password / password manager. Included in every encryption group.
-- **Host Keys:** Derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`. Machines automatically decrypt their respective secrets during boot.
-- **User Keys:** Derived from user workstation keys (`~/.ssh/id_ed25519`). Granted access only to developer/service files (`services/signing.yaml`, `services/conoha-vps-mcp.yaml`).
+- **Master Key (`master_key`):** Offline disaster-recovery Age key stored in a password manager (1Password). Included in every encryption group.
+- **Host Keys:** Derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`. Machines decrypt secrets automatically during boot.
+- **User Keys:** Derived from user workstation keys (`~/.ssh/id_ed25519`). Access is limited to developer and service files (`services/signing.yaml`, `services/conoha-vps-mcp.yaml`).
 
 ### Access Matrix
 
@@ -42,7 +42,7 @@ sops secrets/services/signing.yaml
 
 ### Rotating a Host Key
 
-If a host's SSH key is regenerated (e.g. after a clean reflash):
+When regenerating a host SSH key (e.g. after a clean reflash):
 
 1. Derive the new Age public key: `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`
 2. Update `.sops.yaml` with the new key.

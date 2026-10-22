@@ -1,6 +1,6 @@
 # シークレット・認証トラブルシューティング
 
-本ドキュメントは，SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）の認証失敗，および activation スクリプト失敗による emergency mode 突入時の原因切り分けと脱出手順をまとめたものである．
+SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
@@ -168,10 +168,10 @@ Give root password for maintenance (or press Control-D to continue):
    /nix/var/nix/profiles/system-<世代番号>-link/bin/switch-to-configuration switch
    ```
 
-#### パターン B: パスワード入力が通らずログイン不能な場合（推奨回避策）
+#### パターン B: パスワード入力が通らずログイン不能な場合
 
-##### 第一選択肢: GRUB メニューからの正常世代ブート
-最優先の復旧手段として，マシンを再起動してブートローダー（GRUB）メニューを表示し，**「NixOS - All configurations」から直前の正常な世代を選択して起動** する．正常世代でログインできた後，問題のあった設定を修正またはロールバックする．
+##### 正常世代での起動（GRUB メニュー）
+マシンを再起動してブートローダー（GRUB）メニューを表示し，**「NixOS - All configurations」から直前の正常世代を選択して起動** する．正常世代でのログイン後，設定を修正またはロールバックする．
 
 ##### 代替手段: `init=/bin/sh` 緊急シェルによる世代切り替え
 GRUB メニューからの通常起動で解決しない場合，カーネルパラメータを変更して緊急シェルから前世代をブート既定に設定する:

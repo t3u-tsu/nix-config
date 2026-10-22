@@ -18,7 +18,7 @@ The `nvidia.nix` module supports both integrated offload and dedicated sync mode
 | :--- | :--- | :--- |
 | **PRIME Offload** | `my.hardware.nvidia.prime.offload.enable = true` | Default battery-saving configuration. iGPU renders display; dGPU executes on demand via `nvidia-offload`. |
 | **PRIME Sync** | `my.hardware.nvidia.prime.sync.enable = true` | Dedicated rendering on dGPU. Applicable to X11 only; under Wayland compositors (Niri), use `WLR_DRM_DEVICES`. |
-| **Open Modules** | `my.hardware.nvidia.open = true` | Utilizes open-source kernel modules (Turing and newer architectures). |
+| **Open Modules** | `my.hardware.nvidia.open = true` | Uses open-source kernel modules (Turing and newer architectures). |
 | **Power Management** | `my.hardware.nvidia.powerManagement.finegrained = true` | Enables Runtime D3 (RTD3) dynamic power gating (requires PRIME offload). |
 
 ### Example: PRIME Offload with Open Modules

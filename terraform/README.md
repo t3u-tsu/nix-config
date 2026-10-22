@@ -13,7 +13,7 @@ Infrastructure as Code managed via [OpenTofu](https://opentofu.org/) (`tofu`) fo
 
 ## Environment Variables & Credentials
 
-Credentials must be exported into the environment prior to running `tofu`:
+Export credentials to the environment before running `tofu`:
 
 ```bash
 # ConoHa API credentials (extracted from SOPS)
@@ -34,7 +34,7 @@ tofu validate  # Validate syntax
 tofu plan      # Inspect planned infrastructure changes
 tofu apply     # Provision VPS (starts billing; requires user approval)
 tofu output -json torii_chan_addresses  # Retrieve assigned public IP
-tofu destroy   # Teardown VPS and stop billing (requires user approval)
+tofu destroy   # Tear down VPS and stop billing (requires user approval)
 ```
 
 > [!WARNING]
@@ -42,7 +42,7 @@ tofu destroy   # Teardown VPS and stop billing (requires user approval)
 
 ## NixOS Installation via Rescue ISO
 
-ConoHa does not provide native NixOS images. The custom minimal NixOS ISO is booted via the ConoHa API rescue mode:
+ConoHa does not provide native NixOS images. Boot the custom minimal NixOS ISO using ConoHa API rescue mode:
 
 ```bash
 # 1. Provision base instance (Debian bootstrap)

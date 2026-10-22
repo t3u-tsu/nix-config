@@ -1,6 +1,6 @@
 # Gateway Services (`nixos/services/gateway/`)
 
-Core network routing and gateway services powering the `torii-chan` role, shared between the physical SBC and failover VPS.
+Network routing and gateway services for the `torii-chan` role, shared between the physical SBC and failover VPS.
 
 ## Services Architecture
 

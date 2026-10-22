@@ -1,15 +1,15 @@
 # Desktop Home Modules
 
-User-specific desktop environment configuration managed via Home Manager.
+User-specific desktop environment configuration managed with Home Manager.
 
 ## Configuration Profiles
 
-Desktop modules are divided into a lightweight baseline and optional resource-heavy suites:
+Desktop modules provide a baseline configuration and an optional full workstation suite:
 
 | Option | Description | Included Modules |
 | :--- | :--- | :--- |
-| `my.home.desktop.enable` | Lightweight baseline core | `bitwarden`, `browsers`, `communication`, `locales`, `niri`, `noctalia`, `theme`, `thunar`, `xdg`, `gpg-signing`, `dev-tools` (core) |
-| `my.home.desktop.full.enable` | Full desktop experience | Adds `gaming`, `creative`, `media`, `office`, and heavy dev/AI tooling |
+| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `locales`, `niri`, `noctalia`, `theme`, `thunar`, `xdg`, `gpg-signing`, `dev-tools` (core) |
+| `my.home.desktop.full.enable` | Full workstation suite | Adds `gaming`, `creative`, `media`, `office`, and heavy dev/AI tooling |
 
 ## Modules
 

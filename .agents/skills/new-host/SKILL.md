@@ -5,7 +5,7 @@ description: 新ホストを追加するときの手順．
 
 # 新ホストを追加するとき
 
-新ホスト追加の詳細な手順は [`docs/operations/adding-a-host.md`](../../../docs/operations/adding-a-host.md) に集約されている．作業開始前に必ずユーザー承認を得る．Git 操作は `dev-workflow` スキルに従う（ブランチ名: `feat/add-<hostname>`）．
+新ホスト追加の手順は [`docs/operations/adding-a-host.md`](../../../docs/operations/adding-a-host.md) を参照．作業開始前にユーザー承認を得る．ブランチ運用は `dev-workflow` スキルに従う（`feat/add-<hostname>`）．
 
 1. `cp -r hosts/_template hosts/<hostname>` を実行し，`HOSTNAME` プレースホルダ，`hardware.nix`（ファイルシステム / スワップ），`services/nebula.nix`（IP / グループ）を実機に合わせて編集する．
 2. `flake/hosts.nix` に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` の定義を追加する（`profile` は `desktop` / `tower-server` / `gateway` から選択）．

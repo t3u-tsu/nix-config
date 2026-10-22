@@ -1,12 +1,8 @@
 # リポジトリ全体アーキテクチャ
 
-本ドキュメントは，本リポジトリのレイヤ構成，ファイル配置，およびモジュールの評価フローを解説する．
-
----
+関心の分離と責務の明確化に基づき，リポジトリを以下のレイヤに分割する．
 
 ## 1. レイヤ構成
-
-本リポジトリは，関心の分離と責務の明確化に基づき以下のレイヤに分割されている．
 
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
@@ -24,7 +20,7 @@
 
 ## 2. モジュール読み込み・評価フロー
 
-リポジトリ直下の `flake.nix` から各ホストの NixOS 設定が評価されるまでのフローは以下の通りである．
+各ホストの NixOS 設定が評価されるフロー:
 
 ```text
 flake.nix
@@ -53,13 +49,13 @@ flake.nix
 ```
 
 > [!NOTE]
-> サービスやデスクトップ機能に固有の外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，`lib/default.nix` でグローバルに注入せず，それらを利用するコンシューマモジュール（`nixos/services/` や `home/desktop/`）が直接インポートしてスコープを局所化している．
+> 外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，`lib/default.nix` でグローバルに注入せず，利用先のモジュール（`nixos/services/` や `home/desktop/`）で直接インポートしてスコープを局所化する．
 
 ---
 
 ## 3. ホストからモジュールへの展開
 
-`lib/default.nix` の `mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールが合成される．
+`mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
 
 ```text
 mkLib.mkSystem によるモジュール合成
@@ -85,13 +81,14 @@ mkLib.mkSystem によるモジュール合成
 
 ## 4. モジュール評価順序と優先度制御
 
-1. **構成モジュールの注入順序**:
-   - `modules` リストは `../nixos → profile → hosts/<name>/default.nix → extraModules` の順序で合成される．
-   - プロファイルで基本設定（または `lib.mkDefault`）を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
-2. **優先度制御（Priority System）**:
-   - 単純なスカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
-3. **コレクション型オプションの結合**:
-   - `environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．
+### 構成モジュールの注入順序
+`modules` リストは `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
+
+### 優先度制御（Priority System）
+スカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
+
+### コレクション型オプションの結合
+`environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．
 
 ---
 

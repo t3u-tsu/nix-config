@@ -1,15 +1,15 @@
 # Home Modules
 
-User-specific configurations managed via Home Manager.
+User-specific configurations managed with Home Manager.
 
 ## Modules
 
 | Directory / File | Description |
 | :--- | :--- |
 | [`shell/`](shell/README.md) | Interactive shell environment, prompt, and command history. |
-| [`programs/`](programs/README.md) | Common CLI tools, Git, SSH client, and local LLM services. |
+| [`programs/`](programs/README.md) | CLI tools, Git, SSH client, and local LLM services. |
 | [`desktop/`](desktop/README.md) | Desktop environment (Wayland compositor, shell, browsers, apps). |
-| `sops.nix` | SOPS age key derivation from user SSH key. |
+| `sops.nix` | Derives SOPS age key from user SSH key. |
 | `default.nix` | Aggregates base home modules. |
 
 ## References

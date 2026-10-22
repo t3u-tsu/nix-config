@@ -1,6 +1,6 @@
 # Host: shosoin-tan (Minecraft & General-Purpose Server)
 
-Primary home tower server hosting Minecraft services, Discord Bridge, and multi-tier backups with redundant ZFS Mirror storage.
+Home tower server hosting Minecraft services, Discord Bridge, and Restic backups with ZFS Mirror storage.
 
 ## Hardware Specifications
 
@@ -24,8 +24,8 @@ Primary home tower server hosting Minecraft services, Discord Bridge, and multi-
 
 ## Key Services
 
-- **Minecraft Server:** Paper server running under `/srv/minecraft`. Public traffic (`tcp/25565`) is reverse-proxied and forwarded via Nebula from `torii-chan`.
-- **Discord Bridge:** Bi-directional chat bridge bot interfacing via UNIX socket at `/run/minecraft-discord-bridge/bridge.sock`.
+- **Minecraft Server:** Paper server running under `/srv/minecraft`. Forwards public traffic (`tcp/25565`) from `torii-chan` over Nebula.
+- **Discord Bridge:** Chat bridge bot communicating through UNIX socket at `/run/minecraft-discord-bridge/bridge.sock`.
 - **Multi-Tier Restic Backups:** Runs bi-hourly snapshots to local ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site over Nebula to `kagutsuchi-sama` (`10.0.0.3`).
 
 ## Quick Operations

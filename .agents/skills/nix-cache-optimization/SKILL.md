@@ -9,7 +9,7 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 
 `ghostty` のような重いコンパイルを伴う外部 Flake パッケージは，`inputs.nixpkgs.follows = "nixpkgs";` でローカルの nixpkgs に追従させると，キャッシュ側のビルドとハッシュが一致せずバイナリキャッシュを取得できなくなる．
 
-キャッシュのビルド済みバイナリを活用するには，パッケージが元々依存している nixpkgs のまま評価させる．ただし follows を外すと別バージョンの nixpkgs が評価空間に複製されてディスクを消費するため，`nix build --dry-run` 等で「重い Zig/C コンパイルが走るか，軽量なラッパー構築だけで済むか」を確認して判断する．
+キャッシュのビルド済みバイナリを使用するには，パッケージが元々依存している nixpkgs のまま評価させる．ただし follows を外すと別バージョンの nixpkgs が評価空間に複製されてディスクを消費するため，`nix build --dry-run` 等で「重い Zig/C コンパイルが走るか，軽量なラッパー構築だけで済むか」を確認して判断する．
 
 ## extra-substituters の priority
 

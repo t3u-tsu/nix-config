@@ -8,7 +8,7 @@
 
 [English](README.md)
 
-Nix Flakes を用いて個人のワークステーション，サーバー群，およびネットワークゲートウェイを一元管理する宣言的設定リポジトリ．
+Nix Flakes でワークステーション，サーバー群，およびネットワークゲートウェイを一元管理する宣言的 NixOS 設定．
 
 ## 技術スタック
 
@@ -40,9 +40,9 @@ Nix Flakes を用いて個人のワークステーション，サーバー群，
 - [`terraform/`](terraform/) — ConoHa VPS インフラの OpenTofu 定義
 - [`docs/`](docs/) — 設計仕様，運用ランブック，ハードウェア解説，障害復旧手順（SSOT）
 
-詳細なシステムアーキテクチャおよびモジュール評価フローは [`docs/architecture/overview.md`](docs/architecture/overview.md) を参照．運用ランブックや各ガイドの全目次は [`docs/README.md`](docs/README.md) に集約されている．
+システムアーキテクチャおよびモジュール評価フローは [`docs/architecture/overview.md`](docs/architecture/overview.md) を参照．
 
-機密情報はプライベートリポジトリ（[`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)）に分離し，Flake input としてインポートしている．新規マシンのセットアップや初回認証ブートストラップは [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) を参照．
+機密情報はプライベートリポジトリ（[`nix-config-private`](https://github.com/t3u-tsu/nix-config-private)）に分離し，Flake input として読み込む．マシン初期設定や初回認証ブートストラップは [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) を参照．
 
 ## クイックスタート
 
@@ -73,16 +73,16 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## 新規ホストの追加
 
-[`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) の統一手順書に従う．[`hosts/_template/`](hosts/_template) テンプレートの複製，SOPS age 鍵の登録，Nebula 証明書の発行，およびデプロイ検証までの全工程を解説している．
+新規ホストのセットアップ手順は [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) を参照．[`hosts/_template/`](hosts/_template) の複製，SOPS age 鍵登録，Nebula 証明書発行，デプロイ検証の手順を記載している．
 
 ## CI/CD & 自動化
 
-- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価，pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`）の実行，および `convco` による Conventional Commits コミット規約の検証を実施する．
-- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に自動実行．nvfetcher による外部パッケージ追従，`flake.lock` の更新，CI 検証を経て自動で `main` に反映する．
+- **Nix Flake Check** ([`nix-check.yml`](.github/workflows/nix-check.yml)): 全ホストの評価，pre-commit リンター（`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`）の実行，`convco` による Conventional Commits 検証を実施する．
+- **Scheduled Auto Update** ([`auto-update.yml`](.github/workflows/auto-update.yml)): 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，`flake.lock` の更新，CI 検証を経て `main` へ反映する．
 
 ## ドキュメント
 
-詳細なアーキテクチャ設計，運用ランブック，ハードウェア解説，および障害復旧手順は [`docs/README.md`](docs/README.md) を参照．
+全運用手順，アーキテクチャ設計，ハードウェア仕様，復旧手順の目次は [`docs/README.md`](docs/README.md) に集約している．
 
 ## 参考文献
 

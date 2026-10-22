@@ -1,6 +1,6 @@
 # Hosts (`hosts/`)
 
-Machine-specific configurations for all physical and virtual hosts in the fleet. Each host is registered in `flake/hosts.nix` via `mkLib.mkSystem` and configured via its `default.nix` entrypoint.
+Machine configurations for physical and virtual hosts in the fleet. Each host is registered in `flake/hosts.nix` using `mkLib.mkSystem` and configured through its `default.nix` entrypoint.
 
 ## Fleet Overview
 
