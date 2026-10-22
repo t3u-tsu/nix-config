@@ -45,6 +45,20 @@
   # TPM yet.
   security.tpm2.enable = true;
 
+  # The default stack puts pam_fprintd ahead of pam_unix, which stalls the
+  # password prompt for up to 30s. Running fprintd after unix keeps pam_unix
+  # prompting (no unix-early here, so use_first_pass must stay off) and lets an
+  # empty submission fall through to a single 10s fingerprint attempt.
+  security.pam.services = lib.genAttrs [ "polkit-1" "sudo" ] (name: {
+    rules.auth.fprintd = {
+      order = config.security.pam.services.${name}.rules.auth.unix.order + 10;
+      settings = {
+        max-tries = 1;
+        timeout = 10;
+      };
+    };
+  });
+
   my.services.desktop = {
     greetd = {
       greeterOutput.name = "eDP-1";
