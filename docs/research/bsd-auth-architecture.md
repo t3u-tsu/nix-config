@@ -1,16 +1,10 @@
 # BSD 認証アーキテクチャ：同期か並行か
 
-FreeBSD（OpenPAM），NetBSD（OpenPAM），OpenBSD（BSD Authentication）が，Linux-PAM と同様に同期・逐次的であるのか，あるいは生体認証とパスワードを同時に待ち受ける並行マルチモーダル認証を提供しているのかを，upstream のソースコードと man ページに基づいて調査した結果をまとめる．
+FreeBSD（OpenPAM），NetBSD（OpenPAM），OpenBSD（BSD Authentication）の認証スタックは，いずれも厳密に同期・逐次処理であり，生体認証とパスワードの並行待ち受けプリミティブを持たない．
 
-**判定（要約）**: 3 系はいずれも厳密に同期・逐次であり，並行マルチモーダル認証のプリミティブを備えていない．FreeBSD / NetBSD が使う OpenPAM のモジュールディスパッチャは，Linux-PAM とアーキテクチャ上同一の「チェーンを 1 モジュールずつ辿る単一スレッドループ」であり，PAM ハンドルごとに conversation コールバックを 1 つだけ持つ．OpenBSD の BSD Authentication はセキュリティモデルが大きく異なる（socketpair 越しの特権分離ヘルパプロセス）が，こちらもスタイルを 1 つだけ選択し，ヘルパ 1 つを `waitpid()` で待つ．FreeBSD の生体認証ログインは ports の `security/fprintd`（`pam_fprintd.so` を含む）としてのみ存在するため，逐次的な PAM パイプラインにそのまま乗る．NetBSD は pkgsrc に `libfprint` のみを持ち，OpenBSD base には生体認証の経路が存在しない．
-
----
-
-## 概要
-
-- FreeBSD・NetBSD の base は OpenPAM を使う．`openpam_dispatch()` はモジュールチェーンを先頭から 1 つずつ同期的に呼ぶループであり，Linux-PAM と本質的に同じ逐次構造である．会話（プロンプト）は PAM ハンドルごとに 1 つの `pam_conv` コールバックで処理される．
-- OpenBSD は PAM を採用せず BSD Authentication（BSD Auth）を使う．PAM の dlopen された共有ライブラリが呼び出しプロセス（suid root の login 等）のアドレス空間で動くことを嫌い，`/usr/libexec/auth/login_<style>` を fork/exec し，socketpair のバックチャネルで IPC する特権分離モデルを採る．ただしこれも逐次であり，1 回の試行につき 1 スタイル・1 ヘルパプロセスで，親は `waitpid()` で待つ．生体認証とパスワードを並行に待つ仕組みは無い．
-- 縦統合（vertical integration）は「カーネル＋base ユーザランド」に限られ，デスクトップは ports/pkgsrc の第三者スタックである．Apple/Windows のように OS ベンダが認証 UI まで一貫して所有していないため，並行マルチモーダル認証を駆動する主体が存在しない．
+- **FreeBSD / NetBSD (OpenPAM)**: Linux-PAM と同様の「モジュールチェーンを順次辿る単一スレッドループ」であり，PAM ハンドルごとに単一の conversation コールバックのみを持つ．FreeBSD の生体認証は ports の `security/fprintd`（`pam_fprintd.so`）による逐次実行にとどまり，NetBSD には fprintd パッケージ自体が存在しない．
+- **OpenBSD (BSD Authentication)**: socketpair 経由で特権分離された外部ヘルパプロセスを起動するモデルを採るが，1 回の試行につき 1 スタイルのみを選択し，単一ヘルパを `waitpid()` でブロック待機する逐次構造である．生体認証の統合機構は base システムに存在しない．
+- **縦統合の境界**: いずれの BSD もカーネル＋base ユーザランドのみを垂直統合しており，デスクトップ環境や認証 UI は ports / pkgsrc の管轄となる．そのため，ディスプレイマネージャや認証プロンプトを横断して並行待ち受けをオーケストレーションする基盤が存在しない．
 
 ---
 
@@ -57,12 +51,12 @@ for (; chain != NULL; chain = chain->next) {
 }
 ```
 
-観察結果:
+**ディスパッチ構造の特徴**:
 
-- **厳密に逐次**．1 つのモジュールが完了してから次が呼ばれる．スレッドも `select()`/`poll()` によるファンアウトも無く，2 つのモジュールを競争させる機構も無い．
-- **再入・並行なし**．`pamh->current != NULL` ガードにより，ディスパッチ進行中のネストした `pam_*` 呼び出しは `PAM_ABORT` で失敗する．1 つの PAM ハンドルは同時に 1 つのディスパッチしか持てない．
-- `PAM_REQUISITE`，`PAM_SUFFICIENT`，`PAM_BINDING` の各フラグはループの*順序*と*早期終了*の意味だけを制御し，並行性は導入しない．
-- NetBSD の `openpam_dispatch.c` は同一コードである．両ファイルの diff は `__RCSID()` の追加と `(enum openpam_sm_primitives)` キャストのみで，ループ本体はバイト単位で等価（`for (; chain != NULL; chain = chain->next)`）である．
+- **厳密な逐次実行**: 1 つのモジュールの完了を待ってから次が呼ばれる．スレッドや `select()` / `poll()` による多重化はなく，複数モジュールを競合させる機構は存在しない．
+- **再入・並行性の排除**: `pamh->current != NULL` ガードにより，ディスパッチ実行中のネストした `pam_*` 呼び出しは `PAM_ABORT` で拒絶される．単一の PAM ハンドルが保持できるディスパッチ状態は常に 1 つに限られる．
+- **制御フラグの性質**: `PAM_REQUISITE`，`PAM_SUFFICIENT`，`PAM_BINDING` の各フラグは，ループの走査順序と早期終了条件を制御するのみであり，並行実行をもたらさない．
+- **NetBSD との共通性**: NetBSD の `openpam_dispatch.c` も同一実装である．FreeBSD との差分は `__RCSID()` の追加と `(enum openpam_sm_primitives)` キャストのみであり，ループ本体（`for (; chain != NULL; chain = chain->next)`）は完全に一致する．
 
 ### 1.2 PAM ハンドルごとに conversation コールバックは 1 つ
 
@@ -103,7 +97,7 @@ for (depth=0 ; h != NULL ; prev_level = stack_level, h = h->next, ++depth) {
 }
 ```
 
-したがって Linux と BSD の PAM 実装は，同じ同期・単一コールバックのパイプラインを共有する．注目すべき相違点が 1 つある．Linux-PAM は `PAM_INCOMPLETE` を定義しており，モジュールが状態を保存してアプリケーションへ制御を返し，後で*再開*できる（協調的だが依然 1 つずつの非同期ディスパッチ）．OpenPAM は `PAM_INCOMPLETE` を定義して**いない**（`contrib/openpam/include/security/pam_constants.h` に該当定数が無い）ため，OpenPAM のディスパッチは厳密にブロッキングである．つまり Linux-PAM の方が OpenPAM よりイベント駆動に*多少は*適しているが，どちらもモジュールの並行実行は提供しない．
+このように，Linux と BSD の PAM 実装はいずれも同期・単一コールバックのパイプラインを共有する．相違点として，Linux-PAM は `PAM_INCOMPLETE` を定義しており，モジュールが内部状態を保持してアプリケーションへ制御を戻し，後から再開する協調的ディスパッチが可能である．一方，OpenPAM は `PAM_INCOMPLETE` を定義していないため（`contrib/openpam/include/security/pam_constants.h` に該当定数なし），ディスパッチは完全にブロッキング処理となる．ただし Linux-PAM の再開機構も単一スタックの進行を一時中断するにすぎず，複数モジュールの並行実行を支援するものではない．
 
 ### 1.4 FreeBSD / NetBSD の生体認証
 
@@ -117,9 +111,9 @@ for (depth=0 ; h != NULL ; prev_level = stack_level, h = h->next, ++depth) {
 
 ### 2.1 OpenBSD が PAM を採用しなかった理由
 
-BSD Authentication は BSD/OS（BSDI）に起源を持ち，FreeBSD へ寄贈され，OpenBSD が 2.9 で採用した．OpenBSD は base システムに PAM を意図的に採用しなかった．文書化されている理由を重要性の高い順に挙げる:
+BSD Authentication は BSD/OS（BSDI）に起源を持ち，FreeBSD を経て OpenBSD 2.9 で採用された．OpenBSD が base システムで PAM を排した設計理由は以下のとおりである．
 
-1. **特権アドレス空間内の共有ライブラリ**．PAM モジュールは `dlopen` される動的共有オブジェクトであり，認証を行うプロセス*内部*で動作する．`login`，`su`，`sshd`，`passwd`，`ftpd` では，そのプロセスが setuid/setgid root か，それに準ずる高い特権を持つ．モジュールのバグ・バックドア・メモリ安全性の誤りは，呼び出し元の特権とアドレス空間をそのまま得て実行される．隔離境界が存在しない．この立場の一般的な要約（lambda.cx の記事や Wikipedia を参照）は次のとおりである: "the fact that it's a shared library means that any vulnerability in a poorly vetted authentication module gives attackers direct access to the internals of your application."
+1. **特権アドレス空間内の共有ライブラリ**．PAM モジュールは `dlopen` される動的共有オブジェクトであり，認証を行うプロセス*内部*で動作する．`login`，`su`，`sshd`，`passwd`，`ftpd` では，そのプロセスが setuid/setgid root か，それに準ずる高い特権を持つ．モジュールのバグ・バックドア・メモリ安全性の誤りは，呼び出し元の特権とアドレス空間をそのまま得て実行される．隔離境界が存在しない．この危険性は "the fact that it's a shared library means that any vulnerability in a poorly vetted authentication module gives attackers direct access to the internals of your application." と要約される．
 2. **構造としての特権分離**．BSD Auth は各認証スタイルを*独立した実行ファイル*として起動し，狭い IPC チャネルで通信する．これは Provos, Friedl, Honeyman の "Preventing Privilege Escalation"（USENIX Security 2003）に記述された原則と同じであり，BSD Auth はその着想元として引用されている．独立プロセスはさらに `pledge(2)`/`unveil(2)` で特権を落とせる．例えば `libexec/login_passwd/login_passwd.c` は次のようにする:
    ```c
    /* get the password hash before pledge(2) or it will return '*' */
@@ -132,7 +126,7 @@ BSD Authentication は BSD/OS（BSDI）に起源を持ち，FreeBSD へ寄贈さ
 3. **複雑さ・設定ミス**．PAM の階層化された `pam.conf`/`pam.d` 制御フラグとモジュールスタックは設定を誤りやすい（Michael W. Lucas の言う "unstandardized black magic"）．OpenBSD は `login.conf(5)` の小さく監査可能な設定と，単一目的のヘルパプログラムを好む．
 4. **文化的・保守的な立場**．`pppd` から PAM の残骸を削除した OpenBSD `tech@` のスレッドで，Ted Unangst は「我々には無関係な PAM と shadow のコードが大量にある」と述べ，削除対象を "tangly morass" と呼んだ．置き換え先は BSD auth か素の `crypt_checkpass` であった．
 
-**注意**: OpenBSD の *ports* ツリーには，PAM を強く要求する第三者ソフトウェアをビルドするため `security/openpam`（および `security/libfprint`）が今も存在する．拒否の対象は base システムであり，port を禁じているわけではない．
+なお，OpenBSD の ports ツリーには，PAM を要求する外部ソフトウェアのビルド用に `security/openpam`（および `security/libfprint`）が提供されている．排除の対象はあくまで base システムである．
 
 ### 2.2 アーキテクチャ — 独立ヘルパ実行ファイル + バックチャネル
 
@@ -280,19 +274,21 @@ if ((authok & AUTH_ALLOW) == 0)
 - `AUTH_CHALLENGE` 対応は 2 フェーズだが依然直列なプロトコルである: `auth_challenge()` がヘルパを `-s challenge` で実行してチャレンジ文字列を取得し，アプリケーションは後で `auth_userresponse()` を呼び，ヘルパを `-s response` と応答データ付きで再実行する．1 スタイル・1 ヘルパずつで，その間はブロックする．
 - 複数ヘルパや複数デバイス fd に対する `select()`/`poll()`/スレッドは無い．
 
-**生体認証とパスワードを並行に待ち受けられるか？** フレームワーク経由では不可能である．2 つのスタイルを開始して先に成功した方を採用する API は無い．原理的には新しいスタイルヘルパ（例: `login_fprint`）を書き，その内部で指紋リーダーと端末プロンプトを開いて競争させることはできるが:
+### 2.5 生体認証とパスワードの並行待ち受け可否
 
-- OpenBSD base にそのようなヘルパは同梱されていない．
-- 親から見れば依然 1 スタイル・1 ブロッキング子プロセスであり，並行性はそのヘルパ内部に閉じる．
-- リーダデバイスと `/etc/master.passwd` を読むため，特権を持つ独立プロセスにする必要があり，OpenBSD はそのようなデーモンを追加しない選択をしている．
+BSD Auth フレームワーク経由での並行待ち受けは不可能である．複数スタイルを同時に開始して先に成立した側を採用する API は存在しない．新規スタイルヘルパ（例: `login_fprint`）を作成し，その内部で指紋リーダーと端末プロンプトを競合させる実装は理論上可能だが，以下の構造的制約がある．
 
-OpenBSD *ports* には `security/libfprint`（指紋バックエンドライブラリ）があるが，`fprintd` デーモンも PAM/BSD-auth の指紋統合も**無い**ため，パッケージ経由の生体認証ログイン手段も存在しない．
+- OpenBSD base に生体認証用ヘルパは同梱されていない．
+- 親プロセス側から見れば単一スタイル・単一ブロッキング子プロセスにすぎず，並行処理はヘルパ内部に閉じる．
+- デバイスアクセスと `/etc/master.passwd` 参照のため特権プロセスを増設する必要があり，特権デーモンを最小化する OpenBSD の設計方針と背反する．
+
+OpenBSD の ports には `security/libfprint` が存在するが，`fprintd` デーモンや PAM / BSD Auth 向けの指紋統合ヘルパは提供されておらず，パッケージ経由での生体認証ログイン手段も存在しない．
 
 ---
 
-## 3. 縦統合のパラドックス
+## 3. 縦統合のスコープとデスクトップ認証の不在
 
-「BSD の縦統合された base 開発なら，並行マルチモーダルなデスクトップ認証が生まれたはず」という前提は，2 種類の縦統合を混同している．BSD プロジェクトは**カーネル＋base ユーザランド**（単一リポジトリ，単一リリースエンジニアリング，単一セキュリティレビュー）では縦統合されているが，**デスクトップ**では縦統合されていない．この区別が，並行マルチモーダル認証の不在を説明する．
+BSD プロジェクトにおける「縦統合（vertical integration）」の範囲は，**カーネル＋base ユーザランド**（単一リポジトリ，一元化されたリリースエンジニアリング，統一されたセキュリティ監査）に限定され，**デスクトップ環境**までは含まない．このアーキテクチャ境界が，並行マルチモーダル認証が実装されなかった直接の要因である．
 
 ### 3.1 縦統合が実際に止まる境界
 
@@ -316,7 +312,9 @@ OpenBSD *ports* には `security/libfprint`（指紋バックエンドライブ�
 - FreeBSD と NetBSD は base を意図的に小さく保ち，デスクトップの関心事を ports/pkgsrc へ押し出す．そのため生体認証は*単一の PAM モジュール*（`pam_fprintd`）としてのみ到来し，逐次的な OpenPAM パイプラインを継承する．
 - これらはボランティアプロジェクトであり，ハードウェア／センサーの要求を持たない．統一された並行生体認証プロンプトを構築するファーストパーティの動機が無く，Linux エコシステムの `fprintd` が既に port のニッチを埋めている．
 
-**パラドックスの結論**: 縦統合された base とは，信頼性とリリース／セキュリティ規律の話であり，ユーザ向け認証体験を所有することではない．3 系すべてでデスクトップとログイン UI が対象外である以上，base の認証フレームワーク（単純さと特権分離のため既に同期・単一コールバック）が並行マルチモーダル認証へ拡張されることはなかった．Apple と Microsoft が実現できたのは経路全体を所有していたからであり，BSD はそれを試みていない．
+### 3.4 結論
+
+BSD における縦統合の目的はシステム全体の信頼性とセキュリティ規律の一元化であり，デスクトップのユーザー認証体験の垂直統合ではない．3 系すべてにおいてデスクトップおよびログイン UI は base システムの管理外（ports / pkgsrc）であり，base の認証フレームワーク（単純性と特権分離を重視した同期・単一コールバック設計）が並行マルチモーダル認証へ拡張される動機は存在しなかった．UI からカーネル・ハードウェアまでを一貫して所有・制御する Apple や Microsoft とはアーキテクチャの前提が異なる．
 
 ---
 
@@ -324,16 +322,16 @@ OpenBSD *ports* には `security/libfprint`（指紋バックエンドライブ�
 
 | 設問 | 回答 |
 | --- | --- |
-| OpenPAM の `openpam_dispatch()` は Linux-PAM と同じ同期・逐次パイプラインか | はい．モジュールチェーンに対する単一の `for` ループで，1 モジュールずつ実行し，`pamh->current` による再帰ガードを持つ．Linux-PAM だけにある追加機能は `PAM_INCOMPLETE` による再開可能モジュールである． |
-| `pam_conv` は Linux-PAM と同じ単一コールバックか | はい．`pam_start` 時に設定される `struct pam_conv` は PAM ハンドルごとに 1 つで，モジュールから同期的に呼ばれる．メッセージの*配列*はまとめられるが並行性は得られない． |
-| FreeBSD に生体認証／fprintd のサポートはあるか | あるが port としてである: `security/fprintd` が `fprintd` と `pam_fprintd.so` を提供し，`security/libfprint` がバックエンドである．base には入らず，PAM スタック内で逐次実行される． |
-| OpenBSD は PAM を使うか | base では使わない．BSD Authentication を使う．OpenPAM は第三者ソフトウェア向けの port としてのみ存在する． |
-| OpenBSD はなぜ PAM を拒否したか | モジュールが特権呼び出し元のアドレス空間へ `dlopen` される（隔離なし）こと，複雑さ・設定ミス，そして BSD Auth が `pledge` 可能な特権分離ヘルパプロセスを提供することによる． |
-| BSD Auth はどう動作するか | `auth_call()` が `/usr/libexec/auth/login_<style>` を `fork()`/`execve()` し，fd 3 に `socketpair` を配線する．ヘルパは行指向の `BI_*` トークンを出力し，親は `waitpid()` でブロックして spool を解析する． |
-| BSD Auth は逐次か並行か | 逐次である．`login_getstyle()` は 1 スタイルを返し，`auth_verify()` は 1 ヘルパを実行し，`auth_call()` はブロックする．challenge/response も 2 フェーズの直列プロトコルである． |
-| BSD Auth は生体認証とパスワードを並行に待ち受けられるか | 不可能である．複数スタイルを競争させるプリミティブは無く，生体認証スタイルのヘルパも同梱されていない．独自ヘルパなら内部で私的に実現できるが，フレームワークから見れば 1 つのブロッキング子プロセスのままである． |
-| NetBSD の生体認証は | pkgsrc の `security/libfprint` のみで，`fprintd` は無い．base では OpenPAM を使う． |
-| 縦統合があるのに並行マルチモーダルなデスクトップ認証が無いのはなぜか | 縦統合はカーネル＋base を対象とし，デスクトップを含まない．オーケストレーションを行うファーストパーティのデスクトップシェル／ディスプレイマネージャが存在せず，デスクトップと生体認証は third-party の ports である．BSD base の哲学はサーバ・ヘッドレス・セキュリティ最小主義である． |
+| OpenPAM の `openpam_dispatch()` は Linux-PAM と同じ同期・逐次パイプラインか | 同期・逐次パイプラインである．モジュールチェーンに対する単一の `for` ループで 1 モジュールずつ順次実行し，`pamh->current` で再帰呼び出しを禁止する．なお Linux-PAM は `PAM_INCOMPLETE` による再開機構を備えるが，OpenPAM には存在しない． |
+| `pam_conv` は Linux-PAM と同じ単一コールバックか | 単一コールバックである．`pam_start` 時に登録された `struct pam_conv` は PAM ハンドルごとに 1 個であり，モジュールから同期的に呼び出される．メッセージ配列の送受信は可能だが，複数イベントのレース機構はない． |
+| FreeBSD に生体認証／fprintd のサポートはあるか | ports 経由でのみ提供される．`security/fprintd` が `fprintd` デーモンおよび `pam_fprintd.so` を提供し，バックエンドに `security/libfprint` を用いる．base システムには含まれず，PAM スタック内で逐次実行される． |
+| OpenBSD は PAM を使うか | base システムでは不採用．BSD Authentication を使用する．OpenPAM はサードパーティ製ソフトウェア向けの ports としてのみ提供される． |
+| OpenBSD はなぜ PAM を拒否したか | 共有ライブラリ（PAM モジュール）が特権プロセスのアドレス空間へ `dlopen` され隔離境界を持たない点，設定構文の複雑性，および BSD Auth が `pledge` による特権分離ヘルパプロセスを提供できる点を理由とする． |
+| BSD Auth はどう動作するか | `auth_call()` が `/usr/libexec/auth/login_<style>` を fork/exec し，fd 3 の socketpair 経由で IPC を行う．ヘルパは行指向の `BI_*` トークンを出力し，親プロセスは `waitpid()` で同期ブロックして応答を解析する． |
+| BSD Auth は逐次か並行か | 同期・逐次である．`login_getstyle()` は単一スタイルのみを返し，`auth_verify()` は単一ヘルパを実行し，`auth_call()` がブロック待機する．challenge/response も 2 フェーズの直列通信である． |
+| BSD Auth は生体認証とパスワードを並行に待ち受けられるか | 不可能である．複数スタイルを競合させる API はなく，生体認証スタイルのヘルパも同梱されていない．独自ヘルパ内部で並行処理を実装した場合でも，フレームワーク側からは単一のブロッキング子プロセスとして扱われる． |
+| NetBSD の生体認証は | pkgsrc の `security/libfprint` のみ提供され，`fprintd` デーモンは存在しない．base システムは OpenPAM を採用する． |
+| 縦統合があるのに並行マルチモーダルなデスクトップ認証が無いのはなぜか | 縦統合の対象がカーネル＋base ユーザランドに限定され，デスクトップ環境を含まないため．認証をオーケストレーションするファーストパーティのデスクトップシェルやディスプレイマネージャが存在せず，生体認証スタックも ports / pkgsrc の管轄となる．また base システムの設計思想自体がサーバ・ヘッドレス・特権最小化に特化している． |
 
 ---
 

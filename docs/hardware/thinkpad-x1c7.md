@@ -141,12 +141,12 @@ Lenovo の EC ファームウェアによる過剰な早期スロットリング
 
 - **有効化**: [`services.fprintd.enable = true`](../../hosts/x1c7/default.nix)
 - **fprintd のライフサイクル（D-Bus activation と 30 秒 auto-exit）**: `fprintd.service` は `Type=dbus` / `BusName=net.reactivated.Fprint` で，未使用のまま 30 秒経過すると `Deactivated successfully` で終了する（`src/fprintd.h` の `#define TIMEOUT 30`）．必要時に systemd が D-Bus 経由で自動起動するため，`systemctl status fprintd` が常時 `inactive` でも異常ではない．サスペンド復帰用のサービスも不要である．
-- **PAM 統合と順序調整（polkit-1 / sudo / greetd / login）**: NixOS の既定スタックでは `pam_fprintd`（11400）が `pam_unix`（11700）より先に評価されるため，パスワード入力が最大 30 秒ブロックされる．本ホストではサービスごとに次のように並びとオプションを調整している（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)，[`greetd.nix`](../../nixos/services/desktop/greetd.nix)）．
-  - **`sudo` / `polkit-1`**: `fprintd` ルールを `pam_unix` の直後（`unix.order + 10`）へ移動し，`max-tries=1`，`timeout=10` に短縮する．パスワードプロンプトが即座に表示され，空のまま送信すると指紋認証へフォールスルーする．これら 2 サービスには `unix-early` が挿入されないため，`pam_unix` に `use_first_pass` は設定しない（設定するとプロンプト自体が省略されてロックアウトする）．単一 PAM スタックの逐次性に関する詳細は[並行待ち受け調査](../research/parallel-auth-architecture.md)を参照する．
+- **PAM 統合と順序調整（polkit-1 / sudo / greetd / login）**: NixOS の既定スタックでは `pam_fprintd`（order 11400）が `pam_unix`（11700）より先に評価されるため，指を置かない場合にパスワード入力が最大 30 秒間ブロックされる．本ホストではサービスごとに評価順序とオプションを個別に最適化している（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)，[`greetd.nix`](../../nixos/services/desktop/greetd.nix)）．
+  - **`sudo` / `polkit-1`**: `fprintd` ルールを `pam_unix` の直後（`unix.order + 10`）へ移動し，`max-tries=1`，`timeout=10` に短縮する．パスワードプロンプトが即座に表示され，空のまま送信すると指紋認証へフォールスルーする．両サービスには `unix-early` が挿入されないため，`pam_unix` に `use_first_pass` を付与してはならない（プロンプト自体が省略され即座に失敗するため）．単一 PAM スタックの逐次性に関する詳細は[並行待ち受け調査](../research/parallel-auth-architecture.md)を参照する．
   - **`greetd`**: `enableGnomeKeyring` が挿入する `unix-early` が `PAM_AUTHTOK` を供給するため，`pam_unix` に `use_first_pass = true` を設定し，空または不一致のパスワード送信時に再プロンプトなしで指紋認証へ移行する．グリーター側は `auth.allow_empty_password = true` を前提とする．
   - **`login`**: Noctalia のロック画面は D-Bus 経由で `net.reactivated.Fprint` を直接利用し，成功時は PAM を介さず解錠するため，ロック画面が使用する `login` サービスからは `fprintd` を除外してパスワード入力時の重複要求を防止している（これにより TTY コンソールログインでも指紋は無効化される）．
 - **ポリシーエージェント**: Noctalia シェルの `shell.polkit_agent` は無効化している（`polkit_agent = false;`）．`niri-flake` が `polkit-kde-agent-1` を起動するため，二重登録による D-Bus 警告と認証ダイアログの重複を避ける．
-- **Noctalia ロック画面の Claim 挙動**: ロック画面はパスワードを `login` PAM で，指紋を `net.reactivated.Fprint` D-Bus 直叩きで扱うデュアルチャネル構成である．指紋検証はロック中に常時アームされ，`claimed` と `released` を必ず対で出力する．パスワード送信時は `stopFingerprint()` でセンサを解放してから PAM 認証を子プロセスへ委譲するため，2 つの検証が同時に進行することはない．`Device was already claimed` は他の認証（pkexec 等）と重なった場合にのみ発生し，単一の認証では起きない．`Verification was in progress, stopping it` は `fprint_device_release()` が進行中の verify を正規にキャンセルしたことを示す警告で，解放漏れではない．
+- **Noctalia ロック画面の Claim 挙動**: ロック画面はパスワードを `login` PAM で，指紋を `net.reactivated.Fprint` D-Bus 直叩きで扱うデュアルチャネル構成である．指紋検証はロック中に常時アームされ，`claimed` と `released` を必ず対で出力する．パスワード送信時は `stopFingerprint()` でセンサを解放してから PAM 認証を子プロセスへ委譲するため，2 つの検証が同時に進行することはない．`Device was already claimed` は他の認証（pkexec 等）と重なった場合にのみ発生し，単一の認証では起きない．`Verification was in progress, stopping it` は `fprint_device_release()` が進行中の verify を正常にキャンセルしたことを示す警告であり，解放漏れではない．
 - **USB 電源管理と復帰**: udev ルール（`power/control=on`，`power/persist=1`）と TLP の `USB_DENYLIST = "06cb:00bd"` により autosuspend を二重に防止している．サスペンド復帰時には `xhci_hcd ... xHC error in resume, USBSTS 0x401` が記録されることがあるが，Noctalia は復帰後に新しいハンドルで Claim し直すため実害はない．
 - **照合失敗ログ**: `Failed to match fingerprint` は未登録の指や置き方による `verify-no-match` の正常通知であり，テンプレート破損を示すものではない．
 - **既知の良性事象（error 789）**: デバイス初期化後の初回 probe で，SENSOR_CMD_GET_VERSION の応答 status が 789（0x0315）となり `Device responded with error` の warning が出る．Synaptics ドライバは 1 回だけ即時リトライして成功するため，照合結果には影響しない．
@@ -256,5 +256,5 @@ BIOS の `Config -> Thunderbolt 3 -> Thunderbolt BIOS Assist Mode` は，Linux �
 - [電源・サーマル設定: `hosts/x1c7/services/power.nix`](../../hosts/x1c7/services/power.nix)
 - [オーディオパッチ: `hosts/x1c7/services/audio.nix`](../../hosts/x1c7/services/audio.nix)
 - [デスクトップログイン設計: `nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix)
-- [指紋 + パスワード並行待ち受け調査: `parallel-auth-architecture.md`](../research/parallel-auth-architecture.md)
-- [fprintd トリアージ記録: `fprintd-triage-notes.md`](../research/fprintd-triage-notes.md)
+- [指紋 + パスワード並行待ち受け調査: `docs/research/parallel-auth-architecture.md`](../research/parallel-auth-architecture.md)
+- [fprintd トリアージ記録: `docs/research/fprintd-triage-notes.md`](../research/fprintd-triage-notes.md)
