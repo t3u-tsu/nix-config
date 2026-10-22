@@ -38,7 +38,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 - [secrets/](secrets/) — SOPS で暗号化された秘密情報
 - [scripts/](scripts/) — クラスタ運用・保守スクリプト
 - [terraform/](terraform/) — ConoHa VPS インフラの OpenTofu 定義
-- [docs/](docs/) — 設計仕様，運用手順書，ハードウェア解説，障害復旧手順 (SSOT)
+- [docs/](docs/) — 設計仕様，運用手順書，ハードウェア解説，障害復旧手順
 
 システムアーキテクチャとモジュール評価フローは [docs/architecture/overview.md](docs/architecture/overview.md) を参照．
 

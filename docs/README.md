@@ -1,6 +1,6 @@
 # NixOS 設定リポジトリ 設計・運用ドキュメント
 
-システム全体のアーキテクチャ設計仕様，運用手順書，ハードウェア固有ガイド，およびトラブルシューティング情報の一元管理ディレクトリ (SSOT)．
+システム全体のアーキテクチャ設計仕様，運用手順書，ハードウェア固有ガイド，およびトラブルシューティング情報．
 
 ## ドキュメント一覧
 
@@ -10,7 +10,7 @@
 - [architecture/flake-and-modules.md](architecture/flake-and-modules.md) — Flake 構成，`mkSystem`, `my.*` オプション設計原則
 
 ### 2. [運用手順書](operations/)
-- [operations/adding-a-host.md](operations/adding-a-host.md) — 新規マシンの追加・初期セットアップ手順 (SSOT)
+- [operations/adding-a-host.md](operations/adding-a-host.md) — 新規マシンの追加・初期セットアップの標準手順
 - [operations/secret-management.md](operations/secret-management.md) — SOPS / age / 1Password 鍵ライフサイクル，証明書更新
 - [operations/backup-and-restore.md](operations/backup-and-restore.md) — Restic バックアップ運用，障害時完全復旧 (DR) 手順
 - [operations/vps-failover.md](operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替・切戻し手順

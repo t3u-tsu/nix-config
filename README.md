@@ -38,7 +38,7 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 - [secrets/](secrets/) — Encrypted secrets managed via SOPS
 - [scripts/](scripts/) — Fleet management and maintenance scripts
 - [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
-- [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures (SSOT)
+- [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures
 
 See [docs/architecture/overview.md](docs/architecture/overview.md) for system architecture and module evaluation flow.
 
