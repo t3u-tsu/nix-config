@@ -44,7 +44,10 @@ in
           # apps as services; niri here is started directly from greetd, so this
           # must stay off.
           launch_apps_as_systemd_services = false;
-          polkit_agent = true;
+
+          # niri-flake already starts polkit-kde-agent; a second agent only adds
+          # D-Bus registration warnings and duplicate auth dialogs.
+          polkit_agent = false;
           clipboard_keep_from_closed_apps = true;
           clipboard_history_max_entries = 100;
           clipboard_confirm_clear_history = true;
