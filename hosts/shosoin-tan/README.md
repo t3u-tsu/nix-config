@@ -40,7 +40,7 @@ zpool status tank-1tb
 
 ## References
 
-- Backup & disaster recovery runbook: [`docs/operations/backup-and-restore.md`](../../docs/operations/backup-and-restore.md)
-- ZFS & Legacy BIOS architecture: [`docs/hardware/storage-zfs.md`](../../docs/hardware/storage-zfs.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Backup & disaster recovery runbook: [docs/operations/backup-and-restore.md](../../docs/operations/backup-and-restore.md)
+- ZFS & Legacy BIOS architecture: [docs/hardware/storage-zfs.md](../../docs/hardware/storage-zfs.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)

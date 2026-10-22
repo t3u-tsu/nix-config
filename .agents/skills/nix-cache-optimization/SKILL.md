@@ -13,7 +13,7 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 
 ## extra-substituters の priority
 
-キャッシュ URL には `?priority=` パラメータを付与し，全ホスト共通の [`nixos/base/nix.nix`](../../../nixos/base/nix.nix) で一元管理する．
+キャッシュ URL には `?priority=` パラメータを付与し，全ホスト共通の [nixos/base/nix.nix](../../../nixos/base/nix.nix) で一元管理する．
 
 | priority | キャッシュ区分 | 対象キャッシュ |
 | :--- | :--- | :--- |
@@ -21,4 +21,4 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 | `41` | コミュニティ枠（公式キャッシュの直後） | `nix-community` |
 | `45` | 特定用途枠 | `ezkea`（aagl ゲームランチャー） |
 
-`extra-substituters` と `extra-trusted-public-keys` のリスト順序は完全に一致させる．[`nixos/base/nix.nix`](../../../nixos/base/nix.nix) で一括管理し，外部 Flake の `nixConfig`（`nix.settings = <flake>.nixConfig;`）は参照しない．substituter URL と trusted-public-keys を [`nixos/base/nix.nix`](../../../nixos/base/nix.nix) に明示し，優先度と順序を揃える．
+`extra-substituters` と `extra-trusted-public-keys` のリスト順序は完全に一致させる．[nixos/base/nix.nix](../../../nixos/base/nix.nix) で一括管理し，外部 Flake の `nixConfig`（`nix.settings = <flake>.nixConfig;`）は参照しない．substituter URL と trusted-public-keys を [nixos/base/nix.nix](../../../nixos/base/nix.nix) に明示し，優先度と順序を揃える．

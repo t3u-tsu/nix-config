@@ -13,12 +13,12 @@ Baseline configuration shared across all headless tower servers (`shosoin-tan`, 
 
 | File | Purpose |
 | :--- | :--- |
-| [`boot.nix`](boot.nix) | Stock default kernel deployment (`pkgs.linuxPackages`). |
-| [`security.nix`](security.nix) | Inbound firewall isolation restricting SSH to `nebula0`. |
-| [`ssh.nix`](ssh.nix) | Key-only OpenSSH server hardening. |
-| [`default.nix`](default.nix) | Aggregates server profile modules and hardware monitoring tools. |
+| [boot.nix](boot.nix) | Stock default kernel deployment (`pkgs.linuxPackages`). |
+| [security.nix](security.nix) | Inbound firewall isolation restricting SSH to `nebula0`. |
+| [ssh.nix](ssh.nix) | Key-only OpenSSH server hardening. |
+| [default.nix](default.nix) | Aggregates server profile modules and hardware monitoring tools. |
 
 ## References
 
-- Storage and Legacy BIOS guide: [`docs/hardware/storage-zfs.md`](../../../docs/hardware/storage-zfs.md)
-- Network mesh topology: [`docs/architecture/network-topology.md`](../../../docs/architecture/network-topology.md)
+- Storage and Legacy BIOS guide: [docs/hardware/storage-zfs.md](../../../docs/hardware/storage-zfs.md)
+- Network mesh topology: [docs/architecture/network-topology.md](../../../docs/architecture/network-topology.md)

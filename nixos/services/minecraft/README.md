@@ -8,14 +8,14 @@ The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing
 
 | Component | Port | Inbound Hostname | Description |
 | :--- | :--- | :--- | :--- |
-| **Proxy** ([`proxy.nix`](proxy.nix)) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
-| **Lobby** ([`servers/lobby.nix`](servers/lobby.nix)) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
-| **Main Survival** ([`servers/nitac23s.nix`](servers/nitac23s.nix)) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
+| **Proxy** ([proxy.nix](proxy.nix)) | `25565` | `mc.t3u.uk` / `nitac23s.mc.t3u.uk` | Inbound traffic router. Public WAN requests forward through `torii-chan` over Nebula. |
+| **Lobby** ([servers/lobby.nix](servers/lobby.nix)) | `25566` | `mc.t3u.uk` | Lightweight waiting lobby configured in Adventure mode on a void world (`minecraft:the_void`). |
+| **Main Survival** ([servers/nitac23s.nix](servers/nitac23s.nix)) | `25567` | `nitac23s.mc.t3u.uk` | Primary survival multiplayer world. |
 
 ## External Integrations
 
-- Integrates with [`nixos/services/discord-bridge/`](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via a UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
-- Declares server plugins (protocol translation, sitting animations, Japanese chat rendering) in [`nvfetcher.toml`](../../../nvfetcher.toml) at the repository root, updating them automatically via GitHub Actions ([`.github/workflows/auto-update.yml`](../../../.github/workflows/auto-update.yml)).
+- Integrates with [nixos/services/discord-bridge/](../discord-bridge/README.md) for dynamic player whitelist control and status metrics via a UNIX domain socket (`/run/minecraft-discord-bridge/bridge.sock`).
+- Declares server plugins (protocol translation, sitting animations, Japanese chat rendering) in [nvfetcher.toml](../../../nvfetcher.toml) at the repository root, updating them automatically via GitHub Actions ([.github/workflows/auto-update.yml](../../../.github/workflows/auto-update.yml)).
 - Runs Restic backups every 2 hours locally to a ZFS mirror (`/mnt/tank-1tb/backups/minecraft`) and off-site to `kagutsuchi-sama`.
 
 ## CLI Operations (on `shosoin-tan`)
@@ -33,7 +33,7 @@ nix run nixpkgs#nvfetcher
 
 ## References
 
-- Discord Bridge module: [`nixos/services/discord-bridge/`](../discord-bridge/README.md)
-- Backup configuration & runbook: [`nixos/services/backup/`](../backup/README.md) and [`docs/operations/backup-and-restore.md`](../../../docs/operations/backup-and-restore.md)
-- Host specifications: [`hosts/shosoin-tan/`](../../../hosts/shosoin-tan/README.md)
-- Gateway forwarding: [`nixos/services/gateway/`](../gateway/README.md)
+- Discord Bridge module: [nixos/services/discord-bridge/](../discord-bridge/README.md)
+- Backup configuration & runbook: [nixos/services/backup/](../backup/README.md) and [docs/operations/backup-and-restore.md](../../../docs/operations/backup-and-restore.md)
+- Host specifications: [hosts/shosoin-tan/](../../../hosts/shosoin-tan/README.md)
+- Gateway forwarding: [nixos/services/gateway/](../gateway/README.md)

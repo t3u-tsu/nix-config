@@ -4,7 +4,7 @@ SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-con
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
-| SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，[`.sops.yaml`](../../.sops.yaml) 更新，`sops updatekeys` |
+| SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，[.sops.yaml](../../.sops.yaml) 更新，`sops updatekeys` |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
@@ -23,8 +23,8 @@ SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-con
 | 原因 | 内容と影響 |
 | :--- | :--- |
 | ホスト秘密鍵の欠落・権限不正 | `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている． |
-| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が [`.sops.yaml`](../../.sops.yaml) や暗号化ファイルの recipient と乖離している． |
-| recipient 更新漏れ | 新ホストの公開鍵を [`.sops.yaml`](../../.sops.yaml) に追加したものの `sops updatekeys` を実行しておらず，[`secrets/common.yaml`](../../secrets/common.yaml) や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない． |
+| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が [.sops.yaml](../../.sops.yaml) や暗号化ファイルの recipient と乖離している． |
+| recipient 更新漏れ | 新ホストの公開鍵を [.sops.yaml](../../.sops.yaml) に追加したものの `sops updatekeys` を実行しておらず，[secrets/common.yaml](../../secrets/common.yaml) や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない． |
 
 ### 切り分け・復旧手順
 
@@ -47,15 +47,15 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 # 出力例: age1...
 ```
 
-#### Step 2: [`.sops.yaml`](../../.sops.yaml) の登録情報と突合
-リポジトリルートの [`.sops.yaml`](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
+#### Step 2: [.sops.yaml](../../.sops.yaml) の登録情報と突合
+リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
 ```bash
 grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
 ```
-鍵が異なる場合（再インストール等），[`.sops.yaml`](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
+鍵が異なる場合（再インストール等），[.sops.yaml](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
 
 #### Step 3: `/var/lib/sops-nix/key.txt` の確認・手動生成
-[`nixos/security/sops.nix`](../../nixos/security/sops.nix) の activation スクリプト `0-sops-key-import` が何らかの理由で実行されなかった場合，手動で age 秘密鍵を配置する:
+[nixos/security/sops.nix](../../nixos/security/sops.nix) の activation スクリプト `0-sops-key-import` が何らかの理由で実行されなかった場合，手動で age 秘密鍵を配置する:
 ```bash
 sudo mkdir -p /var/lib/sops-nix
 sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key | sudo tee /var/lib/sops-nix/key.txt >/dev/null
@@ -97,7 +97,7 @@ error: Failed to fetch git repository 'ssh://git@github-nix-config-private/t3u-t
 ```
 
 ### 原因
-本リポジトリの [`flake.nix`](../../flake.nix) は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [`nixos/base/private-config.nix`](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する（ブートストラップ時の鶏と卵の問題）．
+本リポジトリの [flake.nix](../../flake.nix) は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [nixos/base/private-config.nix](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する（ブートストラップ時の鶏と卵の問題）．
 
 ### 復旧手順（初期ブートストラップ）
 
@@ -109,7 +109,7 @@ sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/know
 ```
 
 #### Step 2: デプロイキーの配備
-[`secrets/common.yaml`](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する（`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用）:
+[secrets/common.yaml](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する（`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用）:
 ```bash
 sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
   --extract "[\"nix_config_private_deploy_key\"]" \
@@ -138,7 +138,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 ```
 
 #### Step 5: 一時設定のクリーンアップ
-正常に世代が適用されると，[`nixos/base/private-config.nix`](../../nixos/base/private-config.nix) によりシステム全体（`/etc/ssh/ssh_config`）にエイリアスが恒久設定されるため，root の一時設定を削除する:
+正常に世代が適用されると，[nixos/base/private-config.nix](../../nixos/base/private-config.nix) によりシステム全体（`/etc/ssh/ssh_config`）にエイリアスが恒久設定されるため，root の一時設定を削除する:
 ```bash
 sudo rm /root/.ssh/config
 ```
@@ -154,7 +154,7 @@ You are in emergency mode. After logging in, type "journalctl -xb" to view syste
 Give root password for maintenance (or press Control-D to continue):
 ```
 > [!CAUTION]
-> 本リポジトリでは [`nixos/base/user.nix`](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定される．シークレット復号失敗により emergency mode に入った場合，root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
+> 本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定される．シークレット復号失敗により emergency mode に入った場合，root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
 
 ### 脱出・復旧手順
 

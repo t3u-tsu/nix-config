@@ -34,6 +34,6 @@ nixos-rebuild switch --flake .#kagutsuchi-sama --target-host t3u@10.0.0.3 --sudo
 
 ## References
 
-- Backup architecture & recovery: [`docs/operations/backup-and-restore.md`](../../docs/operations/backup-and-restore.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Backup architecture & recovery: [docs/operations/backup-and-restore.md](../../docs/operations/backup-and-restore.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)

@@ -38,7 +38,7 @@ tofu destroy   # Tear down VPS and stop billing (requires user approval)
 ```
 
 > [!WARNING]
-> Running `tofu apply` incurs monthly/hourly VPS charges. Modifying `admin_password` forces recreation of the VPS instance. State is stored locally in `terraform.tfstate` (excluded by [`.gitignore`](../.gitignore)).
+> Running `tofu apply` incurs monthly/hourly VPS charges. Modifying `admin_password` forces recreation of the VPS instance. State is stored locally in `terraform.tfstate` (excluded by [.gitignore](../.gitignore)).
 
 ## NixOS Installation via Rescue ISO
 
@@ -61,7 +61,7 @@ tofu apply
 tofu output -json torii_chan_addresses
 ```
 
-### ISO Helper Tool ([`scripts/nixos-iso.ysh`](scripts/nixos-iso.ysh))
+### ISO Helper Tool ([scripts/nixos-iso.ysh](scripts/nixos-iso.ysh))
 
 | Subcommand | Function |
 | :--- | :--- |
@@ -71,5 +71,5 @@ tofu output -json torii_chan_addresses
 
 ## References
 
-- VPS failover & recovery runbook: [`docs/operations/vps-failover.md`](../docs/operations/vps-failover.md)
-- Network topology: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)
+- VPS failover & recovery runbook: [docs/operations/vps-failover.md](../docs/operations/vps-failover.md)
+- Network topology: [docs/architecture/network-topology.md](../docs/architecture/network-topology.md)

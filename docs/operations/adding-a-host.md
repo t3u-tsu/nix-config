@@ -1,4 +1,4 @@
-# 新規ホスト追加手順 (Adding a New Host)
+# 新規ホスト追加手順
 
 新しい NixOS マシンを追加し，暗号化シークレット，メッシュネットワーク，およびプライベート Flake 入力をセットアップして稼働させる手順（SSOT）．
 
@@ -32,8 +32,8 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．`hosts/<hostname>/services/nebula.nix` は，`my.networking.nebula.ip`（[ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で次の空き IP）と `groups` を実機の役割に合わせて編集する．
 
-### Step 2: Flake へのホスト登録 ([`flake/hosts.nix`](../../flake/hosts.nix))
-[`flake/hosts.nix`](../../flake/hosts.nix) に新しいホストのエントリを追加する:
+### Step 2: Flake へのホスト登録 ([flake/hosts.nix](../../flake/hosts.nix))
+[flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する:
 ```nix
 <hostname> = mkLib.mkSystem {
   name = "<hostname>";
@@ -50,7 +50,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-2. [`.sops.yaml`](../../.sops.yaml) にホストのアンカーと creation rules を追加する（アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）．
+2. [.sops.yaml](../../.sops.yaml) にホストのアンカーと creation rules を追加する（アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）．
    ```yaml
    keys:
      - &<hostKey> age1...
@@ -61,19 +61,19 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
              - *master_key
              - *<hostKey>
    ```
-3. 初期パスワードを生成し，ホスト個別シークレットを作成する．`set-host-password.ysh` は新規ファイルを [`.sops.yaml`](../../.sops.yaml) の creation rule で暗号化するため，必ず手順 2 の登録後に実行する．
+3. 初期パスワードを生成し，ホスト個別シークレットを作成する．`set-host-password.ysh` は新規ファイルを [.sops.yaml](../../.sops.yaml) の creation rule で暗号化するため，必ず手順 2 の登録後に実行する．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/set-host-password.ysh <hostname>
    ```
-4. [`.sops.yaml`](../../.sops.yaml) の内容を既存シークレットへ反映する．
+4. [.sops.yaml](../../.sops.yaml) の内容を既存シークレットへ反映する．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-5. サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
+5. サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照）．
 
 ### Step 4: Nebula 証明書の発行と登録
 
-1. 管理者のオフライン CA（[`scripts/nebula-rotate-ca.ysh`](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
+1. 管理者のオフライン CA（[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`）を用いてノード証明書を発行する．
    ```bash
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
@@ -85,7 +85,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
      -out-crt "$CA_DIR/<hostname>.crt" \
      -out-key "$CA_DIR/<hostname>.key"
    ```
-2. [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
+2. [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```

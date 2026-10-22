@@ -58,13 +58,13 @@ GitHub `linux-pam/linux-pam` の Issue #301（2020 年〜）では，顔認証�
 - 敗者スレッドを安全に終了させる手段がないためバックグラウンドに放置され，端末（TTY）のエコーバック設定が狂う，`pam_faillock` の失敗カウントが二重計上されるなどの副作用を招いた．
 
 ### 1.3 fprintd upstream: 責務分離と対症療法
-`fprintd` はハードウェア排他制御（Device Claim）と照合 API のみに特化しており，パスワード認証をデーモン側に内包することはセキュリティ監査上拒絶されている．
+`fprintd` はハードウェア排他制御と照合 API のみに特化しており，パスワード認証をデーモン側に内包することはセキュリティ監査上拒絶されている．
 upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提のもとで以下の対症療法が進められた:
 - MR !201 / MR !195 でタイムアウト設定を改善し，無応答時の待機時間を短縮した．
 - MR !256 でノート PC のリッド開閉検知を導入し，フタが閉じている場合は即座に `pam_fprintd` をスキップしてパスワードへフォールスルーするよう改修した．
 
 ### 1.4 systemd-homed: 原理的障壁 (Issue #22123)
-`systemd-homed` は LUKS / fscrypt でホームディレクトリを暗号化する．一般的な指紋センサー（Match-on-Chip）は照合成否の真偽値（True / False）しか返さず，復号鍵（高エントロピーなシークレット）を生成・提供できない．初回ログインで暗号化ボリュームを復号することは原理的に不可能である．
+`systemd-homed` は LUKS / fscrypt でホームディレクトリを暗号化する．一般的な指紋センサー（Match-on-Chip）は照合成否の真偽値しか返さず，復号鍵（高エントロピーなシークレット）を生成・提供できない．初回ログインで暗号化ボリュームを復号することは原理的に不可能である．
 
 ---
 
@@ -97,13 +97,13 @@ upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提
 hyprlock は GDM 風 Dual-PAM を見送り，「PAM（パスワード） + D-Bus 経由での直接呼び出し（指紋）」のデュアルチャネル方式（PR #514）を選択した．
 - サスペンド復帰時に PAM が `StopVerify` を呼ぶと `device is busy` エラーで 30 秒間ロックアウトすることや，`pam_fprintd.so` の最大 99 秒タイムアウト制限で再接続ループが肥大化することから Dual-PAM の採用を見送った．
 - 常時アームで放置するとセンサーが過熱保護（`TOO_HOT`）で切断されるため，無操作タイムアウトによる動的アーム（マウス・キー操作検知時のみ Claim）を導入した（Issue #702）．
-- サスペンド復帰時に D-Bus プロキシが失効（stale）する現象に対し，ThinkPad x1c7（Synaptics Prometheus `06cb:00bd`）の実機検証を通じてバックオフ付きリトライ（500ms，最大 10 回）を実装した（PR #1066）．
+- サスペンド復帰時に D-Bus プロキシが失効する現象に対し，ThinkPad x1c7（Synaptics Prometheus `06cb:00bd`）の実機検証を通じてバックオフ付きリトライ（500ms，最大 10 回）を実装した（PR #1066）．
 
 ### 3.2 Noctalia (noctalia-dev/noctalia): 直列化の理由
 Noctalia は hyprlock を参考にしてデュアルチャネルを導入した（PR #3006）．
 - ユーザー環境の `/etc/pam.d/login` に `pam_fprintd` が含まれる環境でパスワード送信時にセンサーの奪い合い（二重 Claim）が発生し 30 秒間フリーズする不具合（Issue #3277）を回避するため，パスワード入力開始時に `stopFingerprint()` で指紋照合を明示的に停止させている．
 - パスワード検証中に指紋認証が成立してアンロックイベントが二重発行されるクラッシュを防ぐため，片方の検証中は他方を止める直列化を行っている．
-- 本リポジトリの設定（[`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では Issue #3277 のフリーズ要因は排除されている．
+- 本リポジトリの設定（[nixos/services/desktop/greetd.nix](../../nixos/services/desktop/greetd.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では Issue #3277 のフリーズ要因は排除されている．
 
 ### 3.3 swaylock & gtklock: upstream の拒絶とコミュニティフォーク
 - swaylock では PR #283（D-Bus）や PR #445（Dual-PAM）が提案されたが，メンテナ（emersion）が KISS 原則を理由に複雑なオーケストレーションの導入を拒絶した．コミュニティではフォーク（`swaylock-effects` PR #77）や外付けデーモン（`fprintd-unlock`，指紋照合成功時に `SIGUSR1` を送信）で対応している．
@@ -114,13 +114,13 @@ Noctalia は hyprlock を参考にしてデュアルチャネルを導入した�
 ## 4. 特権昇格ツール（sudo, polkit）
 
 ### 4.1 sudo (Issue #112)
-- 単一の TTY ストリーム上でパスワード入力（echo off）中に指紋認証が通ると，入力途中だったパスワード文字列が昇格後の root シェルにそのまま流し込まれ，不正なコマンドとして実行される重大なセキュリティリスクがある．入力バッファのフラッシュ（`tcflush`）とブロッキング `read()` の安全な中断を端末間で保証できないため，upstream は並行化を拒否している．
+- 単一の TTY ストリーム上でエコーバックなしのパスワード入力中に指紋認証が通ると，入力途中だったパスワード文字列が昇格後の root シェルにそのまま流し込まれ，不正なコマンドとして実行される重大なセキュリティリスクがある．入力バッファのフラッシュ（`tcflush`）とブロッキング `read()` の安全な中断を端末間で保証できないため，upstream は並行化を拒否している．
 
 ### 4.2 polkit (Issue #650, #713)
 - 非特権 GUI Agent による認証成否の偽造を防ぐため，setuid root の `polkit-agent-helper-1` が単一 PAM トランザクションを同期実行する 3 層特権分離モデルに依存している．GDM と Polkit の開発者間で Multi-stack PAM 統合が議論されたものの，認可とセッション管理の責務分離の観点から見送られた経緯がある．
 
 ### 4.3 CVE-2024-37408（安易な指紋認証への懸念）
-`pam_fprintd.so` がユーザーの意図的な接触（Presence Check）を確認せず，触れただけで sudo 権限を与えてしまう問題がセキュリティコミュニティで指摘された．現代の Linux では CLI やバックグラウンド権限昇格に指紋を安易に使うべきではない（画面ロック解除などの注意が確保できる場面に限定すべき）という方針が主流となっている．
+`pam_fprintd.so` がユーザーの意図的な接触を確認せず，触れただけで sudo 権限を与えてしまう問題がセキュリティコミュニティで指摘された．現代の Linux では CLI やバックグラウンド権限昇格に指紋を安易に使うべきではない（画面ロック解除などの注意が確保できる場面に限定すべき）という方針が主流となっている．
 
 ---
 
@@ -134,7 +134,7 @@ Noctalia は hyprlock を参考にしてデュアルチャネルを導入した�
 
 ## 関連ドキュメント
 
-- [`parallel-auth-architecture.md`](parallel-auth-architecture.md) — Linux における指紋 + パスワード並行待ち受けの構造的制約と GDM / Noctalia 実装比較
-- [`greetd-parallel-design.md`](greetd-parallel-design.md) — greetd 互換並行認証デーモンの設計・自己実装仕様
-- [`fprintd-triage-notes.md`](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録
-- [`thinkpad-x1c7.md`](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合
+- [parallel-auth-architecture.md](parallel-auth-architecture.md) — Linux における指紋 + パスワード並行待ち受けの構造的制約と GDM / Noctalia 実装比較
+- [greetd-parallel-design.md](greetd-parallel-design.md) — greetd 互換並行認証デーモンの設計・自己実装仕様
+- [fprintd-triage-notes.md](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録
+- [thinkpad-x1c7.md](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合

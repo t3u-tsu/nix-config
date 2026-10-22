@@ -16,7 +16,7 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 ## GPU Separation & Workload Allocation
 
 - Routes Niri and 3D graphics (Steam) to the AMD Radeon 680M iGPU via `WLR_DRM_DEVICES` (PCI by-path) and `my.services.desktop.gaming.nvidiaOffload.enable = false` because dGPU 3D rasterization is defective.
-- Runs local LLM matrix workloads on the functional dGPU compute (GEMM) units via CUDA ([`services/llama.nix`](services/llama.nix), targeting SM 8.6).
+- Runs local LLM matrix workloads on the functional dGPU compute (GEMM) units via CUDA ([services/llama.nix](services/llama.nix), targeting SM 8.6).
 - Powers down the dGPU when idle using open kernel modules and RTD3 (`powerManagement.finegrained = true`).
 
 ## Configuration Summary
@@ -37,6 +37,6 @@ sudo nixos-rebuild switch --flake .#BrokenPC
 
 ## References
 
-- Hybrid GPU architecture & LLM tuning: [`docs/hardware/hybrid-gpu.md`](../../docs/hardware/hybrid-gpu.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Hybrid GPU architecture & LLM tuning: [docs/hardware/hybrid-gpu.md](../../docs/hardware/hybrid-gpu.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)

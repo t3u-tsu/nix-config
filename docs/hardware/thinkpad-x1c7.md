@@ -56,11 +56,11 @@ flowchart TD
 
 ### カーネル選定とハードウェアモジュール
 
-カーネルには [`pkgs.linuxPackages_xanmod`](../../hosts/x1c7/default.nix) を採用し，デスクトップの対話的応答性とタスクスケジューリングを低レイテンシ化している．また，[`nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen`](../../hosts/x1c7/default.nix) をインポートし，トラックポイント，Intel マイクロコード，VA-API，およびラップトップ・SSD 共通モジュールを導入している．
+カーネルには [pkgs.linuxPackages_xanmod](../../hosts/x1c7/default.nix) を採用し，デスクトップの対話的応答性とタスクスケジューリングを低レイテンシ化している．また，[nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen](../../hosts/x1c7/default.nix) をインポートし，トラックポイント，Intel マイクロコード，VA-API，およびラップトップ・SSD 共通モジュールを導入している．
 
 ### メモリ・スワップチューニング (OOM 回避)
 
-16 GB 物理メモリ環境で `rustc`，`nix`，`zig` などの並列ビルド（最大 8 スレッド）を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する．これを解決するため，以下のチューニングを実施している（[`hosts/x1c7/hardware.nix`](../../hosts/x1c7/hardware.nix)）．
+16 GB 物理メモリ環境で `rustc`，`nix`，`zig` などの並列ビルド（最大 8 スレッド）を実行すると単一プロセスが約 10 GB の無名メモリを消費し，OOM Killer が頻発する．これを解決するため，以下のチューニングを実施している（[hosts/x1c7/hardware.nix](../../hosts/x1c7/hardware.nix)）．
 
 | 項目 | 設定値 | 目的・動作 |
 | :--- | :--- | :--- |
@@ -75,7 +75,7 @@ flowchart TD
 
 スワップはルートパーティション直下のファイル（`/var/lib/swapfile`）として配置されている．`boot.resumeDevice` にルートパーティションを指定するとカーネルコマンドラインに `resume=<partition>` が付与され，logind が「有効なスワップデバイスではない」としてハイバネーションを拒否する．UEFI + systemd initrd 環境では，`systemd-sleep` がスワップファイルを特定して `HibernateLocation` EFI 変数へ記録し，次回起動時に `systemd-hibernate-resume` が自動的にオフセットを読み出して復元する．そのため，本設定では `boot.resumeDevice` を指定しない．
 
-また，バッテリー枯渇時の保護として [`services.upower.criticalPowerAction = "Hibernate"`](../../hosts/x1c7/services/power.nix) を設定し，電源断の直前にハイバネーションを実行して作業セッションを退避する．
+また，バッテリー枯渇時の保護として [services.upower.criticalPowerAction = "Hibernate"](../../hosts/x1c7/services/power.nix) を設定し，電源断の直前にハイバネーションを実行して作業セッションを退避する．
 
 ---
 
@@ -89,7 +89,7 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
 | Energy Performance Preference (Intel HWP EPP) | `/sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference` | CPU の自律的周波数スケーリング方針を制御 |
 | Scaling Governor (intel_pstate) | `/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor` | カーネルドライバの動作モード |
 
-設定は [`hosts/x1c7/services/power.nix`](../../hosts/x1c7/services/power.nix) に集約されている．
+設定は [hosts/x1c7/services/power.nix](../../hosts/x1c7/services/power.nix) に集約されている．
 
 ### TLP 設定要点
 
@@ -112,7 +112,7 @@ Synaptics 指紋リーダー（`06cb:00bd`）は USB autosuspend 状態からの
 
 ### throttled (Lenovo サーマルバグ対策)
 
-Lenovo の EC ファームウェアによる過剰な早期スロットリングを回避するため，[`throttled`](https://github.com/erpalma/throttled) を運用する．
+Lenovo の EC ファームウェアによる過剰な早期スロットリングを回避するため，[throttled](https://github.com/erpalma/throttled) を運用する．
 
 薄型軽量筐体の冷却限界（シングルファン・デュアルヒートパイプ）を踏まえ，CPU 仕様（Intel Core i7-8565U）に適合した制限値へ調律している．
 
@@ -125,7 +125,7 @@ Lenovo の EC ファームウェアによる過剰な早期スロットリング
 | | `PL2_Tdp_W` | 25 W（0.002秒） | UI 応答性を損なわない瞬間バースト枠． |
 | | `Trip_Temp_C` | 85 ℃ | 低温での安全マージンを確保． |
 
-Whiskey Lake 世代では BIOS ファームウェアにより MSR 0x150 への書き込みがロックされているため，電圧オフセット（Undervolt）の指定は除外している．
+Whiskey Lake 世代では BIOS ファームウェアにより MSR 0x150 への書き込みがロックされているため，電圧オフセット調整の指定は除外している．
 
 なお，Nix store 内の設定ファイルは更新時も mtime が変化しないため，throttled の Autoreload 機能は発火しない．設定変更後は必ず手動で再起動する:
 ```bash
@@ -138,19 +138,19 @@ sudo systemctl restart throttled
 
 ### Noctalia Greeter
 
-デスクトップログイン環境には Greetd ベースの [`noctalia-greeter`](../../nixos/services/desktop/greetd.nix) を採用している．
+デスクトップログイン環境には Greetd ベースの [noctalia-greeter](../../nixos/services/desktop/greetd.nix) を採用している．
 
 内蔵ディスプレイにグリーターを表示するため，`my.services.desktop.greetd.greeterOutput.name = "eDP-1"` を指定している．また，グリーターは非特権ユーザー（`greeter`）で動作し，ユーザーホーム（権限 `0700`）内の壁紙ファイルを直接読み取れない．そのため `systemd.services.noctalia-greeter-wallpaper` を通じて `/var/lib/noctalia-greeter/wallpaper.jpg` へ安全にコピーし，アクセス権限の問題を解決している．
 
 ### 指紋認証 (fprintd)
 
-内蔵指紋リーダーは Synaptics Prometheus（`06cb:00bd`）であり，標準の `libfprint` ドライバで認識される．照合は match-on-chip（MoC）で，テンプレートはデバイス内に保存される．本ホストでは [`services.fprintd.enable = true`](../../hosts/x1c7/default.nix) により有効化している．
+内蔵指紋リーダーは Synaptics Prometheus（`06cb:00bd`）であり，標準の `libfprint` ドライバで認識される．照合は match-on-chip（MoC）で，テンプレートはデバイス内に保存される．本ホストでは [services.fprintd.enable = true](../../hosts/x1c7/default.nix) により有効化している．
 
 #### fprintd のライフサイクル
 `fprintd.service` は `Type=dbus` / `BusName=net.reactivated.Fprint` で動作し，未使用のまま 30 秒経過すると `Deactivated successfully` で終了する（`src/fprintd.h` の `#define TIMEOUT 30`）．必要時に systemd が D-Bus 経由で自動起動するため，`systemctl status fprintd` が常時 `inactive` でも異常ではない．サスペンド復帰用の個別サービスも不要である．
 
 #### PAM 統合と評価順序の調整
-NixOS の既定スタックでは `pam_fprintd`（order 11400）が `pam_unix`（11700）より先に評価されるため，指を置かない場合にパスワード入力が最大 30 秒間ブロックされる．本ホストではサービスごとに評価順序とオプションを個別に最適化している（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)，[`greetd.nix`](../../nixos/services/desktop/greetd.nix)）．
+NixOS の既定スタックでは `pam_fprintd`（order 11400）が `pam_unix`（11700）より先に評価されるため，指を置かない場合にパスワード入力が最大 30 秒間ブロックされる．本ホストではサービスごとに評価順序とオプションを個別に最適化している（[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix)，[greetd.nix](../../nixos/services/desktop/greetd.nix)）．
 
 - `sudo` / `polkit-1`: `fprintd` ルールを `pam_unix` の直後（`unix.order + 10`）へ移動し，`max-tries=1`，`timeout=10` に短縮する．パスワードプロンプトが即座に表示され，空のまま送信すると指紋認証へフォールスルーする．両サービスには `unix-early` が挿入されないため，`pam_unix` に `use_first_pass` を付与してはならない（プロンプト自体が省略され即座に失敗するため）．単一 PAM スタックの逐次性に関する詳細は[並行待ち受け調査](../research/parallel-auth-architecture.md)を参照する．
 - `greetd`: `enableGnomeKeyring` が挿入する `unix-early` が `PAM_AUTHTOK` を供給するため，`pam_unix` に `use_first_pass = true` を設定し，空または不一致のパスワード送信時に再プロンプトなしで指紋認証へ移行する．グリーター側は `auth.allow_empty_password = true` を前提とする．
@@ -190,11 +190,11 @@ BIOS 設定の `Config -> Power -> Sleep State` は Linux (S3) に設定して�
 | S3 (Deep Sleep) | RAM 以外の給電を遮断 | スリープ中の電力消費を最小化 | 復帰に 1〜2 秒要する |
 | s2idle (Modern Standby) | SoC の低電力アイドル状態 | 復帰が極めて高速 | スリープ中のバッテリー消費が大きい |
 
-本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を Linux (S3) に設定して ACPI レベルで行う（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix) に `boot.kernelParams` は定義していない）．
+本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を Linux (S3) に設定して ACPI レベルで行う（[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) に `boot.kernelParams` は定義していない）．
 
 ### 運用上の留意事項
 
-Bluetooth デバイス接続状態でサスペンドすると即座に復帰する現象が確認されているため，サスペンド前に接続機器を切断することを推奨する．また，AC 給電時のディスプレイ開閉動作は [`services.logind.settings.Login.HandleLidSwitchExternalPower = "lock"`](../../hosts/x1c7/default.nix) により画面ロックのみにとどめ，外部モニタ運用やビルドの中断を防いでいる．
+Bluetooth デバイス接続状態でサスペンドすると即座に復帰する現象が確認されているため，サスペンド前に接続機器を切断することを推奨する．また，AC 給電時のディスプレイ開閉動作は [services.logind.settings.Login.HandleLidSwitchExternalPower = "lock"](../../hosts/x1c7/default.nix) により画面ロックのみにとどめ，外部モニタ運用やビルドの中断を防いでいる．
 
 ---
 
@@ -210,7 +210,7 @@ ThinkPad X1C7 の Intel SOF HDA DSP 環境では，外部ディスプレイ（HD
 
 ### 適用されたワークアラウンド
 
-[`hosts/x1c7/services/audio.nix`](../../hosts/x1c7/services/audio.nix) において，`alsa-ucm-conf` パッケージにパッチを適用し，PipeWire / WirePlumber に注入している．
+[hosts/x1c7/services/audio.nix](../../hosts/x1c7/services/audio.nix) において，`alsa-ucm-conf` パッケージにパッチを適用し，PipeWire / WirePlumber に注入している．
 
 ```nix
 let
@@ -255,23 +255,23 @@ in
 
 ## 6. ファームウェア・BIOS 注意事項
 
-### カスタム Secure Boot 鍵の登録リスク (文鎮化警告)
+### カスタム Secure Boot 鍵の登録リスク（文鎮化警告）
 
-Lenovo ThinkPad X1 Carbon Gen 7 において，BIOS の Setup Mode を用いてカスタム Secure Boot 鍵（PK/KEK/db）を登録すると，マザーボードが POST に失敗して永久に起動不能（文鎮化 / brick）になるリスクが報告されている（Arch Linux Wiki 警告）．本機ではカスタム Secure Boot 鍵の自己登録を行わない．
+Lenovo ThinkPad X1 Carbon Gen 7 において，BIOS の Setup Mode を用いてカスタム Secure Boot 鍵（PK/KEK/db）を登録すると，マザーボードが POST に失敗して永久に起動不能（文鎮化）になるリスクが報告されている（Arch Linux Wiki 警告）．本機ではカスタム Secure Boot 鍵の自己登録を行わない．
 
 ### Thunderbolt BIOS Assist Mode の運用方針
 
-BIOS の `Config -> Thunderbolt 3 -> Thunderbolt BIOS Assist Mode` は，Linux カーネル 4.13 以降で Thunderbolt のネイティブ管理がサポートされているため，無効（Disabled）のまま運用する．これを有効化すると過去の特定ファームウェアにおける不具合や電力管理の競合，起動障害を引き起こす恐れがあるため，ネイティブ Linux 管理を維持する．
+BIOS の `Config -> Thunderbolt 3 -> Thunderbolt BIOS Assist Mode` は，Linux カーネル 4.13 以降で Thunderbolt のネイティブ管理がサポートされているため，無効のまま運用する．これを有効化すると過去の特定ファームウェアにおける不具合や電力管理の競合，起動障害を引き起こす恐れがあるため，ネイティブ Linux 管理を維持する．
 
 ---
 
 ## 関連ドキュメント
 
-- [ホスト概要: `hosts/x1c7/README.md`](../../hosts/x1c7/README.md)
-- [システム構成: `hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)
-- [ハードウェア定義: `hosts/x1c7/hardware.nix`](../../hosts/x1c7/hardware.nix)
-- [電源・サーマル設定: `hosts/x1c7/services/power.nix`](../../hosts/x1c7/services/power.nix)
-- [オーディオパッチ: `hosts/x1c7/services/audio.nix`](../../hosts/x1c7/services/audio.nix)
-- [デスクトップログイン設計: `nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix)
-- [指紋 + パスワード並行待ち受け調査: `docs/research/parallel-auth-architecture.md`](../research/parallel-auth-architecture.md)
-- [fprintd トリアージ記録: `docs/research/fprintd-triage-notes.md`](../research/fprintd-triage-notes.md)
+- [ホスト概要: hosts/x1c7/README.md](../../hosts/x1c7/README.md)
+- [システム構成: hosts/x1c7/default.nix](../../hosts/x1c7/default.nix)
+- [ハードウェア定義: hosts/x1c7/hardware.nix](../../hosts/x1c7/hardware.nix)
+- [電源・サーマル設定: hosts/x1c7/services/power.nix](../../hosts/x1c7/services/power.nix)
+- [オーディオパッチ: hosts/x1c7/services/audio.nix](../../hosts/x1c7/services/audio.nix)
+- [デスクトップログイン設計: nixos/services/desktop/greetd.nix](../../nixos/services/desktop/greetd.nix)
+- [指紋 + パスワード並行待ち受け調査: docs/research/parallel-auth-architecture.md](../research/parallel-auth-architecture.md)
+- [fprintd トリアージ記録: docs/research/fprintd-triage-notes.md](../research/fprintd-triage-notes.md)

@@ -9,8 +9,8 @@ SOPS（sops-nix），age，1Password，および Nebula 証明書による暗号
 ```mermaid
 graph TD
     Master["master_key（オフライン保管 / 1Password）<br>全シークレットの暗号化・復号・鍵更新"]
-    HostKey["ホスト固有鍵（Host age keys）<br>/etc/ssh/ssh_host_ed25519_key から導出<br>/var/lib/sops-nix/key.txt"]
-    UserKey["ユーザー鍵（User age keys）<br>~/.ssh/id_ed25519 から導出"]
+    HostKey["ホスト固有 age 鍵<br>/etc/ssh/ssh_host_ed25519_key から導出<br>/var/lib/sops-nix/key.txt"]
+    UserKey["ユーザー age 鍵<br>~/.ssh/id_ed25519 から導出"]
 
     CommonSecret["secrets/common.yaml<br>全ホスト共通シークレット<br>（Nebula CA，デプロイ鍵 等）"]
     HostSecret["secrets/hosts/[hostname].yaml<br>各ホスト専用シークレット<br>（ユーザーパスワード，Nebula 秘密鍵 等）"]
@@ -29,8 +29,8 @@ graph TD
 | 鍵の種別 | 配置場所 | 権限範囲 | 用途 |
 | :--- | :--- | :--- | :--- |
 | `master_key` | 1Password / 管理者のオフライン端末 | 全ファイルの復号・暗号化 | 新ホスト追加，鍵のローテーション，暗号化ファイルの編集 |
-| ホスト鍵 | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`，[`secrets/common.yaml`](../../secrets/common.yaml)，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
-| ユーザー鍵 | `~/.ssh/id_ed25519` | [`secrets/services/signing.yaml`](../../secrets/services/signing.yaml) および [`secrets/services/conoha-vps-mcp.yaml`](../../secrets/services/conoha-vps-mcp.yaml) | コミット署名鍵，ConoHa API クレデンシャルの復号（デスクトップ環境） |
+| ホスト鍵 | `/var/lib/sops-nix/key.txt` | `secrets/hosts/<hostname>.yaml`，[secrets/common.yaml](../../secrets/common.yaml)，および該当ホストの `secrets/services/*.yaml` | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの読み込み |
+| ユーザー鍵 | `~/.ssh/id_ed25519` | [secrets/services/signing.yaml](../../secrets/services/signing.yaml) および [secrets/services/conoha-vps-mcp.yaml](../../secrets/services/conoha-vps-mcp.yaml) | コミット署名鍵，ConoHa API クレデンシャルの復号（デスクトップ環境） |
 
 ---
 
@@ -38,7 +38,7 @@ graph TD
 
 | ファイルパス | 格納対象・主なシークレット |
 | :--- | :--- |
-| [`secrets/common.yaml`](../../secrets/common.yaml) | 全ホストで共有される共通シークレット（Nebula ルート CA 公開証明書 `nebula_ca`，`nix-config-private` 取得用 GitHub デプロイ鍵など） |
+| [secrets/common.yaml](../../secrets/common.yaml) | 全ホストで共有される共通シークレット（Nebula ルート CA 公開証明書 `nebula_ca`，`nix-config-private` 取得用 GitHub デプロイ鍵など） |
 | `secrets/hosts/<hostname>.yaml` | ホスト個別のシークレット（ログインユーザーのハッシュ化パスワード，当該ホストの Nebula ノード秘密鍵など） |
 | `secrets/services/<service>.yaml` | 用途別のサービスシークレット（Cloudflare API トークン `ddns.yaml`，Restic `backup.yaml`，Minecraft `minecraft.yaml`，ConoHa API `conoha-vps-mcp.yaml`，コミット署名鍵 `signing.yaml` など） |
 
@@ -59,7 +59,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops secrets/hosts/<hostname>.yaml
 
 ## 4. Nebula 証明書のローテーション
 
-Nebula ルート CA（[`scripts/nebula-rotate-ca.ysh`](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0/ca.crt`）の有効期限は 10 年（`-duration 87600h`）であり，各ノード証明書もこれを継承する．鍵漏洩やノード追加・更新に伴う証明書管理の手順は以下の通りである:
+Nebula ルート CA（[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0/ca.crt`）の有効期限は 10 年（`-duration 87600h`）であり，各ノード証明書もこれを継承する．鍵漏洩やノード追加・更新に伴う証明書管理の手順は以下の通りである:
 
 ```bash
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
@@ -76,7 +76,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 
 マシンの破棄や OS 再インストールに伴い SSH ホスト鍵が変更された場合は，古い鍵のアクセス権を剥奪してシークレットを再暗号化する．
 
-1. [`.sops.yaml`](../../.sops.yaml) を更新する．破棄する場合は該当ホストの公開鍵アンカー（`&<hostKey> age1...`），ホスト個別の `creation_rules`，およびサービス側 `creation_rules` に残る参照（`*<hostKey>`）を削除し，再インストールの場合はアンカーを新しい公開鍵へ差し替える．
+1. [.sops.yaml](../../.sops.yaml) を更新する．破棄する場合は該当ホストの公開鍵アンカー（`&<hostKey> age1...`），ホスト個別の `creation_rules`，およびサービス側 `creation_rules` に残る参照（`*<hostKey>`）を削除し，再インストールの場合はアンカーを新しい公開鍵へ差し替える．
 2. 該当ホストが復号できていた共通シークレットとサービスシークレットの recipient を更新して再暗号化する．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/common.yaml
@@ -90,7 +90,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
 4. ホストを完全に破棄する場合は，不要になったシークレットファイルを削除する（`git rm secrets/hosts/<hostname>.yaml`）．
-5. ホストを完全に破棄する場合は，[`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストのエントリを削除する．
+5. ホストを完全に破棄する場合は，[scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストのエントリを削除する．
 
 ---
 

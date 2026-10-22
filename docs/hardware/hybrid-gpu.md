@@ -76,7 +76,7 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 `/dev/dri/card0` や `card1` などの動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
 
 ##### Home Manager ドロップインによる定義
-NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，`ExecStart` 行が欠落する．`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができないため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
+NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，`ExecStart` 行が欠落する．`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができないため，[hosts/BrokenPC/default.nix](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
 
 ### ゲーム描画における dGPU オフロード無効化
 
@@ -131,7 +131,7 @@ cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
 
 ### ビルドアーキテクチャの指定
 
-GA107 コア（Ampere アーキテクチャ）向けコード生成指定（[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix)）:
+GA107 コア（Ampere アーキテクチャ）向けコード生成指定（[hosts/BrokenPC/default.nix](../../hosts/BrokenPC/default.nix)）:
 
 ```nix
 # hosts/BrokenPC/default.nix
@@ -142,7 +142,7 @@ nixpkgs.config.cudaCapabilities = [ "8.6" ];
 
 ### llama.cpp サービス構成とメモリチューニング
 
-推論バックエンドとして [`hosts/BrokenPC/services/llama.nix`](../../hosts/BrokenPC/services/llama.nix) にて `llama-server` を運用している．
+推論バックエンドとして [hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix) にて `llama-server` を運用している．
 
 ```nix
 home-manager.users.${config.my.user.name} = {
@@ -202,7 +202,7 @@ home-manager.users.${config.my.user.name} = {
 
 ## 関連ドキュメント
 
-- [ホスト概要: `hosts/BrokenPC/README.md`](../../hosts/BrokenPC/README.md)
-- [ホスト定義: `hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix)
-- [ハードウェア構成: `hosts/BrokenPC/hardware.nix`](../../hosts/BrokenPC/hardware.nix)
-- [推論サービス定義: `hosts/BrokenPC/services/llama.nix`](../../hosts/BrokenPC/services/llama.nix)
+- [ホスト概要: hosts/BrokenPC/README.md](../../hosts/BrokenPC/README.md)
+- [ホスト定義: hosts/BrokenPC/default.nix](../../hosts/BrokenPC/default.nix)
+- [ハードウェア構成: hosts/BrokenPC/hardware.nix](../../hosts/BrokenPC/hardware.nix)
+- [推論サービス定義: hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix)

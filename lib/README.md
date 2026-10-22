@@ -6,8 +6,8 @@ Helper functions and shared assets for NixOS system evaluations.
 
 | File | Function / Export | Description |
 | :--- | :--- | :--- |
-| [`default.nix`](default.nix) | `mkSystem` | Constructs a `nixosSystem` configuration with injected `specialArgs`, host defaults, and profile imports; serves as the library index for flake modules. |
-| [`palette.nix`](palette.nix) | `palette` | Vesper color palette (hex strings) shared by Home Manager desktop themes and greetd. |
+| [default.nix](default.nix) | `mkSystem` | Constructs a `nixosSystem` configuration with injected `specialArgs`, host defaults, and profile imports; serves as the library index for flake modules. |
+| [palette.nix](palette.nix) | `palette` | Vesper color palette (hex strings) shared by Home Manager desktop themes and greetd. |
 
 ## `mkSystem` Evaluation API
 
@@ -27,5 +27,5 @@ mkSystem {
 
 ## References
 
-- System evaluation architecture: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
-- Flake structure and module options: [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)
+- System evaluation architecture: [docs/architecture/overview.md](../docs/architecture/overview.md)
+- Flake structure and module options: [docs/architecture/flake-and-modules.md](../docs/architecture/flake-and-modules.md)

@@ -30,6 +30,6 @@ nixos-rebuild switch --flake .#sando-kun --target-host t3u@10.0.0.2 --sudo --ask
 
 ## References
 
-- Legacy BIOS & storage architecture: [`docs/hardware/storage-zfs.md`](../../docs/hardware/storage-zfs.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Legacy BIOS & storage architecture: [docs/hardware/storage-zfs.md](../../docs/hardware/storage-zfs.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)
