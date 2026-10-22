@@ -82,7 +82,7 @@ See [`docs/operations/adding-a-host.md`](docs/operations/adding-a-host.md) for h
 
 ## Documentation
 
-Full operational guides, architecture designs, hardware notes, and recovery procedures are indexed in [`docs/README.md`](docs/README.md).
+Operational runbooks, architecture designs, hardware notes, and recovery procedures are indexed in [`docs/README.md`](docs/README.md).
 
 ## References
 

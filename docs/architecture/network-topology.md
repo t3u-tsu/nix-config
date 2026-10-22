@@ -92,11 +92,11 @@ flowchart TD
 
 ### 3.3 同一 LAN 内での直接接続と名前解決
 - 拠点Tの LAN 内から外部公開ドメイン（`torii-chan.t3u.uk`）へアクセスする際，ルータのヘアピン NAT（NAT Loopback）対応状況や IPv6 優先挙動によって通信障害が発生する場合がある．
-- 回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) による `/etc/hosts` 上書きオプション（直接 `192.168.0.128` へ解決）を用意している（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
+- 回避策として，[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) の `my.networking.local-network` を有効化し，`networking.hosts` で `torii-chan.t3u.uk` を `192.168.0.128` へ直接解決する（詳細は [`../troubleshooting/network-recovery.md`](../troubleshooting/network-recovery.md#3-同一ルータ同居時の名前解決障害と-nat-loopback-回避) 参照）．
 
 ### 3.4 非常用帯域外アクセス（Cloudflare Tunnel）
 - Nebula メッシュ VPN や物理 LAN の疎通状態に依存しない独立した帯域外管理系統（Out-of-Band Management）として，各サーバー（`torii-chan`，`sando-kun`，`kagutsuchi-sama`，`shosoin-tan`）上で `cloudflared` が常時稼働する．
-- 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）によりトンネルを確立するため，拠点ルータでインバウンドポートを開放することなく，NAT やローカルファイアウォールを越えて外部から直接到達できる．
+- 各ノードから Cloudflare エッジへのアウトバウンド常時接続（HTTPS / QUIC）のみでトンネルを確立し，NAT やローカルファイアウォールを越えて外部から直接到達できる．
 - Nebula 不通時や Lighthouse ダウン時でも，管理者は `<hostname>-cf-ssh.t3u.uk` を通じて PC CLI（ProxyCommand）または Web ブラウザ（xterm.js ターミナル）経由で各サーバーへアクセスし，緊急復旧作業を実施できる（詳細は [`../operations/emergency-cf-ssh.md`](../operations/emergency-cf-ssh.md) 参照）．
 
 ---
@@ -119,7 +119,7 @@ Cloudflare Tunnel 経由の接続は以下の 3 層で保護する:
 - Cloudflare SSH CA による有効期限 3 分の短期証明書検証（Web ターミナル接続時）
 - OS 側の ED25519 ユーザー公開鍵認証（PC CLI 接続時）
 
-アウトバウンドトンネル方式のためインバウンドポートを開放せず，外部からの直接走査や総当たり試行から隔離される．
+アウトバウンドトンネル方式により，外部からの直接走査や総当たり試行から隔離される．
 
 ---
 

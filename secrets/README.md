@@ -1,6 +1,6 @@
 # SOPS Encrypted Secrets (`secrets/`)
 
-SOPS-encrypted secrets using Age encryption keys. Plaintext secrets are never committed to version control.
+SOPS-encrypted secrets using Age encryption keys. Never commit plaintext secrets to version control.
 
 ## Secret File Structure
 
@@ -42,7 +42,7 @@ sops secrets/services/signing.yaml
 
 ### Rotating a Host Key
 
-When regenerating a host SSH key (e.g. after a clean reflash):
+Regenerate the host SSH key, e.g. after a clean reflash:
 
 1. Derive the new Age public key: `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`
 2. Update `.sops.yaml` with the new key.

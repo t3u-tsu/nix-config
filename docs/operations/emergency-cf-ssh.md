@@ -1,12 +1,12 @@
 # 非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）
 
-Nebula メッシュ VPN 障害時や Lighthouse 停止時，物理コンソールを接続せずにサーバーへアクセスする帯域外管理（Out-of-Band Management: OOBM）手段として，Cloudflare Tunnel 経由の SSH アクセス手順を定める．
+Nebula メッシュ VPN 障害時や Lighthouse 停止時，物理コンソールとは独立した帯域外管理（Out-of-Band Management: OOBM）手段として，Cloudflare Tunnel 経由の SSH アクセス手順を定める．
 
 ## 1. 概要とアーキテクチャ
 
 通常時のリモート管理は Nebula メッシュ VPN（`10.0.0.0/24`）を経由するが，デーモン停止，証明書失効，Lighthouse ダウン，NAT loopback 障害等が発生すると通常の SSH 接続経路が遮断される．
 
-各サーバー上で稼働する `cloudflared` が Cloudflare エッジに対して常時アウトバウンド接続（HTTPS / QUIC）を確立する．拠点ルータのインバウンドポートを開放せず，外部から各ノードへ到達できる帯域外管理プレーンを確保する．
+各サーバー上で稼働する `cloudflared` が Cloudflare エッジに対して常時アウトバウンド接続（HTTPS / QUIC）を確立する．このアウトバウンド経路のみで拠点ルータを越え，外部から各ノードへ到達できる帯域外管理プレーンを確保する．
 
 ```mermaid
 sequenceDiagram
@@ -171,7 +171,7 @@ sudo systemctl status cloudflared-emergency-ssh.service
 
 ### 短期証明書の有効期限（3分）
 Cloudflare SSH CA から発行されるクライアント証明書の有効期限は 3 分間である．
-- SSH 接続ハンドシェイク（セッション確立）を行うための制限時間であり，確立済みの SSH セッションが 3 分後に強制切断されることはない．
+- SSH 接続ハンドシェイク（セッション確立）の制限時間であり，確立済みの SSH セッションは証明書の有効期限を超えて継続する．
 - 長時間の作業中に接続が意図せず切断された場合，再接続時に再度 Access 認証またはトークン更新が実行される．
 
 ### Nebula 障害発生時の緊急復旧コマンド例

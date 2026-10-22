@@ -5,7 +5,7 @@ Baseline configuration shared across all headless tower servers (`shosoin-tan`, 
 ## Profile Features
 
 - **Kernel Stability:** Deploys the stock default kernel packages (`pkgs.linuxPackages`) for predictable driver stability across legacy Nehalem and Ivy Bridge platforms.
-- **Network Isolation:** Restricts SSH access to the Nebula overlay mesh network (`allowedTCPPorts = mkForce []`), blocking public port exposure.
+- **Network Isolation:** Restricts SSH access to the Nebula overlay mesh network (`allowedTCPPorts = mkForce []`).
 - **Hardened OpenSSH:** Enforces key-based authentication (`PasswordAuthentication = false`) and disables root logins (`PermitRootLogin = "no"`).
 - **Diagnostics & User Groups:** Preconfigures `pc-tools` (nvme-cli, smartmontools) and ensures the primary user belongs to `wheel`, `video`, and `render` groups.
 

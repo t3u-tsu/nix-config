@@ -42,7 +42,7 @@ tofu destroy   # Tear down VPS and stop billing (requires user approval)
 
 ## NixOS Installation via Rescue ISO
 
-ConoHa does not provide native NixOS images. Boot the custom minimal NixOS ISO using ConoHa API rescue mode:
+Boot the custom minimal NixOS ISO through ConoHa API rescue mode:
 
 ```bash
 # 1. Provision base instance (Debian bootstrap)

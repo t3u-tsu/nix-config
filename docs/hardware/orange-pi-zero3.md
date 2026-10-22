@@ -55,7 +55,7 @@ sdImage.postBuildCommands = ''
 
 #### extlinux ブートローダの採用 (`hosts/torii-chan/sbc.nix`)
 
-UEFI や GRUB は使用せず，U-Boot の標準仕様に準拠した extlinux 互換ローダを使用する．
+U-Boot の標準仕様に準拠した extlinux 互換ローダを使用する．
 
 ```nix
 boot.loader = {
@@ -80,7 +80,7 @@ SD カードはランダム書き込み耐性が低く，24時間稼働のエッ
 USB 接続された 2.5 インチ HDD をルートドライブとして安定動作させるための対策:
 
 1. **UAS (USB Attached SCSI) の無効化**:
-   本機で使用している JMicron JMS583 USB-SATA ブリッジ（`152d:0583`）は UAS 動作時にタイムアウトや I/O エラーを起こしやすい．カーネルパラメータ `usb-storage.quirks=152d:0583:u` を指定して UAS を無効化し，USB Mass Storage ドライバで駆動する．
+   本機で使用している JMicron JMS583 USB-SATA ブリッジ（`152d:0583`）は UAS 動作時にタイムアウトや I/O エラーを起こしやすい．カーネルパラメータ `usb-storage.quirks=152d:0583:u` を指定し，USB Mass Storage ドライバで駆動する．
 2. **ルートドライブ認識待ちの延長 (`rootdelay=10`)**:
    USB デバイスはバスのリセットおよびスピンアップに時間を要するため，`rootdelay=10` を付与して initrd 内でのマウントタイムアウトを回避する．
 3. **過剰なヘッド退避の抑止 (`hdd-apm.service`)**:
@@ -109,7 +109,7 @@ USB 接続された 2.5 インチ HDD をルートドライブとして安定動
 
 ### aarch64 ネイティブビルド環境
 
-インストーライメージはクロスコンパイルではなく **aarch64 ネイティブビルド** で構成される．x86_64 ホスト（`BrokenPC` 等）では，`nixos/base/nix.nix` の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
+インストーライメージは **aarch64 ネイティブビルド** で構成される．x86_64 ホスト（`BrokenPC` 等）では，`nixos/base/nix.nix` の QEMU binfmt エミュレーション（`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`）を通じてビルドされる．
 
 ### 初期導入・HDD 移行手順
 
@@ -200,7 +200,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd \
   ];
   ```
 - **swappiness の引き下げ (`vm.swappiness = 10`)**:
-  極小メモリ環境ではあるものの，SD カードや USB HDD への過剰なスワップ I/O はシステム全体を著しくフリーズ（スラッシング）させる．`swappiness = 10` を設定し，物理 RAM を使い切るまでディスクスワップへの書き出しを遅延させる．
+  SD カードや USB HDD への過剰なスワップ I/O はシステム全体を著しくフリーズ（スラッシング）させる．`swappiness = 10` を設定し，物理 RAM を使い切るまでディスクスワップへの書き出しを遅延させる．
 
 #### 状態検証コマンド
 

@@ -27,7 +27,7 @@ description: パッケージ，モジュール，サービス，プロファイ�
 - **profiles/*.nix に具象設定を直書きしない**: プロファイルには options 定義や具体的な設定を書かず，`my.*` オプションを持つモジュールを `nixos/services/`（または `home/desktop/`）に配置し，プロファイル側は `enable` フラグの指定にとどめる．
 - **home/ と nixos/ の関心事を分離する**: `home/`（Home Manager）はユーザー環境の GUI アプリ・ツールやユーザー設定，`nixos/`（特に `nixos/services/`）はシステムサービス・`/etc` 設定（`networking.hosts` など）・カーネル連携を定義する．双方にまたがる場合は役割を明確に分担する（例: ランチャー本体は home，hosts ルールは nixos/services）．
 - **既存モジュールへの統合を優先する**: 新機能は既存の関連カテゴリへ統合する（例: ゲーム関連は `nixos/services/desktop/gaming.nix` や `home/desktop/gaming.nix`）．単独ファイルの新設は，独立管理すべき大規模機能に限定する．
-- **スクリプトは YSH を標準とする**: 新規スクリプト（`scripts/` や運用ツール等）は原則として `ysh` スキルに従い YSH（`.ysh`）で作成し，ネイティブ JSON やデータ構造を用いて `jq` や文字列操作ハックを排除する（インストーラ ISO やレスキュー環境等の最小構成向けのみ例外）．Nix 内でスクリプトを生成する場合も，Bash（`writeShellApplication` 等）ではなく `pkgs.writeYshApplication`（`runtimeInputs` による PATH 注入対応）や `pkgs.writeYsh` / `pkgs.writeYshBin` を使用する．いずれもビルド時に `ysh -n` による構文検証が行われる．
+- **スクリプトは YSH を標準とする**: 新規スクリプト（`scripts/` や運用ツール等）は原則として `ysh` スキルに従い YSH（`.ysh`）で作成し，ネイティブ JSON やデータ構造を用いて `jq` や文字列操作ハックを排除する（インストーラ ISO やレスキュー環境等の最小構成向けのみ例外）．Nix 内のスクリプト生成には `pkgs.writeYshApplication`（`runtimeInputs` による PATH 注入対応）や `pkgs.writeYsh` / `pkgs.writeYshBin` を使用する．ビルド時に `ysh -n` による構文検証が行われる．
 
 ## 新プロファイルを追加するとき
 

@@ -16,7 +16,7 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 
 ## Directory Layout
 
-Host configurations typically follow this layout (specialized hosts such as `torii-chan` include additional platform-specific files):
+Host configurations follow this layout (`torii-chan` adds platform-specific files):
 
 ```text
 hosts/<hostname>/

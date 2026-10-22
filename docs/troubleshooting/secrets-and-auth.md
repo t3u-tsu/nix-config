@@ -192,7 +192,7 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
    ```bash
    # 直前の世代リンクを確認
    ls -l /nix/var/nix/profiles/system-*-link
-   # 前世代のブートスクリプトを実行（init=/bin/sh 環境では systemd がないため switch ではなく boot を指定）
+   # 前世代のブートスクリプトを実行（init=/bin/sh 環境には systemd がないため boot サブコマンドを指定）
    /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration boot
    reboot -f
    ```

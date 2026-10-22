@@ -15,7 +15,7 @@ Desktop modules are divided into a lightweight baseline core and an opt-in full 
 
 - **Home Manager Synchronization:** Wires `home/desktop` configurations into the primary user profile (`t3u`) automatically when enabled.
 - **Container Runtime Support:** Automatically enables `my.virtualisation.distrobox.enable` (rootless Podman) under `full.enable` to back containerized developer workflows.
-- **Fine-Grained Overrides:** All individual desktop module options default to the profile flags but remain independently overridable in per-host configurations.
+- **Fine-Grained Overrides:** All individual desktop module options default to the profile flags and remain independently overridable in per-host configurations.
 
 ## References
 

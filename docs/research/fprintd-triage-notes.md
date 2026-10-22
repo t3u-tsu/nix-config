@@ -28,12 +28,12 @@
 ### 1. D-Bus activation 30s auto-exit — Working as Designed
 - `fprintd.service` は `Type=dbus`．未使用 30 秒で `Deactivated successfully`（`manager.c` の `TIMEOUT 30`）．
 - 必要時は systemd が D-Bus 経由で自動起動するため，`systemctl status fprintd` が普段 `inactive` でも機能上の問題はない．
-- トリアージ当日の長時間稼働（07:36–07:54）は，別プロセスが pkexec を連続実行して Claim を維持したことによる一時的挙動であり，通常動作ではない．
+- トリアージ当日の長時間稼働（07:36–07:54）は，別プロセスが pkexec を連続実行して Claim を維持したことによる一時的挙動である．
 
 ### 2. polkit-1 / sudo の PAM 順序 — Direct Root Cause
 - `/etc/pam.d/polkit-1`，`/etc/pam.d/sudo`，`/etc/pam.d/su` はいずれも `auth sufficient pam_fprintd.so`（order 11400）→ `auth sufficient pam_unix ... try_first_pass`（11700）．
-- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`，`DEFAULT_MAX_TRIES 3`．パスワードを読む `conv` は持たず `PAM_TEXT_INFO`（"Place your finger..."）しか送らない．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへ落ちる．
-- したがって指を置かない限り **最大 30 秒** パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
+- `pam/pam_fprintd.c`: `DEFAULT_TIMEOUT 30`，`DEFAULT_MAX_TRIES 3`．`conv` は `PAM_TEXT_INFO`（"Place your finger..."）の送信のみに使用する．タイムアウト時は `PAM_AUTHINFO_UNAVAIL` を返して次モジュールへ落ちる．
+- 指を置かない限り **最大 30 秒** パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
 - `greetd` は先行設定で `pam_unix` 優先（`use_first_pass`）に変更済みであったが，`polkit-1`，`sudo`，`su` は未適用であった．
 - 副次効果: pam_fprintd が最大 30 秒デバイスを Claim し続けるため，同時に複数の認証要求が来ると後続が `Device was already claimed` で即座に失敗し，パスワード認証へ落ちる．
 
@@ -44,9 +44,9 @@
 
 ### 4. suspend/resume の stale USB ハンドル — Ruled Out / Mitigated
 - resume 時に `xhci_hcd 0000:2d:00.0: xHC error in resume, USBSTS 0x401, Reinit` が記録され USB が再初期化される（カーネル / BIOS 側の既知挙動）．
-- しかし Noctalia は resume 後に `using fingerprint device` → `claimed` → `released` と毎回新しいハンドルで Claim し直す．fprintd 自体は 30 秒で自動終了し suspend 中は保持しないため，専用の resume 復帰サービスは不要である．
+- Noctalia は resume 後に `using fingerprint device` → `claimed` → `released` と毎回新しいハンドルで Claim し直す．fprintd 自体は 30 秒で自動終了し suspend 中は保持しないため，専用の resume 復帰サービスは不要である．
 - `power/control=on` / `power/persist=1`（udev）と TLP denylist が 2026-10-09 に導入済みである．stale ハンドル系エラー（`No such device`，`get_usbfs_fd`，`unsupported firmware version`）は 2026-09-29 を最後に発生していない．
-- なお，2026-09-29 に fprintd の SIGSEGV が 1 回記録されたが（`fprintd.service: Failed with result 'core-dump'`），以降の再発は確認されていない．
+- 2026-09-29 に fprintd の SIGSEGV が 1 回記録されたが（`fprintd.service: Failed with result 'core-dump'`），以降の再発は確認されていない．
 
 ### 5. Noctalia ロック画面の stopVerify / Claim 保持 — Working as Designed
 - ログは `claimed fingerprint device` → `released fingerprint device` を必ず対で出力しており，解放漏れはない．

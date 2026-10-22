@@ -74,7 +74,7 @@ flowchart TD
 ### ハイバネーション設計
 
 - **`boot.resumeDevice` の非指定**: スワップはルートパーティション直下のファイル（`/var/lib/swapfile`）として配置されている．`boot.resumeDevice` にルートパーティションを指定するとカーネルコマンドラインに `resume=<partition>` が付与され，logind が「有効なスワップデバイスではない」としてハイバネーションを拒否する．UEFI + systemd initrd 環境では，`systemd-sleep` がスワップファイルを特定して `HibernateLocation` EFI 変数へ記録し，次回起動時に `systemd-hibernate-resume` が自動的にオフセットを読み出して復元する．
-- **クリティカル電力保護**: [`services.upower.criticalPowerAction = "Hibernate"`](../../hosts/x1c7/services/power.nix) により，バッテリー枯渇時は強制シャットダウンではなくハイバネーションを実行してセッションを退避する．
+- **クリティカル電力保護**: [`services.upower.criticalPowerAction = "Hibernate"`](../../hosts/x1c7/services/power.nix) により，バッテリー枯渇時はハイバネーションを実行してセッションを退避する．
 
 ---
 
@@ -94,8 +94,8 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
 - **D-Bus 連携 (`tlp.pd`)**: `services.tlp.pd.enable = true` により `net.hadess.PowerProfiles` D-Bus インターフェースを提供し，Noctalia デスクトップの `power_profile` バーウィジェットからプロファイルを切り替えられる．
 - **XanMod と intel_pstate の競合解消**:
   - XanMod カーネルは `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y` でビルドされる．
-  - しかし，`intel_pstate` のアクティブモード下で governor を `performance` にすると，EPP が 0（performance）に固定され，EPP の書き換えが `EBUSY` で拒否されてアイドル時にクロックが下がらなくなる．
-  - そのため，AC / バッテリー双方で governor を `powersave` に強制し，EPP（AC: `balance_performance`，BAT: `balance_power`）が正しく自律動作するように制御している．
+  - `intel_pstate` のアクティブモード下で governor を `performance` にすると，EPP が 0（performance）に固定され，EPP の書き換えが `EBUSY` で拒否されてアイドル時にクロックが下がらなくなる．
+  - AC / バッテリー双方で governor を `powersave` に強制し，EPP（AC: `balance_performance`，BAT: `balance_power`）が正しく自律動作するように制御している．
 - **動的ブーストと省電力**:
   - `CPU_HWP_DYN_BOOST_ON_AC = 1`: AC 駆動時の急激な負荷スパイクに対し動的ブーストを適用し UI 応答性を維持．
   - `PLATFORM_PROFILE = "balanced"`: AC / BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げ可能．
@@ -172,7 +172,7 @@ BIOS 設定の `Config -> Power -> Sleep State` は **Linux (S3)** に設定し�
 | **S3 (Deep Sleep)** | RAM 以外の給電を遮断 | スリープ中の電力消費を最小化 | 復帰に 1〜2 秒要する |
 | **s2idle (Modern Standby)** | SoC の低電力アイドル状態 | 復帰が極めて高速 | スリープ中のバッテリー消費が大きい |
 
-本ホストではバッテリー持続時間を最優先して S3 を選択している．スリープステートの S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を **Linux (S3)** に設定することで ACPI レベルで実現される．
+本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，BIOS 設定の `Config -> Power -> Sleep State` を **Linux (S3)** に設定して ACPI レベルで行う．
 
 ### 運用上の留意事項
 
@@ -232,7 +232,7 @@ in
 
 - **ConflictingDevice の追加**: HDMI 出力と Headphones デバイスを排他化（競合デバイス指定）することで，HDMI 接続時に Headphones プロファイルが誤発効することを防止する．
 - **PlaybackPriority の逆転**: 内蔵スピーカーの優先度を `200` から `900` へ引き上げ，常に選択可能なプライマリシンクとして維持する．
-- **両プロセスへの環境変数適用**: PipeWire だけでなく WirePlumber も ALSA カードを直接開いて UCM 設定を参照する．PipeWire 側のみに設定した場合，WirePlumber が標準の未パッチ UCM を読み込みスピーカーが再び消失するため，双方の systemd ユーザーサービスへ `ALSA_CONFIG_UCM2` を渡す必要がある．
+- **両プロセスへの環境変数適用**: PipeWire および WirePlumber は ALSA カードを直接開いて UCM 設定を参照する．PipeWire 側のみに設定した場合，WirePlumber が標準の未パッチ UCM を読み込みスピーカーが再び消失するため，双方の systemd ユーザーサービスへ `ALSA_CONFIG_UCM2` を渡す必要がある．
 
 ---
 
@@ -240,7 +240,7 @@ in
 
 ### カスタム Secure Boot 鍵の登録リスク (文鎮化警告)
 
-Lenovo ThinkPad X1 Carbon Gen 7 において，BIOS の Setup Mode を用いてカスタム Secure Boot 鍵（PK/KEK/db）を登録すると，マザーボードが POST に失敗して永久に起動不能（文鎮化 / brick）になるリスクが報告されている（Arch Linux Wiki 警告）．そのため，本機ではカスタム Secure Boot 鍵の自己登録は行わないこと．
+Lenovo ThinkPad X1 Carbon Gen 7 において，BIOS の Setup Mode を用いてカスタム Secure Boot 鍵（PK/KEK/db）を登録すると，マザーボードが POST に失敗して永久に起動不能（文鎮化 / brick）になるリスクが報告されている（Arch Linux Wiki 警告）．本機ではカスタム Secure Boot 鍵の自己登録を行わない．
 
 ### Thunderbolt BIOS Assist Mode の運用方針
 

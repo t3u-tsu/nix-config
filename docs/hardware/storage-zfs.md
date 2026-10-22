@@ -40,7 +40,7 @@ flowchart TD
 | **`shosoin-tan`** | Intel Core i7-870（Nehalem / 4C8T） | 16 GB | 480 GB SATA SSD | Legacy BIOS (MBR) | Minecraft サーバ，ZFS ストレージ |
 | **`sando-kun`** | Intel Core i7-860（Nehalem / 4C8T） | 8 GB | 250 GB SATA HDD | Legacy BIOS (MBR) | 汎用タワーサーバ，検証環境 |
 
-両機は第1世代 Intel Core プロセッサ時代のマザーボードを搭載しており，UEFI ブートに非対応（またはファームウェアの挙動が不安定）であるため，**クラシカルな Legacy BIOS（MBR パーティションテーブル）による起動** を採用している．
+両機は第1世代 Intel Core プロセッサ時代のマザーボードを搭載しており，UEFI ブートに非対応（またはファームウェアの挙動が不安定）であるため，**Legacy BIOS（MBR パーティションテーブル）による起動** を採用している．
 
 ### GRUB ブートローダ設定
 
@@ -67,7 +67,7 @@ boot.loader.grub = {
 1. **`efiSupport = false`**:
    UEFI 用の ESP（EFI システムパーティション）へのブートローダ配置を無効化し，ディスクの先頭 512 バイト（MBR ブートセクタ）に GRUB ステージ 1 を直接書き込む．
 2. **`device` の永続的 ID 指定**:
-   `/dev/sda` のような動的デバイス名ではなく，シリアル番号を含む `/dev/disk/by-id/...` を指定する．これにより，SATA ケーブルの挿し替えや複数ディスクの認識順序変動による「ブートセクタ書き込み先の誤認」および「起動不能」を防止する．
+   `/dev/sda` のような動的デバイス名は認識順序で変動するため，シリアル番号を含む `/dev/disk/by-id/...` を指定する．これにより，SATA ケーブルの挿し替えや複数ディスクの認識順序変動による「ブートセクタ書き込み先の誤認」および「起動不能」を防止する．
 
 ### MBR パーティションレイアウト
 

@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # Coding Worker
 
-外部コーディングワーカー（pi, dsh, codewhale）に対するコード実装・リファクタリングおよび技術レビューの委譲仕様．親オーケストレーター専用であり，ワーカー自身は本スキルを参照しない．
+外部コーディングワーカー（pi, dsh, codewhale）に対するコード実装・リファクタリング・技術レビューの委譲仕様．親オーケストレーター専用であり，ワーカー自身は本スキルを参照しない．
 
 ## 実行スクリプト仕様
 
@@ -51,12 +51,12 @@ CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOL
 
 ### セッションの継続と対話的改善（CONTINUE / TASK_ID）
 
-ワーカーの実行後，直前の会話履歴・差分・検討内容を引き継いで追加修正を行わせる場合は `CONTINUE=1` を使用する（`TASK_ID` との併用で特定タスクのセッションを継続可能）．
+ワーカー実行後，直前の会話履歴・差分・検討内容を引き継いで追加修正する場合は `CONTINUE=1` を使用する（`TASK_ID` 併用で特定タスクのセッションを継続可能）．
 
 - **使用シーン**:
   - **追加修正・テスト追加**: 初回ワーカーの変更や stat を確認した後，「テストケースも追加してほしい」「このエッジケースも考慮して修正してほしい」と追加指示を出す場合．
   - **ビルド・検証エラーの修正**: ワーカーの変更後に `nix build` や `flake check` を実行してエラーが発生した際，エラーログを渡して「このエラーを修正してほしい」と修正を指示する場合．
-  - **段階的なリファクタリング**: 実装完了後に同一コンテキストで「関数名をより簡潔にリファクタリングしてほしい」など追加指示を行う場合．
+  - **段階的なリファクタリング**: 実装完了後に同一コンテキストで「関数名をより簡潔にリファクタリングしてほしい」などの追加指示を出す場合．
 - **ワークツリーごとの状態分離**:
   各兄弟ワークツリー配下の `.agents/skills/coding-worker/.state/` は独立して保持されているため，ツリー内で安全に対話を継続できる．別ツリーで並列稼働している他ワーカーのセッションと干渉・混同することはない．
 - **具体例**:
@@ -71,7 +71,7 @@ CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOL
   # 2. 直前のセッションを引き継いでエラー修正・テスト追加を指示
   CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "The build failed with 'attribute dns_records missing'. Fix the syntax and add a unit test in tests/dns.nix."
   ```
-  `TASK_ID` を指定してセッションを名指しで管理することも可能:
+  `TASK_ID` を指定してセッションを個別に管理する:
   ```bash
   # 特定タスク ID で初回起動
   TASK_ID="dns-zone" .agents/skills/coding-worker/scripts/run.ysh "Implement DNS zone configuration..."
@@ -124,28 +124,28 @@ CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOL
 
 ## 外部ワーカー固有の注意事項（サブエージェントとの相違点）
 
-親オーケストレーターが Antigravity サブエージェント（`invoke_subagent`）ではなく外部コーディングワーカー（`run.ysh`）を使用する際の固有原則．
+親オーケストレーターが外部コーディングワーカー（`run.ysh`）を使用する際の固有原則．
 
 > [!NOTE]
-> 兄弟ワークツリーの作成，並列投入，非同期逐次合流，排他指定，および差分統合の手順は `GEMINI.md` を参照．
+> 兄弟ワークツリーの作成，並列投入，非同期逐次合流，排他指定，差分統合の手順は `GEMINI.md` を参照．
 
 ### 1. 英語プロンプトの原則
-サブエージェントとは日本語で対話するが，外部コーディングワーカー（`pi`, `dsh` 等）へのプロンプトは **必ず簡潔で明確な英語（English）** で指示する．日本語の指示や過剰な文脈は推論精度の低下や不要な探索を招く．
+外部コーディングワーカー（`pi`, `dsh` 等）へのプロンプトは **簡潔で明確な英語（English）** で指示する．日本語の指示や過剰な文脈は推論精度の低下や不要な探索を招く．
 
 ### 2. hush 規約の英語制約指示
-外部ワーカーには `hush` スキルの制約をプロンプト内に英語で直接指示する（`No explanatory or obvious comments. Self-documenting naming only (hush rule).`）．ワーカーはコメントを過剰に追加しがちなため，プロンプト内で明示的に制約する．
+外部ワーカーには `hush` スキルの制約をプロンプト内に英語で直接指示する（`No explanatory or obvious comments. Self-documenting naming only (hush rule).`）．過剰なコメント追加を避けるため，プロンプト内で明示的に制約する．
 
 ### 3. 実装専念とスコープの限定
-外部ワーカーはコード実装・修正に専念させ，ドキュメントや README の修正は行わせない（`Do NOT edit documentation or README files.`）．ドキュメント改修はサブエージェントに委譲する．
+外部ワーカーのスコープはコード実装・修正に限定する（`Do NOT edit documentation or README files.`）．ドキュメント改修はサブエージェントに委譲する．
 
 ### 4. 出力トークンの抑制（全文再掲の禁止）
-外部ワーカーがファイル全文や長大なコードブロックを標準出力に再掲するとトークン消費やバッファ溢れの原因となる．変更内容と理由の簡潔な箇条書きのみを報告させる（`Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.`）．
+ファイル全文や長大なコードブロックの再掲を禁じ，変更内容と理由の簡潔な箇条書きのみを報告させる（`Report summary bullets of changes and reasoning only. Do NOT re-print full files or large code blocks.`）．
 
 ### 5. レビューモードとワーキングツリー不変の保証（`--read-only`）
-指摘のみを取得し作業ツリーを変更させたくない場合は `--read-only` モードを使用する．ツール制限と Git フィンガープリント照合によりツリー不変が保証される（変更検知時は終了コード 3 で失敗）．改善差分を直接作成させたい場合は通常の編集可能モードで実行する．
+指摘のみを取得し作業ツリーを変更させない場合は `--read-only` モードを使用する．ツール制限と Git フィンガープリント照合によりツリー不変を保証する（変更検知時は終了コード 3 で失敗）．改善差分を直接作成させる場合は通常の編集可能モードで実行する．
 
 ### 6. 対話的改善とセッション継続（`CONTINUE=1`, `TASK_ID`）
-初回実行後のエラー修正や追加要件には新規セッションを起こさず `CONTINUE=1`（特定タスクは `TASK_ID` 併用）で同一コンテキストを継続する．兄弟ツリーごとに `.agents/skills/coding-worker/.state/` が分離されているため，他ワーカーと干渉せずに安全に対話を継続できる．
+初回実行後のエラー修正や追加要件は `CONTINUE=1`（特定タスクは `TASK_ID` 併用）で同一コンテキストを継続する．兄弟ツリーごとに `.agents/skills/coding-worker/.state/` が分離されているため，他ワーカーと干渉せず安全に対話を継続できる．
 
 ## プロンプトテンプレート
 

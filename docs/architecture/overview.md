@@ -49,7 +49,7 @@ flake.nix
 ```
 
 > [!NOTE]
-> 外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，`lib/default.nix` でグローバルに注入せず，利用先のモジュール（`nixos/services/` や `home/desktop/`）で直接インポートしてスコープを局所化する．
+> 外部モジュール（`nix-minecraft`，`noctalia-greeter`，`zen-browser`，`noctalia`）は，利用先のモジュール（`nixos/services/` や `home/desktop/`）で直接インポートし，スコープを局所化する．
 
 ---
 
@@ -85,7 +85,7 @@ mkLib.mkSystem によるモジュール合成
 `modules` リストは `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
 
 ### 優先度制御（Priority System）
-スカラー値オプションの競合時はエラー（conflicting definitions）となるため，プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
+スカラー値オプションの競合時はエラー（conflicting definitions）となる．プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
 
 ### コレクション型オプションの結合
 `environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．

@@ -18,12 +18,12 @@ NixOS システムの評価・ビルド・デプロイ時に発生する障害�
 - ターミナルに `error: builder for '...' failed with exit code 137` が出力される．
 
 ### 原因
-Nix の評価（モジュールの再帰的マージやオーバーレイ解決）およびパッケージのコンパイルは大量のメモリを消費する．特に `torii-chan`（Orange Pi Zero 3: 物理 RAM 1GB）や ConoHa VPS（512MB プラン）などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．
+Nix の評価（モジュールの再帰的マージやオーバーレイ解決）およびパッケージのコンパイルは大量のメモリを消費する．`torii-chan`（Orange Pi Zero 3: 物理 RAM 1GB）や ConoHa VPS（512MB プラン）などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．
 
 ### 切り分け・復旧手順
 
 #### 対策 1: リモートビルド / 作業機からのデプロイ（推奨）
-低スペック機でのローカルビルドを避け，リソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
+リソースを持つ作業機（`BrokenPC` や `x1c7`）からビルドおよび転送を行う．
 
 ```bash
 # 1. 事前ビルド（作業機上でビルドを完了させ，ビルドキャッシュを生成）
@@ -85,7 +85,7 @@ git add -A
 ```
 
 #### 手順 2: 特定 input の限定的更新
-全 input を一括更新せず，対象の input のみを明示して更新する（[`nix-cache-optimization` スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
+対象の input のみを明示して更新する（[`nix-cache-optimization` スキル](../../.agents/skills/nix-cache-optimization/SKILL.md) 参照）:
 
 ```bash
 # 特定の input のみ更新

@@ -1,10 +1,10 @@
 # ConoHa VPS プロビジョニング & フェイルオーバー手順
 
-物理エッジゲートウェイ（`torii-chan`）停止時に ConoHa VPS 上で待機系（`torii-chan-vps`）を立ち上げ，切替および物理復旧後の切戻し（Failback）を行う緊急時手順．
+物理エッジゲートウェイ（`torii-chan`）停止時に ConoHa VPS 上で待機系（`torii-chan-vps`）へ切り替え，物理復旧後に切戻す（Failback）緊急時手順．
 
 ## 1. フェイルオーバー概要
 
-平時は拠点Tの SBC（Orange Pi Zero 3）がエッジゲートウェイとして稼働する．物理障害時のみ ConoHa VPS（従量課金）を立ち上げ，コストを抑えつつ冗長性を確保する．
+平時は拠点Tの SBC（Orange Pi Zero 3）がエッジゲートウェイとして稼働する．物理障害時のみ ConoHa VPS（従量課金）を起動する．
 
 ```mermaid
 sequenceDiagram

@@ -19,7 +19,7 @@ Tower server for compilation, GPU compute, and off-site Restic backup reception 
 | **Profile** | `tower-server` |
 | **Nebula Mesh** | `10.0.0.3` (groups: `mgmt`) |
 | **Roles** | Remote compute / build offload, Restic backup repository receiver |
-| **SSH Policy** | Allowed only via the `nebula0` overlay interface |
+| **SSH Policy** | Restricted to the `nebula0` overlay interface |
 
 ## Backup Storage
 

@@ -50,7 +50,7 @@ flowchart TD
   - `glmark2` ベンチマークは完走する．
   - VRAM の 90% 以上を確保するメモリストレステストはエラーなく通過する．
 - **結論**:
-  - VRAM チップやカーネルドライバの欠陥ではなく，dGPU 内部の **3D レンダリングパイプラインおよびテクスチャアップロード回路の物理的破損** が原因である．
+  - dGPU 内部の **3D レンダリングパイプラインおよびテクスチャアップロード回路の物理的破損** が原因である．
   - AMD Radeon 680M iGPU は 3D アプリケーションを安定して実行できる．
 
 ---
@@ -74,11 +74,11 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 1. **`/dev/dri/by-path` の採用理由**:
    `/dev/dri/card0` や `card1` などの動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
 2. **Home Manager ドロップインによる定義理由**:
-   NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，肝心の `ExecStart` 行が欠落する．また，`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができない．そのため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
+   NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，`ExecStart` 行が欠落する．`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができないため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
 
 ### ゲーム描画における dGPU オフロード無効化
 
-- **ゲーム実行方針**: Steam や各種ゲームを起動する際，PRIME オフロード（`nvidia-offload`）を使用せず，Radeon 680M 上でネイティブ描画を行う．
+- **ゲーム実行方針**: Steam や各種ゲームは Radeon 680M 上でネイティブ描画する（PRIME オフロード経由の dGPU 描画は 3D 回路破損によりクラッシュする）．
 - **設定**: `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを防止する．
 
 ### 省電力制御 (RTD3 & finegrained)
@@ -126,7 +126,7 @@ cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
 
 ## 3. CUDA / llama.cpp 推論専用オフロード
 
-テクスチャアップロード回路が破損している一方，**行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する**．この特性を活かし，LLM 推論アクセラレータとして dGPU を活用する．
+**行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する**．この特性を利用し，LLM 推論アクセラレータとして dGPU を使用する．
 
 ### ビルドアーキテクチャの指定
 

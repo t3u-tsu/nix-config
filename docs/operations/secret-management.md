@@ -66,7 +66,7 @@ CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
 ```
 ※ CA 自体を更新する場合は，`ysh scripts/nebula-rotate-ca.ysh` で全ノードの証明書を再発行した上で，上記の `nebula-import-secrets.ysh` を用いて SOPS へ取り込む．
-更新後は Git にコミットして各ホストへデプロイを適用することで，ダウンタイムなく新しい証明書へ切り替わる．
+更新後は Git にコミットして各ホストへデプロイを適用し，新しい証明書へ切り替える．
 
 ---
 

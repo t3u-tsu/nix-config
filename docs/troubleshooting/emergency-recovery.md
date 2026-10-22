@@ -84,7 +84,7 @@ mount /dev/disk/by-id/<efi-partition> /mnt/boot
 ```
 
 #### 構成 B: レガシー BIOS 構成（`shosoin-tan`: SSD + ZFS，`sando-kun`: HDD）
-`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ．一方，`sando-kun` は HDD（ext4）のみで ZFS は非搭載である:
+`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ．`sando-kun` は HDD（ext4）のみで ZFS は非搭載である:
 ```bash
 # ルートおよび boot のマウント
 # 例: shosoin-tan（SSD）

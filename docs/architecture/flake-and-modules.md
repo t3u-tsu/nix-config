@@ -50,9 +50,9 @@ mkLib.mkSystem {
 | **`my.home.desktop.<category>.<name>`** | `home/desktop/` | デスクトップ環境のユーザー設定（例: `my.home.desktop.dev-tools.ghostty`） |
 
 ### オプション設計の原則
-- デフォルト無効: 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に有効化されない限り評価・適用しない．
+- デフォルト無効: 各モジュールは `enable = mkEnableOption "..."` を持ち，`true` を明示指定した場合に適用する．
 - 自己完結性: サービス有効化時に必要なファイアウォール開放，ユーザー作成，SOPS シークレット配線，systemd ユニット定義を当該モジュール内で完結させる．
-- トップレベルキーの集約: statix の規約に従い，同一属性セットは分割せず 1 つのブロックで定義する．
+- トップレベルキーの集約: statix の規約に従い，同一属性セットを 1 つのブロックで定義する．
 
 ---
 

@@ -57,7 +57,7 @@ sudo /run/current-system/bin/switch-to-configuration boot
 Linux カーネルの更新適用には OS の再起動が必要となる．
 
 1. 事前ビルドと更新確認:
-   特権昇格プロセスの実行時間を最小化するため，事前に一般ユーザー権限でビルドを完了させる．またドライランでカーネル更新等の有無を確認する．
+   特権昇格プロセスの実行時間を最小化するため，事前に一般ユーザー権限でビルドを完了させる．ドライランでカーネル更新等の有無を確認する．
    ```bash
    # 事前ビルド（必須）
    nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link

@@ -13,4 +13,4 @@ description: 新ホストを追加するときの手順．
 4. Nebula: 既存 CA で `nebula-cert sign` を実行し，`scripts/nebula-lib.ysh` の `FLEET` リストへ追記してインポートする（詳細は [`docs/architecture/network-topology.md`](../../../docs/architecture/network-topology.md)）．
 5. private flake input のブートストラップ: 初回評価時の SSH エイリアス設定は [`docs/operations/adding-a-host.md`](../../../docs/operations/adding-a-host.md) を参照．
 6. 検証: `nix flake check` → 事前ビルド `nix build .#nixosConfigurations.<name>.config.system.build.toplevel --no-link`．
-7. 適用: デスクトップ機は承認のもと `pkexec` 経由，リモート・SBC 機は `dev-workflow` スキルに従い `--target-host` またはユーザー自身の手動操作で実行する．
+7. 適用: デスクトップ機はユーザー承認のもと `pkexec` 経由，リモート・SBC 機は `dev-workflow` スキルに従い `--target-host` またはユーザー手動操作で実行する．

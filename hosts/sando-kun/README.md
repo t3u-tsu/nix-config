@@ -19,7 +19,7 @@ Tower server running on BIOS/MBR partitioning with an Intel Core i7-860 processo
 | **Profile** | `tower-server` |
 | **Bootloader** | GRUB on MBR (`boot.loader.grub.efiSupport = false`) |
 | **Nebula Mesh** | `10.0.0.2` (groups: `mgmt`) |
-| **SSH Policy** | Allowed only via the `nebula0` overlay interface |
+| **SSH Policy** | Restricted to the `nebula0` overlay interface |
 
 ## Quick Operations
 

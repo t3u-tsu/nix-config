@@ -116,7 +116,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 
 `shosoin-tan` のローカルストレージは ZFS Mirror（`/mnt/tank-1tb`）で構成している．
 
-- 定期スクラブ: 自動実行タイマーは未設定のため，手動で定期スクラブを実施する（`sudo zpool scrub tank-1tb`）．
+- 定期スクラブ: 自動実行タイマーは未設定のため，`sudo zpool scrub tank-1tb` を手動で定期実行する．
 - ステータス確認: `zpool status tank-1tb`
 - ディスク交換・リビルド: 詳細は [ZFS & ストレージ保守](../hardware/storage-zfs.md) を参照．
 
