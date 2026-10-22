@@ -7,14 +7,14 @@
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
 | `flake/` | flake-parts サブモジュール群（`hosts`, `lib`, `overlays`, `packages`, `dev`）．Flake エントリポイントの分割． |
-| [`lib/`](../../lib/) | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット（`palette.nix`）． |
-| [`nixos/`](../../nixos/) | 全ホスト共有の NixOS システムモジュール群（基盤，セキュリティ，ネットワーク，各種サービス）． |
-| [`home/`](../../home/) | Home Manager モジュール群（シェル，CLI ツール，GUI アプリケーション，デスクトップ環境）． |
-| [`hosts/`](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
-| [`secrets/`](../../secrets/) | SOPS で暗号化された秘密情報（ホスト固有およびクラスタ共通シークレット）． |
-| [`scripts/`](../../scripts/) | クラスタ運用・保守スクリプト（Nebula 証明書運用，パスワード生成等）． |
-| [`terraform/`](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
-| `docs/` | システム全体の設計仕様，運用ランブック，ハードウェア解説，障害復旧手順（SSOT）． |
+| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット（`palette.nix`）． |
+| [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群（基盤，セキュリティ，ネットワーク，各種サービス）． |
+| [home/](../../home/) | Home Manager モジュール群（シェル，CLI ツール，GUI アプリケーション，デスクトップ環境）． |
+| [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
+| [secrets/](../../secrets/) | SOPS で暗号化された秘密情報（ホスト固有およびクラスタ共通シークレット）． |
+| [scripts/](../../scripts/) | クラスタ運用・保守スクリプト（Nebula 証明書運用，パスワード生成等）． |
+| [terraform/](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
+| `docs/` | システム全体の設計仕様，運用手順書，ハードウェア解説，障害復旧手順（SSOT）． |
 
 ---
 
@@ -84,8 +84,8 @@ mkLib.mkSystem によるモジュール合成
 ### 構成モジュールの注入順序
 `modules` リストは `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
 
-### 優先度制御（Priority System）
-スカラー値オプションの競合時はエラー（conflicting definitions）となる．プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
+### 優先度制御
+スカラー値オプションの競合時はエラーとなる．プロファイル側の初期値には `lib.mkDefault`（優先度 1000），ホストやモジュールからの強制適用には `lib.mkForce`（優先度 50）を使用する．
 
 ### コレクション型オプションの結合
 `environment.systemPackages` などのリスト型や属性セット型オプションは，モジュール間で自動的にマージ・結合される．

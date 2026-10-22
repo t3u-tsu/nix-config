@@ -6,8 +6,8 @@
 
 GitHub Actions のスケジュールワークフローが毎日日本時間 04:00 に自動実行される．処理の流れ:
 
-1. `nvfetcher` を実行し，[`nvfetcher.toml`](../../nvfetcher.toml) に定義された最新パッケージのコミット・ハッシュ値と [`_sources/generated.nix`](../../_sources/generated.nix) を更新する．
-2. `nix flake update` で [`flake.lock`](../../flake.lock) の依存 Flake 入力を最新に更新する．
+1. `nvfetcher` を実行し，[nvfetcher.toml](../../nvfetcher.toml) に定義された最新パッケージのコミット・ハッシュ値と [_sources/generated.nix](../../_sources/generated.nix) を更新する．
+2. `nix flake update` で [flake.lock](../../flake.lock) の依存 Flake 入力を最新に更新する．
 3. 全ホストの評価と pre-commit hooks（`nix flake check`）を実行して CI 検証を行う．
 4. すべての検証に成功した場合のみ，コミットを作成して `main` ブランチへ自動プッシュする．
 
@@ -28,7 +28,7 @@ nix flake check
 
 ## 2. ディスク容量管理とガベージコレクション
 
-全ホスト共通設定（[`nixos/base/nix.nix`](../../nixos/base/nix.nix)）で週次の 14 日経過自動 GC（`gc.automatic = true; dates = "weekly"; options = "--delete-older-than 14d";`）およびビルド時ストア最適化（`auto-optimise-store = true;`）が稼働している．
+全ホスト共通設定（[nixos/base/nix.nix](../../nixos/base/nix.nix)）で週次の 14 日経過自動 GC（`gc.automatic = true; dates = "weekly"; options = "--delete-older-than 14d";`）およびビルド時ストア最適化（`auto-optimise-store = true;`）が稼働している．
 
 ディスク容量逼迫時や即時クリーンアップが必要な場合は，以下のコマンドを実行する．
 
@@ -76,7 +76,7 @@ Linux カーネルの更新適用には OS の再起動が必要となる．
    nixos-rebuild boot --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
    ssh t3u@10.0.0.X "sudo reboot"
    ```
-3. カーネルの非互換性等で起動に失敗した場合は，ブートローダ（GRUB または extlinux）の世代選択画面で直前の正常世代を選択して起動する（詳細は [`../troubleshooting/emergency-recovery.md`](../troubleshooting/emergency-recovery.md) 参照）．
+3. カーネルの非互換性等で起動に失敗した場合は，ブートローダ（GRUB または extlinux）の世代選択画面で直前の正常世代を選択して起動する（詳細は [../troubleshooting/emergency-recovery.md](../troubleshooting/emergency-recovery.md) 参照）．
 
 ---
 

@@ -44,7 +44,7 @@ flowchart TD
 
 ### GRUB ブートローダ設定
 
-ブートローダ設定（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)，[`hosts/sando-kun/default.nix`](../../hosts/sando-kun/default.nix)）:
+ブートローダ設定（[hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)）:
 
 ```nix
 # hosts/shosoin-tan/default.nix
@@ -107,7 +107,7 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 
 ### NixOS 宣言と自動マウント
 
-NixOS での ZFS 宣言（[`hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)，[`hosts/shosoin-tan/hardware.nix`](../../hosts/shosoin-tan/hardware.nix)）:
+NixOS での ZFS 宣言（[hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)，[hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)）:
 
 ```nix
 # default.nix
@@ -134,7 +134,7 @@ sudo zpool create -m /mnt/tank-1tb tank-1tb mirror /dev/disk/by-id/<DISK1> /dev/
 
 ## 3. 定期スクラブとデータ整合性検証
 
-ZFS は全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラ誤動作に伴うサイレントデータ破損（Bit Rot）を自動検知・自己修復する．
+ZFS は全ブロックに対するチェックサム検証により，HDD の磁気劣化やコントローラ誤動作に伴うサイレントデータ破損を自動検知・自己修復する．
 
 自動スクラブタイマー（`services.zfs.autoScrub`）は未設定のため，定期的に手動でスクラブを実行し，データ整合性を検証する．
 
@@ -256,7 +256,7 @@ sudo zpool replace tank-1tb <旧ディスク識別子> /dev/disk/by-id/<新デ�
 
 ※旧ディスクがすでに完全故障して切断されている場合，`zpool status` に表示されている数値（GUID）を `<旧ディスク識別子>` として指定する．
 
-### Step 3: リシルバリング (Resilvering) の監視
+### Step 3: リシルバリングの監視
 
 リプレース指示を発行すると，生き残っている正常ディスクから新ディスクへデータの同期（リシルバリング）が自動的に開始される．
 
@@ -293,9 +293,9 @@ zpool status tank-1tb
 
 ## 関連ドキュメント
 
-- [ホスト概要: `hosts/shosoin-tan/README.md`](../../hosts/shosoin-tan/README.md)
-- [システム構成: `hosts/shosoin-tan/default.nix`](../../hosts/shosoin-tan/default.nix)
-- [ハードウェア定義: `hosts/shosoin-tan/hardware.nix`](../../hosts/shosoin-tan/hardware.nix)
-- [ホスト概要: `hosts/sando-kun/README.md`](../../hosts/sando-kun/README.md)
-- [システム構成: `hosts/sando-kun/default.nix`](../../hosts/sando-kun/default.nix)
-- [バックアップ運用手順: `docs/operations/backup-and-restore.md`](../operations/backup-and-restore.md)
+- [ホスト概要: hosts/shosoin-tan/README.md](../../hosts/shosoin-tan/README.md)
+- [システム構成: hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix)
+- [ハードウェア定義: hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)
+- [ホスト概要: hosts/sando-kun/README.md](../../hosts/sando-kun/README.md)
+- [システム構成: hosts/sando-kun/default.nix](../../hosts/sando-kun/default.nix)
+- [バックアップ運用手順: docs/operations/backup-and-restore.md](../operations/backup-and-restore.md)

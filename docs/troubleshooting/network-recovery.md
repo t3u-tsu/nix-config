@@ -125,14 +125,14 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
 本リポジトリのタワーサーバー群（`tower-server` プロファイル）およびゲートウェイ（`torii-chan`）では，セキュリティ強化のため物理 LAN 側からの SSH 接続が制限されている．
 
 #### タワーサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）
-[`nixos/profiles/tower-server/security.nix`](../../nixos/profiles/tower-server/security.nix) において以下の設定が行われている．
+[nixos/profiles/tower-server/security.nix](../../nixos/profiles/tower-server/security.nix) において以下の設定が行われている．
 ```nix
 networking.firewall.allowedTCPPorts = lib.mkForce [ ];
 ```
 SSH ポート 22 は Nebula インターフェース（`nebula0`, `trustedInterfaces`）経由でのみ許可されており，LAN 側の物理インターフェースからはポート 22 へのアクセスがファイアウォールで遮断されている．
 
 #### ゲートウェイ（`torii-chan`）
-[`nixos/services/gateway/firewall.nix`](../../nixos/services/gateway/firewall.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合，以下の条件分岐により物理ポート 22 が遮断される（`restrictAccess` が `false` の場合は LAN からの SSH が許可される）．
+[nixos/services/gateway/firewall.nix](../../nixos/services/gateway/firewall.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合，以下の条件分岐により物理ポート 22 が遮断される（`restrictAccess` が `false` の場合は LAN からの SSH が許可される）．
 ```nix
 allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
 ```
@@ -209,7 +209,7 @@ Lighthouse である `torii-chan` と同一ルータ（拠点T の LAN 内）に
 
 ### 回避手順（`local-network.nix` の有効化）
 
-[`nixos/networking/local-network.nix`](../../nixos/networking/local-network.nix) に用意されているローカルネットワーク最適化モジュールを有効化し，`/etc/hosts` 上でドメインを LAN 内プライベート IP へ直接解決させる．
+[nixos/networking/local-network.nix](../../nixos/networking/local-network.nix) に用意されているローカルネットワーク最適化モジュールを有効化し，`/etc/hosts` 上でドメインを LAN 内プライベート IP へ直接解決させる．
 
 #### Step 1: ホスト設定でのオプション有効化
 同一ルータ内に同居するホストの `hosts/<hostname>/default.nix` において，`my.networking.local-network.enable` を有効化する:

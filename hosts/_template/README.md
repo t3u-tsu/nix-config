@@ -31,5 +31,5 @@ nixos-rebuild switch --flake .#HOSTNAME --target-host t3u@10.0.0.X --sudo --ask-
 
 ## References
 
-- Host provisioning runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
+- Host provisioning runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)

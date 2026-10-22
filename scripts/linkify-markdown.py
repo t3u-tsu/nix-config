@@ -3,7 +3,7 @@
 
 Scans markdown files across the repository respecting .gitignore, finds backticked
 tokens that correspond to actual files within the repository, and converts them to:
-  [`token`](relative/path/to/token)
+  [token](relative/path/to/token)
 """
 
 import argparse
@@ -148,7 +148,7 @@ def process_markdown_file(
                 continue
 
             rel_link = os.path.relpath(target_abs, os.path.join(repo_root, md_dir_rel))
-            new_text = f"[`{token}`]({rel_link})"
+            new_text = f"[{token}]({rel_link})"
             reps.append((start, end, new_text, token, rel_link))
 
         if reps:

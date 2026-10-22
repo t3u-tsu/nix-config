@@ -13,5 +13,5 @@ System profile optimized for resource-constrained Single-Board Computers (e.g. O
 
 ## References
 
-- Orange Pi Zero 3 hardware guide: [`docs/hardware/orange-pi-zero3.md`](../../../docs/hardware/orange-pi-zero3.md)
-- SBC host deployment: [`hosts/torii-chan/`](../../../hosts/torii-chan/README.md)
+- Orange Pi Zero 3 hardware guide: [docs/hardware/orange-pi-zero3.md](../../../docs/hardware/orange-pi-zero3.md)
+- SBC host deployment: [hosts/torii-chan/](../../../hosts/torii-chan/README.md)

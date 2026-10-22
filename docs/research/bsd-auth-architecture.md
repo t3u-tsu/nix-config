@@ -298,11 +298,11 @@ OpenBSD の ports には `security/libfprint` が存在するが，`fprintd` デ
 
 ---
 
-## 3. 縦統合のスコープとデスクトップ認証の不在
+## 3. 垂直統合のスコープとデスクトップ認証の不在
 
-BSD プロジェクトにおける「縦統合（vertical integration）」の範囲は，カーネルと base ユーザランド（単一リポジトリ，一元化されたリリースエンジニアリング，統一されたセキュリティ監査）に限定され，デスクトップ環境までは含まない．このアーキテクチャ境界が，並行マルチモーダル認証が実装されなかった直接の要因である．
+BSD プロジェクトにおける「垂直統合」の範囲は，カーネルと base ユーザランド（単一リポジトリ，一元化されたリリースエンジニアリング，統一されたセキュリティ監査）に限定され，デスクトップ環境までは含まない．このアーキテクチャ境界が，並行マルチモーダル認証が実装されなかった直接の要因である．
 
-### 3.1 縦統合が実際に止まる境界
+### 3.1 垂直統合が実際に止まる境界
 
 | OS | base システムの範囲 | ports / pkgsrc への分離 |
 | :--- | :--- | :--- |
@@ -310,7 +310,7 @@ BSD プロジェクトにおける「縦統合（vertical integration）」の�
 | NetBSD | カーネル，libc，OpenPAM，`lib/libpam` など | 生体認証ライブラリ（`libfprint`）を含む各種デスクトップソフトウェア |
 | OpenBSD | カーネル，libc，BSD Auth，`login` など | デスクトップ環境全般．D-Bus や fprintd などのデーモンは base から意図的に除外 |
 
-どの BSD プロジェクトもファーストパーティのデスクトップシェルやディスプレイマネージャを持たない．グラフィカルセッションへの認証は第三者ソフトウェア（GDM，SDDM，LightDM，greetd 等）が行い，そのコンポーネントが「指紋かパスワードのどちらかを待つ」処理をオーケストレーションする必要がある．そのコンポーネントが縦統合された base の外にあるため，base のセキュリティ優先の認証設計が並行マルチモーダルプロンプトへ拡張されることはなかった．
+どの BSD プロジェクトもファーストパーティのデスクトップシェルやディスプレイマネージャを持たない．グラフィカルセッションへの認証は第三者ソフトウェア（GDM，SDDM，LightDM，greetd 等）が行い，そのコンポーネントが「指紋かパスワードのどちらかを待つ」処理をオーケストレーションする必要がある．そのコンポーネントが垂直統合された base の外にあるため，base のセキュリティ優先の認証設計が並行マルチモーダルプロンプトへ拡張されることはなかった．
 
 ### 3.2 Apple・Microsoft との対比
 
@@ -329,7 +329,7 @@ Microsoft においても，LSA，SSPI，Winlogon，Credential Providers など�
 
 ### 3.4 結論
 
-BSD における縦統合の目的はシステム全体の信頼性とセキュリティ規律の一元化である．3 系すべてにおいてデスクトップおよびログイン UI は base システムの管理外（ports / pkgsrc）であり，base の認証フレームワーク（単純性と特権分離を重視した同期・単一コールバック設計）が並行マルチモーダル認証へ拡張される動機は存在しなかった．UI からカーネル・ハードウェアまでを一貫して所有・制御する Apple や Microsoft とはアーキテクチャの前提が異なる．
+BSD における垂直統合の目的はシステム全体の信頼性とセキュリティ規律の一元化である．3 系すべてにおいてデスクトップおよびログイン UI は base システムの管理外（ports / pkgsrc）であり，base の認証フレームワーク（単純性と特権分離を重視した同期・単一コールバック設計）が並行マルチモーダル認証へ拡張される動機は存在しなかった．UI からカーネル・ハードウェアまでを一貫して所有・制御する Apple や Microsoft とはアーキテクチャの前提が異なる．
 
 ---
 
@@ -352,9 +352,9 @@ BSD における縦統合の目的はシステム全体の信頼性とセキュ�
 
 ## 関連ドキュメント
 
-- [`parallel-auth-architecture.md`](parallel-auth-architecture.md) — Linux における指紋 + パスワード並行待ち受けの可否と，GDM / Noctalia / greetd / polkit / sudo の実装比較
-- [`fprintd-triage-notes.md`](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録
-- [`thinkpad-x1c7.md`](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合の現状
+- [parallel-auth-architecture.md](parallel-auth-architecture.md) — Linux における指紋 + パスワード並行待ち受けの可否と，GDM / Noctalia / greetd / polkit / sudo の実装比較
+- [fprintd-triage-notes.md](fprintd-triage-notes.md) — x1c7 実機での fprintd トリアージ記録
+- [thinkpad-x1c7.md](../hardware/thinkpad-x1c7.md) — x1c7 の指紋認証・PAM 統合の現状
 
 ## 出典
 

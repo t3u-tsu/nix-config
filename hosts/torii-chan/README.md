@@ -44,7 +44,7 @@ nixos-rebuild switch \
 
 ## References
 
-- Hardware architecture, U-Boot, and storage: [`docs/hardware/orange-pi-zero3.md`](../../docs/hardware/orange-pi-zero3.md)
-- ConoHa VPS failover & failback runbook: [`docs/operations/vps-failover.md`](../../docs/operations/vps-failover.md)
-- Network topology: [`docs/architecture/network-topology.md`](../../docs/architecture/network-topology.md)
-- Host addition runbook: [`docs/operations/adding-a-host.md`](../../docs/operations/adding-a-host.md)
+- Hardware architecture, U-Boot, and storage: [docs/hardware/orange-pi-zero3.md](../../docs/hardware/orange-pi-zero3.md)
+- ConoHa VPS failover & failback runbook: [docs/operations/vps-failover.md](../../docs/operations/vps-failover.md)
+- Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)

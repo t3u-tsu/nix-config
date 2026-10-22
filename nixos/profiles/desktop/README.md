@@ -19,6 +19,6 @@ Desktop modules are divided into a lightweight baseline core and an opt-in full 
 
 ## References
 
-- System-level desktop services: [`nixos/services/desktop/`](../../services/desktop/README.md)
-- User-level desktop configuration: [`home/desktop/`](../../../home/desktop/README.md)
-- Shared palette definitions: [`lib/palette.nix`](../../../lib/palette.nix)
+- System-level desktop services: [nixos/services/desktop/](../../services/desktop/README.md)
+- User-level desktop configuration: [home/desktop/](../../../home/desktop/README.md)
+- Shared palette definitions: [lib/palette.nix](../../../lib/palette.nix)

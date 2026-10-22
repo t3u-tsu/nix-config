@@ -42,7 +42,7 @@ sequenceDiagram
 | 階層 | 防御機構 | 検証場所 | 役割・セキュリティ特性 |
 | :--- | :--- | :--- | :--- |
 | レイヤー 1 | Cloudflare Zero Trust (Access) | Cloudflare Edge | インターネット境界でのアクセス制御．ワンタイムパスコード（OTP）または IdP/SSO 認証に合格した管理者のみ通信を許可．未認証通信はエッジで即時遮断される． |
-| レイヤー 2 | Cloudflare SSH CA（短期証明書） | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書（Short-lived Certificate）．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
+| レイヤー 2 | Cloudflare SSH CA（短期証明書） | ホスト OpenSSH (`sshd`) | 主に Web ターミナル接続時にエッジから発行される短期証明書．`sshd` は `/etc/ssh/cloudflare_ca.pub` およびプリンシパル設定（`/etc/ssh/auth_principals/t3u`）で検証し，失効リスクを最小化する． |
 | レイヤー 3 | ED25519 ユーザー公開鍵認証 | ホスト OpenSSH (`sshd`) | PC CLI 接続時における OS 側ユーザー（`t3u`）の `~/.ssh/authorized_keys` による公開鍵認証．エッジ認証と OS 認証の二重チェックにより，踏み台化を防止する． |
 
 ---
@@ -74,7 +74,7 @@ nix shell nixpkgs#cloudflared
 ```
 
 #### SSH クライアント設定 (`~/.ssh/config`)
-Home Manager 設定（[`home/programs/ssh.nix`](../../home/programs/ssh.nix)）に以下のエントリおよび短縮エイリアスを定義している:
+Home Manager 設定（[home/programs/ssh.nix](../../home/programs/ssh.nix)）に以下のエントリおよび短縮エイリアスを定義している:
 
 ```ssh-config
 # Cloudflare Tunnel 経由 非常用帯域外アクセス
@@ -130,7 +130,7 @@ ssh -o ProxyCommand="cloudflared access ssh --hostname torii-chan-cf-ssh.t3u.uk"
 
 ## 5. シークレット登録手順
 
-各ホストが Cloudflare Tunnel を確立するための認証情報（Tunnel Token）は，SOPS により暗号化して管理する．
+各ホストが Cloudflare Tunnel を確立するための認証トークンは，SOPS により暗号化して管理する．
 
 ### Step 1: Cloudflare Tunnel の作成とトークン取得
 Cloudflare Zero Trust ダッシュボード（Networks → Tunnels）で各ホスト用の Tunnel を作成し，発行された Tunnel Token（`eyJh...` から始まる Base64 トークン文字列）を取得する．
@@ -154,7 +154,7 @@ torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
 編集後，ファイルを保存して暗号化を完了する．
 
 ### Step 3: NixOS 設定の有効化と反映
-各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または [`hosts/torii-chan/sbc.nix`](../../hosts/torii-chan/sbc.nix)）で本機能を有効化する:
+各ホストの設定（例: `hosts/<hostname>/services/emergency-ssh.nix` または [hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix)）で本機能を有効化する:
 
 ```nix
 my.services.emergencySsh.enable = true;
