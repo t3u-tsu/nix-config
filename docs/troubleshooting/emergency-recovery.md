@@ -1,12 +1,19 @@
 # 緊急時システム復旧・レスキューガイド
 
-本ドキュメントは，システムの世代ロールバック手順，ブートローダーメニューでの旧世代選択，および起動不能に陥ったマシンを NixOS インストーラ USB からレスキューマウントして `nixos-enter` で復旧する手順を記述する．
+システムの世代ロールバック，ブートローダーメニューでの旧世代選択，およびインストーラ USB からレスキューマウントして `nixos-enter` で復旧する手順．
+
+| 障害シナリオ | システム状態 | 推奨復旧手段 | 所要時間・難易度 |
+| :--- | :--- | :--- | :--- |
+| 適用直後のサービス不具合 | OS 稼働中（SSH / TTY ログイン可） | `sudo nixos-rebuild switch --rollback` | 数秒（最小） |
+| カーネルパニック / 起動停止 | ブートローダー動作可 | GRUB / extlinux メニューから健全な過去世代を選択起動 | 1〜2 分（低） |
+| 復号不全による emergency mode | ブートローダー動作可，ログイン不可 | GRUB 編集で `init=/bin/sh` 緊急シェルより前世代 boot 設定 | 3〜5 分（中） |
+| ブートセクタ破壊 / 設定崩壊 | OS 起動不可 | NixOS インストーラ USB 起動 + `nixos-enter` レスキュー | 10〜15 分（高） |
 
 ---
 
 ## 1. 世代ロールバック手順
 
-NixOS は過去のシステム構成世代（generation）を Nix ストア内に不変に保持しているため，設定適用ミスやカーネル不具合が発生した場合でも即座に以前の正常な状態へ復元できる．
+NixOS は過去のシステム構成世代（generation）を Nix ストア内に不変に保持しているため，設定ミスやカーネル不具合の発生時にも即座に正常状態へ復元できる．
 
 ### パターン A: 稼働中システムでのロールバック
 設定変更の適用直後にサービスの起動失敗や不具合に気づいた場合:
@@ -27,7 +34,7 @@ sudo /nix/var/nix/profiles/system-42-link/bin/switch-to-configuration switch
 
 #### 1. GRUB メニュー（`BrokenPC`, `x1c7`, `kagutsuchi-sama`, `shosoin-tan`, `sando-kun`）
 1. マシン起動時，マザーボードロゴが表示された直後に `Shift` キーまたは `Esc` キーを連打して GRUB メニューを表示させる．
-2. メニューから「**NixOS - All configurations**」を選択して `Enter` を押す．
+2. メニューから「NixOS - All configurations」を選択して `Enter` を押す．
 3. 過去の日時および世代番号の一覧が表示されるため，直前の正常に起動していた世代を選択して起動する．
 
 #### 2. extlinux メニュー（`torii-chan` SBC / Orange Pi Zero 3）
@@ -47,7 +54,7 @@ sudo /nix/var/nix/profiles/system-42-link/bin/switch-to-configuration switch
 
 ## 2. NixOS インストーラ USB によるレスキューマウントと nixos-enter
 
-ブートローダー自体の破損，ストレージ設定の破壊，または秘密情報の復号失敗により起動メニューからも修復できない場合の最終復旧手順である．
+ブートローダー自体の破損，ストレージ設定の破壊，秘密情報の復号失敗により起動メニューから修復できない場合の復旧手順:
 
 ### 事前準備
 1. 公式 NixOS 最小インストーラ USB（またはカスタムインストーラ ISO）を用意し，対象マシンを USB ブートする．
@@ -77,7 +84,7 @@ mount /dev/disk/by-id/<efi-partition> /mnt/boot
 ```
 
 #### 構成 B: レガシー BIOS 構成（`shosoin-tan`: SSD + ZFS，`sando-kun`: HDD）
-`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ．一方，`sando-kun` は HDD（ext4）のみで ZFS は非搭載である:
+`shosoin-tan` は SSD 上に ext4 システム領域，2 台の HDD 上に ZFS Mirror（`tank-1tb`）を持つ．`sando-kun` は HDD（ext4）のみで ZFS は非搭載である:
 ```bash
 # ルートおよび boot のマウント
 # 例: shosoin-tan（SSD）
@@ -158,6 +165,7 @@ reboot
 > [!CAUTION]
 > **ZFS プール（`tank-1tb`）のエクスポート忘れに注意**
 > `shosoin-tan` で ZFS プールをインポートした場合，レスキュー環境の再起動前に必ず `zpool export tank-1tb` を実行すること．全ホスト共通のベース設定で `boot.zfs.forceImportRoot = false` が有効となっているため，エクスポートを怠ると次回起動時にプールがインポートできず Emergency Mode に陥る．
+
 ---
 
 ## 関連ドキュメント

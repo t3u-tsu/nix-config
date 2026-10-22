@@ -1,6 +1,12 @@
 # シークレット・認証トラブルシューティング
 
-本ドキュメントは，SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）の認証失敗，および activation スクリプト失敗による emergency mode 突入時の原因切り分けと脱出手順を記述する．
+SOPS（sops-nix）復号エラー，プライベートリポジトリ（`nix-config-private`）認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
+
+| 障害現象 | 主な原因 | 推奨復旧アプローチ |
+| :--- | :--- | :--- |
+| SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，[`.sops.yaml`](../../.sops.yaml) 更新，`sops updatekeys` |
+| private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定（初回時） | `/root/.ssh/config` とデプロイキーの一時配備（ブートストラップ） |
+| activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
 ---
 
@@ -13,9 +19,12 @@
 - ユーザーのログイン時にパスワードが認識されない（`hashedPasswordFile` の読み込み失敗）．
 
 ### 原因
-1. **ホスト秘密鍵の欠落・権限不正**: `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている．
-2. **age 公開鍵の不一致**: マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が `.sops.yaml` や暗号化ファイルの recipient と乖離している．
-3. **recipient 更新漏れ**: 新ホストの公開鍵を `.sops.yaml` に追加したものの，`sops updatekeys` を実行しておらず，`secrets/common.yaml` や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない．
+
+| 原因 | 内容と影響 |
+| :--- | :--- |
+| ホスト秘密鍵の欠落・権限不正 | `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている． |
+| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が [`.sops.yaml`](../../.sops.yaml) や暗号化ファイルの recipient と乖離している． |
+| recipient 更新漏れ | 新ホストの公開鍵を [`.sops.yaml`](../../.sops.yaml) に追加したものの `sops updatekeys` を実行しておらず，[`secrets/common.yaml`](../../secrets/common.yaml) や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない． |
 
 ### 切り分け・復旧手順
 
@@ -38,12 +47,12 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 # 出力例: age1...
 ```
 
-#### Step 2: `.sops.yaml` の登録情報と突合
-リポジトリルートの `.sops.yaml` を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
+#### Step 2: [`.sops.yaml`](../../.sops.yaml) の登録情報と突合
+リポジトリルートの [`.sops.yaml`](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
 ```bash
-grep -i -A 2 "&.*$(echo <hostname> | tr - _)" .sops.yaml
+grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
 ```
-鍵が異なる場合（再インストール等），`.sops.yaml` の鍵記述を新しい公開鍵へ更新する．
+鍵が異なる場合（再インストール等），[`.sops.yaml`](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
 
 #### Step 3: `/var/lib/sops-nix/key.txt` の確認・手動生成
 [`nixos/security/sops.nix`](../../nixos/security/sops.nix) の activation スクリプト `0-sops-key-import` が何らかの理由で実行されなかった場合，手動で age 秘密鍵を配置する:
@@ -54,19 +63,20 @@ sudo chmod 600 /var/lib/sops-nix/key.txt
 ```
 
 #### Step 4: master 鍵によるファイルの再暗号化
-管理端末で `master_key` を指定し，該当ホストのシークレットおよび共通シークレットの recipient を更新する:
+管理端末で `master_key` を指定し，該当ホストのシークレット，共通シークレット，および当該ホストが受信していたサービスシークレットの recipient を更新する:
 ```bash
 export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 
-# ホスト個別ファイルと共通ファイルの更新
+# ホスト個別ファイル・共通ファイル・該当サービスファイルの更新
 sops updatekeys secrets/hosts/<hostname>.yaml
 sops updatekeys secrets/common.yaml
+sops updatekeys secrets/services/<service>.yaml  # 例: shosoin-tan なら backup.yaml / minecraft.yaml
 
 # recipients 整合性の検証（対象ホストの公開鍵が recipient に正しく反映されているか確認）
-git diff secrets/common.yaml
+git diff secrets/
 
 # 変更をコミット
-git add .sops.yaml secrets/hosts/<hostname>.yaml secrets/common.yaml
+git add .sops.yaml secrets/
 git commit -m "fix(secrets): update age recipients for <hostname>"
 ```
 
@@ -87,7 +97,7 @@ error: Failed to fetch git repository 'ssh://git@github-nix-config-private/t3u-t
 ```
 
 ### 原因
-本リポジトリの `flake.nix` は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [`nixos/base/private-config.nix`](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する（ブートストラップ時の鶏と卵の問題）．
+本リポジトリの [`flake.nix`](../../flake.nix) は，非公開の秘密 flake input として `git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private` を参照している．SSH エイリアス `github-nix-config-private` は [`nixos/base/private-config.nix`](../../nixos/base/private-config.nix) によって `/etc/ssh/ssh_config` に定義されるが，初回インストール時や未適用マシンでは root の SSH 設定にエイリアスが存在しないため，Flake 評価自体が失敗する（ブートストラップ時の鶏と卵の問題）．
 
 ### 復旧手順（初期ブートストラップ）
 
@@ -99,7 +109,7 @@ sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/know
 ```
 
 #### Step 2: デプロイキーの配備
-`secrets/common.yaml` に含まれる読み取り専用デプロイキーを抽出して配置する（`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用）:
+[`secrets/common.yaml`](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する（`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用）:
 ```bash
 sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
   --extract "[\"nix_config_private_deploy_key\"]" \
@@ -162,10 +172,10 @@ Give root password for maintenance (or press Control-D to continue):
    /nix/var/nix/profiles/system-<世代番号>-link/bin/switch-to-configuration switch
    ```
 
-#### パターン B: パスワード入力が通らずログイン不能な場合（推奨回避策）
+#### パターン B: パスワード入力が通らずログイン不能な場合
 
-##### 第一選択肢: GRUB メニューからの正常世代ブート
-最優先の復旧手段として，マシンを再起動してブートローダー（GRUB）メニューを表示し，**「NixOS - All configurations」から直前の正常な世代を選択して起動** する．正常世代でログインできた後，問題のあった設定を修正またはロールバックする．
+##### 正常世代での起動（GRUB メニュー）
+マシンを再起動してブートローダー（GRUB）メニューを表示し，「NixOS - All configurations」から直前の正常世代を選択して起動する．正常世代でのログイン後，設定を修正またはロールバックする．
 
 ##### 代替手段: `init=/bin/sh` 緊急シェルによる世代切り替え
 GRUB メニューからの通常起動で解決しない場合，カーネルパラメータを変更して緊急シェルから前世代をブート既定に設定する:
@@ -186,7 +196,7 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
    ```bash
    # 直前の世代リンクを確認
    ls -l /nix/var/nix/profiles/system-*-link
-   # 前世代のブートスクリプトを実行（init=/bin/sh 環境では systemd がないため switch ではなく boot を指定）
+   # 前世代のブートスクリプトを実行（init=/bin/sh 環境には systemd がないため boot サブコマンドを指定）
    /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration boot
    reboot -f
    ```

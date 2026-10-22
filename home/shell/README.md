@@ -1,10 +1,12 @@
 # Shell Modules
 
-User shell configuration managed via Home Manager.
+Interactive shell environment managed with Home Manager.
 
 ## Modules
 
-- **`shell.nix`**: Interactive shell — completion, autosuggestion, syntax highlighting, history.
-- **`pure.nix`**: Shell prompt taken from a flake input, with custom zstyles.
-- **`atuin.nix`**: Shell history integration.
-- **`default.nix`**: Imports the shell modules.
+| File | Description | Option |
+| :--- | :--- | :--- |
+| [`shell.nix`](shell.nix) | Zsh configuration: completion engine, autosuggestions, syntax highlighting, and history limits. | Always enabled |
+| [`pure.nix`](pure.nix) | Pure prompt integration via `pkgs.unstable.pure-prompt` with custom zstyles. | Always enabled |
+| [`atuin.nix`](atuin.nix) | Atuin shell history SQLite database and sync client. | Always enabled |
+| [`default.nix`](default.nix) | Shell module aggregator. | — |

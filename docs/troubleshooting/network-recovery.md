@@ -1,6 +1,12 @@
 # ネットワーク障害トラブルシューティング
 
-本ドキュメントは，Nebula メッシュ VPN の不通障害，SSH 遮断発生時の物理コンソール経由での復旧手順，および同一ルータ同居時の NAT loopback 回避手順を記述する．
+Nebula メッシュ VPN 不通，物理 LAN からの SSH 遮断，同一ルータ同居時の NAT loopback 障害の切り分けと復旧手順．
+
+| 障害現象 | 主な原因 | 推奨復旧アプローチ |
+| :--- | :--- | :--- |
+| クラスター間通信不通 (`10.0.0.X`) | Nebula デーモン停止，証明書期限切れ，Lighthouse 停止 | Cloudflare Tunnel 帯域外アクセス，証明書再署名，VPS フェイルオーバー |
+| 物理 LAN からの SSH 接続拒否 | `tower-server` プロファイルによるポート 22 遮断 | Cloudflare Tunnel 経由復旧，または物理コンソールで `iptables -I` 一時開放 |
+| 同一 LAN からの FQDN 接続不通 | ルータのヘアピン NAT（NAT Loopback）未対応，IPv6 優先 | `my.networking.local-network.enable = true` による LAN IP 直接解決 |
 
 ---
 
@@ -29,39 +35,40 @@ flowchart TD
 
 ### 非常用帯域外アクセス（Cloudflare Tunnel）によるリモート復旧
 
-Nebula メッシュがダウンしている場合や，プライマリ Lighthouse（`torii-chan`）が停止して P2P ハンドシェイクが成立しない場合，またファイアウォール設定で LAN 側の物理 SSH（ポート 22）が遮断されている場合でも，**物理ディスプレイやキーボードを接続する前に Cloudflare Tunnel 経由で各サーバーへ直接ログインして復旧作業を行える**．
+Nebula メッシュのダウン時や Lighthouse（`torii-chan`）停止時，LAN 側のポート 22 遮断時でも，Cloudflare Tunnel 経由で各サーバーへ直接ログインして復旧作業を行える．
 
 各サーバーは独立したアウトバウンドトンネルを Cloudflare エッジに対して確立しているため，Nebula メッシュやルータのインバウンドポート開放状態に依存せず安全に到達できる．
 
 #### 接続方法
-1. **PC CLI からの接続**:
+
+##### PC CLI からの接続
+```bash
+ssh -o ProxyCommand="cloudflared access ssh --hostname <hostname>-cf-ssh.t3u.uk" t3u@<hostname>-cf-ssh.t3u.uk
+```
+
+##### Web ブラウザ（スマートフォン / 出先端末）からの接続
+ブラウザで `https://<hostname>-cf-ssh.t3u.uk` を開き，Cloudflare Access 認証（OTP / SSO）を経て xterm.js ターミナルから操作する．
+
+#### 復旧手順
+
+1. Nebula デーモンの状態を確認し，必要に応じて再起動する．
    ```bash
-   ssh -o ProxyCommand="cloudflared access ssh --hostname <hostname>-cf-ssh.t3u.uk" t3u@<hostname>-cf-ssh.t3u.uk
+   sudo systemctl status nebula@nebula0.service
+   sudo systemctl restart nebula@nebula0.service
+   sudo journalctl -u nebula@nebula0.service -e --no-pager
    ```
-2. **Web ブラウザ（スマートフォン / 出先端末）からの接続**:
-   ブラウザで `https://<hostname>-cf-ssh.t3u.uk` を開き，Cloudflare Access 認証（OTP / SSO）を経て xterm.js ターミナルから操作する．
+2. ファイアウォールを一時的に開放し，LAN 側ポート 22 を暫定許可する．
+   ```bash
+   sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+   ```
+3. 直前の健全な世代へロールバックするか，設定を修正して再適用する．
+   ```bash
+   # 直前の健全な世代へロールバック
+   sudo nixos-rebuild switch --rollback
 
-#### 復旧コマンドの実行
-ログイン確立後，直ちに以下のコマンドで原因究明および復旧を行う:
-
-- **Nebula デーモンの状態確認と再起動**:
-  ```bash
-  sudo systemctl status nebula@nebula0.service
-  sudo systemctl restart nebula@nebula0.service
-  sudo journalctl -u nebula@nebula0.service -e --no-pager
-  ```
-- **ファイアウォール一時開放（LAN 側ポート 22 の暫定許可）**:
-  ```bash
-  sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
-  ```
-- **直前世代へのロールバックまたは設定修正・適用**:
-  ```bash
-  # 直前の健全な世代へロールバック
-  sudo nixos-rebuild switch --rollback
-
-  # または設定修正後に適用
-  sudo nixos-rebuild switch --flake .#<hostname>
-  ```
+   # または設定修正後に適用
+   sudo nixos-rebuild switch --flake .#<hostname>
+   ```
 
 ※ 対象ホスト一覧や詳細な認証仕様は [非常用 SSH アクセス運用マニュアル（Cloudflare Tunnel）](../operations/emergency-cf-ssh.md) を参照．
 
@@ -85,7 +92,7 @@ sudo nebula-cert print \
 ```
 再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
 ```bash
-CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
 
 # ノード証明書の再発行（-networks オプションを使用）
 nebula-cert sign \
@@ -115,20 +122,20 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
 ```
 
 ### 原因
-本リポジトリのタワーサーバー群（`tower-server` プロファイル）およびゲートウェイ（`torii-chan`）では，セキュリティ強化のため物理 LAN 側からの SSH 接続が制限されている:
+本リポジトリのタワーサーバー群（`tower-server` プロファイル）およびゲートウェイ（`torii-chan`）では，セキュリティ強化のため物理 LAN 側からの SSH 接続が制限されている．
 
-- **タワーサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）**:
-  [`nixos/profiles/tower-server/security.nix`](../../nixos/profiles/tower-server/security.nix) において:
-  ```nix
-  networking.firewall.allowedTCPPorts = lib.mkForce [ ];
-  ```
-  が設定されている．SSH ポート 22 は **Nebula インターフェース（`nebula0`, `trustedInterfaces`）経由でのみ許可** されており，LAN 側の物理インターフェースからはポート 22 へのアクセスがファイアウォールで遮断されている．
-- **ゲートウェイ（`torii-chan`）**:
-  [`nixos/services/gateway/firewall.nix`](../../nixos/services/gateway/firewall.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合:
-  ```nix
-  allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
-  ```
-  により物理ポート 22 が遮断される（`restrictAccess` が `false` の場合は LAN からの SSH が許可される）．
+#### タワーサーバー群（`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`）
+[`nixos/profiles/tower-server/security.nix`](../../nixos/profiles/tower-server/security.nix) において以下の設定が行われている．
+```nix
+networking.firewall.allowedTCPPorts = lib.mkForce [ ];
+```
+SSH ポート 22 は Nebula インターフェース（`nebula0`, `trustedInterfaces`）経由でのみ許可されており，LAN 側の物理インターフェースからはポート 22 へのアクセスがファイアウォールで遮断されている．
+
+#### ゲートウェイ（`torii-chan`）
+[`nixos/services/gateway/firewall.nix`](../../nixos/services/gateway/firewall.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合，以下の条件分岐により物理ポート 22 が遮断される（`restrictAccess` が `false` の場合は LAN からの SSH が許可される）．
+```nix
+allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
+```
 
 このため，Nebula が停止すると（あるいはゲートウェイで `restrictAccess = true` が有効な場合），物理 LAN 経由での SSH 接続は一切不可となる．
 
@@ -163,7 +170,7 @@ sequenceDiagram
    - ※画面が真っ暗な場合は `Ctrl+Alt+F1` または `Ctrl+Alt+F2` を押す．
 
 #### Step 2: 一時的なファイアウォール開放
-作業端末から快適に操作できるよう，メモリ上のみで一時的にポート 22 を許可する（再起動や `switch` で自動的にリセットされるため安全）:
+作業端末から操作するため，メモリ上のみで一時的にポート 22 を許可する（再起動や `switch` でリセットされる）:
 ```bash
 sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
 ```
@@ -196,9 +203,9 @@ Lighthouse である `torii-chan` と同一ルータ（拠点T の LAN 内）に
 - `ping torii-chan.t3u.uk` では外部グローバル IP（WAN IP）が返るが，応答が得られない．
 
 ### 原因
-多くの民生用ルータは，LAN 内端末が外部 WAN IP 宛てに送信したトラフィックを再び LAN 内の特定ホストへ折り返す **ヘアピン NAT（NAT Loopback）** に対応していないか，初期設定で無効化されている．この場合，同一 LAN 内の端末が公開 FQDN（`torii-chan.t3u.uk`）を解決してルータの外部 WAN IP へアクセスすると，パケットがルータ側で破棄される．
+多くの民生用ルータは，LAN 内端末が外部 WAN IP 宛てに送信したトラフィックを再び LAN 内の特定ホストへ折り返すヘアピン NAT（NAT Loopback）に対応していないか，初期設定で無効化されている．この場合，同一 LAN 内の端末が公開 FQDN（`torii-chan.t3u.uk`）を解決してルータの外部 WAN IP へアクセスすると，パケットがルータ側で破棄される．
 
-また，デュアルスタック環境において IPv6 アドレス解決や glibc のアドレスソートルール（RFC 3484/6724）の影響で IPv6 宛先が優先され，不通となるケースもある．
+デュアルスタック環境では IPv6 アドレス解決や glibc のアドレスソートルール（RFC 3484/6724）の影響で IPv6 宛先が優先され，不通となるケースもある．
 
 ### 回避手順（`local-network.nix` の有効化）
 
@@ -215,9 +222,12 @@ my.networking.local-network = {
 };
 ```
 
-このオプションにより以下の設定が自動的に行われる:
-1. **`/etc/hosts` 上書き**: `torii-chan.t3u.uk` が LAN IP（`192.168.0.128`）に直接紐付けられ，ルータの外部 WAN IP を経由しない直接通信が行われる．
-2. **`gai.conf` による IPv4 優先化**: `/etc/gai.conf` に `precedence ::ffff:0:0/96 100` が注入され，glibc の名前解決において IPv4 が優先される．
+このオプションにより以下の設定が適用される．
+
+| 設定項目 | 内容と効果 |
+| :--- | :--- |
+| `/etc/hosts` 上書き | `torii-chan.t3u.uk` が LAN IP（`192.168.0.128`）に直接紐付けられ，ルータの外部 WAN IP を経由しない直接通信が行われる |
+| `gai.conf` による IPv4 優先化 | `/etc/gai.conf` に `precedence ::ffff:0:0/96 100` が注入され，glibc の名前解決において IPv4 が優先される |
 
 #### Step 2: 設定の適用と検証
 設定を反映し，名前解決が LAN IP に上書きされていることを確認する:

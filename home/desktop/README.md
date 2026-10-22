@@ -1,30 +1,42 @@
 # Desktop Home Modules
 
-User-specific desktop environment configuration managed via Home Manager.
+User-specific desktop environment configuration managed with Home Manager.
 
-The lightweight core is `my.home.desktop.enable`; heavy extras are opted in with
-`my.home.desktop.full.enable` (see `default.nix`).
+## Configuration Profiles
+
+Desktop modules provide a baseline configuration and an optional full workstation suite:
+
+| Option | Description | Included Modules |
+| :--- | :--- | :--- |
+| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `gpg-signing`, `locales`, `niri`, `noctalia`, `office`, `theme`, `thunar`, `xdg` |
+| `my.home.desktop.full.enable` | Full workstation suite | Adds `gaming`, `creative`, `media`, and heavy dev/AI tooling |
 
 ## Modules
 
-- **`browsers/`**: Browsers with declarative settings (`chromium.nix`, `zen.nix`, `userscripts.nix`, which wraps upstream userscripts as extensions, and `bitwarden.nix`, which places the native messaging host the extension needs to reach the desktop app); system-level browser policy lives in `nixos/services/desktop/chromium.nix`.
+| Module / Directory | Description |
+| :--- | :--- |
+| [`bitwarden.nix`](bitwarden.nix) | Bitwarden desktop client with persistent autostart configuration. |
+| `browsers/` | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
+| [`communication.nix`](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
+| [`creative.nix`](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
+| [`dev-tools/`](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
+| [`gaming.nix`](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. |
+| [`gpg-signing.nix`](gpg-signing.nix) | GnuPG agent setup and SOPS-managed commit signing key import. |
+| [`locales.nix`](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
+| [`media.nix`](media.nix) | Media playback (Spotify via Spicetify, VLC). |
+| `niri/` | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
+| `noctalia/` | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
+| [`office.nix`](office.nix) | Office suite (LibreOffice). |
+| [`theme.nix`](theme.nix) | GTK, Qt, and cursor theming derived from [`lib/palette.nix`](../../lib/palette.nix). |
+| [`thunar.nix`](thunar.nix) | Thunar file manager user preferences. |
+| [`xdg.nix`](xdg.nix) | XDG base directories and default MIME application associations. |
+| [`default.nix`](default.nix) | Desktop module aggregator and profile definitions. |
 
-  The userscript extensions are unsigned, so `zen.nix` sets `xpinstall.signatures.required = false`. Zen is a self-compiled fork and honours the pref; without it Firefox discards unsigned xpis **without any error or log entry**, which makes the failure hard to diagnose. Zen has to be restarted after a rebuild for the new extension directory to be rescanned.
+> [!NOTE]
+> Zen Browser loads unsigned userscript extensions (`xpinstall.signatures.required = false`). After rebuilding the Nix configuration, restart Zen Browser to rescan the extension directory.
 
-  The pins and essentials are personal, so they live in the private `nix-config-private` repository (`zen/pins.nix`) and are imported by `zen.nix`. The three space ids stay here because `spaces` and `spaceRouting` use them too.
+## References
 
-- **`bitwarden.nix`**: Autostart entry for the Bitwarden desktop app. The app rewrites `~/.config/autostart/bitwarden.desktop` with the store path of whichever build launched it, so an older generation can linger there and later be collected; this installs a writable copy pointing at the current build.
-- **`theme.nix`**: Cursor, GTK and Qt setup. GTK and Qt colors come from Noctalia's built-in `gtk3` / `gtk4` / `qt` templates; the shared palette lives in [`lib/palette.nix`](../../lib/palette.nix).
-- **`locales.nix`**: Locale and input method settings.
-- **`xdg.nix`**: XDG user directories and default application MIME associations.
-- **`gpg-signing.nix`**: GnuPG agent setup and SOPS-managed signing key import.
-- **`communication.nix`**: Messaging applications.
-- **`gaming.nix`**: User-level gaming tools and NVIDIA PRIME offload launchers.
-- **`media.nix`**: Media playback and player theming.
-- **`office.nix`**: Office suite.
-- **`creative.nix`**: Creative apps — image editing, recording and 3D modelling.
-- **`thunar.nix`**: File manager user settings; system services live in `nixos/services/desktop/thunar.nix`.
-- **`niri/`**: Wayland compositor settings — `config.kdl.nix` renders the KDL config from the palette.
-- **`noctalia/`**: Wayland shell — bar, launcher, notifications, wallpaper and theme templates.
-- [`dev-tools/`](dev-tools/): Development environment — editors, terminals, Nix and AI tooling.
-- **`default.nix`**: Imports all desktop home modules and defines the `enable` / `full.enable` split.
+- Palette definitions: [`lib/palette.nix`](../../lib/palette.nix)
+- System desktop services: [`nixos/services/desktop/`](../../nixos/services/desktop/README.md)
+- Development tools: [`home/desktop/dev-tools/`](dev-tools/README.md)

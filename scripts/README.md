@@ -1,33 +1,46 @@
-# scripts/ — Operational Scripts
+# Operational Scripts (`scripts/`)
 
-Operator-run scripts (not part of the NixOS build).
+Operator maintenance scripts written in [YSH](https://www.oilshell.org/) for fleet management, credential provisioning, and certificate rotation.
 
-## Shared fleet data
+## Scripts Overview
 
-- **`nebula-lib.ysh`**: source-only helper defining `FLEET` — the single node list
-  (`<name>|<last-octet>|<groups>`) — plus the `host_key` / `host_secrets_file`
-  helpers. Add a new host here, then sign and import its cert (see [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)).
+| Script | Purpose | Prerequisites |
+| :--- | :--- | :--- |
+| [`nebula-lib.ysh`](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
+| [`nebula-import-secrets.ysh`](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
+| [`nebula-rotate-ca.ysh`](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
+| [`set-host-password.ysh`](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
+| [`check-markdown-links.py`](check-markdown-links.py) | Validates that all relative markdown links point to existing files. | Python 3 (run via pre-commit) |
+| [`linkify-markdown.py`](linkify-markdown.py) | Scans markdown files and converts raw in-text file paths into relative links. | Python 3 |
 
-## Scripts
+## Usage Examples
 
-All scripts are written in YSH and can be invoked directly (via `#!/usr/bin/env ysh`) or with `ysh <script>`.
+### Set or Update Host Passwords
 
-- **`set-host-password.ysh`**: prompts for the t3u / root passwords and writes
-  their sha-512 hashes into `secrets/hosts/<hostname>.yaml` via sops. Updating an
-  existing file needs the offline master age key (`SOPS_AGE_KEY_FILE`) to keep its
-  other keys; `mkpasswd` and `sops` must be on PATH.
-- **`nebula-import-secrets.ysh [CA_DIR]`**: imports the Nebula CA / node certs into SOPS
-  (`CA_DIR` defaults to `~/.nebula-ca`). Needs the master key (`SOPS_AGE_KEY_FILE`).
-  Idempotent.
-- **`nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]`**: one-shot CA rotation (new CA, re-sign every node).
-  `CA_DIR` defaults to `~/.nebula-ca-<prefix, dots->hyphens>` and `--prefix` defaults to `10.0.0`.
-  Re-import is a separate step via `nebula-import-secrets.ysh`. For a single new
-  host, sign one cert against the existing CA instead.
+```bash
+# Prompt for t3u and root passwords, hash with SHA-512, and update SOPS
+SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/set-host-password.ysh <hostname>
+```
 
-Both Nebula scripts read `FLEET` from `nebula-lib.ysh`; cert basenames and SOPS key
-prefixes are derived from it.
+### Import Nebula Certificates into SOPS
+
+```bash
+# Import certificates into SOPS (the rotation script's default CA dir)
+SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-10-0-0
+```
+
+### Rotate Entire Nebula CA
+
+```bash
+# Generate a new CA and re-sign all fleet nodes
+ysh scripts/nebula-rotate-ca.ysh ~/.nebula-ca-new --prefix 10.0.0
+
+# Import new certs into SOPS host files
+SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-new
+```
 
 ## References
+
 - Secret & certificate lifecycle: [`docs/operations/secret-management.md`](../docs/operations/secret-management.md)
-- Adding a new host runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
-- Network topology & IP allocation: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)
+- Host onboarding runbook: [`docs/operations/adding-a-host.md`](../docs/operations/adding-a-host.md)
+- Nebula mesh topology: [`docs/architecture/network-topology.md`](../docs/architecture/network-topology.md)

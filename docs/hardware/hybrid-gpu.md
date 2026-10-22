@@ -1,6 +1,32 @@
 # AMD + NVIDIA ハイブリッド GPU 分離設計ガイド
 
-本ドキュメントは，AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）とハードウェア障害を抱えた NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様をまとめたものである．本機は拠点A をベースとしつつ，外出時にも持ち出されるサブ機（可搬ノートPC）としての運用特性を持つ．
+AMD Ryzen 7 6800H（内蔵 GPU: Radeon 680M）と 3D 回路障害を抱える NVIDIA GeForce RTX 3050 Ti Laptop GPU を搭載したホスト（`BrokenPC` / HP Victus 16-e1065AX）における，Wayland 描画隔離と CUDA 推論専用オフロードの分離設計仕様．
+
+```mermaid
+flowchart TD
+    subgraph Host["BrokenPC (HP Victus 16-e1065AX)"]
+        subgraph DisplayPipeline["デスクトップ・描画パイプライン"]
+            Niri["Wayland コンポジタ (Niri)"]
+            Games["Steam / ゲーム描画"]
+            iGPU["AMD Radeon 680M (07:00.0)<br>★ プライマリ DRM レンダラ"]
+            Display["内蔵 / 外部ディスプレイ"]
+
+            Niri -->|"WLR_DRM_DEVICES<br>(by-path 固定)"| iGPU
+            Games -->|"nvidiaOffload = false<br>(ネイティブ実行)"| iGPU
+            iGPU --> Display
+        end
+
+        subgraph ComputePipeline["推論計算パイプライン"]
+            Llama["llama-server (systemd ユーザーサービス)"]
+            dGPU["NVIDIA RTX 3050 Ti Mobile (01:00.0)<br>3D 回路: 物理破損 / CUDA・GEMM: 正常"]
+            PowerState["RTD3 動的電源制御<br>(finegrained = true)"]
+
+            Llama -->|"CUDA GEMM 計算<br>(Compute Capability 8.6)"| dGPU
+            PowerState -->|"推論アイドル 5分経過"| dGPU
+            PowerState -.->|"D3cold (完全電源遮断)"| dGPU
+        end
+    end
+```
 
 ---
 
@@ -10,28 +36,29 @@
 
 | 項目 | 諸元・仕様 |
 | :--- | :--- |
-| **対象ホスト** | `BrokenPC`（HP Victus 16-e1065AX）: サブ機（可搬ノートPC） |
-| **CPU** | AMD Ryzen 7 6800H（Zen 3+，8コア / 16スレッド，基本 3.2 GHz / 最大 4.7 GHz） |
-| **iGPU** | AMD Radeon 680M（Rembrandt，RDNA2，12 CU / 768 シェーダー，PCI `07:00.0`） |
-| **dGPU** | NVIDIA GeForce RTX 3050 Ti Mobile（GA107，Ampere，4 GB GDDR6，PCI `01:00.0`）※**物理障害あり** |
-| **RAM** | 16 GB DDR5-4800 |
-| **ストレージ** | 512 GB NVMe（OS / Boot），1 TB NVMe（`/data`） |
+| 対象ホスト | `BrokenPC`（HP Victus 16-e1065AX）: サブ機（可搬ノートPC） |
+| CPU | AMD Ryzen 7 6800H（Zen 3+，8コア / 16スレッド，基本 3.2 GHz / 最大 4.7 GHz） |
+| iGPU | AMD Radeon 680M（Rembrandt，RDNA2，12 CU / 768 シェーダー，PCI `07:00.0`） |
+| dGPU | NVIDIA GeForce RTX 3050 Ti Mobile（GA107，Ampere，4 GB GDDR6，PCI `01:00.0`，物理障害あり） |
+| RAM | 16 GB DDR5-4800 |
+| ストレージ | 512 GB NVMe（OS / Boot），1 TB NVMe（`/data`） |
 
 ### 障害の症状と切り分け
 
-- **症状**: Minecraft 等の重い 3D レンダリングを実行すると，OpenGL 環境では `libnvidia-glcore.so` 内で `SIGSEGV` が発生し，Vulkan 環境では GPU ハング（画面フリーズおよびドライバのリセットタイムアウト）が発生する．
-- **切り分け実験**:
-  - `glmark2` ベンチマークは完走する．
-  - VRAM の 90% 以上を確保するメモリストレステストはエラーなく通過する．
-- **結論**:
-  - VRAM チップそのものやカーネルドライバの欠陥ではなく，dGPU 内部の **3D レンダリングパイプラインおよびテクスチャアップロード回路に物理的破損** が生じている．
-  - 一方で，AMD Radeon 680M iGPU は極めて安定して 3D アプリケーションを実行可能である．
+Minecraft などの高負荷 3D レンダリングを実行すると，OpenGL 環境では `libnvidia-glcore.so` 内で `SIGSEGV` が発生し，Vulkan 環境では GPU ハング（画面フリーズおよびドライバのリセットタイムアウト）が発生する．
+
+原因調査のため実施した切り分け実験では，以下の結果が得られた．
+
+- `glmark2` ベンチマークは完走する．
+- VRAM の 90% 以上を確保するメモリストレステストはエラーなく通過する．
+
+この結果から，dGPU 内部の 3D レンダリングパイプラインおよびテクスチャアップロード回路の物理的破損が原因であると判明した．なお，AMD Radeon 680M iGPU は 3D アプリケーションを安定して実行できる．
 
 ---
 
 ## 2. デスクトップ・描画パイプラインの隔離設計
 
-物理破損を抱える dGPU が描画パイプラインに関与すると，デスクトップ環境（コンポジタ）やアプリケーションが巻き込まれてクラッシュする．そのため，**表示・描画から dGPU を完全に排除し，AMD iGPU のみで完結させる** 設計を採用している．
+物理破損を抱える dGPU が描画パイプラインに関与するとデスクトップ環境やアプリケーションがクラッシュするため，表示・描画から dGPU を排除し，AMD iGPU のみで完結させる．
 
 ### Wayland (Niri) レンダラの iGPU 固定 (`WLR_DRM_DEVICES`)
 
@@ -45,19 +72,19 @@ Environment="WLR_DRM_DEVICES=/dev/dri/by-path/pci-0000:07:00.0-card,/dev/dri/by-
 
 #### 設定の要点と設計判断
 
-1. **`/dev/dri/by-path` の採用理由**:
-   `/dev/dri/card0` や `card1` といった動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
-2. **Home Manager ドロップインによる定義理由**:
-   NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，肝心の `ExecStart` 行が欠落する．また，`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができない．そのため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
+##### `/dev/dri/by-path` の採用
+`/dev/dri/card0` や `card1` などの動的デバイス名は，カーネルのモジュール初期化順序によってブートごとに番号が入れ替わるリスクがある．PCI バスアドレスに基づくシンボリックリンク（AMD iGPU: `07:00.0`，NVIDIA dGPU: `01:00.0`）を明示することで，常に AMD iGPU がプライマリレンダラとして選択されることを保証する．
+
+##### Home Manager ドロップインによる定義
+NixOS システムモジュール側で `systemd.user.services.niri` を定義すると，niri パッケージが提供する既定の Unit 定義が丸ごと上書きされ，`ExecStart` 行が欠落する．`/etc/systemd/user` は Nix store へのシンボリックリンクであり `environment.etc` によるインプレース追記ができないため，[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix) 内の Home Manager 設定経由で `xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf"` を配置している．
 
 ### ゲーム描画における dGPU オフロード無効化
 
-- **ゲーム実行方針**: Steam や各種ゲームを起動する際，PRIME オフロード（`nvidia-offload`）を使用せず，Radeon 680M 上でネイティブ描画を行う．
-- **設定**: `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを未然に防止している．
+Steam や各種ゲームは Radeon 680M 上でネイティブ描画する（`nvidia-offload` による PRIME オフロード描画は 3D 回路破損によりクラッシュするため）．設定では `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを防止する．
 
 ### 省電力制御 (RTD3 & finegrained)
 
-描画から除外された dGPU を常時通電させておくと，無駄な電力消費と発熱が発生する．特に BrokenPC は外部へ持ち出される可搬ノートPCでもあるため，dGPU の無駄な電力消費はバッテリー駆動時間を著しく損なう．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用することで，アイドル時に dGPU の電源を完全にオフにしている．
+描画から除外された dGPU を常時通電させておくと電力消費と発熱が生じ，バッテリー駆動時間を損なう．NVIDIA オープンカーネルモジュールと RTD3（Runtime D3）を併用し，アイドル時に dGPU の電源を遮断する．
 
 ```nix
 # hosts/BrokenPC/default.nix
@@ -78,24 +105,40 @@ my.hardware.nvidia = {
 };
 ```
 
-これにより，後述の CUDA 計算タスクが実行されていない平常時，dGPU は自動的に省電力スリープ（電源遮断状態）を維持する．
+これにより，CUDA 計算タスクが実行されていない平常時は自動的に省電力スリープ（電源遮断状態）を維持する．
+
+#### dGPU 電源状態の確認手順
+
+dGPU のサスペンド（D3cold）状態確認コマンド:
+
+```bash
+# dGPU の Runtime PM 状態を確認 (suspended であれば電源切断中)
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
+# 期待される出力: suspended
+
+# サスペンド状態の累積時間 (ミリ秒) を確認
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
+```
+
+> [!WARNING]
+> `nvidia-smi` コマンドを実行すると，ドライバが dGPU を D0（稼働状態）へ復帰させてしまう．アイドリング状態の確認には `nvidia-smi` ではなく上記の sysfs を参照すること．
 
 ---
 
 ## 3. CUDA / llama.cpp 推論専用オフロード
 
-テクスチャアップロード回路が破損している一方で，テクスチャ転送を伴わない純粋な **行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する**．この特性を活かし，大規模言語モデル（LLM）の推論アクセラレータとして dGPU を活用している．
+行列積演算（GEMM）およびテンソル並列計算パイプライン（CUDA コア / Tensor コア）は正常に機能する．この特性を利用し，LLM 推論アクセラレータとして dGPU を使用する．
 
 ### ビルドアーキテクチャの指定
 
-Nixpkgs に対し，GA107 コア（Ampere アーキテクチャ）向けの最適化コードを生成するよう指定している．
+GA107 コア（Ampere アーキテクチャ）向けコード生成指定（[`hosts/BrokenPC/default.nix`](../../hosts/BrokenPC/default.nix)）:
 
 ```nix
 # hosts/BrokenPC/default.nix
 nixpkgs.config.cudaCapabilities = [ "8.6" ];
 ```
 
-これにより，不要なアーキテクチャのバイナリ肥大化を避け，RTX 3050 Ti（Compute Capability 8.6）に特化した最速の CUDA カーネルがビルドされる．
+これにより不要なバイナリ肥大化を避け，RTX 3050 Ti（Compute Capability 8.6）向けに特化した CUDA カーネルをビルドする．
 
 ### llama.cpp サービス構成とメモリチューニング
 
@@ -143,15 +186,17 @@ home-manager.users.${config.my.user.name} = {
 
 #### 4 GB VRAM 環境におけるチューニング要点
 
-1. **モデル規模別の層オフロード (`ngl`)**:
-   - **3B / 4B クラス**: `ngl = 99` を指定し，全レイヤを 4 GB VRAM 内へ完全に格納して超高速推論を実現する．
-   - **9B クラス**: VRAM 容量を超えるため，`ngl = 12` により先頭の 12 レイヤのみを GPU へオフロードし，残りは CPU（Ryzen 7 6800H）および DDR5 RAM で処理する．
-2. **`--fit` オプションによる動的 MoE オフロード**:
-   - `presets` 内で設定値を空集合 `{}` としたモデルは，設定 INI ファイルからキーが省略される．
-   - これにより，`llama-server` の `--fit` フラグが有効化され，4 GB の VRAM 枠に収まるよう自動的にレイヤ数，コンテキスト長，MoE エキスパート数が最適配分される（手動で `ngl` や `ncmoe` を与えると `--fit` が無効化されるため）．
-3. **アイドル時の電源復帰 (`sleepIdleSeconds = 300`)**:
-   - 推論リクエストが途絶えて 300 秒（5 分）経過するとモデルをメモリから解放する．
-   - これに連動して dGPU への CUDA コンテキストが破棄され，前述の RTD3 機構により dGPU が自動的に電源遮断（サスペンド）状態に戻る．
+| モデル区分 | 該当モデル例 | GPU層 (`ngl`) | MoE (`ncmoe`) | コンテキスト長 (`ctxSize`) | オフロード戦略 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 3B / 4B クラス | `G9v3-3B`, `Qwen3.5-4B` | `99` (全層) | `0` | 16,384 〜 32,768 | 4 GB VRAM 内へ全レイヤを格納して推論 |
+| 9B クラス | `Qwen3.5-9B`, `Ornith-1.5-9B` | `12` (先頭12層) | `0` | 32,768 | VRAM を超えるため先頭層のみ GPU，残りは CPU+RAM |
+| 小型 MoE | `Ling-3.0-tiny`, `LFM2.5-8B` | *未指定* | *未指定* | *未指定* | `--fit` フラグに委ね，VRAM 枠に応じた動的最適配分 |
+
+##### `--fit` オプションによる動的 MoE オフロード
+`presets` 内で設定値を空集合 `{}` としたモデルは，設定 INI ファイルからキーが省略される．これにより，`llama-server` の `--fit` フラグが有効化され，4 GB の VRAM 枠に収まるよう自動的にレイヤ数，コンテキスト長，MoE エキスパート数が最適配分される（手動で `ngl` や `ncmoe` を与えると `--fit` が無効化されるため）．
+
+##### アイドル時の電源遮断 (`sleepIdleSeconds = 300`)
+推論リクエストが途絶えて 300 秒（5 分）経過するとモデルをメモリから解放する．これに連動して dGPU への CUDA コンテキストが破棄され，前述の RTD3 機構により dGPU が自動的に電源遮断（`suspended`）状態に戻る．
 
 ---
 

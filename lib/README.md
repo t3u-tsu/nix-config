@@ -1,23 +1,31 @@
-# lib/ — mkSystem
+# Library Helpers (`lib/`)
 
-Helper library for building NixOS systems.
+Helper functions and shared assets for NixOS system evaluations.
 
-## mkSystem
+## Modules & Helpers
 
-`mkSystem { name, system, username ? "t3u", profile, extraModules ? [] }` builds a `nixosSystem` configuration:
+| File | Function / Export | Description |
+| :--- | :--- | :--- |
+| [`default.nix`](default.nix) | `mkSystem` | Constructs a `nixosSystem` configuration with injected `specialArgs`, host defaults, and profile imports; serves as the library index for flake modules. |
+| [`palette.nix`](palette.nix) | `palette` | Vesper color palette (hex strings) shared by Home Manager desktop themes and greetd. |
 
-- Passes `inputs` to every module via `specialArgs`.
-- Applies the role profile (`../nixos/profiles/${profile}`) automatically.
-- Imports the host entry (`../hosts/${name}/default.nix`) and any `extraModules` (evaluated last, so they can override earlier settings).
+## `mkSystem` Evaluation API
 
-Used by `flake/hosts.nix` for every `nixosConfigurations` entry.
+```nix
+mkSystem {
+  name,                     # Host directory name in hosts/${name}
+  system,                   # Target platform ("x86_64-linux" | "aarch64-linux")
+  username ? "t3u",         # Primary user account name (default: "t3u")
+  profile,                  # Base profile name in nixos/profiles/${profile}
+  extraModules ? []         # Additional modules evaluated last for overriding settings
+}
+```
 
-## palette.nix
-
-Vesper color palette as hex strings, shared by the home modules and by
-`nixos/services/desktop/greetd.nix`. Consumers convert the values to their own
-notation.
+- Injects flake `inputs` into `specialArgs`.
+- Imports `nixos/profiles/${profile}` and `hosts/${name}/default.nix`.
+- Evaluates `extraModules` last, allowing targeted per-host overrides.
 
 ## References
-- Flake & module architecture: [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)
-- Evaluation overview: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
+
+- System evaluation architecture: [`docs/architecture/overview.md`](../docs/architecture/overview.md)
+- Flake structure and module options: [`docs/architecture/flake-and-modules.md`](../docs/architecture/flake-and-modules.md)

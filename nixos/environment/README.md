@@ -1,21 +1,19 @@
-# System Packages
+# System Packages (`nixos/environment/`)
 
-Pre-defined groups of system-level packages that can be toggled via options.
+Modular system-wide package groups enabled via `my.packages.*` options.
 
-## Options and Categories
+## Package Groups
 
-Each package category can be enabled individually using the `my.packages.<category>.enable = true` option.
-
-- **`base.nix`**: CLI essentials required for basic system administration. Enabled on all hosts by default.
-- **`monitoring.nix`**: System and hardware monitoring tools.
-- **`network-tools.nix`**: Network diagnostic and transfer utilities.
-- **`data.nix`**: Data processing and compression tools.
-- **`security.nix`**: Security-related tools and hardening settings.
-- **`default.nix`**: Definition of all `my.packages.*` options.
+| Module | Purpose | Option | Default |
+| :--- | :--- | :--- | :--- |
+| [`base.nix`](base.nix) | System administration essentials (`file`, `git`, `tmux`, `vim`, `which`) and zsh as the default shell. | `my.packages.core.enable` | `true` |
+| [`monitoring.nix`](monitoring.nix) | Performance and hardware monitoring (`btop`, `htop`, `fastfetch`, `lm_sensors`, `pciutils`, `usbutils`, etc.). | `my.packages.monitoring.enable` | `true` |
+| [`network-tools.nix`](network-tools.nix) | Network diagnostics and transfer tools (`cloudflared`, `curl`, `dnsutils`, `mtr`, `nebula`, `nmap`, `rsync`, `tcpdump`, `xh`, etc.). | `my.packages.network-tools.enable` | `true` |
+| [`data.nix`](data.nix) | Data processing and compression utilities (`jq`, `p7zip`, `unzip`, `xz`, `yq-go`, `zip`, `zstd`). | `my.packages.data.enable` | `true` |
+| [`security.nix`](security.nix) | Security and encryption utilities (`age`, `gnupg`, `sops`, `ssh-to-age`). | `my.packages.security.enable` | `true` |
+| [`default.nix`](default.nix) | Declares all `my.packages.*` options. | — | — |
 
 ## Usage Example
-
-To enable specific package groups in a host configuration:
 
 ```nix
 my.packages = {
