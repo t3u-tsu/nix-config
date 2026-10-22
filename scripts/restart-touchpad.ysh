@@ -1,0 +1,54 @@
+#!/usr/bin/env ysh
+#
+# Rebind and recover the AMD I2C controller and Synaptics touchpad on HP Victus 16.
+#
+# Usage:
+#   ysh scripts/restart-touchpad.ysh
+#
+# If run by a non-root user, automatically re-executes via pkexec.
+
+shopt --unset verbose_errexit
+
+const CONTROLLER = 'AMDI0010:03'
+const PLATFORM_DIR = '/sys/bus/platform/drivers/i2c_designware'
+const I2C_DIR = '/sys/bus/i2c/drivers/i2c_hid_acpi'
+const TOUCHPAD = 'i2c-SYNA32CD:00'
+
+var script_path = $(readlink -f $0)
+var euid = $(id -u)
+if (euid !== '0') {
+  echo $"[restart-touchpad] Root privileges required; requesting elevation via pkexec..."
+  exec pkexec ysh $script_path @[ARGV]
+}
+
+echo $"[restart-touchpad] Resetting AMD I2C controller (${CONTROLLER})..."
+
+# Ensure controller power is set to ON
+if test -f $"/sys/bus/platform/devices/${CONTROLLER}/power/control" {
+  echo 'on' > $"/sys/bus/platform/devices/${CONTROLLER}/power/control"
+}
+
+# Unbind and rebind the designware platform driver
+if test -e $"${PLATFORM_DIR}/${CONTROLLER}" {
+  echo $CONTROLLER > $"${PLATFORM_DIR}/unbind"
+  sleep 0.5
+}
+
+if test -d $"/sys/bus/platform/devices/${CONTROLLER}" {
+  echo $CONTROLLER > $"${PLATFORM_DIR}/bind"
+  sleep 0.5
+}
+
+# Ensure the controller stays powered ON
+if test -f $"/sys/bus/platform/devices/${CONTROLLER}/power/control" {
+  echo 'on' > $"/sys/bus/platform/devices/${CONTROLLER}/power/control"
+}
+
+# Trigger bus drivers reprobe if touchpad device is missing
+if test -d $"/sys/bus/i2c/devices/${TOUCHPAD}" {
+  if test ! -e $"${I2C_DIR}/${TOUCHPAD}" {
+    echo $TOUCHPAD > $"${I2C_DIR}/bind"
+  }
+}
+
+echo "[restart-touchpad] Recovery sequence completed."
