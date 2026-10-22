@@ -153,7 +153,10 @@ in
 
       tun.device = "nebula0";
 
-      listen.host = "[::]";
+      listen = {
+        host = "[::]";
+        port = 4242;
+      };
 
       firewall = {
         inbound = inboundRules;
