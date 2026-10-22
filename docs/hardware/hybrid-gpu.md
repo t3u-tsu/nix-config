@@ -80,7 +80,7 @@ NixOS システムモジュール側で `systemd.user.services.niri` を定義�
 
 ### ゲーム描画における dGPU オフロード無効化
 
-Steam や各種ゲームは Radeon 680M 上でネイティブ描画する（PRIME オフロード経由の dGPU 描画は 3D 回路破損によりクラッシュするため）．設定では `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを防止する．
+Steam や各種ゲームは Radeon 680M 上でネイティブ描画する（`nvidia-offload` による PRIME オフロード描画は 3D 回路破損によりクラッシュするため）．設定では `my.services.desktop.gaming.nvidiaOffload.enable = false`（既定値の無効状態）を維持し，dGPU の 3D 描画呼び出しによるクラッシュを防止する．
 
 ### 省電力制御 (RTD3 & finegrained)
 
@@ -116,7 +116,7 @@ dGPU のサスペンド（D3cold）状態確認コマンド:
 cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
 # 期待される出力: suspended
 
-# 動作ステートの確認 (D3cold であれば完全サスペンド)
+# サスペンド状態の累積時間 (ミリ秒) を確認
 cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_suspended_time
 ```
 

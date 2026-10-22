@@ -75,7 +75,7 @@ upstream（GitLab: `libfprint/fprintd`）では，並行化ができない前提
 - GNOME 51 以降は初期ログイン画面での指紋認証を廃止し，ロック画面解除のみに限定する方針が進められている．指紋認証では LUKS や GNOME Keyring の復号鍵を生成できず，不用意な接触による誤認証や特権昇格リスク（CVE-2024-37408）を伴うためである．
 
 ### 2.2 greetd: 単一セッション制約とミニマリズム
-- デーモン本体の `ContextInner`（`greetd/src/context.rs`）は `configuring` を 1 つしか保持できず，2 つ目のセッション要求を即座に拒絶する．IPC プロトコル（`greetd-ipc(7)`）も 1 ソケット = 1 PAM 会話に固定されている．
+- デーモン本体の `ContextInner`（`greetd/src/context.rs`）は `configuring` を 1 つしか保持できず，2 つ目のセッション要求には `"a session is already being configured"` を返して即座に拒絶する．IPC プロトコル（`greetd-ipc(7)`）も 1 ソケット = 1 PAM 会話に固定されている．
 - 作者（Kenny Levinsen）が `agetty` + `login` の近代的な代替という最小主義を堅持しており，GDM 風のマルチワーカー調停ロジックを本体へ組み込む要求は拒絶されている．
 - `tuigreet` や `ReGreet`（Issue #76）をはじめとする既存グリーターは，空 Enter 送信によるフォールスルーやタイムアウト待ちといった逐次運用で妥協せざるを得ない．
 
@@ -103,7 +103,7 @@ hyprlock は GDM 風 Dual-PAM を見送り，「PAM（パスワード） + D-Bus
 Noctalia は hyprlock を参考にしてデュアルチャネルを導入した（PR #3006）．
 - ユーザー環境の `/etc/pam.d/login` に `pam_fprintd` が含まれる環境でパスワード送信時にセンサーの奪い合い（二重 Claim）が発生し 30 秒間フリーズする不具合（Issue #3277）を回避するため，パスワード入力開始時に `stopFingerprint()` で指紋照合を明示的に停止させている．
 - パスワード検証中に指紋認証が成立してアンロックイベントが二重発行されるクラッシュを防ぐため，片方の検証中は他方を止める直列化を行っている．
-- 本リポジトリの設定（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では Issue #3277 のフリーズ要因は排除されている．
+- 本リポジトリの設定（[`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix)）ではすでに `login.fprintAuth = false` にしているため，実機では Issue #3277 のフリーズ要因は排除されている．
 
 ### 3.3 swaylock & gtklock: upstream の拒絶とコミュニティフォーク
 - swaylock では PR #283（D-Bus）や PR #445（Dual-PAM）が提案されたが，メンテナ（emersion）が KISS 原則を理由に複雑なオーケストレーションの導入を拒絶した．コミュニティではフォーク（`swaylock-effects` PR #77）や外付けデーモン（`fprintd-unlock`，指紋照合成功時に `SIGUSR1` を送信）で対応している．

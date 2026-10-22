@@ -16,7 +16,7 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 
 ## Directory Layout
 
-Host configurations follow this layout (`torii-chan` adds platform-specific files):
+Most host configurations follow this layout. `torii-chan` is the exception: its `default.nix` only carries the shared role, and the boot chain, filesystems, and WAN networking come from per-platform modules (`sbc.nix` / `vps.nix` / `fs-hdd.nix` / `fs-sd.nix`) selected in [`flake/hosts.nix`](../flake/hosts.nix).
 
 ```text
 hosts/<hostname>/

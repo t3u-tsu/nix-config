@@ -50,7 +50,7 @@ sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 #### Step 2: [`.sops.yaml`](../../.sops.yaml) の登録情報と突合
 リポジトリルートの [`.sops.yaml`](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する（アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`）:
 ```bash
-grep -i -A 2 "&.*$(echo <hostname> | tr - _)" .sops.yaml
+grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
 ```
 鍵が異なる場合（再インストール等），[`.sops.yaml`](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
 
@@ -63,19 +63,20 @@ sudo chmod 600 /var/lib/sops-nix/key.txt
 ```
 
 #### Step 4: master 鍵によるファイルの再暗号化
-管理端末で `master_key` を指定し，該当ホストのシークレットおよび共通シークレットの recipient を更新する:
+管理端末で `master_key` を指定し，該当ホストのシークレット，共通シークレット，および当該ホストが受信していたサービスシークレットの recipient を更新する:
 ```bash
 export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 
-# ホスト個別ファイルと共通ファイルの更新
+# ホスト個別ファイル・共通ファイル・該当サービスファイルの更新
 sops updatekeys secrets/hosts/<hostname>.yaml
 sops updatekeys secrets/common.yaml
+sops updatekeys secrets/services/<service>.yaml  # 例: shosoin-tan なら backup.yaml / minecraft.yaml
 
 # recipients 整合性の検証（対象ホストの公開鍵が recipient に正しく反映されているか確認）
-git diff secrets/common.yaml
+git diff secrets/
 
 # 変更をコミット
-git add .sops.yaml secrets/hosts/<hostname>.yaml secrets/common.yaml
+git add .sops.yaml secrets/
 git commit -m "fix(secrets): update age recipients for <hostname>"
 ```
 

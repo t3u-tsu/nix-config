@@ -50,6 +50,9 @@ Regenerate the host SSH key, e.g. after a clean reflash:
    ```bash
    SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/hosts/<hostname>.yaml
    SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/common.yaml
+   # Also update each service file the host can decrypt (e.g. services/backup.yaml and
+   # services/minecraft.yaml for shosoin_tan).
+   SOPS_AGE_KEY_FILE=/path/to/master-key sops updatekeys secrets/services/<service>.yaml
    ```
 
 ## References

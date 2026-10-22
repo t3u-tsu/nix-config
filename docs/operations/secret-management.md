@@ -76,13 +76,21 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.
 
 マシンの破棄や OS 再インストールに伴い SSH ホスト鍵が変更された場合は，古い鍵のアクセス権を剥奪してシークレットを再暗号化する．
 
-1. [`.sops.yaml`](../../.sops.yaml) から該当ホストの公開鍵アンカー（`&<hostname> age1...`）および `creation_rules` を削除する．
-2. 既存シークレットを再暗号化する．
+1. [`.sops.yaml`](../../.sops.yaml) を更新する．破棄する場合は該当ホストの公開鍵アンカー（`&<hostKey> age1...`），ホスト個別の `creation_rules`，およびサービス側 `creation_rules` に残る参照（`*<hostKey>`）を削除し，再インストールの場合はアンカーを新しい公開鍵へ差し替える．
+2. 該当ホストが復号できていた共通シークレットとサービスシークレットの recipient を更新して再暗号化する．
+   ```bash
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/common.yaml
+
+   # 例: shosoin-tan の場合は backup.yaml と minecraft.yaml も更新する
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/services/backup.yaml
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/services/minecraft.yaml
+   ```
+3. 再インストールの場合は，ホスト個別シークレットの recipient も更新する（破棄する場合はファイルごと削除するため不要）．
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
-3. ホストを完全に破棄する場合は，不要になったシークレットファイルを削除する（`git rm secrets/hosts/<hostname>.yaml`）．
-4. [`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストのエントリを削除する．
+4. ホストを完全に破棄する場合は，不要になったシークレットファイルを削除する（`git rm secrets/hosts/<hostname>.yaml`）．
+5. ホストを完全に破棄する場合は，[`scripts/nebula-lib.ysh`](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストのエントリを削除する．
 
 ---
 

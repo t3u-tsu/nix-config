@@ -20,15 +20,15 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 - Restricts SSH access (port 22) to `nebula0` while publicly exposing UDP `4242` (Nebula) and TCP `25565` (Minecraft).
 - Shares hostname and SOPS secrets with `torii-chan-vps` for automated failover.
 
-## Flake Configurations
+## Flake Targets
 
 | Target | Architecture | Target Medium / Purpose |
 | :--- | :--- | :--- |
 | `torii-chan-hdd` | `aarch64-linux` | Production SBC deployment (Root on USB SATA HDD) |
 | `torii-chan-sd` | `aarch64-linux` | Production SBC deployment (Root on MicroSD) |
 | `torii-chan-vps` | `x86_64-linux` | Failover deployment on ConoHa VPS (512MB) |
-| `torii-chan-sd-installer` | `aarch64-linux` | Minimal SD installer image |
-| `torii-chan-vps-iso` | `x86_64-linux` | Minimal rescue installer ISO |
+| `torii-chan-sd-installer` | `aarch64-linux` | Minimal SD installer image (nixosConfiguration) |
+| `torii-chan-vps-iso` | `x86_64-linux` | Rescue installer ISO package (`nix build .#torii-chan-vps-iso`, not a nixosConfiguration) |
 
 ## Quick Operations
 

@@ -96,7 +96,7 @@ Linux-PAM には，モジュールが `PAM_INCOMPLETE` を返して `pam_authent
 
 | スタック | 認証順序 | 帰結 |
 | :--- | :--- | :--- |
-| `/etc/pam.d/polkit-1` / `sudo` / `su` | `pam_fprintd` (11400) → `pam_unix try_first_pass` (11700) | 指を置かない限り最大 30 秒パスワード欄が出ない |
+| `/etc/pam.d/polkit-1` / `sudo` / `su`（NixOS 既定） | `pam_fprintd` (11400) → `pam_unix try_first_pass` (11700) | 指を置かない限り最大 30 秒パスワード欄が出ない |
 | `/etc/pam.d/greetd`（本リポジトリ） | `pam_unix` (unix-early, 11700) → `pam_gnome_keyring` → `pam_unix use_first_pass` (12900) → `pam_fprintd` (12910) | `unix-early` が 1 回だけパスワードをプロンプトして `PAM_AUTHTOK` を入れ，空送信なら `use_first_pass` の `pam_unix` が失敗して `pam_fprintd` にフォールスルーする |
 
 greetd の構成は，単一スタックの逐次制約に対する空送信フォールスルーによる回避策である．[`nixos/services/desktop/greetd.nix`](../../nixos/services/desktop/greetd.nix) に設計意図が記載されており，グリーター側で `auth.allow_empty_password = true` の設定を前提とする．
@@ -111,6 +111,8 @@ rules.auth.unix.settings = {
 };
 rules.auth.fprintd.order = config.security.pam.services.greetd.rules.auth.unix.order + 10;
 ```
+
+x1c7 では `sudo` と `polkit-1` について，[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix) で `fprintd` ルールを `pam_unix` の直後（11710）へ移し，`max-tries=1` / `timeout=10` に短縮している．`su` は既定スタック（`pam_fprintd` 11400 → `pam_unix` 11700）のままである．
 
 ---
 

@@ -23,14 +23,14 @@ nix develop  # direnv を使用していない場合
 ## 2. ステップ・バイ・ステップ手順
 
 ### Step 1: ホストディレクトリの作成
-テンプレートから複製し，プレースホルダを置換する:
+テンプレートから複製し，`HOSTNAME` プレースホルダを置換する:
 ```bash
 cp -r hosts/_template hosts/<hostname>
 cd hosts/<hostname>
-sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
+sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 ```
 
-実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．
+実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．`hosts/<hostname>/services/nebula.nix` は，`my.networking.nebula.ip`（[ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で次の空き IP）と `groups` を実機の役割に合わせて編集する．
 
 ### Step 2: Flake へのホスト登録 ([`flake/hosts.nix`](../../flake/hosts.nix))
 [`flake/hosts.nix`](../../flake/hosts.nix) に新しいホストのエントリを追加する:
@@ -45,29 +45,29 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md services/nebula.nix
 
 ### Step 3: パスワード初期化と SOPS 鍵の登録
 
-1. 初期パスワードを生成する．
-   ```bash
-   ysh scripts/set-host-password.ysh <hostname>
-   ```
-2. 新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）からホスト age 公開鍵を取得する．
+1. 新マシンの SSH ホスト公開鍵（`/etc/ssh/ssh_host_ed25519_key.pub`）からホスト age 公開鍵を取得する．
    ```bash
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-3. [`.sops.yaml`](../../.sops.yaml) にホストのアンカーと creation rules を追加する．
+2. [`.sops.yaml`](../../.sops.yaml) にホストのアンカーと creation rules を追加する（アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの）．
    ```yaml
    keys:
-     - &<hostname> age1...
+     - &<hostKey> age1...
    creation_rules:
      - path_regex: secrets/hosts/<hostname>\.yaml$
        key_groups:
          - age:
              - *master_key
-             - *<hostname>
+             - *<hostKey>
    ```
-4. 鍵を同期してシークレットを再暗号化する．
+3. 初期パスワードを生成し，ホスト個別シークレットを作成する．`set-host-password.ysh` は新規ファイルを [`.sops.yaml`](../../.sops.yaml) の creation rule で暗号化するため，必ず手順 2 の登録後に実行する．
    ```bash
-   sops updatekeys secrets/hosts/<hostname>.yaml
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/set-host-password.ysh <hostname>
+   ```
+4. [`.sops.yaml`](../../.sops.yaml) の内容を既存シークレットへ反映する．
+   ```bash
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
    ```
 5. サーバー機で非常用帯域外アクセス（Cloudflare Tunnel）を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する（詳細は [`emergency-cf-ssh.md`](emergency-cf-ssh.md) 参照）．
 

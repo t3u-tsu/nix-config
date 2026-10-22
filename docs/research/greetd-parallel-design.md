@@ -14,7 +14,7 @@ flowchart TD
     G["Greeter (noctalia-greeter / tuigreet)<br/>greetd-ipc クライアント"]
 
     subgraph Master ["greetd-parallel (Master Daemon: Root)"]
-        IPC["UNIX Socket Server<br/>(/run/greetd/greetd.sock)"]
+        IPC["UNIX Socket Server<br/>(GREETD_SOCK)"]
         ARB["Arbiter (レース調停エンジン)<br/>tokio::select!"]
     end
 
@@ -37,7 +37,7 @@ flowchart TD
 ## 1. greetd-ipc プロトコルの分析と課題
 
 ### 1.1 既存の `greetd-ipc(7)` 仕様
-greetd の IPC は JSON をバイト列の長さ付きプレフィックス（4 バイト Big-Endian）でやり取りする同期型プロトコルである．
+greetd の IPC は JSON を長さ付きプレフィックス（4 バイト，ネイティブバイトオーダーの `u32`）でやり取りする同期型プロトコルである（`greetd_ipc` の `u32::from_ne_bytes`）．
 
 - クライアント $\to$ サーバー:
   - `create_session { username }`
@@ -75,7 +75,7 @@ greetd の IPC は JSON をバイト列の長さ付きプレフィックス（4 
 
 ### 3.1 コンポーネント構成
 
-- 特権 Master Daemon（Root）が `/run/greetd/greetd.sock` をリッスンし，セッションライフサイクル管理（`pam_open_session`，`pam_setcred`），ユーザー権限への降格（`setgid`，`initgroups`，`setuid`），およびセッションプロセス（Niri や Hyprland）の `exec` を担う．
+- 特権 Master Daemon（Root）が `/run/greetd-<PID>.sock` をリッスンし（パスは `GREETD_SOCK` でグリーターへ渡される），セッションライフサイクル管理（`pam_open_session`，`pam_setcred`），ユーザー権限への降格（`setgid`，`initgroups`，`setuid`），およびセッションプロセス（Niri や Hyprland）の `exec` を担う．
 - Password Worker は `fork` + `exec` された隔離プロセスとして動作し，専用の `/etc/pam.d/greetd-password`（`pam_fprintd.so` を除外）を読み込んで `pam_unix` を同期実行する．
 - Fingerprint Worker / D-Bus Controller は指紋照合を担い，Master プロセス内から `zbus` 経由で `net.reactivated.Fprint` を直接監視するか，あるいは `/etc/pam.d/greetd-fingerprint` を実行する独立子プロセスを spawn して制御する．
 - Arbiter（調停エンジン）が `tokio::select!` により，Password Worker のパイプと Fingerprint の照合完了イベントをレース待ち受けする．
@@ -112,7 +112,7 @@ sequenceDiagram
 
 #### キャンセル処理の厳密なルール
 - パスワード側が先行成立した場合は，直ちに D-Bus で `StopVerify()` および `Release()` を発行して指紋センサーを解放する．未解放のままだと `Device was already claimed` 状態が継続し，ログイン後の画面ロックで指紋認証が機能しなくなる．
-- 指紋側が先行成立した場合は，Password Worker プロセスに `SIGTERM` を送信し，猶予時間（例: 200ms）を超えたら `SIGKILL` で強制終了する．Password 側の会話破棄に伴う `pam_faillock` の誤カウントを防ぐため，`greetd-password` 設定側で影響を局所化しておく．
+- 指紋側が先行成立した場合は，Password Worker プロセスに `SIGTERM` を送信し，猶予時間（例: 200ms）を超えたら `SIGKILL` で強制終了する．Password 側の会話破棄に伴う `pam_faillock` の誤カウントを防ぐため，`greetd-password` 設定側には `audit` や `fail_interval` の影響を局所化する設定を施しておく．
 
 ---
 

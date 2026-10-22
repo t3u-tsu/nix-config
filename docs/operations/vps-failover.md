@@ -18,8 +18,8 @@ sequenceDiagram
 
     SBC-xAdmin: 物理ハード障害 / 停電検知
     Admin->>Tofu: tofu apply (VPS 作成)
-    Tofu->>ConoHa: インスタンス作成 & ISO マウント
-    Admin->>VPS: terraform/scripts/nixos-iso.ysh (NixOS 自動導入)
+    Tofu->>ConoHa: インスタンス作成
+    Admin->>VPS: terraform/scripts/nixos-iso.ysh (レスキュー ISO 注入 & 起動)
     Admin->>Cloudflare: DDNS A レコードを VPS IP に切替
     Note over VPS,Cloudflare: フェイルオーバー完了 (サービス復旧)
 

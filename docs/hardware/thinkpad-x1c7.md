@@ -104,7 +104,7 @@ XanMod カーネルは `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y` でビルド�
 
 #### 動的ブーストと省電力
 - `CPU_HWP_DYN_BOOST_ON_AC = 1`: AC 駆動時の急激な負荷スパイクに対し動的ブーストを適用し UI 応答性を維持する．
-- `PLATFORM_PROFILE = "balanced"`: AC・BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げられる．
+- `PLATFORM_PROFILE_ON_AC` / `PLATFORM_PROFILE_ON_BAT = "balanced"`: AC・BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げられる．
 - `PCIE_ASPM_ON_BAT = "powersave"`: バッテリー駆動時に PCIe リンク（NVMe，Wi-Fi，Thunderbolt）を低電力ステートへ移行させる．
 
 #### USB 自動サスペンドの除外
@@ -190,7 +190,7 @@ BIOS 設定の `Config -> Power -> Sleep State` は Linux (S3) に設定して�
 | S3 (Deep Sleep) | RAM 以外の給電を遮断 | スリープ中の電力消費を最小化 | 復帰に 1〜2 秒要する |
 | s2idle (Modern Standby) | SoC の低電力アイドル状態 | 復帰が極めて高速 | スリープ中のバッテリー消費が大きい |
 
-本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，BIOS 設定の `Config -> Power -> Sleep State` を Linux (S3) に設定して ACPI レベルで行う．
+本ホストではバッテリー持続時間を最優先して S3 を選択している．S3 deep への固定は，カーネルパラメータ（`mem_sleep_default=deep` など）ではなく，BIOS 設定の `Config -> Power -> Sleep State` を Linux (S3) に設定して ACPI レベルで行う（[`hosts/x1c7/default.nix`](../../hosts/x1c7/default.nix) に `boot.kernelParams` は定義していない）．
 
 ### 運用上の留意事項
 
