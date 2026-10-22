@@ -90,8 +90,12 @@ def check_file(md_path: str, repo_root: str) -> list[str]:
     except Exception as e:
         return [f"{md_path}: failed to read file: {e}"]
 
+    # Remove code blocks so placeholder/example links aren't checked as real files
+    clean_content = re.sub(r"```[\s\S]*?```", "", content)
+    clean_content = re.sub(r"`[^`\n]+`", "", clean_content)
+
     md_dir = os.path.dirname(md_path)
-    for m in re.finditer(r"\[([^\]]+)\]\(([^)]+)\)", content):
+    for m in re.finditer(r"\[([^\]]+)\]\(([^)]+)\)", clean_content):
         raw_target = m.group(2).strip()
         link = raw_target.split("#")[0].split("?")[0].strip()
         if not link or link.startswith(("http:", "https:", "mailto:", "ftp:")):
