@@ -35,8 +35,17 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 sudo nixos-rebuild switch --flake .#BrokenPC
 ```
 
+## Hardware Quirks & Troubleshooting
+
+- **Touchpad Freezing & I2C Timeout**: The Synaptics touchpad (`SYNA32CD:00`) on the AMD DesignWare I2C bus (`AMDI0010:03`) freezes if the controller enters runtime autosuspend. This is mitigated by locking controller power to `on` via udev and restoring it in `powerManagement.resumeCommands`. For manual recovery without a reboot, run:
+  ```bash
+  ysh scripts/restart-touchpad.ysh
+  ```
+- **Boot Hang (Black Screen & Spinning Fans)**: The HP Victus 16 motherboard (`8A22`) occasionally suffers from an EC (Embedded Controller) state hang where fans spin at maximum speed with keyboard backlights but POST fails to display anything. To resolve, disconnect the AC charger and perform a hard EC reset by holding the power button for 20–30 seconds.
+
 ## References
 
 - Hybrid GPU architecture & LLM tuning: [docs/hardware/hybrid-gpu.md](../../docs/hardware/hybrid-gpu.md)
 - Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
 - Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)
+
