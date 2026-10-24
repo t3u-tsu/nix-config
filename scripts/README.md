@@ -6,6 +6,9 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 | Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
+| [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling and master-identity extraction for the agenix scripts. | `bw` |
+| [agenix-with-bw.ysh](agenix-with-bw.ysh) | Fetches the agenix master age identity from Bitwarden and runs `agenix` with it. | `bw`, `agenix` |
+| [migrate-sops-to-agenix.ysh](migrate-sops-to-agenix.ysh) | Decrypts SOPS YAML files and writes one agenix-rekey `.age` file per secret under `secrets/master/`. | `bw`, `sops`, `age` |
 | [nebula-lib.ysh](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
 | [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
@@ -15,6 +18,40 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [restart-touchpad.ysh](restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 
 ## Usage Examples
+
+### Run agenix with the Bitwarden Master Key
+
+```bash
+# BW_SESSION is reused when set; otherwise the script prompts for the master password
+ysh scripts/agenix-with-bw.ysh rekey -a
+ysh scripts/agenix-with-bw.ysh edit secrets/master/example.age
+
+# Point both Bitwarden and agenix-rekey at a custom identity directory
+BW_MASTER_KEY_ITEM=agenix-master-key \
+  AGENIX_MASTER_KEY_DIR=/run/user/1000/agenix \
+  ysh scripts/agenix-with-bw.ysh rekey -a
+```
+
+Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The file is
+created with mode 0600 and removed on exit.
+
+### Migrate SOPS YAML to agenix-rekey
+
+```bash
+# Preview the generated secret names
+ysh scripts/migrate-sops-to-agenix.ysh --dry-run
+
+# Write secrets/master/<key>.age for every top-level SOPS key
+ysh scripts/migrate-sops-to-agenix.ysh
+
+# Replace files created by an earlier run
+ysh scripts/migrate-sops-to-agenix.ysh --force
+```
+
+The Bitwarden item must hold the `master_key` identity from [.sops.yaml](../.sops.yaml).
+The SOPS files are left in place; remove them after verifying the new
+`secrets/master/*.age` files and defining the matching `age.secrets.<name>.rekeyFile`
+options.
 
 ### Set or Update Host Passwords
 
