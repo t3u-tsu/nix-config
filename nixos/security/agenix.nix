@@ -14,9 +14,10 @@
       ];
     };
 
-    secrets = {
-      t3u_password_hash.rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/t3u_password_hash.age;
-      root_password_hash.rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/root_password_hash.age;
-    };
+    # Secrets will be defined after secrets/master/ files are generated via migration script
+    # secrets = {
+    #   t3u_password_hash.rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/t3u_password_hash.age;
+    #   root_password_hash.rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/root_password_hash.age;
+    # };
   };
 }
