@@ -43,7 +43,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 };
 ```
 
-### Step 3: パスワード初期化と鍵登録
+### Step 3: ホスト公開鍵の登録と初期シークレットのステージング
 
 1. 新マシンの SSH ホスト公開鍵 (`/etc/ssh/ssh_host_ed25519_key.pub`) からホスト age 公開鍵を取得する．
    ```bash
@@ -54,24 +54,20 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ```nix
    age.rekey.hostPubkey = "age1...";
    ```
-3. ユーザーおよび root の初期パスワードハッシュを登録する．
-   ステージング領域 (`.secrets-staging/`) に平文ハッシュを配置し，`just secret-apply-staging` で暗号化して取り込む．
+3. ユーザーおよび root の初期パスワードハッシュをステージングする．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/user_password_hash
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
-   just secret-apply-staging
    ```
-   このコマンドは平文を暗号化して shred した後，全ホストを再暗号化し，`secrets/rekeyed/hosts/<hostname>/` に当該ホスト専用の暗号化ファイル群を生成する．
-4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する．
+   (対話スクリプト `ysh scripts/set-host-password.ysh <hostname>` で直接 `secrets/master/` へ暗号化保存することも可能)
+4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンをステージングする．
    ```bash
-   mkdir -p .secrets-staging/hosts/<hostname>
    echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
-   just secret-apply-staging
    ```
    (詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照)
 
-### Step 4: Nebula 証明書の発行と登録
+### Step 4: Nebula 証明書の発行とシークレットの一括再暗号化
 
 1. 管理者のオフライン CA ([scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`) を用いてノード証明書を発行する．
    ```bash
@@ -89,26 +85,28 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```
-3. ノード秘密鍵をステージング領域に配置して暗号化・再暗号化を実行する．
+3. ノード秘密鍵をステージング領域に配置し，初期シークレットを一括で暗号化・再暗号化する．
    ```bash
-   mkdir -p .secrets-staging/hosts/<hostname>
    mv "$CA_DIR/<hostname>.key" .secrets-staging/hosts/<hostname>/nebula_key
    just secret-apply-staging
    ```
+   このコマンドは `.secrets-staging/` 内の全平文を Master 鍵で暗号化して shred した後，`agenix rekey` を実行し，`secrets/rekeyed/hosts/<hostname>/` に当該ホスト専用の暗号化ファイル群 (パスワード，Nebula 鍵，deploy key 等) を生成する．
 
 ### Step 5: プライベート Flake 入力のブートストラップ
 個人機密設定を管理するプライベートリポジトリ `nix-config-private` を flake input として参照する．初回の未適用状態では SSH エイリアス `github-nix-config-private` が未構成のため，そのままでは Flake 評価に失敗する．
 
 新ホスト側 (root 権限) で初回ビルド前に一時的な SSH エイリアスを設定する．
+
 ```bash
-# 新ホスト側で実行 (secrets/master/common/deploy_key.age の deploy key を一時配置)
+# 新ホスト側で実行
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
+ssh-keyscan -t ed25519 github.com 2>/dev/null | tee -a /root/.ssh/known_hosts >/dev/null
 
-# deploy key の配置
-cat > /root/.ssh/nix-config-private_deploy_key <<'EOF'
-... (deploy key 内容) ...
-EOF
+# deploy key の配置 (Step 4 で再暗号化された deploy_key.age をホスト秘密鍵で復号，または作業機からコピー)
+sudo age -d -i /etc/ssh/ssh_host_ed25519_key \
+  secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
+  | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
 chmod 600 /root/.ssh/nix-config-private_deploy_key
 
 cat >> /root/.ssh/config <<'EOF'
@@ -218,12 +216,10 @@ ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
 sudo install -d -m 700 /root/.ssh
 sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
 
-# deploy key を配置 (secrets/master/common/deploy_key.age の deploy key または作業機の鍵)
-sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null <<'EOF'
------BEGIN OPENSSH PRIVATE KEY-----
-... (deploy key 内容) ...
------END OPENSSH PRIVATE KEY-----
-EOF
+# deploy key を配置 (Step 2 で生成したホスト鍵で secrets/rekeyed/hosts/<hostname>/ 配下の deploy_key.age を復号，または作業機からコピー)
+sudo age -d -i /mnt/etc/ssh/ssh_host_ed25519_key \
+  secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
+  | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 
 # 一時 SSH エイリアスを設定 (追記)

@@ -8,6 +8,7 @@
 | カーネルパニック / 起動停止 | ブートローダー動作可 | GRUB / extlinux メニューから健全な過去世代を選択起動 | 1〜2 分 (低) |
 | 復号不全による emergency mode | ブートローダー動作可，ログイン不可 | GRUB 編集で `init=/bin/sh` 緊急シェルより前世代 boot 設定 | 3〜5 分 (中) |
 | ブートセクタ破壊 / 設定崩壊 | OS 起動不可 | NixOS インストーラ USB 起動 + `nixos-enter` レスキュー | 10〜15 分 (高) |
+| 実機全損 / ストレージ全損 | OS 起動不可，ハード全損 | Bitwarden Master 鍵 + Git リポジトリからのクリーン再構築 | 20〜30 分 (高) |
 
 ---
 
@@ -166,6 +167,129 @@ reboot
 > [!CAUTION]
 > **ZFS プール (`tank-1tb`) のエクスポート忘れに注意**
 > `shosoin-tan` で ZFS プールをインポートした場合，レスキュー環境の再起動前に必ず `zpool export tank-1tb` を実行すること．全ホスト共通のベース設定で `boot.zfs.forceImportRoot = false` が有効であるため，エクスポートを怠ると次回起動時にプールがインポートできず Emergency Mode に陥る．
+
+---
+
+## 3. 実機全損・ストレージ全損時の完全復旧手順 (Bitwarden & Git からの再構築)
+
+ハードウェアの物理故障，ストレージ換装，または管理端末を含む複数機被災時において，Bitwarden Vault と GitHub リポジトリから安全にマシンを再構築・復旧する手順．
+
+### 前提条件と保管情報
+
+| 保管先 | アイテム / パス | 内容・用途 |
+| :--- | :--- | :--- |
+| 公開 Git リポジトリ | `https://github.com/t3u-tsu/nix-config` | NixOS 構成宣言および再暗号化シークレット |
+| Bitwarden Vault | `nix-config/agenix-master-key` | agenix-rekey Master age 秘密鍵 (`AGE-SECRET-KEY-1...`) |
+| Bitwarden Vault | `nix-config/ssh/<hostname>` | 運用者 SSH 鍵 (`id_ed25519`) |
+| Bitwarden Vault | `nix-config/nebula-ca/ca.key` | Nebula ルート CA 秘密鍵バックアップ |
+
+### パターン A: 健全な管理端末から被災マシンを再構築する場合
+健全な管理端末 (`BrokenPC` または `x1c7`) が手元にある場合の最短復旧フロー:
+
+1. **新マシンのディスク初期化とマウント**:
+   NixOS 公式 minimal インストーラ USB で実機を起動し，[新規ホスト追加手順](../operations/adding-a-host.md#3-新規ベアメタル導入手順-live-usb-クリーンインストール) に従いパーティショニングして `/mnt` (および `/mnt/boot`) へマウントする．
+2. **SSH ホスト秘密鍵の事前生成**:
+   ```bash
+   sudo mkdir -p /mnt/etc/ssh
+   sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+   sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
+   ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
+   ```
+3. **管理端末での公開鍵更新と再暗号化**:
+   管理端末で `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を得られた公開鍵へ更新し，再暗号化を実行して Git に push する:
+   ```bash
+   just secret-rekey
+   git add hosts/<hostname>/default.nix secrets/rekeyed/hosts/<hostname>/
+   git commit -m "fix(secrets): rotate host key for <hostname> recovery"
+   git push origin feat/...
+   ```
+4. **新マシンでの private input デプロイキー復号**:
+   新マシンのライブ環境でリポジトリを取得し，Step 2 で生成したホスト秘密鍵でデプロイキーを復号する:
+   ```bash
+   git clone https://github.com/t3u-tsu/nix-config
+   cd nix-config
+
+   sudo install -d -m 700 /root/.ssh
+   sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
+
+   sudo age -d -i /mnt/etc/ssh/ssh_host_ed25519_key \
+     secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
+     | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
+   sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
+
+   sudo tee -a /root/.ssh/config >/dev/null <<'EOF'
+   Host github-nix-config-private
+     HostName github.com
+     User git
+     IdentityFile /root/.ssh/nix-config-private_deploy_key
+     IdentitiesOnly yes
+   EOF
+   ```
+5. **NixOS のインストールと再起動**:
+   ```bash
+   sudo nixos-install --flake .#<hostname>
+   sudo reboot
+   ```
+   データサーバー (`shosoin-tan`) の場合は再起動後に [バックアップ運用 & ディザスタリカバリ (DR)](../operations/backup-and-restore.md) に従い Restic からデータを復元する．
+
+### パターン B: 運用端末自体の全損・Live USB 単独でのブートストラップ
+運用端末が手元になく，インストーラ USB と Bitwarden Vault のみからゼロベースで復旧する場合の手順:
+
+1. **Live USB 上での Master 秘密鍵と運用者鍵の展開**:
+   Web またはスマートフォン等で Bitwarden を開き，`nix-config/agenix-master-key` と `nix-config/ssh/<hostname>` を取得する．
+   agenix-rekey が要求する tmpfs パス (`/run/user/1000/agenix/master-key.txt`) に Master 鍵を展開する:
+   ```bash
+   sudo mkdir -p /run/user/1000/agenix
+   sudo chmod 700 /run/user/1000/agenix
+   cat <<'EOF' | sudo tee /run/user/1000/agenix/master-key.txt >/dev/null
+   AGE-SECRET-KEY-1...
+   EOF
+   sudo chmod 600 /run/user/1000/agenix/master-key.txt
+   ```
+2. **運用者 SSH 鍵と private input 設定**:
+   ```bash
+   sudo install -d -m 700 /root/.ssh
+   cat <<'EOF' | sudo tee /root/.ssh/id_ed25519 >/dev/null
+   -----BEGIN OPENSSH PRIVATE KEY-----
+   ...
+   -----END OPENSSH PRIVATE KEY-----
+   EOF
+   sudo chmod 600 /root/.ssh/id_ed25519
+   sudo cp /root/.ssh/id_ed25519 /root/.ssh/nix-config-private_deploy_key
+
+   sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
+   sudo tee -a /root/.ssh/config >/dev/null <<'EOF'
+   Host github-nix-config-private
+     HostName github.com
+     User git
+     IdentityFile /root/.ssh/nix-config-private_deploy_key
+     IdentitiesOnly yes
+   EOF
+   ```
+3. **ディスク準備とホスト鍵事前生成**:
+   ディスクをフォーマット・マウント後，恒久ホスト鍵を `/mnt/etc/ssh/ssh_host_ed25519_key` に生成する:
+   ```bash
+   sudo mkdir -p /mnt/etc/ssh
+   sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+   sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
+   ```
+4. **リポジトリ取得と Live USB での再暗号化**:
+   ```bash
+   git clone https://github.com/t3u-tsu/nix-config
+   cd nix-config
+
+   # hosts/<hostname>/default.nix の age.rekey.hostPubkey を更新
+   NEW_KEY=$(ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub)
+   sed -i "s|age.rekey.hostPubkey = \"age1[^\"]*\";|age.rekey.hostPubkey = \"${NEW_KEY}\";|" hosts/<hostname>/default.nix
+
+   # nix develop シェル内で再暗号化を実行
+   nix develop --command just secret-rekey
+   ```
+5. **システムのインストールと再起動**:
+   ```bash
+   sudo nixos-install --flake .#<hostname>
+   sudo reboot
+   ```
 
 ---
 

@@ -110,14 +110,14 @@ sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/know
 #### Step 2: デプロイキーの配備
 再暗号化済みシークレットから読み取り専用デプロイキーを復号して配置する (対象ホストの SSH ホスト秘密鍵または作業端末の SSH 鍵を使用):
 ```bash
-# 対象ホスト上で SSH ホスト秘密鍵を用いて復号する場合
+# 対象ホスト上で SSH ホスト秘密鍵を用いて復号する場合 (Live USB レスキュー時は /mnt/etc/ssh/... を指定)
 sudo age -d -i /etc/ssh/ssh_host_ed25519_key \
   secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
   | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 ```
 > [!TIP]
-> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵 (`~/.ssh/id_ed25519`) を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．
+> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵 (`~/.ssh/id_ed25519`) を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．また Master 秘密鍵がある場合は `secrets/master/common/deploy_key.age` を直接復号できる．
 
 #### Step 3: 一時 SSH エイリアスの設定
 ```bash
