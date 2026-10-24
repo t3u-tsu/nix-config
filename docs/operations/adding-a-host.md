@@ -9,7 +9,7 @@
 - [ ] マシンのハードウェア構成 (CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス)
 - [ ] 割り当てる Nebula IP ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照)
 - [ ] 適用するプロファイル (`desktop` / `tower-server` / `gateway` / `sbc`)
-- [ ] 管理者マシンの master 鍵 (`~/.config/sops/age/keys.txt`)
+- [ ] Bitwarden の Master 秘密鍵 (`nix-config/master-key`) または有効な `BW_SESSION`
 - [ ] 開発環境 (`nix develop` または direnv) の有効化
 
 作業はトピックブランチを作成し，開発シェルに入って行う:
@@ -43,33 +43,37 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 };
 ```
 
-### Step 3: パスワード初期化と SOPS 鍵の登録
+### Step 3: パスワード初期化と鍵登録
 
 1. 新マシンの SSH ホスト公開鍵 (`/etc/ssh/ssh_host_ed25519_key.pub`) からホスト age 公開鍵を取得する．
    ```bash
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-2. [.sops.yaml](../../.sops.yaml) にホストのアンカーと creation rules を追加する (アンカー名 `<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの)．
-   ```yaml
-   keys:
-     - &<hostKey> age1...
-   creation_rules:
-     - path_regex: secrets/hosts/<hostname>\.yaml$
-       key_groups:
-         - age:
-             - *master_key
-             - *<hostKey>
+2. `hosts/<hostname>/default.nix` にホスト公開鍵を登録する:
+   ```nix
+   age.rekey.hostPubkey = "age1...";
    ```
-3. 初期パスワードを生成し，ホスト個別シークレットを作成する．`set-host-password.ysh` は新規ファイルを [.sops.yaml](../../.sops.yaml) の creation rule で暗号化するため，必ず手順 2 の登録後に実行する．
+3. ユーザーおよび root の初期パスワードハッシュを登録する:
+   ステージング領域 (`.secrets-staging/`) に平文ハッシュを配置し，`just secret-apply-staging` で暗号化して取り込む．
    ```bash
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/set-host-password.ysh <hostname>
+   mkdir -p .secrets-staging/hosts/<hostname>
+   mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/user_password_hash
+   mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
+   just secret-apply-staging
    ```
-4. [.sops.yaml](../../.sops.yaml) の内容を既存シークレットへ反映する．
+4. シークレットを再暗号化する:
    ```bash
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops updatekeys secrets/hosts/<hostname>.yaml
+   just secret-rekey
    ```
-5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，`<hostKey>_cloudflared_ssh_token` を `secrets/hosts/<hostname>.yaml` に登録する (詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照)．
+   `secrets/rekeyed/<hostname>/` に当該ホスト専用の暗号化ファイル群が生成される．
+5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する:
+   ```bash
+   mkdir -p .secrets-staging/hosts/<hostname>
+   echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
+   just secret-apply-staging
+   ```
+   (詳細は [emergency-cf-ssh.md](emergency-cf-ssh.md) 参照)
 
 ### Step 4: Nebula 証明書の発行と登録
 
@@ -82,16 +86,18 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
      -groups "mgmt,..." \
      -ca-crt "$CA_DIR/ca.crt" \
      -ca-key "$CA_DIR/ca.key" \
-     -out-crt "$CA_DIR/<hostname>.crt" \
+     -out-crt "hosts/<hostname>/nebula.crt" \
      -out-key "$CA_DIR/<hostname>.key"
    ```
 2. [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```
-3. ノード証明書をシークレットへインポートする．
+3. ノード秘密鍵をステージング領域に配置して暗号化・再暗号化を実行する．
    ```bash
-   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+   mkdir -p .secrets-staging/hosts/<hostname>
+   mv "$CA_DIR/<hostname>.key" .secrets-staging/hosts/<hostname>/nebula_key
+   just secret-apply-staging
    ```
 
 ### Step 5: プライベート Flake 入力のブートストラップ
@@ -99,7 +105,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 新ホスト側 (root 権限) で初回ビルド前に一時的な SSH エイリアスを設定する:
 ```bash
-# 新ホスト側で実行 (secrets/common.yaml 内の nix_config_private_deploy_key を一時配置)
+# 新ホスト側で実行 (secrets/master/common/deploy_key.age の deploy key を一時配置)
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
@@ -180,34 +186,31 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
    ```bash
    # UEFI 機の場合:
    sudo mount /dev/nvme0n1p2 /mnt              # ルートパーティション
-   sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
+   sudo mkdir -p /mnt/boot
    sudo mount /dev/nvme0n1p1 /mnt/boot         # ESP / ブートパーティション
 
    # Legacy BIOS 機の場合 (例):
    # sudo mount /dev/sda3 /mnt                 # ルートパーティション
-   # sudo mkdir -p /mnt/boot /mnt/var/lib/sops-nix
+   # sudo mkdir -p /mnt/boot
    # sudo mount /dev/sda2 /mnt/boot            # ブートパーティション
    ```
 
-### Step 2: SSH ホスト鍵と SOPS age 秘密鍵の事前配置
+### Step 2: SSH ホスト鍵の事前生成とシークレットの rekey
 
-`nixos-install` のシステム activation でシークレット復号が行われるため，事前に age 秘密鍵を配置しておく必要がある．
+agenix は起動時およびシステム activation 時に `/etc/ssh/ssh_host_ed25519_key` を用いて `/run/agenix/` 配下にシークレットを自動復号する．
 
 ```bash
 # 恒久利用する SSH ホスト鍵をターゲット領域に事前生成
 sudo mkdir -p /mnt/etc/ssh
 sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
 
-# age 公開鍵を取得して管理者の .sops.yaml に登録・updatekeys
-ssh-to-age -i /mnt/etc/ssh/ssh_host_ed25519_key.pub
-
-# ホスト用の age 秘密鍵を配置 (パーミッション 600 を厳守)
-ssh-to-age -private-key -i /mnt/etc/ssh/ssh_host_ed25519_key \
-  | sudo tee /mnt/var/lib/sops-nix/key.txt >/dev/null
-sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
+# age 公開鍵を取得
+ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
 ```
-> [!NOTE]
-> 管理作業機から直接プロビジョニングする場合は，`~/.config/sops/age/keys.txt` (master 鍵) を一時的に `/mnt/var/lib/sops-nix/key.txt` へコピーして代用してもよい (初回起動後にホスト鍵へ置換)．
+
+取得した age 公開鍵を管理作業機の `hosts/<hostname>/default.nix` に `age.rekey.hostPubkey` として登録し，管理作業機側で `just secret-rekey` を実行して Git にコミットする．
+これにより `secrets/rekeyed/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群が用意されるため，追加の秘密鍵コピーは不要である．
 
 ### Step 3: プライベート Flake 入力用 deploy key の配置
 
@@ -218,7 +221,7 @@ sudo chmod 600 /mnt/var/lib/sops-nix/key.txt
 sudo install -d -m 700 /root/.ssh
 sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
 
-# deploy key を配置 (secrets/common.yaml 内の nix_config_private_deploy_key または作業機の鍵)
+# deploy key を配置 (secrets/master/common/deploy_key.age の deploy key または作業機の鍵)
 sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null <<'EOF'
 -----BEGIN OPENSSH PRIVATE KEY-----
 ... (deploy key 内容) ...
@@ -261,5 +264,5 @@ sudo reboot
 - [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](emergency-cf-ssh.md) — Cloudflare Tunnel 経由の帯域外 SSH アクセス手順
 - [リポジトリ全体アーキテクチャ](../architecture/overview.md) — リポジトリの層構成とモジュール評価フロー
 - [ネットワークアーキテクチャ](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
-- [シークレット & 鍵ライフサイクル管理](secret-management.md) — SOPS / age 鍵管理と証明書ローテーション
-- [シークレット・認証トラブルシューティング](../troubleshooting/secrets-and-auth.md) — SOPS 復号エラー，private input 認証失敗の復旧
+- [シークレット & 鍵ライフサイクル管理](secret-management.md) — agenix-rekey / Bitwarden 鍵管理と証明書運用
+- [シークレット・認証トラブルシューティング](../troubleshooting/secrets-and-auth.md) — シークレット復号エラー，private input 認証失敗の復旧
