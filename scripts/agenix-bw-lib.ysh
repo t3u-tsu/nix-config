@@ -1,0 +1,153 @@
+#!/usr/bin/env ysh
+#
+# Shared Bitwarden helpers for the agenix migration scripts. Source this file,
+# then call agenix_bw_session_init, agenix_bw_fetch_identity and
+# agenix_bw_install_identity in that order.
+#
+# Environment:
+#   BW_SESSION             Existing Bitwarden session; otherwise `bw unlock` runs.
+#   BW_MASTER_KEY_ITEM     Item name (default: agenix-master-key).
+#   BW_MASTER_KEY_FIELD    notes, password, or a custom field name (default: notes).
+#   AGENIX_MASTER_KEY_DIR  Identity directory (default: $XDG_RUNTIME_DIR/agenix).
+#
+# The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt with mode
+# 0600. The EXIT/INT/TERM traps remove it again.
+
+var agenix_bw_session = get(ENV, 'BW_SESSION', '')
+var agenix_bw_session_from_env = agenix_bw_session !== ''
+var agenix_bw_identity = ''
+var agenix_bw_key_dir = ''
+var agenix_bw_key_path = ''
+var agenix_bw_tmp_path = ''
+
+proc agenix_bw_require(name) {
+  try { command -v $name >/dev/null }
+  if failed {
+    echo $"ERROR: ${name} not found. Run within nix develop, or add it to PATH." >&2
+    exit 1
+  }
+}
+
+func agenix_bw_identity_from(text) {
+  for line in (text.split(u'\n')) {
+    var candidate = line.trim()
+    if (candidate.startsWith('AGE-SECRET-KEY-1') or candidate.startsWith('AGE-PLUGIN-')) {
+      return (candidate)
+    }
+  }
+  return ('')
+}
+
+proc agenix_bw_unlock() {
+  echo 'Bitwarden vault is locked; unlocking...' >&2
+  var unlocked = ''
+  try { setvar unlocked = $(env -u BW_SESSION bw unlock --raw) }
+  if failed {
+    echo 'ERROR: could not unlock Bitwarden. Run `bw login` if you are logged out.' >&2
+    exit 1
+  }
+  setglobal agenix_bw_session = unlocked.trim()
+  setglobal agenix_bw_session_from_env = false
+}
+
+proc agenix_bw_session_init() {
+  var status_raw = ''
+  try { setvar status_raw = $(env -u BW_SESSION bw status --raw) }
+  if failed {
+    echo 'ERROR: `bw status` failed.' >&2
+    exit 1
+  }
+
+  var status_obj = null
+  try { json read (&status_obj) <<< $status_raw }
+  if failed {
+    echo 'ERROR: `bw status` returned unexpected output.' >&2
+    exit 1
+  }
+  if (get(status_obj, 'status', '') === 'unauthenticated') {
+    echo 'ERROR: not logged in to Bitwarden. Run `bw login` first.' >&2
+    exit 1
+  }
+
+  if (agenix_bw_session === '') {
+    agenix_bw_unlock
+  }
+}
+
+proc agenix_bw_fetch_identity() {
+  var item_name = get(ENV, 'BW_MASTER_KEY_ITEM', 'agenix-master-key')
+  var field = get(ENV, 'BW_MASTER_KEY_FIELD', 'notes')
+  var raw = ''
+  try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
+  if failed and agenix_bw_session_from_env {
+    echo 'Stored BW_SESSION was rejected; unlocking again.' >&2
+    agenix_bw_unlock
+    try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
+  }
+  if (raw === '') {
+    echo $"ERROR: could not read Bitwarden item '${item_name}' (run `bw sync` if it is new)." >&2
+    exit 1
+  }
+
+  var item = null
+  try { json read (&item) <<< $raw }
+  if failed {
+    echo "ERROR: `bw get item` returned unexpected output." >&2
+    exit 1
+  }
+  if (type(item) !== 'Dict') {
+    echo $"ERROR: Bitwarden item '${item_name}' is ambiguous; use its item ID." >&2
+    exit 1
+  }
+
+  var text = ''
+  if (field === 'notes') {
+    setvar text = get(item, 'notes', '') or ''
+  } elif (field === 'password') {
+    var login = get(item, 'login', {}) or {}
+    setvar text = get(login, 'password', '') or ''
+  } else {
+    var fields = get(item, 'fields', []) or []
+    for f in (fields) {
+      if (get(f, 'name', '') === field) {
+        setvar text = get(f, 'value', '') or ''
+        break
+      }
+    }
+  }
+
+  var identity = agenix_bw_identity_from(text)
+  if (identity === '') {
+    echo $"ERROR: item '${item_name}' field '${field}' does not contain an age identity." >&2
+    exit 1
+  }
+  setglobal agenix_bw_identity = identity
+}
+
+proc agenix_bw_install_identity() {
+  var runtime_dir = get(ENV, 'XDG_RUNTIME_DIR', '')
+  if (runtime_dir === '') {
+    setvar runtime_dir = '/run/user/' ++ $(id -u)
+  }
+  var dir_override = get(ENV, 'AGENIX_MASTER_KEY_DIR', '')
+  if (dir_override !== '') {
+    setglobal agenix_bw_key_dir = dir_override
+  } else {
+    setglobal agenix_bw_key_dir = runtime_dir ++ '/agenix'
+  }
+  setglobal agenix_bw_key_path = agenix_bw_key_dir ++ '/master-key.txt'
+
+  mkdir -p $agenix_bw_key_dir
+  chmod 700 $agenix_bw_key_dir
+
+  trap --add EXIT { rm -f $agenix_bw_tmp_path $agenix_bw_key_path }
+  trap --add INT { exit 130 }
+  trap --add TERM { exit 143 }
+
+  setglobal agenix_bw_tmp_path = $(mktemp $"${agenix_bw_key_dir}/master-key.XXXXXX")
+  write -- $agenix_bw_identity > $agenix_bw_tmp_path
+  chmod 600 $agenix_bw_tmp_path
+  mv -f $agenix_bw_tmp_path $agenix_bw_key_path
+  setglobal agenix_bw_tmp_path = ''
+  chmod 600 $agenix_bw_key_path
+}
