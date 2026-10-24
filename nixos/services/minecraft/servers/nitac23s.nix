@@ -57,7 +57,7 @@ in
       environment.LD_LIBRARY_PATH = common.ldLibraryPath;
 
       preStart = lib.mkAfter ''
-        RCON_PASS=$(cat ${config.sops.secrets.nitac23s_rcon_password.path})
+        RCON_PASS=$(cat ${cfg.rconSecretPath})
 
         if [ -L server.properties ]; then rm server.properties; fi
 
@@ -69,7 +69,7 @@ in
         chmod 600 server.properties
 
         ${common.mkPaperGlobalPreStart {
-          secretPath = config.sops.secrets.minecraft_forwarding_secret.path;
+          secretPath = cfg.forwardingSecretPath;
         }}
       '';
     };

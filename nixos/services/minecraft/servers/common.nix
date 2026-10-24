@@ -11,7 +11,7 @@ in
 {
   inherit plugins lunachat ldLibraryPath;
 
-  # secretPath: path to the shared Velocity forwarding secret.
+  # secretPath: path to the locally generated Velocity forwarding secret.
   mkPaperGlobalPreStart = { secretPath }: ''
     mkdir -p config
     SECRET=$(cat ${secretPath})

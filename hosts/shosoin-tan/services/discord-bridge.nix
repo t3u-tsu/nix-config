@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 {
   my.services.minecraft-discord-bridge = {
@@ -15,8 +15,9 @@
     };
     environmentFiles = [
       config.sops.secrets.discord_bridge_env.path
-      config.sops.templates."discord-bridge-rcon-passwords".path
     ];
+    # The bridge runs as the minecraft user, which owns the secret file.
+    environmentSecretFiles.RCON_PASS_nitac23s = config.my.services.minecraft.rconSecretPath;
   };
 
   sops.secrets.discord_bridge_env = {
@@ -24,10 +25,8 @@
     owner = "minecraft";
   };
 
-  sops.templates."discord-bridge-rcon-passwords" = {
-    owner = "minecraft";
-    content = ''
-      RCON_PASS_nitac23s=${config.sops.placeholder.nitac23s_rcon_password}
-    '';
+  systemd.services.minecraft-discord-bridge = {
+    requires = [ "minecraft-secrets.service" ];
+    after = [ "minecraft-secrets.service" ];
   };
 }
