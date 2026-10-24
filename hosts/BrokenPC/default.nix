@@ -14,6 +14,8 @@
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
 
+  age.rekey.hostPubkey = "age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk";
+
   # Hardware settings (AMD CPU + HP Victus specifics)
   boot = {
     initrd.availableKernelModules = [

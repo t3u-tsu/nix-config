@@ -5,6 +5,7 @@
     home.stateVersion = osConfig.system.stateVersion;
 
     imports = [
+      ./agenix.nix
       ./sops.nix
       ./shell
       ./programs

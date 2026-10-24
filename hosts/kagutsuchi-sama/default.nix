@@ -11,6 +11,8 @@
     ./services
   ];
 
+  age.rekey.hostPubkey = "age1nyneyv489f7avxympatkrmjjngwln4e8ehvs4njrthfgyyfrme5q4ne36k";
+
   boot.loader.grub = {
     enable = true;
     efiSupport = true;

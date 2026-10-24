@@ -14,6 +14,8 @@
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];
 
+  age.rekey.hostPubkey = "age1q2gscmkrdze86dyllp3h8x7j4t7duu903d3mt3p44jnq4c6ujcrq96nu37";
+
   boot = {
     kernelPackages = pkgs.linuxPackages_xanmod;
 

@@ -18,6 +18,11 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix.url = "github:ryantm/agenix";
+    agenix-rekey = {
+      url = "github:oddlama/agenix-rekey";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -91,6 +96,7 @@
       { ... }:
       {
         imports = [
+          inputs.agenix-rekey.flakeModule
           ./flake/lib.nix
           ./flake/overlays.nix
           ./flake/hosts.nix

@@ -80,6 +80,7 @@ in
 
       devShells.default = pkgs.mkShell {
         packages = [
+          config.agenix-rekey.package
           pkgs.age
           pkgs.cloudflared
           pkgs.convco
