@@ -85,21 +85,42 @@ proc agenix_bw_session_init() {
 }
 
 proc agenix_bw_fetch_identity() {
-  var item_name = get(ENV, 'BW_MASTER_KEY_ITEM', 'agenix-master-key')
+  var item_name = get(ENV, 'BW_MASTER_KEY_ITEM', '')
   var field = get(ENV, 'BW_MASTER_KEY_FIELD', 'notes')
+  var candidates = []
+  if (item_name !== '') {
+    setvar candidates = [item_name]
+  } else {
+    setvar candidates = ['master-key', 'agenix-master-key', 'nix-config-master-key']
+  }
+
   var raw = ''
-  try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
-  if failed {
-    if (agenix_bw_session_from_env) {
-      echo 'Stored BW_SESSION was rejected; unlocking again.' >&2
-      agenix_bw_unlock
-      try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
+  var found_item = ''
+  for candidate in (candidates) {
+    try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $candidate --raw) }
+    if (raw !== '') {
+      setvar found_item = candidate
+      break
     }
   }
+
+  if (raw === '' and agenix_bw_session_from_env) {
+    echo 'Stored BW_SESSION was rejected; unlocking again.' >&2
+    agenix_bw_unlock
+    for candidate in (candidates) {
+      try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $candidate --raw) }
+      if (raw !== '') {
+        setvar found_item = candidate
+        break
+      }
+    }
+  }
+
   if (raw === '') {
-    echo $"ERROR: could not read Bitwarden item '${item_name}' (run bw sync if it is new)." >&2
+    echo $"ERROR: could not read Bitwarden master key item (tried: ${candidates}) (run bw sync if it is new)." >&2
     exit 1
   }
+  setvar item_name = found_item
 
   var item = null
   try { json read (&item) <<< $raw }
