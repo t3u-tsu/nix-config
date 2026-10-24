@@ -6,7 +6,6 @@
 
     imports = [
       ./agenix.nix
-      ./sops.nix
       ./shell
       ./programs
     ];

@@ -1,6 +1,6 @@
 #!/usr/bin/env ysh
 #
-# Shared Bitwarden helpers for the agenix migration scripts. Source this file,
+# Shared Bitwarden helpers for the agenix secret scripts. Source this file,
 # then call agenix_bw_session_init, agenix_bw_fetch_identity and
 # agenix_bw_install_identity in that order.
 #

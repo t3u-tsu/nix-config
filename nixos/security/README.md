@@ -6,7 +6,7 @@ System secrets management, cryptographic key bootstrapping, and permission polic
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [sops.nix](sops.nix) | SOPS secret decryption via `sops-nix`; extracts the host Age private key from `/etc/ssh/ssh_host_ed25519_key` during system activation (`0-sops-key-import`). | Sets `sops.age.generateKey = false` |
+| [agenix.nix](agenix.nix) | Agenix-rekey secret decryption via the host SSH identity; rekeys `secrets/master/hosts/<hostname>/` into `secrets/rekeyed/hosts/<hostname>/`. | Sets `age.identityPaths` and declares `user_password_hash` / `root_password_hash` |
 | [default.nix](default.nix) | Security module aggregator. | — |
 
 ## References

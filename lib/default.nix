@@ -2,7 +2,6 @@
   nixpkgs,
   inputs,
   home-manager,
-  sops-nix,
   agenix,
   agenix-rekey,
   overlays ? [ ],
@@ -27,7 +26,6 @@
 
       modules = [
         { my.user.name = username; }
-        sops-nix.nixosModules.sops
         agenix.nixosModules.default
         agenix-rekey.nixosModules.default
         home-manager.nixosModules.home-manager
@@ -40,7 +38,6 @@
             extraSpecialArgs = { inherit inputs; };
             sharedModules = [
               inputs.nix-index-database.homeModules.nix-index
-              sops-nix.homeManagerModules.sops
               agenix.homeManagerModules.default
               agenix-rekey.homeManagerModules.default
             ];

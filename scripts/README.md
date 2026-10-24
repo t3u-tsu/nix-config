@@ -6,14 +6,13 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 | Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
-| [secret.ysh](secret.ysh) | Unified CLI for manifest-driven migration, rekey, editing, staged imports, and environment checks. | `bw`, `sops`, `age`, `agenix` |
+| [secret.ysh](secret.ysh) | Unified CLI for rekey, editing, staged imports, and environment checks. | `bw`, `age`, `agenix` |
 | [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling and master-identity extraction used by `secret.ysh` and the agenix wrappers. | `bw` |
 | [agenix-with-bw.ysh](agenix-with-bw.ysh) | Runs an arbitrary `agenix` command with the Bitwarden master identity. | `bw`, `agenix` |
-| [migrate-sops-to-agenix.ysh](migrate-sops-to-agenix.ysh) | Compatibility wrapper for `secret.ysh migrate`; delegates to [the manifest](../secrets/migration-manifest.json). | `bw`, `sops`, `age` |
-| [nebula-lib.ysh](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
-| [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
+| [nebula-lib.ysh](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and file helpers. | Sourced by Nebula scripts |
+| [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age` |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
-| [set-host-password.ysh](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and injects hashes into `secrets/hosts/<hostname>.yaml`. | `mkpasswd`, `sops`, `SOPS_AGE_KEY_FILE` |
+| [set-host-password.ysh](set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and writes `secrets/master/hosts/<hostname>/{user,root}_password_hash.age`. | `mkpasswd`, `bw`, `age` |
 | [check-docs.pl](check-docs.pl) | Lints markdown prose (parentheses, commas, prohibited words, pseudo-headings) and validates relative links and heading anchors. | Perl core (run via pre-commit) |
 | [linkify-markdown.pl](linkify-markdown.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | [restart-touchpad.ysh](restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
@@ -23,38 +22,15 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 `secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. An empty `BW_SESSION` triggers `bw unlock` only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`.
 
 ```bash
-# Preview the manifest plan without decrypting
-ysh scripts/secret.ysh migrate --dry-run
-
-# Encrypt every manifest entry; existing files are skipped
-ysh scripts/secret.ysh migrate
-
-# Replace files created by an earlier run
-ysh scripts/secret.ysh migrate --force
-
 # Rekey every host (all arguments are passed to agenix)
 ysh scripts/secret.ysh rekey
 
 # Edit a master secret
 ysh scripts/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
 
-# Check tools, manifest consistency, staging state, and Bitwarden status
+# Check tools, master identity consistency, staging state, and Bitwarden status
 ysh scripts/secret.ysh doctor
 ```
-
-### Migration Manifest
-
-[secrets/migration-manifest.json](../secrets/migration-manifest.json) records every legacy SOPS key and its disposition:
-
-| Action | Effect |
-| :--- | :--- |
-| `encrypt` | Decrypts the SOPS key and writes an agenix master `.age` file at `target`. |
-| `publish` | Writes public material, such as a Nebula CA certificate, to `target` in plaintext. |
-| `generate` | Generates the value locally at service start; no file is written. |
-| `drop` | Removes an unreferenced key; no file is written. |
-| `bitwarden` | Moves the value to Bitwarden; no file is written. |
-
-Entries with the same `target` and `format: "env"` are combined into one environment file, one `KEY=value` line per entry.
 
 ### Staged Imports
 
@@ -81,7 +57,6 @@ ysh scripts/secret.ysh apply-staging --no-rekey
 The repository [justfile](../justfile) exposes the common workflows:
 
 ```bash
-just secret-migrate
 just secret-rekey
 just secret-edit secrets/master/common/deploy_key.age
 just secret-apply-staging
@@ -110,15 +85,17 @@ Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The file is 
 ### Set or Update Host Passwords
 
 ```bash
-# Prompt for t3u and root passwords, hash with SHA-512, and update SOPS
-SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/set-host-password.ysh <hostname>
+# Prompt for t3u and root passwords, hash with SHA-512, and write both master secrets
+ysh scripts/set-host-password.ysh <hostname>
 ```
 
-### Import Nebula Certificates into SOPS
+Distribute the new hashes to the host with `just secret-rekey`.
+
+### Import Nebula Certificates
 
 ```bash
-# Import certificates into SOPS (the rotation script's default CA dir)
-SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-10-0-0
+# Publish the CA and node certs, and encrypt the node keys (the rotation script's default CA dir)
+ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-10-0-0
 ```
 
 ### Rotate Entire Nebula CA
@@ -127,8 +104,9 @@ SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.n
 # Generate a new CA and re-sign all fleet nodes
 ysh scripts/nebula-rotate-ca.ysh ~/.nebula-ca-new --prefix 10.0.0
 
-# Import new certs into SOPS host files
-SOPS_AGE_KEY_FILE=/path/to/master-key ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-new
+# Import new certs and rekey the hosts
+ysh scripts/nebula-import-secrets.ysh ~/.nebula-ca-new
+just secret-rekey
 ```
 
 ### Validate Markdown Links and Prose

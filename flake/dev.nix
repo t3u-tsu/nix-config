@@ -96,7 +96,6 @@ in
           pkgs.oils-for-unix
           pkgs.opentofu
           pkgs.perl
-          pkgs.sops
           pkgs.ssh-to-age
         ];
         inputsFrom = [ config.pre-commit.devShell ];

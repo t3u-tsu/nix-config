@@ -13,9 +13,9 @@
 #   three octets of the new overlay subnet. The node list comes from
 #   scripts/nebula-lib.ysh (FLEET).
 #
-# Re-importing the new certs into SOPS is a separate step that needs the offline
-# master age key:
-#   SOPS_AGE_KEY_FILE=... ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+# Re-importing the new certs into agenix is a separate step:
+#   ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+#   just secret-rekey
 
 source $_this_dir/nebula-lib.ysh
 
@@ -114,5 +114,6 @@ cd $ca_dir {
 
 echo
 echo $"== done. Certificates written to ${ca_dir} =="
-echo 'Next, re-import into SOPS (needs the offline MASTER key):'
-echo $"  SOPS_AGE_KEY_FILE=/path/to/master-age-key.txt ysh scripts/nebula-import-secrets.ysh ${ca_dir}"
+echo 'Next, re-import them (uses the Bitwarden master identity):'
+echo $"  ysh scripts/nebula-import-secrets.ysh ${ca_dir}"
+echo '  just secret-rekey'

@@ -91,10 +91,9 @@ secrets/
 ├── rekeyed/                         # agenix rekey で自動生成されるホスト・ユーザー別 .age 群 (Git 管理)
 │   ├── home/<hostname>/<username>/  # home-manager シークレット (ユーザー SSH 鍵で復号)
 │   └── hosts/<hostname>/            # NixOS ホストシークレット (ホスト SSH 鍵で復号)
-└── migration-manifest.json          # SOPS からの移行マニフェスト
 ```
 
-`secrets/master/` と `secrets/rekeyed/` は `just secret-migrate` と `just secret-rekey` の実行後に生成される．移行前は `secrets/hosts/*.yaml` などの旧 SOPS ファイルが残る．
+`secrets/rekeyed/` は `just secret-rekey` が `secrets/master/` から生成する．
 
 | 区分 | 対象パス | 管理方式 | 説明 |
 | :--- | :--- | :--- | :--- |
@@ -164,22 +163,10 @@ just secret-apply-staging
 
 ### 3.5 環境診断
 
-必要な CLI ツール，マニフェスト整合性，Bitwarden 接続状態，およびステージング状態を診断する．
+必要な CLI ツール，Master 識別子の整合性，Bitwarden 接続状態，およびステージング状態を診断する．
 
 ```bash
 ysh scripts/secret.ysh doctor
-```
-
-### 3.6 旧 SOPS からのデータ移行
-
-SOPS 暗号化ファイルをマニフェスト [secrets/migration-manifest.json](../../secrets/migration-manifest.json) に基づいて移行する．
-
-```bash
-# 移行計画の確認
-ysh scripts/secret.ysh migrate --dry-run
-
-# マスターファイル群の暗号化生成 (既存ファイルはスキップ)
-just secret-migrate
 ```
 
 ---
@@ -211,15 +198,16 @@ nebula-cert sign \
   -out-crt "hosts/<hostname>/nebula.crt" \
   -out-key "$CA_DIR/<hostname>.key"
 
-# 2. ノード秘密鍵をステージング領域に配置して暗号化・rekey
-mkdir -p .secrets-staging/hosts/<hostname>
-mv "$CA_DIR/<hostname>.key" .secrets-staging/hosts/<hostname>/nebula_key
-just secret-apply-staging
+# 2. 証明書の公開とノード秘密鍵の暗号化 (Bitwarden の Master 鍵を使用)
+ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+
+# 3. 全ホストを再暗号化
+just secret-rekey
 ```
 
 ### 4.3 CA の一括ローテーション
 
-ルート CA を再作成する場合は，[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，公開証明書を平文配置した後にノード秘密鍵群をステージング経由で暗号化する．`just secret-apply-staging` は平文の暗号化と shred，全ホストの rekey をまとめて実行する．
+ルート CA を再作成する場合は，[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，その後 [scripts/nebula-import-secrets.ysh](../../scripts/nebula-import-secrets.ysh) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret-rekey` で全ホストを再暗号化する．
 
 ---
 

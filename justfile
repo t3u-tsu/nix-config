@@ -2,10 +2,6 @@
 default:
     @just --list
 
-# Migrate SOPS secrets into manifest-driven agenix-rekey originals.
-secret-migrate:
-    ysh scripts/secret.ysh migrate
-
 # Rekey host secrets, passing agenix arguments through.
 secret-rekey *args:
     ysh scripts/secret.ysh rekey {{args}}

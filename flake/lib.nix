@@ -9,7 +9,6 @@
     inherit (inputs)
       nixpkgs
       home-manager
-      sops-nix
       agenix
       agenix-rekey
       ;

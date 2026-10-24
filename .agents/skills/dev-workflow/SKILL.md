@@ -18,7 +18,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    git checkout -b feat/topic-name
    ```
 
-2. Nix ファイルや設定ファイルを編集する (実装)．ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `sops` で編集する ([secrets/README.md](../../../secrets/README.md))．
+2. Nix ファイルや設定ファイルを編集する (実装)．ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `just secret-edit` で編集する ([secrets/README.md](../../../secrets/README.md))．
 
 3. 検証:
 
