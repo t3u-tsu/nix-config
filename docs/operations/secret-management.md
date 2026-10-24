@@ -25,7 +25,7 @@ graph TD
     end
 
     subgraph Layer4 ["第 4 防御層: ターゲットホスト (最小権限)"]
-        Rekeyed["secrets/rekeyed/[host]/<br>secrets/rekeyed/home/[user]/<br>(各ホスト・ユーザー鍵で再暗号化 / Git 管理)"]
+        Rekeyed["secrets/rekeyed/[host]/<br>secrets/rekeyed-home/[host]/[user]/<br>(各ホスト・ユーザー鍵で再暗号化 / Git 管理)"]
         HostKey["/etc/ssh/ssh_host_ed25519_key"]
         UserKey["~/.ssh/id_ed25519"]
         SecretRun["/run/agenix/<br>(RAM 上に復号)"]
@@ -102,7 +102,7 @@ secrets/
 | :--- | :--- | :--- | :--- |
 | マスター暗号化データ | `secrets/master/**/*.age` | age 暗号化 (Master 公開鍵) | Master 鍵でのみ復号できる定義ファイル．Git 管理する． |
 | ホスト別配布データ | `secrets/rekeyed/<hostname>/*.age` | age 暗号化 (ホスト公開鍵) | `agenix rekey` が出力する各ホスト専用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理し CI での純粋ビルドを維持する． |
-| ユーザー別配布データ | `secrets/rekeyed/home/<username>/*.age` | age 暗号化 (ユーザー SSH 公開鍵) | home-manager の `age.secrets` 用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理する． |
+| ユーザー別配布データ | `secrets/rekeyed-home/<hostname>/<username>/*.age` | age 暗号化 (ユーザー SSH 公開鍵) | home-manager の `age.secrets` 用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理する． |
 | 平文公開データ | `nixos/networking/nebula/ca.crt`, `hosts/<hostname>/nebula.crt` | 平文ファイル | 暗号化不要な公開証明書データ． |
 | ローカル自動生成 | Minecraft forwarding secret, RCON password | 起動時生成 | shosoin-tan のサービス起動時に `openssl rand` で生成し，Git 管理から除外する． |
 | 一時ステージング | `.secrets-staging/` | 平文一時配置 (`.gitignore`) | Master 鍵を持たない環境で暗号化対象の平文を一時配置する領域．暗号化後に shred 破棄される． |
