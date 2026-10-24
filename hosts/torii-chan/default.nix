@@ -16,4 +16,7 @@
   # by the gateway profile.
 
   age.rekey.hostPubkey = "age1wleksdz5clzup08vtfdwhpcy35nwsxvnnt2m5w8ktmkpzq6ctd9sael64k";
+
+  # The failover VPS must expose the same emergency tunnel as the SBC.
+  my.services.emergencySsh.enable = true;
 }

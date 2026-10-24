@@ -92,6 +92,14 @@ in
       };
     };
 
+    # agenix-rekey has no `null` hostPubkey: the dummy recipient is its
+    # documented way to make `agenix rekey` skip this host (expect the matching
+    # "dummy hostPubkey" warning at build time). Secrets that stay enabled would
+    # become placeholders, so no production service runs here.
+    age.rekey.hostPubkey = lib.mkForce "age1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs3290gq";
+
+    my.services.emergencySsh.enable = lib.mkForce false;
+
     # The production password hashes must NOT be baked into the installer, so
     # the agenix secrets are disabled and the live users get the temporary
     # password instead.
