@@ -69,7 +69,7 @@
 
   home-manager.users.${config.my.user.name} = {
     my.home.desktop = {
-      noctalia.wallpaperPreset = "PTITSA";
+      noctalia.wallpaperPreset = "minimal";
 
       media.enable = true;
       creative.enable = true;
