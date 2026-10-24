@@ -138,11 +138,4 @@
   systemd.tmpfiles.rules = [
     "d /data 0755 ${config.my.user.name} users -"
   ];
-
-  sops.secrets.brokenpc_ssh_private_key = {
-    path = "/home/${config.my.user.name}/.ssh/id_ed25519";
-    owner = config.my.user.name;
-    group = "users";
-    mode = "0600";
-  };
 }

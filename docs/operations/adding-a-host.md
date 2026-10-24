@@ -9,7 +9,7 @@
 - [ ] マシンのハードウェア構成 (CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス)
 - [ ] 割り当てる Nebula IP ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照)
 - [ ] 適用するプロファイル (`desktop` / `tower-server` / `gateway` / `sbc`)
-- [ ] Bitwarden の Master 秘密鍵 (`nix-config/master-key`) または有効な `BW_SESSION`
+- [ ] Bitwarden の Master 秘密鍵 (`nix-config/agenix-master-key`) または有効な `BW_SESSION`
 - [ ] 開発環境 (`nix develop` または direnv) の有効化
 
 作業はトピックブランチを作成し，開発シェルに入って行う．
@@ -62,12 +62,8 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
    just secret-apply-staging
    ```
-4. シークレットを再暗号化する．
-   ```bash
-   just secret-rekey
-   ```
-   `secrets/rekeyed/<hostname>/` に当該ホスト専用の暗号化ファイル群が生成される．
-5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する．
+   このコマンドは平文を暗号化して shred した後，全ホストを再暗号化し，`secrets/rekeyed/<hostname>/` に当該ホスト専用の暗号化ファイル群を生成する．
+4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
    echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token

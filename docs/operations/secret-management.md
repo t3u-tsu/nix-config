@@ -9,11 +9,11 @@ agenix-rekey, age, Bitwarden，および Nebula 証明書による暗号化シ�
 ```mermaid
 graph TD
     subgraph Layer1 ["第 1 防御層: Bitwarden Vault (隔離保管)"]
-        BW["フォルダ: nix-config/<br>・master-key (age 秘密鍵)<br>・ssh/ (ユーザー SSH 鍵)<br>・nebula-ca/ (CA 秘密鍵バックアップ)"]
+        BW["フォルダ: nix-config/<br>・agenix-master-key (age 秘密鍵)<br>・ssh/ (ユーザー SSH 鍵)<br>・nebula-ca/ (CA 秘密鍵バックアップ)"]
     end
 
     subgraph Layer2 ["第 2 防御層: 作業端末 RAM (一時展開)"]
-        Tmpfs["/run/user/1000/agenix/master-key.txt<br>(RAM tmpfs / chmod 0600 / trap 自動消去)"]
+        Tmpfs["/run/user/[uid]/agenix/master-key.txt<br>(RAM tmpfs / chmod 0600 / trap 自動消去)"]
         BW -->|bw get item / notes| Tmpfs
     end
 
@@ -25,20 +25,22 @@ graph TD
     end
 
     subgraph Layer4 ["第 4 防御層: ターゲットホスト (最小権限)"]
-        Rekeyed["secrets/rekeyed/[host]/<br>(各ホストの SSH 公開鍵で再暗号化 / Git 管理)"]
+        Rekeyed["secrets/rekeyed/[host]/<br>secrets/rekeyed/home/[user]/<br>(各ホスト・ユーザー鍵で再暗号化 / Git 管理)"]
         HostKey["/etc/ssh/ssh_host_ed25519_key"]
+        UserKey["~/.ssh/id_ed25519"]
         SecretRun["/run/agenix/<br>(RAM 上に復号)"]
         Engine --> Rekeyed
         Rekeyed --> SecretRun
         HostKey --> SecretRun
+        UserKey --> SecretRun
     end
 ```
 
 | 鍵の種別 | 配置場所 | 権限範囲 | 用途 |
 | :--- | :--- | :--- | :--- |
-| Master 鍵 | Bitwarden (`nix-config/master-key`) / RAM tmpfs (`/run/user/<uid>/agenix/master-key.txt`) | 全マスター暗号化ファイルの復号・再暗号化 | 新ホスト追加，鍵の更新，マスターファイルの編集 |
+| Master 鍵 | Bitwarden (`nix-config/agenix-master-key`) / RAM tmpfs (`/run/user/<uid>/agenix/master-key.txt`) | 全マスター暗号化ファイルの復号・再暗号化 | 新ホスト追加，鍵の更新，マスターファイルの編集 |
 | ホスト鍵 | `/etc/ssh/ssh_host_ed25519_key` (公開鍵は `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey`) | 当該ホスト専用 (`secrets/rekeyed/<hostname>/*.age`) | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの配置 (`/run/agenix/`) |
-| ユーザー SSH 鍵 | Bitwarden (`nix-config/ssh/<hostname>`) / 開発端末 (`~/.ssh/id_ed25519`) | リモートホストへの SSH 接続，Git 操作 | 運用者認証，ディザスタリカバリ時の SSH 鍵復旧 |
+| ユーザー SSH 鍵 | Bitwarden (`nix-config/ssh/<hostname>`) / 開発端末 (`~/.ssh/id_ed25519`) | リモートホストへの SSH 接続，Git 操作，home-manager シークレットの復号 | 運用者認証，home-manager シークレットの配布，ディザスタリカバリ時の SSH 鍵復旧 |
 
 ### 1.1 Bitwarden 保管庫構造 (`nix-config/`)
 
@@ -46,7 +48,7 @@ Bitwarden 上のインフラ資格情報は，専用フォルダ `nix-config/` �
 
 ```text
 nix-config/                          # ルートフォルダ
-├── master-key                       # [セキュアメモ] AGE-SECRET-KEY-1... (agenix-rekey Master 鍵)
+├── agenix-master-key                # [セキュアメモ] AGE-SECRET-KEY-1... (agenix-rekey Master 鍵)
 ├── nebula-ca/                       # [サブフォルダ] オフライン CA 秘密鍵バックアップ
 │   └── ca.key                       # [セキュアメモ] Nebula ルート CA 秘密鍵
 └── ssh/                             # [サブフォルダ] 対外認証用 SSH 鍵
@@ -56,7 +58,7 @@ nix-config/                          # ルートフォルダ
 
 | アイテム | 種別 | 格納内容 | 説明 |
 | :--- | :--- | :--- | :--- |
-| `nix-config/master-key` | セキュアメモ | `AGE-SECRET-KEY-1...` | agenix-rekey の Master age 秘密鍵．Bech32 形式テキストとして保持する． |
+| `nix-config/agenix-master-key` | セキュアメモ | `AGE-SECRET-KEY-1...` | agenix-rekey の Master age 秘密鍵．Bech32 形式テキストとして保持する． |
 | `nix-config/nebula-ca/ca.key` | セキュアメモ | `ca.key` | Nebula ルート CA 秘密鍵のディザスタリカバリ用バックアップ． |
 | `nix-config/ssh/<hostname>` | SSH キー | `id_ed25519` (秘密鍵・公開鍵) | Bitwarden の SSH キーアイテム形式で保管し，端末復旧時に取り出す． |
 
@@ -86,17 +88,21 @@ secrets/
 │       ├── discord-bridge/          # Discord Bot トークン (bridge.env.age)
 │       ├── signing/                 # Git コミット署名用 GPG 鍵 (gpg_private_key.age)
 │       └── conoha-vps-mcp/          # ConoHa API 認証情報 (credentials.env.age)
-├── rekeyed/                         # agenix rekey で自動生成される各ホスト専用 .age 群 (Git 管理)
+├── rekeyed/                         # agenix rekey で自動生成されるホスト・ユーザー別 .age 群 (Git 管理)
 │   ├── BrokenPC/
+│   ├── home/<username>/             # home-manager シークレット (ユーザー SSH 鍵で復号)
 │   ├── shosoin-tan/
 │   └── ...
 └── migration-manifest.json          # SOPS からの移行マニフェスト
 ```
 
+`secrets/master/` と `secrets/rekeyed/` は `just secret-migrate` と `just secret-rekey` の実行後に生成される．移行前は `secrets/hosts/*.yaml` などの旧 SOPS ファイルが残る．
+
 | 区分 | 対象パス | 管理方式 | 説明 |
 | :--- | :--- | :--- | :--- |
 | マスター暗号化データ | `secrets/master/**/*.age` | age 暗号化 (Master 公開鍵) | Master 鍵でのみ復号できる定義ファイル．Git 管理する． |
-| ホスト別配布データ | `secrets/rekeyed/<hostname>/**/*.age` | age 暗号化 (ホスト公開鍵) | `agenix rekey` が出力する各ホスト専用暗号化ファイル．Git 管理し CI での純粋ビルドを維持する． |
+| ホスト別配布データ | `secrets/rekeyed/<hostname>/*.age` | age 暗号化 (ホスト公開鍵) | `agenix rekey` が出力する各ホスト専用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理し CI での純粋ビルドを維持する． |
+| ユーザー別配布データ | `secrets/rekeyed/home/<username>/*.age` | age 暗号化 (ユーザー SSH 公開鍵) | home-manager の `age.secrets` 用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理する． |
 | 平文公開データ | `nixos/networking/nebula/ca.crt`, `hosts/<hostname>/nebula.crt` | 平文ファイル | 暗号化不要な公開証明書データ． |
 | ローカル自動生成 | Minecraft forwarding secret, RCON password | 起動時生成 | shosoin-tan のサービス起動時に `openssl rand` で生成し，Git 管理から除外する． |
 | 一時ステージング | `.secrets-staging/` | 平文一時配置 (`.gitignore`) | Master 鍵を持たない環境で暗号化対象の平文を一時配置する領域．暗号化後に shred 破棄される． |
@@ -138,8 +144,8 @@ just secret-rekey
 ```bash
 just secret-rekey
 
-# 特定ホストのみを指定して再暗号化する場合
-ysh scripts/secret.ysh rekey -h <hostname>
+# キャッシュを無視して全ホストを強制的に再暗号化する場合
+ysh scripts/secret.ysh rekey --force
 ```
 
 ### 3.4 平文ステージングの取り込み
@@ -215,7 +221,7 @@ just secret-apply-staging
 
 ### 4.3 CA の一括ローテーション
 
-ルート CA を再作成する場合は，[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，公開証明書を平文配置した後にノード秘密鍵群をステージング経由で暗号化して `just secret-rekey` を実行する．
+ルート CA を再作成する場合は，[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，公開証明書を平文配置した後にノード秘密鍵群をステージング経由で暗号化する．`just secret-apply-staging` は平文の暗号化と shred，全ホストの rekey をまとめて実行する．
 
 ---
 

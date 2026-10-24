@@ -12,7 +12,7 @@
 #   AGENIX_MASTER_KEY_DIR  Identity directory (default: $XDG_RUNTIME_DIR/agenix).
 #
 # The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt with mode
-# 0600. The EXIT/INT/TERM traps remove it again.
+# 0600. A single EXIT trap removes it; INT/TERM exit through that trap.
 
 var agenix_bw_session = get(ENV, 'BW_SESSION', '')
 var agenix_bw_session_from_env = agenix_bw_session !== ''
@@ -20,6 +20,10 @@ var agenix_bw_identity = ''
 var agenix_bw_key_dir = ''
 var agenix_bw_key_path = ''
 var agenix_bw_tmp_path = ''
+
+proc agenix_bw_cleanup() {
+  rm -f $agenix_bw_tmp_path $agenix_bw_key_path
+}
 
 proc agenix_bw_require(name) {
   try { command -v $name >/dev/null }
@@ -148,7 +152,7 @@ proc agenix_bw_install_identity() {
   mkdir -p $agenix_bw_key_dir
   chmod 700 $agenix_bw_key_dir
 
-  trap --add EXIT { rm -f $agenix_bw_tmp_path $agenix_bw_key_path }
+  trap --add EXIT { agenix_bw_cleanup }
   trap --add INT { exit 130 }
   trap --add TERM { exit 143 }
 
