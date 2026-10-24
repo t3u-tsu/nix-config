@@ -91,7 +91,7 @@ proc agenix_bw_fetch_identity() {
   if (item_name !== '') {
     setvar candidates = [item_name]
   } else {
-    setvar candidates = ['master-key', 'agenix-master-key', 'nix-config-master-key']
+    setvar candidates = ['master-key', 'nix-config/master-key', 'agenix-master-key', 'nix-config-master-key']
   }
 
   var raw = ''
@@ -101,6 +101,18 @@ proc agenix_bw_fetch_identity() {
     if (raw !== '') {
       setvar found_item = candidate
       break
+    }
+  }
+
+  if (raw === '') {
+    echo 'Item not found locally; syncing Bitwarden vault (bw sync)...' >&2
+    try { env BW_SESSION=$agenix_bw_session bw sync >/dev/null }
+    for candidate in (candidates) {
+      try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $candidate --raw) }
+      if (raw !== '') {
+        setvar found_item = candidate
+        break
+      }
     }
   }
 
@@ -117,7 +129,8 @@ proc agenix_bw_fetch_identity() {
   }
 
   if (raw === '') {
-    echo $"ERROR: could not read Bitwarden master key item (tried: ${candidates}) (run bw sync if it is new)." >&2
+    var tried = join(candidates, ', ')
+    echo $"ERROR: could not read Bitwarden master key item (tried: ${tried}) (run bw sync if it is new)." >&2
     exit 1
   }
   setvar item_name = found_item
