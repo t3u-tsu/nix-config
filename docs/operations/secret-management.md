@@ -109,7 +109,7 @@ secrets/
 
 ### 3.1 認証セッションの初期化
 
-対話端末では，環境変数 `BW_SESSION` が未設定の場合にスクリプトが自動で `bw unlock` を対話実行する．非対話実行時は事前にセッションキーを環境変数に設定する:
+対話端末では，環境変数 `BW_SESSION` が未設定の場合にスクリプトが自動で `bw unlock` を対話実行する．非対話実行時は事前にセッションキーを環境変数に設定する．
 
 ```bash
 # セッションキーを取得して環境変数に設定
@@ -121,7 +121,7 @@ BW_SESSION=$(bw unlock --raw) just secret-rekey
 
 ### 3.2 マスターファイルの編集
 
-マスター暗号化ファイルを直接編集する場合は `just secret-edit` を実行する:
+マスター暗号化ファイルを直接編集する場合は `just secret-edit` を実行する．
 
 ```bash
 # マスター暗号化ファイルを復号して編集
@@ -133,7 +133,7 @@ just secret-rekey
 
 ### 3.3 ホストシークレットの再暗号化 (Rekey)
 
-マスターファイルやホスト公開鍵の変更後は，全ホスト向けに再暗号化を実行する:
+マスターファイルやホスト公開鍵の変更後は，全ホスト向けに再暗号化を実行する．
 
 ```bash
 just secret-rekey
@@ -144,7 +144,7 @@ ysh scripts/secret.ysh rekey -h <hostname>
 
 ### 3.4 平文ステージングの取り込み
 
-外部クレデンシャルの追加や初期設定時は，平文ファイルを `.secrets-staging/` に一時配置し，Master 鍵で暗号化して取り込む:
+外部クレデンシャルの追加や初期設定時は，平文ファイルを `.secrets-staging/` に一時配置し，Master 鍵で暗号化して取り込む．
 
 ```bash
 # secrets/master/ に対応するパス構造で平文を配置
@@ -160,7 +160,7 @@ just secret-apply-staging
 
 ### 3.5 環境診断
 
-必要な CLI ツール，マニフェスト整合性，Bitwarden 接続状態，およびステージング状態を診断する:
+必要な CLI ツール，マニフェスト整合性，Bitwarden 接続状態，およびステージング状態を診断する．
 
 ```bash
 ysh scripts/secret.ysh doctor
@@ -168,7 +168,7 @@ ysh scripts/secret.ysh doctor
 
 ### 3.6 旧 SOPS からのデータ移行
 
-SOPS 暗号化ファイルをマニフェスト [secrets/migration-manifest.json](../../secrets/migration-manifest.json) に基づいて移行する:
+SOPS 暗号化ファイルをマニフェスト [secrets/migration-manifest.json](../../secrets/migration-manifest.json) に基づいて移行する．
 
 ```bash
 # 移行計画の確認
@@ -192,7 +192,7 @@ Nebula ルート CA の秘密鍵 (`ca.key`) は，運用者のオフライン環
 
 ### 4.2 ノード証明書の発行と秘密鍵の登録
 
-各ノードの証明書発行と秘密鍵暗号化の手順:
+各ノードの証明書発行と秘密鍵暗号化の手順．
 
 ```bash
 CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
@@ -225,40 +225,36 @@ just secret-apply-staging
 
 ### 5.1 ホスト破棄手順
 
-ホストを完全に撤退させる場合:
+ホストを完全に撤退させる場合の手順．
 
-1. ホスト設定ディレクトリと Flake 登録の削除:
-   `hosts/<hostname>/` を削除し，[flake/hosts.nix](../../flake/hosts.nix) から該当エントリを削除する．
-2. Nebula フリート台帳の更新:
-   [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストを削除する．
-3. シークレット定義ファイルの削除:
+1. `hosts/<hostname>/` を削除し，[flake/hosts.nix](../../flake/hosts.nix) から該当エントリを削除する．
+2. [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストを削除する．
+3. シークレット定義ファイルを削除する．
    ```bash
    rm -rf secrets/master/hosts/<hostname>
    rm -rf secrets/rekeyed/<hostname>
    ```
-4. 再暗号化の実行:
+4. 再暗号化を実行する．破棄されたホスト向けの再暗号化ファイルがリポジトリから消去される．
    ```bash
    just secret-rekey
    ```
-   破棄されたホスト向けの再暗号化ファイルがリポジトリから消去される．
 
 ### 5.2 ホスト再インストール手順
 
-OS 再インストール等で SSH ホスト鍵が更新された場合:
+OS 再インストール等で SSH ホスト鍵が更新された場合の手順．
 
-1. 新しい SSH ホスト公開鍵から age 公開鍵を取得する:
+1. 新しい SSH ホスト公開鍵から age 公開鍵を取得する．
    ```bash
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    ```
-2. `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を更新する:
+2. `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を更新する．
    ```nix
    age.rekey.hostPubkey = "age1...";
    ```
-3. 再暗号化を実行する:
+3. 再暗号化を実行する．agenix-rekey が新しいホスト公開鍵で `secrets/rekeyed/<hostname>/` 配下の全ファイルを再暗号化し，旧ホスト鍵による復号権限を失効させる．
    ```bash
    just secret-rekey
    ```
-   agenix-rekey が新しいホスト公開鍵で `secrets/rekeyed/<hostname>/` 配下の全ファイルを再暗号化する．旧ホスト鍵による復号権限は失効する．
 4. Git コミットを作成し，変更を適用する．
 
 ---

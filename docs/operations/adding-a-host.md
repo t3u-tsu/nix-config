@@ -4,7 +4,7 @@
 
 ## 1. 事前準備とチェックリスト
 
-作業着手前の確認項目:
+作業着手前の確認項目．
 
 - [ ] マシンのハードウェア構成 (CPU アーキテクチャ，ストレージ構成，GPU，MAC アドレス)
 - [ ] 割り当てる Nebula IP ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳を参照)
@@ -12,7 +12,7 @@
 - [ ] Bitwarden の Master 秘密鍵 (`nix-config/master-key`) または有効な `BW_SESSION`
 - [ ] 開発環境 (`nix develop` または direnv) の有効化
 
-作業はトピックブランチを作成し，開発シェルに入って行う:
+作業はトピックブランチを作成し，開発シェルに入って行う．
 ```bash
 git checkout -b feat/add-<hostname>
 nix develop  # direnv を使用していない場合
@@ -23,7 +23,7 @@ nix develop  # direnv を使用していない場合
 ## 2. 既存 NixOS 環境への追加手順
 
 ### Step 1: ホストディレクトリの作成
-テンプレートから複製し，`HOSTNAME` プレースホルダを置換する:
+テンプレートから複製し，`HOSTNAME` プレースホルダを置換する．
 ```bash
 cp -r hosts/_template hosts/<hostname>
 cd hosts/<hostname>
@@ -33,7 +33,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 実機で生成した `hardware-configuration.nix` をベースに，`hosts/<hostname>/hardware.nix` を編集してファイルシステムと swap を設定する．`hosts/<hostname>/services/nebula.nix` は，`my.networking.nebula.ip` ([ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で次の空き IP) と `groups` を実機の役割に合わせて編集する．
 
 ### Step 2: Flake へのホスト登録 ([flake/hosts.nix](../../flake/hosts.nix))
-[flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する:
+[flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する．
 ```nix
 <hostname> = mkLib.mkSystem {
   name = "<hostname>";
@@ -50,11 +50,11 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
    # 出力例: age1...
    ```
-2. `hosts/<hostname>/default.nix` にホスト公開鍵を登録する:
+2. `hosts/<hostname>/default.nix` にホスト公開鍵を登録する．
    ```nix
    age.rekey.hostPubkey = "age1...";
    ```
-3. ユーザーおよび root の初期パスワードハッシュを登録する:
+3. ユーザーおよび root の初期パスワードハッシュを登録する．
    ステージング領域 (`.secrets-staging/`) に平文ハッシュを配置し，`just secret-apply-staging` で暗号化して取り込む．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
@@ -62,12 +62,12 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
    just secret-apply-staging
    ```
-4. シークレットを再暗号化する:
+4. シークレットを再暗号化する．
    ```bash
    just secret-rekey
    ```
    `secrets/rekeyed/<hostname>/` に当該ホスト専用の暗号化ファイル群が生成される．
-5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する:
+5. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
    echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
@@ -103,7 +103,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 ### Step 5: プライベート Flake 入力のブートストラップ
 個人機密設定を管理するプライベートリポジトリ `nix-config-private` を flake input として参照する．初回の未適用状態では SSH エイリアス `github-nix-config-private` が未構成のため，そのままでは Flake 評価に失敗する．
 
-新ホスト側 (root 権限) で初回ビルド前に一時的な SSH エイリアスを設定する:
+新ホスト側 (root 権限) で初回ビルド前に一時的な SSH エイリアスを設定する．
 ```bash
 # 新ホスト側で実行 (secrets/master/common/deploy_key.age の deploy key を一時配置)
 mkdir -p /root/.ssh
@@ -124,10 +124,10 @@ Host github-nix-config-private
 EOF
 chmod 600 /root/.ssh/config
 ```
-※初回の `nixos-rebuild switch` 完了後は `private-config.nix` が恒久的な設定を配置するため，一時ファイルは置換または削除できる．
+初回の `nixos-rebuild switch` 完了後は `private-config.nix` が恒久的な設定を配置するため，一時ファイルは置換または削除できる．
 
 ### Step 6: 検証と事前ビルド
-Flake は Git 追跡下のファイルのみを参照するため，変更をインデックスに追加してから検証する:
+Flake は Git 追跡下のファイルのみを参照するため，変更をインデックスに追加してから検証する．
 ```bash
 git add -A
 nix flake check
@@ -138,19 +138,20 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 
 ### Step 7: 適用
 
-新規ベアメタル機への導入:
-後述の「[3. 新規ベアメタル導入手順 (Live USB クリーンインストール)](#3-新規ベアメタル導入手順-live-usb-クリーンインストール)」に従い，インストーラ USB からパーティショニング，鍵配置，`nixos-install` を実施する．
+新規ベアメタル機へ導入する場合は，後述の「[3. 新規ベアメタル導入手順 (Live USB クリーンインストール)](#3-新規ベアメタル導入手順-live-usb-クリーンインストール)」に従い，インストーラ USB からパーティショニング，鍵配置，`nixos-install` を実施する．
 
-既存 NixOS マシンへの適用:
-- ローカルマシン:
-  ```bash
-  sudo nixos-rebuild switch --flake .#<hostname>
-  ```
-  (デスクトップ環境でエージェントが実行する場合は `pkexec --keep-cwd nixos-rebuild switch ...` を使用可能)
-- リモートサーバー / ヘッドレス機:
-  ```bash
-  nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
-  ```
+既存 NixOS マシンへ適用する場合は，対象環境に応じて実行する．
+
+ローカルマシンの場合:
+```bash
+sudo nixos-rebuild switch --flake .#<hostname>
+```
+デスクトップ環境でエージェントが実行する場合は `pkexec --keep-cwd nixos-rebuild switch ...` を使用する．
+
+リモートサーバーまたはヘッドレス機の場合:
+```bash
+nixos-rebuild switch --flake .#<hostname> --target-host t3u@10.0.0.X --sudo --ask-sudo-password
+```
 
 ---
 
@@ -244,14 +245,14 @@ sudo ssh -T git@github-nix-config-private
 
 ### Step 4: システムのインストールと再起動
 
-ターゲットホストの設定をビルド・インストールする:
+ターゲットホストの設定をビルド・インストールする．
 
 ```bash
 # リポジトリを展開したディレクトリで実行
 sudo nixos-install --flake .#<hostname>
 ```
 
-インストール完了後，再起動する:
+インストール完了後，再起動する．
 ```bash
 sudo reboot
 ```
