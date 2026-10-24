@@ -62,7 +62,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
    just secret-apply-staging
    ```
-   このコマンドは平文を暗号化して shred した後，全ホストを再暗号化し，`secrets/rekeyed/<hostname>/` に当該ホスト専用の暗号化ファイル群を生成する．
+   このコマンドは平文を暗号化して shred した後，全ホストを再暗号化し，`secrets/rekeyed/hosts/<hostname>/` に当該ホスト専用の暗号化ファイル群を生成する．
 4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンを登録して再暗号化する．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
@@ -207,7 +207,7 @@ ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 取得した age 公開鍵を管理作業機の `hosts/<hostname>/default.nix` に `age.rekey.hostPubkey` として登録し，管理作業機側で `just secret-rekey` を実行して Git にコミットする．
-これにより `secrets/rekeyed/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群が用意されるため，追加の秘密鍵コピーは不要である．
+これにより `secrets/rekeyed/hosts/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群が用意されるため，追加の秘密鍵コピーは不要である．
 
 ### Step 3: プライベート Flake 入力用 deploy key の配置
 
