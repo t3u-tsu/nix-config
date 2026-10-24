@@ -44,7 +44,8 @@ _:
     };
 
     # Restart throttled.service after editing these: Nix store paths never
-    # change mtimes, so Autoreload never triggers. Full rationale lives in README.md.
+    # change mtimes, so Autoreload never triggers. Full rationale lives in
+    # docs/hardware/thinkpad-x1c7.md.
     throttled.extraConfig = ''
       [GENERAL]
       Enabled: True

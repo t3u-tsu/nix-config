@@ -6,10 +6,10 @@ Network routing and gateway services for the `torii-chan` role, shared between t
 
 | Module | Role & Responsibilities |
 | :--- | :--- |
-| [firewall.nix](firewall.nix) | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft proxy) with iptables/nftables NAT MASQUERADE rules. |
+| [firewall.nix](firewall.nix) | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft DNAT) with iptables/nftables NAT MASQUERADE rules. |
 | [hardening.nix](hardening.nix) | Linux kernel sysctl hardening (`kptr_restrict`, `dmesg_restrict`, BPF JIT, `rp_filter`, ICMP redirects). |
 | [nebula.nix](nebula.nix) | Nebula Lighthouse & Relay configuration (`10.0.0.1:4242`) with inbound rules for management and application traffic. |
-| [ssh.nix](ssh.nix) | Key-only OpenSSH daemon on the `nebula0` overlay interface; [firewall.nix](firewall.nix) blocks WAN access. |
+| [ssh.nix](ssh.nix) | Key-only OpenSSH daemon; [firewall.nix](firewall.nix) blocks WAN input, and `nebula0` is trusted, so operator access is mesh-only. |
 | [ddns.nix](ddns.nix) | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`. |
 | [default.nix](default.nix) | Service aggregator enabled via `my.services.gateway.enable`. |
 
@@ -17,8 +17,8 @@ Network routing and gateway services for the `torii-chan` role, shared between t
 
 | Port / Protocol | Inbound Interface | Destination | Description |
 | :--- | :--- | :--- | :--- |
-| **UDP 4242** | WAN (`end0`) | Localhost (`torii-chan`) | Nebula Lighthouse discovery and relay traffic |
-| **TCP 25565** | WAN (`end0`) | `10.0.0.4:25565` (`shosoin-tan`) | Public Minecraft reverse proxy forwarding |
+| **UDP 4242** | WAN (`end0`; `eth0` on the VPS) | Localhost (`torii-chan`) | Nebula Lighthouse discovery and relay traffic |
+| **TCP 25565** | WAN (`end0`; `eth0` on the VPS) | `10.0.0.4:25565` (`shosoin-tan`) | Public Minecraft DNAT forwarding |
 | **TCP 22** | Mesh (`nebula0`) | Localhost (`torii-chan`) | Administrative SSH access (blocked on WAN) |
 
 ## References

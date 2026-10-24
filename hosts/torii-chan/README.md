@@ -16,7 +16,7 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 
 - Serves as the central discovery lighthouse and mesh traffic relay for Nebula (`10.0.0.1:4242`).
 - Runs Cloudflare DDNS to synchronize `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk` with the edge dynamic IP.
-- Proxies public `tcp/25565` traffic to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
+- Forwards public `tcp/25565` traffic (DNAT) to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
 - Restricts SSH access (port 22) to `nebula0` while publicly exposing UDP `4242` (Nebula) and TCP `25565` (Minecraft).
 - Shares hostname and agenix secrets with `torii-chan-vps` for automated failover.
 
@@ -27,13 +27,13 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | **Profile** | `gateway` |
 | **Bootloader** | U-Boot SPL on MicroSD, root on USB SATA HDD or MicroSD |
 | **Nebula Mesh** | `10.0.0.1` (lighthouse & relay, groups: `mgmt`) |
-| **Key Services** | Nebula lighthouse & relay, Cloudflare DDNS, `tcp/25565` proxy to `shosoin-tan` |
+| **Key Services** | Nebula lighthouse & relay, Cloudflare DDNS, `tcp/25565` DNAT forwarding to `shosoin-tan` |
 
 ## Host Modules & Architecture Files
 
 | File | Description | Target / Role |
 | :--- | :--- | :--- |
-| [default.nix](default.nix) | Platform-neutral orchestrator importing role configurations. | Shared gateway role |
+| [default.nix](default.nix) | Shared gateway host definition (host key, emergency SSH); platform wiring comes from the modules selected in [flake/hosts.nix](../../flake/hosts.nix). | Shared by SBC and VPS targets |
 | [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP, emergency SSH). | `torii-chan-hdd`, `torii-chan-sd` |
 | [vps.nix](vps.nix) | Hardware and networking layer for ConoHa VPS failover instance. | `torii-chan-vps` |
 | [fs-hdd.nix](fs-hdd.nix) | Filesystem declarations for USB SATA HDD root deployment. | `torii-chan-hdd` |
