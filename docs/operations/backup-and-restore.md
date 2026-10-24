@@ -28,7 +28,7 @@ flowchart LR
 
 ### バックアップ仕様
 - 実行頻度: 2 時間ごと (`systemd.timers`)
-- 暗号化: Restic 固有の暗号化パスワード ([secrets/services/backup.yaml](../../secrets/services/backup.yaml) 内の `restic_password`)
+- 暗号化: Restic 固有の暗号化パスワード ([secrets/master/services/backup/password.age](../../secrets/master/services/backup/password.age))
 - 保持世代ポリシー:
   - `keep-daily: 7` (直近 7 日分)
   - `keep-weekly: 4` (直近 4 週分)
@@ -79,7 +79,7 @@ restic -r /mnt/tank-1tb/backups/minecraft snapshots
 [新規ホスト追加手順](adding-a-host.md) に従い，代替ホストに NixOS を導入して Nebula メッシュ (`10.0.0.X`) へ接続する．
 
 ### Step 2: バックアップデータのリストア
-受信側の `restic-shosoin` は，[secrets/services/backup.yaml](../../secrets/services/backup.yaml) の `restic_shosoin_ssh_key` に対応する鍵のみを許可する．代替ホストでは同鍵を配置し，`~/.ssh/config` の `Host 10.0.0.3` に `IdentityFile` を設定する (`shosoin-tan` では [hosts/shosoin-tan/services/backup.nix](../../hosts/shosoin-tan/services/backup.nix) の `sshKeyFile` が同等の設定を適用する)．
+受信側の `restic-shosoin` は，[secrets/master/services/backup/ssh_key.age](../../secrets/master/services/backup/ssh_key.age) に対応する公開鍵のみを許可する．代替ホストでは同鍵を配置し，`~/.ssh/config` の `Host 10.0.0.3` に `IdentityFile` を設定する (`shosoin-tan` では [hosts/shosoin-tan/services/backup.nix](../../hosts/shosoin-tan/services/backup.nix) の `sshKeyFile` が同等の設定を適用する)．
 
 代替ホスト上でバックアップデータを一時ディレクトリへリストアする:
 ```bash

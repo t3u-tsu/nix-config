@@ -130,28 +130,22 @@ ssh -o ProxyCommand="cloudflared access ssh --hostname torii-chan-cf-ssh.t3u.uk"
 
 ## 5. シークレット登録手順
 
-各ホストが Cloudflare Tunnel を確立するための認証トークンは，SOPS により暗号化して管理する．
+各ホストが Cloudflare Tunnel を確立するための認証トークンは，agenix-rekey により暗号化して管理する．
 
 ### Step 1: Cloudflare Tunnel の作成とトークン取得
 Cloudflare Zero Trust ダッシュボード (Networks → Tunnels) で各ホスト用の Tunnel を作成し，発行された Tunnel Token (`eyJh...` から始まる Base64 トークン文字列) を取得する．
 Public Hostname には `<hostname>-cf-ssh.t3u.uk` を設定し，サービス先として `SSH -> localhost:22` を指定する．
 
-### Step 2: SOPS シークレットへの登録
-ホスト個別の暗号化ファイル `secrets/hosts/<hostname>.yaml` に登録する:
+### Step 2: シークレットへの登録
+ステージング領域 (`.secrets-staging/`) を用いて平文トークンを取り込み，再暗号化を実行する:
 
 ```bash
-# master 鍵を指定して対象ホストのシークレットを編集
-sops secrets/hosts/<hostname>.yaml
+mkdir -p .secrets-staging/hosts/<hostname>
+echo -n "eyJh..." > .secrets-staging/hosts/<hostname>/emergency_ssh_token
+just secret-apply-staging
 ```
 
-ファイル内に `<hostKey>_cloudflared_ssh_token` キーを定義し，取得した Token 文字列を貼り付ける (`<hostKey>` はホスト名の小文字・ハイフンをアンダースコアに変換したもの):
-
-```yaml
-# secrets/hosts/torii-chan.yaml の例
-torii_chan_cloudflared_ssh_token: "eyJhIjoi..."
-```
-
-編集後，ファイルを保存して暗号化を完了する．
+`just secret-apply-staging` は平文トークンを Master 鍵で `secrets/master/hosts/<hostname>/emergency_ssh_token.age` へ暗号化して shred 破棄し，全ホスト向けに再暗号化を行う．既存のマスターシークレットを直接更新する場合は `just secret-edit secrets/master/hosts/<hostname>/emergency_ssh_token.age` を実行した後に `just secret-rekey` を行う．
 
 ### Step 3: NixOS 設定の有効化と反映
 各ホストの設定 (例: `hosts/<hostname>/services/emergency-ssh.nix` または [hosts/torii-chan/default.nix](../../hosts/torii-chan/default.nix)) で本機能を有効化する:
@@ -195,5 +189,5 @@ sudo nixos-rebuild switch --rollback
 - [目次 (設計・運用ドキュメント)](../README.md) — 全体ナビゲーション・目次
 - [ネットワークアーキテクチャ](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
 - [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md) — Nebula メッシュ不通，物理 LAN SSH 遮断，NAT loopback 回避
-- [シークレット & 鍵ライフサイクル管理](secret-management.md) — SOPS / age 鍵管理と証明書ローテーション
+- [シークレット & 鍵ライフサイクル管理](secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
 - [ConoHa VPS プロビジョニング & フェイルオーバー手順](vps-failover.md) — VPS フェイルオーバー起動と切り戻し手順

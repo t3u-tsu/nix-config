@@ -30,7 +30,7 @@ mkLib.mkSystem {
 
 ### 自動注入される共通機能
 - `specialArgs.inputs` による全モジュールからの `inputs.<name>` 直接参照
-- `sops-nix` および `home-manager` の基盤統合
+- `agenix-rekey`，`agenix`，および `home-manager` の基盤統合
 - プロファイル (`nixos/profiles/${profile}`) のホスト個別設定直前への自動配置
 - `nixpkgs.overlays` の全ホスト適用
 
@@ -51,7 +51,7 @@ mkLib.mkSystem {
 
 ### オプション設計の原則
 - 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に有効化 (`true`) しない限り適用されない (デフォルト無効)．
-- サービス有効化に必要なファイアウォール開放，ユーザー作成，SOPS シークレット設定，systemd ユニット定義は当該モジュール内で完結させる (自己完結性)．
+- サービス有効化に必要なファイアウォール開放，ユーザー作成，シークレット設定，systemd ユニット定義は当該モジュール内で完結させる (自己完結性)．
 - statix の規約に従い，同一属性セットは 1 つのブロックで定義してトップレベルキーを集約する．
 
 ---

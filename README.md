@@ -22,7 +22,7 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 | **Editor** | Neovim |
 | **Browser** | Zen Browser |
 | **Color Theme** | Vesper |
-| **Secrets Management** | SOPS (sops-nix) + age |
+| **Secrets Management** | agenix-rekey + agenix + age |
 | **Mesh VPN** | Nebula |
 | **Backup** | Restic + ZFS Mirror |
 | **IaC** | OpenTofu |
@@ -35,7 +35,7 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 - [nixos/](nixos/) — Shared system-level NixOS modules
 - [home/](home/) — Home Manager user-level configurations
 - [hosts/](hosts/) — Host definitions and hardware configurations
-- [secrets/](secrets/) — Encrypted secrets managed via SOPS
+- [secrets/](secrets/) — Encrypted secrets managed via agenix-rekey
 - [scripts/](scripts/) — Fleet management and maintenance scripts
 - [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
 - [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures
@@ -75,7 +75,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## Adding a New Host
 
-See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for host setup: skeleton copy ([hosts/_template/](hosts/_template)), SOPS age key registration, Nebula certificate issuance, and deployment verification.
+See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for host setup: skeleton copy ([hosts/_template/](hosts/_template)), agenix host key registration, Nebula certificate issuance, and deployment verification.
 
 ## CI/CD & Automation
 

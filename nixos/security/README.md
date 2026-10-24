@@ -11,6 +11,6 @@ System secrets management, cryptographic key bootstrapping, and permission polic
 
 ## References
 
-- SOPS secrets directory: [secrets/](../../secrets/README.md)
+- Encrypted secrets directory: [secrets/](../../secrets/README.md)
 - Secret management & key lifecycle: [docs/operations/secret-management.md](../../docs/operations/secret-management.md)
 - Secrets troubleshooting: [docs/troubleshooting/secrets-and-auth.md](../../docs/troubleshooting/secrets-and-auth.md)

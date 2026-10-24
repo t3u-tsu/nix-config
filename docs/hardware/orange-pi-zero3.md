@@ -128,9 +128,9 @@ Orange Pi Zero3 に SD を挿入して起動する．静的 LAN IP (`192.168.0.1
 
 #### Step 3: SSH ホスト鍵から age 鍵を導出
 ```bash
-ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
+ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
 ```
-得られた公開鍵をリポジトリの [.sops.yaml](../../.sops.yaml) (`&torii_chan`) へ登録し，`sops updatekeys secrets/hosts/torii-chan.yaml` を実行してコミットする．
+得られた公開鍵を `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` へ登録し，`just secret-rekey` を実行してコミットする．
 
 #### Step 4: 本番 SD 構成への切り替え
 ```bash

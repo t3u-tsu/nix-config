@@ -20,7 +20,7 @@ The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing
 
 ## Local Secrets
 
-The Velocity forwarding secret and the nitac23s RCON password only travel over loopback between services on `shosoin-tan`, so they are generated on first boot instead of being stored in SOPS:
+The Velocity forwarding secret and the nitac23s RCON password only travel over loopback between services on `shosoin-tan`, so they are generated on first boot instead of being stored in encrypted secrets:
 
 | Path | Owner | Mode | Consumers |
 | :--- | :--- | :--- | :--- |
@@ -41,7 +41,7 @@ sudo rm /var/lib/minecraft/secrets/forwarding.secret
 sudo systemctl restart minecraft-secrets.service minecraft-server-velocity.service minecraft-server-lobby.service minecraft-server-nitac23s.service
 ```
 
-Credentials for external services (Discord bot tokens) remain in [secrets/services/minecraft.yaml](../../../secrets/services/minecraft.yaml) and are decrypted by SOPS.
+Credentials for external services (Discord bot tokens) are managed in [secrets/master/services/discord-bridge/bridge.env.age](../../../secrets/master/services/discord-bridge/bridge.env.age) and decrypted via agenix.
 
 ## CLI Operations (on `shosoin-tan`)
 

@@ -16,10 +16,10 @@ Infrastructure as Code managed via [OpenTofu](https://opentofu.org/) (`tofu`) fo
 Export credentials to the environment before running `tofu`:
 
 ```bash
-# ConoHa API credentials (extracted from SOPS)
-export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
-export CONOHAVPS_PASSWORD=$(sops -d --extract '["OPENSTACK_PASSWORD"]' ../secrets/services/conoha-vps-mcp.yaml)
-export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
+# ConoHa API credentials (set directly or injected from Bitwarden)
+export CONOHAVPS_USER_ID="<openstack-user-id>"
+export CONOHAVPS_PASSWORD="<openstack-password>"
+export CONOHAVPS_TENANT_ID="<openstack-tenant-id>"
 
 # Required Terraform inputs
 export TF_VAR_admin_password="<secure-root-password>"

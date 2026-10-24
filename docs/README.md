@@ -25,7 +25,7 @@
 
 ### 4. [トラブルシューティング](troubleshooting/)
 - [troubleshooting/build-and-deploy.md](troubleshooting/build-and-deploy.md) — ビルド・評価・キャッシュ・デプロイ失敗時
-- [troubleshooting/secrets-and-auth.md](troubleshooting/secrets-and-auth.md) — SOPS 復号エラー，private input 認証エラー
+- [troubleshooting/secrets-and-auth.md](troubleshooting/secrets-and-auth.md) — シークレット復号エラー，private input 認証エラー
 - [troubleshooting/network-recovery.md](troubleshooting/network-recovery.md) — Nebula 不通，NAT loopback，SSH 遮断時の復旧
 - [troubleshooting/emergency-recovery.md](troubleshooting/emergency-recovery.md) — 世代ロールバック，インストーラ USB レスキュー
 

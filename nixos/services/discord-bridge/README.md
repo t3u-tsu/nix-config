@@ -7,7 +7,7 @@ NixOS service module integrating the Go-based [minecraft-discord-bridge](https:/
 - Builds from the `minecraft-discord-bridge` flake input package.
 - Exposes a local UNIX domain socket at `/run/minecraft-discord-bridge/bridge.sock` for operator queries.
 - Operates under a dedicated unprivileged `minecraft` user and group for privilege separation.
-- Injects Discord bot tokens from a SOPS environment file, and reads server RCON passwords from local secret files at start through `environmentSecretFiles`.
+- Injects Discord bot tokens from an agenix environment file, and reads server RCON passwords from local secret files at start through `environmentSecretFiles`.
 
 ## Configuration Example
 
@@ -24,7 +24,7 @@ my.services.minecraft-discord-bridge = {
       whitelist_path = "/srv/minecraft/nitac23s/whitelist.json";
     };
   };
-  environmentFiles = [ config.sops.secrets.discord_bridge_env.path ];
+  environmentFiles = [ config.age.secrets.discord_bridge_env.path ];
   environmentSecretFiles.RCON_PASS_nitac23s = config.my.services.minecraft.rconSecretPath;
 };
 ```

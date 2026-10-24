@@ -37,10 +37,10 @@ sequenceDiagram
 `terraform/` ディレクトリで VPS を作成する:
 ```bash
 cd terraform
-# 認証情報を SOPS から注入 (詳細は terraform/README.md 参照)
-export CONOHAVPS_USER_ID=$(sops -d --extract '["OPENSTACK_USER_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
-export CONOHAVPS_TENANT_ID=$(sops -d --extract '["OPENSTACK_TENANT_ID"]' ../secrets/services/conoha-vps-mcp.yaml)
-export CONOHAVPS_PASSWORD=$(sops -d --extract '["OPENSTACK_PASSWORD"]' ../secrets/services/conoha-vps-mcp.yaml)
+# 認証情報を環境変数へ注入 (詳細は terraform/README.md 参照)
+export CONOHAVPS_USER_ID="..."
+export CONOHAVPS_TENANT_ID="..."
+export CONOHAVPS_PASSWORD="..."
 export TF_VAR_ssh_public_key='ssh-ed25519 ...'
 export TF_VAR_admin_password='<管理者パスワード>'  # 必須: 9-70文字，英大文字/小文字/数字/記号を含む
 tofu init

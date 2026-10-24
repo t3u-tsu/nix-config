@@ -86,9 +86,9 @@ sudo journalctl -u nebula@nebula0.service -e --no-pager
 ##### Step 2: 証明書有効期限・妥当性の検証
 Nebula ノード証明書の有効期限切れや不整合によるハンドシェイク拒否を確認する:
 ```bash
-# 証明書の詳細確認 (有効期限 Not After を検証，hostKey はホスト名の小文字・ハイフンをアンダースコアに変換したもの)
-sudo nebula-cert print \
-  -path /run/secrets/<hostKey>_nebula_cert
+# 証明書の詳細確認 (有効期限 Not After を検証)
+nebula-cert print \
+  -path hosts/<hostname>/nebula.crt
 ```
 再署名が必要な場合は，管理端末で証明書を再発行してシークレットを更新する:
 ```bash
@@ -101,13 +101,15 @@ nebula-cert sign \
   -groups "mgmt,..." \
   -ca-crt "$CA_DIR/ca.crt" \
   -ca-key "$CA_DIR/ca.key" \
-  -out-crt "$CA_DIR/<hostname>.crt" \
+  -out-crt "hosts/<hostname>/nebula.crt" \
   -out-key "$CA_DIR/<hostname>.key"
 
-# SOPS へのインポート
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+# 秘密鍵をステージング領域に配置して暗号化・rekey
+mkdir -p .secrets-staging/hosts/<hostname>
+mv "$CA_DIR/<hostname>.key" .secrets-staging/hosts/<hostname>/nebula_key
+just secret-apply-staging
 
-git add secrets/hosts/<hostname>.yaml
+git add hosts/<hostname>/nebula.crt secrets/
 git commit -m "fix(nebula): refresh certificate for <hostname>"
 ```
 
@@ -247,7 +249,7 @@ getent hosts torii-chan.t3u.uk
 - [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](../operations/emergency-cf-ssh.md) — Cloudflare Tunnel を用いた非常用帯域外 SSH アクセス
 - [ネットワークアーキテクチャ設計](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
 - [VPS フェイルオーバー手順](../operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替手順
-- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — SOPS / age 鍵管理と Nebula 証明書ローテーション
+- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
 - [Nebula モジュール実装](../../nixos/networking/nebula.nix) — 本リポジトリの Nebula メッシュ VPN 定義
 - [ローカルネットワーク最適化モジュール](../../nixos/networking/local-network.nix) — NAT loopback 回避と hosts / gai.conf 最適化
 - [タワーサーバー セキュリティ設定](../../nixos/profiles/tower-server/security.nix) — tower-server プロファイルのファイアウォール・SSH 制限

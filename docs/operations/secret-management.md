@@ -88,12 +88,12 @@ secrets/
 │       ├── discord-bridge/          # Discord Bot トークン (bridge.env.age)
 │       ├── signing/                 # Git コミット署名用 GPG 鍵 (gpg_private_key.age)
 │       └── conoha-vps-mcp/          # ConoHa API 認証情報 (credentials.env.age)
-├── rekeyed/                         # agenix rekey で自動生成されるホスト・ユーザー別 .age 群 (Git 管理)
-│   ├── home/<hostname>/<username>/  # home-manager シークレット (ユーザー SSH 鍵で復号)
-│   └── hosts/<hostname>/            # NixOS ホストシークレット (ホスト SSH 鍵で復号)
+└── rekeyed/                         # agenix rekey で自動生成されるホスト・ユーザー別 .age 群 (Git 管理)
+    ├── home/<hostname>/<username>/  # home-manager シークレット (ユーザー SSH 鍵で復号)
+    └── hosts/<hostname>/            # NixOS ホストシークレット (ホスト SSH 鍵で復号)
 ```
 
-`secrets/rekeyed/` は `just secret-rekey` が `secrets/master/` から生成する．
+`secrets/master/` は Master 公開鍵で暗号化された定義ファイル群であり，`secrets/rekeyed/` は各ホスト・ユーザーの公開鍵で再暗号化された配布ファイル群である (`just secret-rekey` で生成)．
 
 | 区分 | 対象パス | 管理方式 | 説明 |
 | :--- | :--- | :--- | :--- |

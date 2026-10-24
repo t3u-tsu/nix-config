@@ -115,14 +115,15 @@ mount /dev/disk/by-label/NIXOS_SD /mnt/boot
 nixos-enter --root /mnt
 ```
 
-#### 復旧操作 1: 秘密鍵と SOPS の整合性確認
-暗号化シークレットの復号不全が原因の場合，鍵ファイルの存在とパーミッションを確認・修復する:
+#### 復旧操作 1: SSH ホスト秘密鍵の整合性確認
+暗号化シークレットの復号不全が原因の場合，SSH ホスト秘密鍵の存在とパーミッションを確認・修復する:
 ```bash
-ls -la /var/lib/sops-nix/key.txt
-# 存在しない場合は SSH ホスト鍵から再導出
-mkdir -p /var/lib/sops-nix
-ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key > /var/lib/sops-nix/key.txt
-chmod 600 /var/lib/sops-nix/key.txt
+ls -la /etc/ssh/ssh_host_ed25519_key
+# 権限が不正な場合は修正
+chmod 600 /etc/ssh/ssh_host_ed25519_key
+
+# ホストの age 公開鍵を確認し，hosts/<hostname>/default.nix の age.rekey.hostPubkey と突合
+ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 #### 復旧操作 2: ブートローダーの強制再インストール
@@ -169,7 +170,7 @@ reboot
 ---
 
 ## 関連ドキュメント
-- [シークレット・認証トラブルシューティング](secrets-and-auth.md) — SOPS 復号エラー，private input 認証失敗の復旧
+- [シークレット・認証トラブルシューティング](secrets-and-auth.md) — シークレット復号エラー，private input 認証失敗の復旧
 - [ビルド・デプロイ障害トラブルシューティング](build-and-deploy.md) — ビルド・評価時の OOM，lock 不整合，権限昇格エラーの復旧
 - [バックアップ運用 & ディザスタリカバリ (DR)](../operations/backup-and-restore.md) — Restic バックアップ運用，障害時リストア手順
 - [ZFS 保守・リビルドガイド](../hardware/storage-zfs.md) — レガシー BIOS ブート，ZFS Mirror 保守・ディスク交換手順
