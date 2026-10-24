@@ -1,11 +1,11 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 {
   age = {
     identityPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
 
     rekey = {
       storageMode = "local";
-      localStorageDir = ../secrets/rekeyed/home + "/${config.home.username}";
+      localStorageDir = ../secrets/rekeyed/${osConfig.networking.hostName}/home/${config.home.username};
       masterIdentities = [
         {
           identity = "/run/user/1000/agenix/master-key.txt";

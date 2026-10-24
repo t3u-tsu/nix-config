@@ -5,7 +5,7 @@
 
     rekey = {
       storageMode = "local";
-      localStorageDir = ../../secrets/rekeyed + "/${config.networking.hostName}";
+      localStorageDir = ../../secrets/rekeyed/${config.networking.hostName};
       masterIdentities = [
         {
           identity = "/run/user/1000/agenix/master-key.txt";
