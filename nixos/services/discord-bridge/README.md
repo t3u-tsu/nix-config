@@ -24,7 +24,7 @@ my.services.minecraft-discord-bridge = {
       whitelist_path = "/srv/minecraft/nitac23s/whitelist.json";
     };
   };
-  environmentFiles = [ config.age.secrets.discord_bridge_env.path ];
+  environmentFiles = [ config.age.secrets.bridge_env.path ];
   environmentSecretFiles.RCON_PASS_nitac23s = config.my.services.minecraft.rconSecretPath;
 };
 ```

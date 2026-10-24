@@ -8,7 +8,14 @@ result-*
 
 .pre-commit-config.yaml
 
+# Secrets staging and temporary key identities
 .secrets-staging/
+master-key.txt
+*master-key*
+*.key
+*.key.txt
+*.age.key
+identity.txt
 
 .worktrees/
 

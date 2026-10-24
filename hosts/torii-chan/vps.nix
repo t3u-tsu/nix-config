@@ -67,9 +67,8 @@ in
   # the line below to open SSH on the WAN and revert it afterwards.
   # my.services.gateway.restrictAccess = lib.mkForce false;
   #
-  # SOPS: the VPS decrypts the SAME secrets as the SBC (secrets/hosts/torii-chan.yaml
-  # + secrets/services/ddns.yaml), so its age key must be added to .sops.yaml and to
-  # both files, then `sops updatekeys` (see the README).
+  # agenix-rekey: the VPS decrypts the same secrets as the SBC (torii-chan), sharing
+  # the same host identity key so no duplicate rekeying is needed.
   #
   # 512MB plan: the swapfile keeps the low-RAM VPS buildable (mirrors the SBC
   # profile); the bootstrap keeps a single root partition /dev/vda1.

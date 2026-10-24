@@ -11,7 +11,7 @@ let
 in
 {
   options.my.home.desktop.gpg-signing = {
-    enable = mkEnableOption "GPG signing with SOPS-managed key";
+    enable = mkEnableOption "GPG signing with agenix-managed key";
   };
 
   config = mkIf cfg.enable {

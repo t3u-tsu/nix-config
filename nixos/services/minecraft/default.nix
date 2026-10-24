@@ -45,7 +45,7 @@ in
 
     systemd.services = {
       # Both tokens only ever travel over loopback between services on this
-      # host, so they are generated in place instead of being SOPS-encrypted.
+      # host, so they are generated in place instead of being encrypted via agenix-rekey.
       minecraft-secrets = {
         description = "Generate local Minecraft service secrets";
 

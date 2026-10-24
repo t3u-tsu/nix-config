@@ -13,7 +13,7 @@ in
   options.my = {
     hostKey = mkOption {
       type = types.str;
-      description = "Hostname with hyphens replaced by underscores (SOPS key prefix)";
+      description = "Hostname with hyphens replaced by underscores";
     };
   };
 

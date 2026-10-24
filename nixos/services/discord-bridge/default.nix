@@ -48,7 +48,7 @@ in
       default = { };
       description = ''
         Environment variables whose values are read from the given files when the
-        bridge starts, for secrets that are not managed by SOPS templates.
+        bridge starts, for secrets that are not managed by agenix.
       '';
       example = literalExpression ''
         { RCON_PASS_nitac23s = "/var/lib/minecraft/secrets/nitac23s-rcon.secret"; }
