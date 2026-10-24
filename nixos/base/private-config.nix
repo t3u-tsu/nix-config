@@ -1,12 +1,11 @@
-_:
+{ config, ... }:
 
 {
   # Private flake input (github:t3u-tsu/nix-config-private): the read-only deploy
   # key lives here because root does the fetch during `sudo nixos-rebuild`, and
   # the alias keeps it off the user's other GitHub traffic.
-  sops.secrets.nix_config_private_deploy_key = {
-    sopsFile = ../../secrets/common.yaml;
-    path = "/run/secrets/nix-config-private_deploy_key";
+  age.secrets.deploy_key = {
+    rekeyFile = ../../secrets/master/common/deploy_key.age;
     owner = "root";
     group = "users";
     mode = "0440";
@@ -20,7 +19,7 @@ _:
       Host github-nix-config-private
         HostName github.com
         User git
-        IdentityFile /run/secrets/nix-config-private_deploy_key
+        IdentityFile ${config.age.secrets.deploy_key.path}
         IdentitiesOnly yes
     '';
   };

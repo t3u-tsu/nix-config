@@ -121,6 +121,9 @@
   # /etc/systemd/user is a symlink into the store (environment.etc cannot write
   # inside it).
   home-manager.users.${config.my.user.name} = {
+    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
+    # to the age pubkey derived from it rather than the host key.
+    age.rekey.hostPubkey = "age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy";
     my.home.desktop.full.enable = true;
     my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''

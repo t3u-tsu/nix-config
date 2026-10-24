@@ -70,6 +70,9 @@
   };
 
   home-manager.users.${config.my.user.name} = {
+    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
+    # to the age pubkey derived from it rather than the host key.
+    age.rekey.hostPubkey = "age156tpcw4l8kppamvgusqwt3dsdm3ehk094ge5rl99v80yq4d475ks9jhnyu";
     my.home.desktop = {
       noctalia.wallpaperPreset = "minimal";
 

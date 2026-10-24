@@ -14,14 +14,14 @@
       };
     };
     environmentFiles = [
-      config.sops.secrets.discord_bridge_env.path
+      config.age.secrets.bridge_env.path
     ];
     # The bridge runs as the minecraft user, which owns the secret file.
     environmentSecretFiles.RCON_PASS_nitac23s = config.my.services.minecraft.rconSecretPath;
   };
 
-  sops.secrets.discord_bridge_env = {
-    sopsFile = ../../../secrets/services/minecraft.yaml;
+  age.secrets.bridge_env = {
+    rekeyFile = ../../../secrets/master/services/discord-bridge/bridge.env.age;
     owner = "minecraft";
   };
 

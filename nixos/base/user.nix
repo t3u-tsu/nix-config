@@ -54,12 +54,12 @@ in
         description = username;
         extraGroups = config.my.user.extraGroups;
         shell = config.my.user.shell;
-        hashedPasswordFile = config.sops.secrets."${config.my.hostKey}_t3u_password_hash".path;
+        hashedPasswordFile = config.age.secrets.user_password_hash.path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };
 
       users.root = {
-        hashedPasswordFile = config.sops.secrets."${config.my.hostKey}_root_password_hash".path;
+        hashedPasswordFile = config.age.secrets.root_password_hash.path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };
     };

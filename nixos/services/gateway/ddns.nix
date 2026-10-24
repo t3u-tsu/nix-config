@@ -23,10 +23,9 @@ in
       extraConfig = "password_env=CLOUDFLARE_API_TOKEN";
     };
 
-    sops.secrets.cloudflare_api_env = {
-      sopsFile = ../../../secrets/services/ddns.yaml;
+    age.secrets.cloudflare_api_env = {
+      rekeyFile = ../../../secrets/master/services/ddns/cloudflare_api.env.age;
       owner = "root";
-      restartUnits = [ "ddclient.service" ];
     };
 
     systemd.services.ddclient.serviceConfig = {
@@ -34,7 +33,7 @@ in
       User = "ddclient";
       Group = "ddclient";
       EnvironmentFile = [
-        config.sops.secrets.cloudflare_api_env.path
+        config.age.secrets.cloudflare_api_env.path
       ];
     };
 

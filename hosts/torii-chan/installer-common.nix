@@ -1,6 +1,6 @@
 # Common settings for the "installer" stage, shared by the SBC SD image
 # (sd-installer.nix) and the VPS installer ISO (vps-installer.nix): production
-# gateway services and SOPS-managed password hashes are not used, login is by a
+# gateway services and agenix-managed password hashes are not used, login is by a
 # temporary password (injected by build-*.sh in an --impure build) or public key.
 {
   config,
@@ -13,7 +13,6 @@ with lib;
 let
   cfg = config.my.installer;
   username = config.my.user.name;
-  hostKey = config.my.hostKey;
 
   # Temporary password hash passed by build-*.sh as an environment variable in an
   # --impure build; empty in a pure build, so no temporary password is set.
@@ -25,8 +24,8 @@ in
   options.my.installer = {
     enable = mkEnableOption "installer stage: temporary provisioning without production services";
 
-    # Both installers must present the production hostname: my.hostKey (the SOPS
-    # secret prefix) derives from networking.hostName.
+    # Both installers must present the production hostname: the agenix secret
+    # paths derive from networking.hostName.
     hostName = mkOption {
       type = types.str;
       default = "torii-chan";
@@ -94,12 +93,11 @@ in
     };
 
     # The production password hashes must NOT be baked into the installer, so
-    # neededForUsers is off (no decryption at boot) and the live users get the
-    # temporary password instead. Production switches back to the normal
-    # nixos-rebuild path with the SOPS-managed hashedPasswordFile.
-    sops.secrets = {
-      "${hostKey}_${username}_password_hash".neededForUsers = lib.mkForce false;
-      "${hostKey}_root_password_hash".neededForUsers = lib.mkForce false;
+    # the agenix secrets are disabled and the live users get the temporary
+    # password instead.
+    age.secrets = {
+      user_password_hash.enable = lib.mkForce false;
+      root_password_hash.enable = lib.mkForce false;
     };
 
     users.users = {

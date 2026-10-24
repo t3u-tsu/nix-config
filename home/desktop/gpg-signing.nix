@@ -15,8 +15,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    sops.secrets.gpg_private_key = {
-      sopsFile = ../../secrets/services/signing.yaml;
+    age.secrets.gpg_private_key = {
+      rekeyFile = ../../secrets/master/services/signing/gpg_private_key.age;
     };
 
     services.gpg-agent = {
@@ -28,7 +28,7 @@ in
     };
 
     home.activation.importGpgKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      GPG_KEY_PATH="${config.sops.secrets.gpg_private_key.path}"
+      GPG_KEY_PATH="${config.age.secrets.gpg_private_key.path}"
       if [ -f "$GPG_KEY_PATH" ]; then
         $DRY_RUN_CMD ${pkgs.gnupg}/bin/gpg --batch --import "$GPG_KEY_PATH" || true
       fi

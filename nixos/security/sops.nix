@@ -7,7 +7,6 @@
 
 let
   hostname = config.networking.hostName;
-  hostKey = config.my.hostKey;
 
   hostSecretsFile = ../../secrets/hosts/${hostname}.yaml;
 in
@@ -26,9 +25,6 @@ in
       # "0-sops-key-import" below derives the key file instead.
       generateKey = false;
     };
-
-    secrets."${hostKey}_t3u_password_hash".neededForUsers = true;
-    secrets."${hostKey}_root_password_hash".neededForUsers = true;
   };
 
   # Derive the key file from the SSH host key before sops-install-secrets runs:
