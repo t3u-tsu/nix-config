@@ -41,7 +41,7 @@ flowchart LR
 Restic 設定 ([nixos/services/backup/default.nix](../../nixos/services/backup/default.nix)) で `initialize = true` を指定しているため，初回実行時にリポジトリは自動で初期化される．手動で初期化・検証する場合のコマンド:
 
 ```bash
-export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
+export RESTIC_PASSWORD=$(sudo cat /run/agenix/restic_password)
 
 # ローカルリポジトリの初期化 (手動確認時)
 sudo -E restic -r /mnt/tank-1tb/backups/minecraft init
@@ -64,7 +64,7 @@ systemctl status restic-backups-remote-backup.service
 ### スナップショット一覧の表示
 ```bash
 # パスワード環境変数を読み込んでスナップショット一覧を確認
-export RESTIC_PASSWORD=$(sudo cat /run/secrets/restic_password)
+export RESTIC_PASSWORD=$(sudo cat /run/agenix/restic_password)
 
 restic -r /mnt/tank-1tb/backups/minecraft snapshots
 ```

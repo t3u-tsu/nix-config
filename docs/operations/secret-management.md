@@ -134,7 +134,7 @@ just secret-edit secrets/master/services/ddns/cloudflare_api.env.age
 just secret-rekey
 ```
 
-### 3.3 ホストシークレットの再暗号化 (Rekey)
+### 3.3 ホストシークレットの再暗号化
 
 マスターファイルやホスト公開鍵の変更後は，全ホスト向けに再暗号化を実行する．
 

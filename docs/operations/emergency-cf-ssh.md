@@ -51,12 +51,12 @@ sequenceDiagram
 
 対象ホストとサブドメイン一覧:
 
-| ホスト名 | 接続ドメイン (FQDN) | シークレットキー (`secrets/hosts/<hostname>.yaml`) | 役割・配置拠点 |
+| ホスト名 | 接続ドメイン (FQDN) | シークレット定義ファイル | 役割・配置拠点 |
 | :--- | :--- | :--- | :--- |
-| `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `torii_chan_cloudflared_ssh_token` | エッジゲートウェイ / Lighthouse (拠点T) |
-| `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `sando_kun_cloudflared_ssh_token` | 汎用タワーサーバー (拠点A) |
-| `kagutsuchi-sama` | `kagutsuchi-sama-cf-ssh.t3u.uk` | `kagutsuchi_sama_cloudflared_ssh_token` | 計算サーバー / バックアップ保管庫 (拠点A) |
-| `shosoin-tan` | `shosoin-tan-cf-ssh.t3u.uk` | `shosoin_tan_cloudflared_ssh_token` | アプリケーションサーバー (拠点A) |
+| `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `secrets/master/hosts/torii-chan/emergency_ssh_token.age` | エッジゲートウェイ / Lighthouse (拠点T) |
+| `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `secrets/master/hosts/sando-kun/emergency_ssh_token.age` | 汎用タワーサーバー (拠点A) |
+| `kagutsuchi-sama` | `kagutsuchi-sama-cf-ssh.t3u.uk` | `secrets/master/hosts/kagutsuchi-sama/emergency_ssh_token.age` | 計算サーバー / バックアップ保管庫 (拠点A) |
+| `shosoin-tan` | `shosoin-tan-cf-ssh.t3u.uk` | `secrets/master/hosts/shosoin-tan/emergency_ssh_token.age` | アプリケーションサーバー (拠点A) |
 
 ---
 
