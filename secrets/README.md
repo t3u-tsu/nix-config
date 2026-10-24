@@ -12,7 +12,7 @@ SOPS-encrypted secrets using Age encryption keys. Never commit plaintext secrets
 
 ## Key Distribution Model ([.sops.yaml](../.sops.yaml))
 
-- The master key (`master_key`) serves as an offline disaster-recovery Age key stored in a password manager (1Password) and is included in every encryption group.
+- The master key (`master_key`) serves as an offline disaster-recovery Age key stored in a password manager (Bitwarden) and is included in every encryption group.
 - Host keys are derived from `/etc/ssh/ssh_host_ed25519_key.pub` via `ssh-to-age`, allowing machines to decrypt secrets automatically during boot.
 - User keys are derived from user workstation keys (`~/.ssh/id_ed25519`), restricting access to developer and service files ([services/signing.yaml](services/signing.yaml), [services/conoha-vps-mcp.yaml](services/conoha-vps-mcp.yaml)).
 
