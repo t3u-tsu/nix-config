@@ -82,10 +82,12 @@ in
         packages = [
           config.agenix-rekey.package
           pkgs.age
+          pkgs.bitwarden-cli
           pkgs.cloudflared
           pkgs.convco
           pkgs.gh
           pkgs.git
+          pkgs.just
           pkgs.mkpasswd
           pkgs.nebula
           pkgs.nh

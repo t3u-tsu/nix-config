@@ -5,7 +5,8 @@
 # agenix_bw_install_identity in that order.
 #
 # Environment:
-#   BW_SESSION             Existing Bitwarden session; otherwise `bw unlock` runs.
+#   BW_SESSION             Existing Bitwarden session; otherwise `bw unlock`
+#                          runs when stdin is a TTY.
 #   BW_MASTER_KEY_ITEM     Item name (default: agenix-master-key).
 #   BW_MASTER_KEY_FIELD    notes, password, or a custom field name (default: notes).
 #   AGENIX_MASTER_KEY_DIR  Identity directory (default: $XDG_RUNTIME_DIR/agenix).
@@ -39,11 +40,16 @@ func agenix_bw_identity_from(text) {
 }
 
 proc agenix_bw_unlock() {
+  try { test -t 0 }
+  if failed {
+    echo 'ERROR: Bitwarden vault is locked and stdin is not a TTY. Set BW_SESSION or run interactively.' >&2
+    exit 1
+  }
   echo 'Bitwarden vault is locked; unlocking...' >&2
   var unlocked = ''
   try { setvar unlocked = $(env -u BW_SESSION bw unlock --raw) }
   if failed {
-    echo 'ERROR: could not unlock Bitwarden. Run `bw login` if you are logged out.' >&2
+    echo 'ERROR: could not unlock Bitwarden. Run bw login if you are logged out.' >&2
     exit 1
   }
   setglobal agenix_bw_session = unlocked.trim()
@@ -54,18 +60,18 @@ proc agenix_bw_session_init() {
   var status_raw = ''
   try { setvar status_raw = $(env -u BW_SESSION bw status --raw) }
   if failed {
-    echo 'ERROR: `bw status` failed.' >&2
+    echo 'ERROR: bw status failed.' >&2
     exit 1
   }
 
   var status_obj = null
   try { json read (&status_obj) <<< $status_raw }
   if failed {
-    echo 'ERROR: `bw status` returned unexpected output.' >&2
+    echo 'ERROR: bw status returned unexpected output.' >&2
     exit 1
   }
   if (get(status_obj, 'status', '') === 'unauthenticated') {
-    echo 'ERROR: not logged in to Bitwarden. Run `bw login` first.' >&2
+    echo 'ERROR: not logged in to Bitwarden. Run bw login first.' >&2
     exit 1
   }
 
@@ -79,20 +85,22 @@ proc agenix_bw_fetch_identity() {
   var field = get(ENV, 'BW_MASTER_KEY_FIELD', 'notes')
   var raw = ''
   try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
-  if failed and agenix_bw_session_from_env {
-    echo 'Stored BW_SESSION was rejected; unlocking again.' >&2
-    agenix_bw_unlock
-    try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
+  if failed {
+    if (agenix_bw_session_from_env) {
+      echo 'Stored BW_SESSION was rejected; unlocking again.' >&2
+      agenix_bw_unlock
+      try { setvar raw = $(env BW_SESSION=$agenix_bw_session bw get item $item_name --raw) }
+    }
   }
   if (raw === '') {
-    echo $"ERROR: could not read Bitwarden item '${item_name}' (run `bw sync` if it is new)." >&2
+    echo $"ERROR: could not read Bitwarden item '${item_name}' (run bw sync if it is new)." >&2
     exit 1
   }
 
   var item = null
   try { json read (&item) <<< $raw }
   if failed {
-    echo "ERROR: `bw get item` returned unexpected output." >&2
+    echo "ERROR: bw get item returned unexpected output." >&2
     exit 1
   }
   if (type(item) !== 'Dict') {

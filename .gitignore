@@ -8,6 +8,8 @@ result-*
 
 .pre-commit-config.yaml
 
+.secrets-staging/
+
 .worktrees/
 
 .agents/skills/coding-worker/.state/

@@ -6,9 +6,10 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 | Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
-| [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling and master-identity extraction for the agenix scripts. | `bw` |
-| [agenix-with-bw.ysh](agenix-with-bw.ysh) | Fetches the agenix master age identity from Bitwarden and runs `agenix` with it. | `bw`, `agenix` |
-| [migrate-sops-to-agenix.ysh](migrate-sops-to-agenix.ysh) | Decrypts SOPS YAML files and writes one agenix-rekey `.age` file per secret under `secrets/master/`. | `bw`, `sops`, `age` |
+| [secret.ysh](secret.ysh) | Unified CLI for manifest-driven migration, rekey, editing, staged imports, and environment checks. | `bw`, `sops`, `age`, `agenix` |
+| [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling and master-identity extraction used by `secret.ysh` and the agenix wrappers. | `bw` |
+| [agenix-with-bw.ysh](agenix-with-bw.ysh) | Runs an arbitrary `agenix` command with the Bitwarden master identity. | `bw`, `agenix` |
+| [migrate-sops-to-agenix.ysh](migrate-sops-to-agenix.ysh) | Compatibility wrapper for `secret.ysh migrate`; delegates to [the manifest](../secrets/migration-manifest.json). | `bw`, `sops`, `age` |
 | [nebula-lib.ysh](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`) and path helpers. | Sourced by Nebula scripts |
 | [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Imports Nebula CA and host certs/keys into SOPS host files. | `SOPS_AGE_KEY_FILE` (Master key) |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert` on PATH |
@@ -17,9 +18,79 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [linkify-markdown.pl](linkify-markdown.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | [restart-touchpad.ysh](restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 
-## Usage Examples
+## Secret CLI
 
-### Run agenix with the Bitwarden Master Key
+`secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. An empty `BW_SESSION` triggers `bw unlock` only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`.
+
+```bash
+# Preview the manifest plan without decrypting
+ysh scripts/secret.ysh migrate --dry-run
+
+# Encrypt every manifest entry; existing files are skipped
+ysh scripts/secret.ysh migrate
+
+# Replace files created by an earlier run
+ysh scripts/secret.ysh migrate --force
+
+# Rekey every host (all arguments are passed to agenix)
+ysh scripts/secret.ysh rekey
+
+# Edit a master secret
+ysh scripts/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
+
+# Check tools, manifest consistency, staging state, and Bitwarden status
+ysh scripts/secret.ysh doctor
+```
+
+### Migration Manifest
+
+[secrets/migration-manifest.json](../secrets/migration-manifest.json) records every legacy SOPS key and its disposition:
+
+| Action | Effect |
+| :--- | :--- |
+| `encrypt` | Decrypts the SOPS key and writes an agenix master `.age` file at `target`. |
+| `publish` | Writes public material, such as a Nebula CA certificate, to `target` in plaintext. |
+| `generate` | Generates the value locally at service start; no file is written. |
+| `drop` | Removes an unreferenced key; no file is written. |
+| `bitwarden` | Moves the value to Bitwarden; no file is written. |
+
+Entries with the same `target` and `format: "env"` are combined into one environment file, one `KEY=value` line per entry.
+
+### Staged Imports
+
+`.secrets-staging/` is a git-ignored area for plaintext that an agent or operator prepares without the master key. Paths mirror `secrets/master/`:
+
+```text
+.secrets-staging/hosts/BrokenPC/user_password_hash
+  -> secrets/master/hosts/BrokenPC/user_password_hash.age
+```
+
+```bash
+# Show the encryption plan without touching Bitwarden or the files
+ysh scripts/secret.ysh apply-staging --dry-run
+
+# Encrypt staged files, shred the plaintext, and rekey every host
+ysh scripts/secret.ysh apply-staging
+
+# Encrypt and remove staging files without rekeying
+ysh scripts/secret.ysh apply-staging --no-rekey
+```
+
+## Just Recipes
+
+The repository [justfile](../justfile) exposes the common workflows:
+
+```bash
+just secret-migrate
+just secret-rekey
+just secret-edit secrets/master/common/deploy_key.age
+just secret-apply-staging
+just check
+just lint
+just fmt path/to/file.nix
+```
+
+## Low-Level agenix Wrapper
 
 ```bash
 # BW_SESSION is reused when set; otherwise the script prompts for the master password
@@ -32,26 +103,9 @@ BW_MASTER_KEY_ITEM=agenix-master-key \
   ysh scripts/agenix-with-bw.ysh rekey -a
 ```
 
-Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The file is
-created with mode 0600 and removed on exit.
+Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The file is created with mode 0600 and removed on exit.
 
-### Migrate SOPS YAML to agenix-rekey
-
-```bash
-# Preview the generated secret names
-ysh scripts/migrate-sops-to-agenix.ysh --dry-run
-
-# Write secrets/master/<key>.age for every top-level SOPS key
-ysh scripts/migrate-sops-to-agenix.ysh
-
-# Replace files created by an earlier run
-ysh scripts/migrate-sops-to-agenix.ysh --force
-```
-
-The Bitwarden item must hold the `master_key` identity from [.sops.yaml](../.sops.yaml).
-The SOPS files are left in place; remove them after verifying the new
-`secrets/master/*.age` files and defining the matching `age.secrets.<name>.rekeyFile`
-options.
+## Other Workflows
 
 ### Set or Update Host Passwords
 
