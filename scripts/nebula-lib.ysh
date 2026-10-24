@@ -12,7 +12,27 @@ const FLEET = [
   {name: 'x1c7', octet: 101, groups: ['mgmt', 'app']},
 ]
 
+const DEFAULT_PREFIX = '10.0.0'
+
 func file_exists(path) {
   try { test -f $path }
   return (_error.code === 0)
+}
+
+func command_exists(name) {
+  try { command -v $name >/dev/null 2>&1 }
+  return (_error.code === 0)
+}
+
+func ca_dir_for_prefix(prefix) {
+  var home = get(ENV, 'HOME', '')
+  if (home === '') {
+    return ('')
+  }
+  var suffix = prefix.replace('.', '-')
+  return ($"${home}/.nebula-ca-${suffix}")
+}
+
+func default_ca_dir() {
+  return (ca_dir_for_prefix(DEFAULT_PREFIX))
 }

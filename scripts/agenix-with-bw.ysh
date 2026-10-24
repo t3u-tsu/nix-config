@@ -9,7 +9,7 @@
 # The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt
 # (default: $XDG_RUNTIME_DIR/agenix/master-key.txt, mode 0600) and deleted on
 # exit. Configure agenix-rekey with the same path, for example:
-#   age.rekey.masterIdentities = [ "/run/user/1000/agenix/master-key.txt" ];
+#   age.rekey.masterIdentities = [ "/run/user/<uid>/agenix/master-key.txt" ];
 #
 # Environment: BW_MASTER_KEY_ITEM, BW_MASTER_KEY_FIELD, AGENIX_MASTER_KEY_DIR,
 # and AGENIX_CMD (default: agenix).
@@ -26,20 +26,23 @@ if (len(ARGV) === 0) {
 # Expected failures (locked vault, missing item) shouldn't log caught errexit.
 shopt --unset verbose_errexit
 
-agenix_bw_require 'bw'
-agenix_bw_require $agenix_cmd
-agenix_bw_session_init
-agenix_bw_fetch_identity
-agenix_bw_install_identity
+cd $_this_dir/.. {
+  agenix_bw_require 'bw'
+  agenix_bw_require 'age-keygen'
+  agenix_bw_require $agenix_cmd
+  agenix_bw_session_init
+  agenix_bw_fetch_identity
+  agenix_bw_install_identity
 
-# Selecting the primary identity avoids extra prompts when the Nix
-# configuration lists several master identities.
-var pubkey = ''
-try { setvar pubkey = $(age-keygen -y $agenix_bw_key_path) }
-if failed {
-  setvar pubkey = ''
+  # Selecting the primary identity avoids extra prompts when the Nix
+  # configuration lists several master identities.
+  var pubkey = agenix_bw_primary_identity()
+  if (pubkey === '') {
+    echo 'ERROR: cannot derive the master recipient from the Bitwarden key' >&2
+    exit 1
+  }
+
+  env AGENIX_MASTER_KEY_FILE=$agenix_bw_key_path \
+    AGENIX_REKEY_PRIMARY_IDENTITY=$pubkey \
+    $agenix_cmd @[ARGV]
 }
-
-env AGENIX_MASTER_KEY_FILE=$agenix_bw_key_path \
-  AGENIX_REKEY_PRIMARY_IDENTITY=$pubkey \
-  $agenix_cmd @[ARGV]

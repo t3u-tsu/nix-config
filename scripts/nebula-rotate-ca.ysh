@@ -24,30 +24,78 @@ const DURATION = '87600h'
 
 shopt --unset verbose_errexit
 
+func parse_octet(part) {
+  var value = 0
+  try { setvar value = int(part) }
+  if failed { return (-1) }
+  if (str(value) !== part or value < 0 or value > 255) { return (-1) }
+  return (value)
+}
+
+func valid_prefix(prefix) {
+  var parts = prefix.split(u'.')
+  if (len(parts) !== 3) { return (false) }
+  for part in (parts) {
+    if (parse_octet(part) < 0) { return (false) }
+  }
+  return (true)
+}
+
+proc usage() {
+  echo 'usage: ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix A.B.C]'
+  echo ''
+  echo '  CA_DIR   output directory (default: ~/.nebula-ca-<prefix with dots as hyphens>)'
+  echo '  --prefix first three octets of the overlay subnet (default: 10.0.0)'
+}
+
 var ca_dir = ''
-var prefix = '10.0.0'
+var prefix = DEFAULT_PREFIX
 var i = 0
 while (i < len(ARGV)) {
   var arg = ARGV[i]
-  if (arg === '--prefix') {
+  if (arg === '-h' or arg === '--help') {
+    usage
+    exit 0
+  } elif (arg === '--prefix') {
     if (i + 1 >= len(ARGV)) {
       echo 'ERROR: --prefix needs a value' >&2
       exit 2
     }
     setvar prefix = ARGV[i + 1]
     setvar i += 2
+  } elif (arg.startsWith('--prefix=')) {
+    setvar prefix = arg[len('--prefix='):]
+    setvar i += 1
   } else {
+    if (ca_dir !== '') {
+      echo 'ERROR: only one CA_DIR may be given' >&2
+      exit 2
+    }
     setvar ca_dir = arg
     setvar i += 1
   }
 }
 
-var subnet_dir = prefix.replace('.', '-')
+if (not valid_prefix(prefix)) {
+  echo $"ERROR: --prefix must be three octets like 10.0.0, got '${prefix}'." >&2
+  exit 2
+}
+
 if (ca_dir === '') {
-  var home = ENV.HOME
-  setvar ca_dir = $"${home}/.nebula-ca-${subnet_dir}"
+  setvar ca_dir = ca_dir_for_prefix(prefix)
+}
+if (ca_dir === '') {
+  echo 'ERROR: HOME is unset; pass CA_DIR explicitly.' >&2
+  exit 2
 }
 var subnet = $"${prefix}.0/24"
+
+for tool in (['nebula-cert', 'script', 'sort', 'base64']) {
+  if (not command_exists(tool)) {
+    echo $"ERROR: required tool '${tool}' not found. Run within nix develop, or add it to PATH." >&2
+    exit 1
+  }
+}
 
 var group_set = {}
 for node in (FLEET) {
@@ -57,33 +105,57 @@ for node in (FLEET) {
 }
 var group_names = @(printf '%s\n' @[keys(group_set)] | sort)
 var ca_groups = join(group_names, ',')
+if (ca_groups === '') {
+  echo 'ERROR: no groups defined in FLEET.' >&2
+  exit 1
+}
 
 echo '== Nebula CA rotation =='
 echo $"  CA dir : ${ca_dir}"
 echo $"  subnet : ${subnet}"
 echo $"  CA gps : ${ca_groups}"
+if (file_exists($"${ca_dir}/ca.crt")) {
+  echo 'WARN: replacing the existing CA in this directory.' >&2
+}
 
 umask 077
 mkdir -p $ca_dir
 
-# nebula-cert prompts for passphrase; a pty satisfies it.
+# nebula-cert prompts for a passphrase, so run it under a pty fed from stdin.
 proc run_nebula(passphrase, ...cmd) {
   var quoted = []
   for arg in (cmd) {
     call quoted->append($(printf '%q' $arg))
   }
   var cmd_line = join(quoted, ' ')
-  printf '%s\n' $passphrase | script -q -e -E never -c $cmd_line /dev/null
+  shopt --unset verbose_errexit {
+    try { printf '%s\n' $passphrase | script -q -e -E never -c $cmd_line /dev/null }
+  }
+  if failed {
+    echo $"ERROR: nebula-cert failed: ${cmd_line}" >&2
+    return 1
+  }
 }
 
 cd $ca_dir {
-  if (not file_exists('passphrase')) {
+  if (file_exists('passphrase')) {
+    echo 'Reusing the existing CA passphrase.'
+  } else {
     head -c 24 /dev/urandom | base64 > passphrase
   }
   chmod 600 passphrase
+
   var passphrase = ''
-  read --all (&passphrase) < passphrase
+  try { read --all (&passphrase) < passphrase }
+  if failed {
+    echo 'ERROR: cannot read the CA passphrase file.' >&2
+    exit 1
+  }
   setvar passphrase = passphrase.trim()
+  if (passphrase === '') {
+    echo 'ERROR: CA passphrase file is empty.' >&2
+    exit 1
+  }
 
   echo '== creating CA =='
   run_nebula $passphrase nebula-cert ca \
