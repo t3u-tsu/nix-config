@@ -11,7 +11,7 @@ let
 in
 {
   options.my.home.desktop.dev-tools.hardware = {
-    enable = mkEnableOption "Hardware development tools (KiCad, Qucs-S, Picocom, etc.)";
+    enable = mkEnableOption "Hardware development tools (KiCad, Qucs-S, JLCONE, Picocom, etc.)";
   };
 
   config = mkIf cfg.enable {
@@ -20,6 +20,7 @@ in
       picocom
       qucs-s
       ventoy
+      nur.repos.mio.jlcone
     ];
   };
 }
