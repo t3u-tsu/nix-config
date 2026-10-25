@@ -123,8 +123,8 @@ ls -la /etc/ssh/ssh_host_ed25519_key
 # 権限が不正な場合は修正
 chmod 600 /etc/ssh/ssh_host_ed25519_key
 
-# ホストの age 公開鍵を確認し，hosts/<hostname>/default.nix の age.rekey.hostPubkey と突合
-ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+# ホストの SSH 公開鍵を確認し，hosts/<hostname>/default.nix の age.rekey.hostPubkey と突合
+cat /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
 #### 復旧操作 2: ブートローダーの強制再インストール
@@ -193,10 +193,10 @@ reboot
    sudo mkdir -p /mnt/etc/ssh
    sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
    sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
-   ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
+   cat /mnt/etc/ssh/ssh_host_ed25519_key.pub
    ```
 3. **管理端末での公開鍵更新と再暗号化**:
-   管理端末で `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を得られた公開鍵へ更新し，再暗号化を実行して Git に push する:
+   管理端末で `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を得られた SSH 公開鍵 (`ssh-ed25519 ...`) へ更新し，再暗号化を実行して Git に push する:
    ```bash
    just secret-rekey
    git add hosts/<hostname>/default.nix secrets/rekeyed/hosts/<hostname>/
@@ -279,8 +279,8 @@ reboot
    cd nix-config
 
    # hosts/<hostname>/default.nix の age.rekey.hostPubkey を更新
-   NEW_KEY=$(ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub)
-   sed -i "s|age.rekey.hostPubkey = \"age1[^\"]*\";|age.rekey.hostPubkey = \"${NEW_KEY}\";|" hosts/<hostname>/default.nix
+   NEW_KEY=$(awk '{print $1, $2}' /mnt/etc/ssh/ssh_host_ed25519_key.pub)
+   sed -i "s|age.rekey.hostPubkey = \"[^\"]*\";|age.rekey.hostPubkey = \"${NEW_KEY}\";|" hosts/<hostname>/default.nix
 
    # nix develop シェル内で再暗号化を実行
    nix develop --command just secret-rekey

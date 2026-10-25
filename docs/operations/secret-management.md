@@ -236,13 +236,13 @@ just secret-rekey
 
 OS 再インストール等で SSH ホスト鍵が更新された場合の手順．
 
-1. 新しい SSH ホスト公開鍵から age 公開鍵を取得する．
+1. 新しい SSH ホスト公開鍵を取得する．
    ```bash
-   ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+   cat /etc/ssh/ssh_host_ed25519_key.pub
    ```
 2. `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を更新する．
    ```nix
-   age.rekey.hostPubkey = "age1...";
+   age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
    ```
 3. 再暗号化を実行する．agenix-rekey が新しいホスト公開鍵で `secrets/rekeyed/hosts/<hostname>/` 配下の全ファイルを再暗号化し，旧ホスト鍵による復号権限を失効させる．
    ```bash

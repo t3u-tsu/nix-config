@@ -13,7 +13,7 @@
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
 
-  age.rekey.hostPubkey = "age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk";
+  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEI2kHd047FDJgmNaLSiCM0m2ZrXFnGsTa21n9i0q9lE";
 
   # Hardware settings (AMD CPU + HP Victus specifics)
   boot = {
@@ -120,9 +120,9 @@
   # /etc/systemd/user is a symlink into the store (environment.etc cannot write
   # inside it).
   home-manager.users.${config.my.user.name} = {
-    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
-    # to the age pubkey derived from it rather than the host key.
-    age.rekey.hostPubkey = "age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy";
+    # Home-manager secrets are decrypted with the user's ~/.ssh/id_ed25519,
+    # so agenix needs that public key, not the host key.
+    age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT";
     my.home.desktop.full.enable = true;
     my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''

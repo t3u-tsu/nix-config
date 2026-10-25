@@ -9,7 +9,7 @@ _:
   # per-host in flake/hosts.nix (sbc.nix / vps.nix). The role itself is enabled
   # by the gateway profile.
 
-  age.rekey.hostPubkey = "age1wleksdz5clzup08vtfdwhpcy35nwsxvnnt2m5w8ktmkpzq6ctd9sael64k";
+  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIODzxyWE9uLqb2HNTmzvVUgo0s4GCMewp/XjloXXU469";
 
   # The failover VPS must expose the same emergency tunnel as the SBC.
   my.services.emergencySsh.enable = true;

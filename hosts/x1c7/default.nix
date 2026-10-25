@@ -70,8 +70,8 @@
   };
 
   home-manager.users.${config.my.user.name} = {
-    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
-    # to the age pubkey derived from it rather than the host key.
+    # Home-manager secrets are decrypted with the user's ~/.ssh/id_ed25519,
+    # so agenix needs that public key, not the host key.
     age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcgVKvJVkA7KBmdO7ogwb5v9f1qUGOCiKu1CHpOLjYU";
     my.home.desktop = {
       noctalia.wallpaperPreset = "minimal";

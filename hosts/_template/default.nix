@@ -12,9 +12,8 @@
 
   # The hostname selects hosts/<name>/default.nix and the agenix rekey directory
   # secrets/rekeyed/hosts/<hostname>/, so keep them in sync.
-  # agenix-rekey: specify the host public key derived from /etc/ssh/ssh_host_ed25519_key.pub
-  # via `ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub`
-  # age.rekey.hostPubkey = "age1...";
+  # Host SSH public key (/etc/ssh/ssh_host_ed25519_key.pub)
+  # age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
   networking.hostName = "HOSTNAME";
 
   # Host-specific overrides. Evaluation order is profile -> hosts/<name> ->
