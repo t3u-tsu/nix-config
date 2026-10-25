@@ -10,12 +10,6 @@ let
   username = config.my.user.name;
 in
 {
-  options.my = {
-    hostKey = mkOption {
-      type = types.str;
-      description = "Hostname with hyphens replaced by underscores";
-    };
-  };
 
   options.my.user = {
     name = mkOption {
@@ -44,8 +38,6 @@ in
   };
 
   config = {
-    my.hostKey = builtins.replaceStrings [ "-" ] [ "_" ] (lib.toLower config.networking.hostName);
-
     users = {
       mutableUsers = false;
 

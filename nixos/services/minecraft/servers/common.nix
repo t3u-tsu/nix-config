@@ -3,7 +3,7 @@
 
 let
   plugins = pkgs.callPackage ../../../../_sources/generated.nix { };
-  lunachat = import ../plugins/lunachat.nix { };
+  lunachat = import ../plugins/lunachat.nix;
 
   # Fix the udev warning printed by the Paper server.
   ldLibraryPath = lib.makeLibraryPath [ pkgs.udev ];

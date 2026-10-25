@@ -129,14 +129,14 @@ ssh: connect to host 192.168.x.x port 22: Connection refused
 #### タワーサーバー群 (`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`)
 [nixos/profiles/tower-server/security.nix](../../nixos/profiles/tower-server/security.nix) において以下の設定が行われている．
 ```nix
-networking.firewall.allowedTCPPorts = lib.mkForce [ ];
+services.openssh.openFirewall = false;
 ```
 SSH ポート 22 は Nebula インターフェース (`nebula0`, `trustedInterfaces`) 経由でのみ許可されており，LAN 側の物理インターフェースからはポート 22 へのアクセスがファイアウォールで遮断されている．
 
 #### ゲートウェイ (`torii-chan`)
-[nixos/services/gateway/firewall.nix](../../nixos/services/gateway/firewall.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合，以下の条件分岐により物理ポート 22 が遮断される (`restrictAccess` が `false` の場合は LAN からの SSH が許可される)．
+[nixos/services/gateway/ssh.nix](../../nixos/services/gateway/ssh.nix) において `my.services.gateway.restrictAccess = true` が設定されている場合，以下の設定により物理ポート 22 が遮断される (`restrictAccess` が `false` の場合は全インターフェースで SSH が許可される)．
 ```nix
-allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
+openFirewall = !cfg.restrictAccess;
 ```
 
 このため，Nebula が停止すると (あるいはゲートウェイで `restrictAccess = true` が有効な場合)，物理 LAN 経由での SSH 接続は一切不可となる．

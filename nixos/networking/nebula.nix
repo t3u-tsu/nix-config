@@ -7,7 +7,8 @@
 with lib;
 
 let
-  serviceUser = "nebula-nebula0";
+  networkName = "nebula0";
+  serviceUser = "nebula-${networkName}";
 
   cfg = config.my.networking.nebula;
 
@@ -132,7 +133,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    services.nebula.networks.nebula0 = {
+    services.nebula.networks.${networkName} = {
       enable = true;
       inherit (cfg) isLighthouse isRelay;
 
@@ -143,13 +144,13 @@ in
 
       lighthouses = optional (!cfg.isLighthouse) cfg.lighthouse;
 
-      relays = [ cfg.lighthouse ];
+      relays = optional (!cfg.isLighthouse) cfg.lighthouse;
 
       staticHostMap = optionalAttrs (!cfg.isLighthouse) {
         "${cfg.lighthouse}" = cfg.advertiseAddrs;
       };
 
-      tun.device = "nebula0";
+      tun.device = networkName;
 
       listen = {
         host = "[::]";
@@ -179,7 +180,7 @@ in
       // optionalAttrs cfg.isLighthouse { advertise_addrs = cfg.advertiseAddrs; };
     };
 
-    networking.firewall.trustedInterfaces = [ "nebula0" ];
+    networking.firewall.trustedInterfaces = [ networkName ];
 
     age.secrets.nebula_key = {
       rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/nebula_key.age;

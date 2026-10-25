@@ -51,7 +51,7 @@ sequenceDiagram
 
 対象ホストとサブドメイン一覧:
 
-| ホスト名 | 接続ドメイン (FQDN) | シークレット定義ファイル | 役割・配置拠点 |
+| ホスト名 | 接続ドメイン (FQDN) | マスターシークレット | 役割・配置拠点 |
 | :--- | :--- | :--- | :--- |
 | `torii-chan` | `torii-chan-cf-ssh.t3u.uk` | `secrets/master/hosts/torii-chan/emergency_ssh_token.age` | エッジゲートウェイ / Lighthouse (拠点T) |
 | `sando-kun` | `sando-kun-cf-ssh.t3u.uk` | `secrets/master/hosts/sando-kun/emergency_ssh_token.age` | 汎用タワーサーバー (拠点A) |

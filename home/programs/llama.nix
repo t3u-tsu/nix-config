@@ -127,18 +127,16 @@ in
         WantedBy = [ "default.target" ];
       };
       Service = {
-        ExecStart = concatStringsSep " " (
-          [
-            "${llama-cpp}/bin/llama-server"
-            "--models-dir ${cfg.modelsDir}"
-            "--models-max ${toString cfg.modelsMax}"
-            "--host ${cfg.host}"
-            "--port ${toString cfg.port}"
-            "--sleep-idle-seconds ${toString cfg.sleepIdleSeconds}"
-          ]
-          ++ optional (cfg.threads != null) "--threads ${toString cfg.threads}"
-          ++ optional (cfg.presets != { }) "--models-preset ${presetsIni}"
-        );
+        ExecStart = [
+          "${llama-cpp}/bin/llama-server"
+          "--models-dir ${cfg.modelsDir}"
+          "--models-max ${toString cfg.modelsMax}"
+          "--host ${cfg.host}"
+          "--port ${toString cfg.port}"
+          "--sleep-idle-seconds ${toString cfg.sleepIdleSeconds}"
+        ]
+        ++ optional (cfg.threads != null) "--threads ${toString cfg.threads}"
+        ++ optional (cfg.presets != { }) "--models-preset ${presetsIni}";
         Restart = "on-failure";
       };
     };

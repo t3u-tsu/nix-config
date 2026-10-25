@@ -25,22 +25,12 @@ in
 
     age.secrets.cloudflare_api_env = {
       rekeyFile = ../../../secrets/master/services/ddns/cloudflare_api.env.age;
-      owner = "root";
     };
 
-    systemd.services.ddclient.serviceConfig = {
-      DynamicUser = mkForce false;
-      User = "ddclient";
-      Group = "ddclient";
-      EnvironmentFile = [
-        config.age.secrets.cloudflare_api_env.path
-      ];
-    };
-
-    users.users.ddclient = {
-      isSystemUser = true;
-      group = "ddclient";
-    };
-    users.groups.ddclient = { };
+    # systemd reads EnvironmentFile as PID 1, so the root-owned secret does not
+    # need to be readable by ddclient's DynamicUser.
+    systemd.services.ddclient.serviceConfig.EnvironmentFile = [
+      config.age.secrets.cloudflare_api_env.path
+    ];
   };
 }

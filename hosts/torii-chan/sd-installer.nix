@@ -5,7 +5,6 @@
 {
   pkgs,
   modulesPath,
-  lib,
   ...
 }:
 
@@ -18,10 +17,7 @@
   # Uncompressed: faster to build and flash
   sdImage.compressImage = false;
 
-  # Silence the ZFS evaluation warning for the installer image
-  boot.zfs.forceImportRoot = false;
-
-  # ubootOrangePiZero3 comes from an overlay in flake.nix
+  # ubootOrangePiZero3 comes from an overlay in flake/overlays.nix
   sdImage.postBuildCommands = ''
     echo "Writing U-Boot to image..."
     dd if=${pkgs.ubootOrangePiZero3}/u-boot-sunxi-with-spl.bin of=$img bs=1024 seek=8 conv=notrunc
@@ -32,6 +28,5 @@
     # LAN-only (static 192.168.0.128 from sbc.nix), so the temporary password is
     # allowed; the VPS installer is key-only.
     allowPasswordAuthentication = true;
-    firewallOpenPorts = [ 22 ];
   };
 }

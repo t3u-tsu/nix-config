@@ -49,7 +49,7 @@ in
       };
 
       files = {
-        "plugins/LunaChat/config.yml".value = common.lunachat.config.lunaChatConfig;
+        "plugins/LunaChat/config.yml".value = common.lunachat;
       };
     };
 

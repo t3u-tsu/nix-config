@@ -1,7 +1,7 @@
 # Common settings for the "installer" stage, shared by the SBC SD image
 # (sd-installer.nix) and the VPS installer ISO (vps-installer.nix): production
 # gateway services and agenix-managed password hashes are not used, login is by a
-# temporary password (injected by build-*.sh in an --impure build) or public key.
+# temporary password (injected by build-*.ysh in an --impure build) or public key.
 {
   config,
   lib,
@@ -14,7 +14,7 @@ let
   cfg = config.my.installer;
   username = config.my.user.name;
 
-  # Temporary password hash passed by build-*.sh as an environment variable in an
+  # Temporary password hash passed by build-*.ysh as an environment variable in an
   # --impure build; empty in a pure build, so no temporary password is set.
   envTempPasswordHash = builtins.getEnv "TORII_INSTALLER_TEMP_PASSWORD_HASH";
   tempPasswordHash =
@@ -37,7 +37,7 @@ in
       default = null;
       description = ''
         Temporary password hash (SHA-512) for the installer environment.
-        Usually injected by build-*.sh via TORII_INSTALLER_TEMP_PASSWORD_HASH
+        Usually injected by build-*.ysh via TORII_INSTALLER_TEMP_PASSWORD_HASH
         (nix build --impure). When null, no password is set (SSH key only).
       '';
     };
@@ -92,18 +92,17 @@ in
       };
     };
 
-    # agenix-rekey has no `null` hostPubkey: the dummy recipient is its
-    # documented way to make `agenix rekey` skip this host (expect the matching
-    # "dummy hostPubkey" warning at build time). Secrets that stay enabled would
-    # become placeholders, so no production service runs here.
+    # hosts/torii-chan/default.nix sets the production host key, so the installer
+    # forces agenix-rekey's sentinel hostPubkey to skip rekeying. Enabled secrets
+    # would become placeholders; the production services above stay off.
     age.rekey.hostPubkey = lib.mkForce "age1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs3290gq";
 
     my.services.emergencySsh.enable = lib.mkForce false;
 
-    # The production password hashes must NOT be baked into the installer, so
-    # the agenix secrets are disabled and the live users get the temporary
-    # password instead.
+    # Production credentials must not be baked into the installer: disable the
+    # agenix secrets and give the live users the temporary password instead.
     age.secrets = {
+      deploy_key.enable = lib.mkForce false;
       user_password_hash.enable = lib.mkForce false;
       root_password_hash.enable = lib.mkForce false;
     };

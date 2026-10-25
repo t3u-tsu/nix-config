@@ -33,7 +33,7 @@ in
         # shellcheck -x follows source= directives.
         shellcheck = {
           enable = true;
-          files = "scripts/.*\\.sh$";
+          files = "\\.sh$";
           entry = "${pkgs.shellcheck}/bin/shellcheck -x";
         };
         ysh-check = {

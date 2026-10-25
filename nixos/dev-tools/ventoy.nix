@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -16,8 +17,6 @@ in
   config = mkIf cfg.enable {
     # Ventoy ships binary blobs that cannot be trusted to be malware-free;
     # the package is marked insecure in nixpkgs (see nixpkgs#404663).
-    nixpkgs.config.permittedInsecurePackages = [
-      "ventoy-1.1.12"
-    ];
+    nixpkgs.config.permittedInsecurePackages = [ pkgs.ventoy.name ];
   };
 }
