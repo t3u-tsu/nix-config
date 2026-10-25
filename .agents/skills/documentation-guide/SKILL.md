@@ -17,7 +17,7 @@ description: このリポジトリにおけるドキュメントの執筆・構�
 | [AGENTS.md](../../../AGENTS.md)，[GEMINI.md](../../../GEMINI.md)，[TODO.md](../../../TODO.md) | 日本語 | エージェントの行動規範，ツール運用制約，実装進捗 | 技術仕様 |
 | `.agents/skills/` | 日 / 英 | エージェントが実行する作業手順・ノウハウ | 恒久的なシステム仕様 |
 
-同一の手順を複数箇所に書かない．新ホスト追加，SOPS 鍵登録，private flake input のブートストラップ等は `docs/operations/` に置き，他のドキュメントからはリンクする．
+同一の手順を複数箇所に書かない．新ホスト追加，age 鍵登録，private flake input のブートストラップ等は `docs/operations/` に置き，他のドキュメントからはリンクする．
 
 ## 2. 表記規則
 

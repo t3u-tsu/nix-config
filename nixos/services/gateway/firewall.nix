@@ -12,7 +12,6 @@ in
 
       firewall = {
         enable = true;
-        allowedTCPPorts = if cfg.restrictAccess then lib.mkForce [ ] else [ 22 ];
         logRefusedConnections = false;
         logReversePathDrops = false;
       };
@@ -20,7 +19,6 @@ in
       nat = {
         enable = true;
         externalInterface = cfg.wanInterface;
-        internalInterfaces = lib.mkForce [ ];
         # MASQUERADE return traffic from the Minecraft backend (shosoin-tan).
         internalIPs = [ "10.0.0.4" ];
         forwardPorts = [

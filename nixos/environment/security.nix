@@ -14,7 +14,6 @@ in
     environment.systemPackages = with pkgs; [
       age
       gnupg
-      sops
       ssh-to-age
     ];
   };

@@ -1,11 +1,11 @@
 { config, pkgs, ... }:
 
 {
-  sops.secrets.restic_password = {
-    sopsFile = ../../../secrets/services/backup.yaml;
+  age.secrets.restic_password = {
+    rekeyFile = ../../../secrets/master/services/backup/password.age;
   };
-  sops.secrets.restic_shosoin_ssh_key = {
-    sopsFile = ../../../secrets/services/backup.yaml;
+  age.secrets.restic_ssh_key = {
+    rekeyFile = ../../../secrets/master/services/backup/ssh_key.age;
   };
 
   my.services.backup = {
@@ -14,10 +14,10 @@
       "/srv/minecraft"
       "/var/lib/minecraft-discord-bridge"
     ];
-    passwordFile = config.sops.secrets.restic_password.path;
+    passwordFile = config.age.secrets.restic_password.path;
     localRepo = "/mnt/tank-1tb/backups/minecraft";
     remoteRepo = "sftp:restic-shosoin@10.0.0.3:/mnt/data/backups/shosoin-tan";
-    sshKeyFile = config.sops.secrets.restic_shosoin_ssh_key.path;
+    sshKeyFile = config.age.secrets.restic_ssh_key.path;
 
     backupPrepareCommand = ''
       # Disable auto-save and flush to disk for all servers

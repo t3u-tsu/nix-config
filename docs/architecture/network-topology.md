@@ -127,6 +127,6 @@ Cloudflare Tunnel 経由の接続は以下の 3 層で保護する:
 - [目次 (設計・運用ドキュメント)](../README.md) — 設計・運用ドキュメント一覧
 - [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](../operations/emergency-cf-ssh.md) — Cloudflare Tunnel 経由の非常用アクセス手順
 - [リポジトリ全体アーキテクチャ](overview.md) — リポジトリの全体構成と設計方針
-- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — SOPS, age, 1Password による鍵・暗号化管理方針
+- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
 - [ConoHa VPS プロビジョニング & フェイルオーバー手順](../operations/vps-failover.md) — VPS 待機系への切り替えと切り戻し手順
 - [トラブルシューティング: ネットワーク](../troubleshooting/network-recovery.md) — ネットワーク障害時の切り分けと復旧手順

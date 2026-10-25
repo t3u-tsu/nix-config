@@ -21,7 +21,7 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 | [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
 | [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
 | [gaming.nix](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. |
-| [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and SOPS-managed commit signing key import. |
+| [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and agenix-managed commit signing key import. |
 | [locales.nix](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
 | [media.nix](media.nix) | Media playback (Spotify via Spicetify, VLC). |
 | [niri/](niri/README.md) | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |

@@ -1,7 +1,7 @@
 # Common settings for the "installer" stage, shared by the SBC SD image
 # (sd-installer.nix) and the VPS installer ISO (vps-installer.nix): production
-# gateway services and SOPS-managed password hashes are not used, login is by a
-# temporary password (injected by build-*.sh in an --impure build) or public key.
+# gateway services and agenix-managed password hashes are not used, login is by a
+# temporary password (injected by build-*.ysh in an --impure build) or public key.
 {
   config,
   lib,
@@ -13,9 +13,8 @@ with lib;
 let
   cfg = config.my.installer;
   username = config.my.user.name;
-  hostKey = config.my.hostKey;
 
-  # Temporary password hash passed by build-*.sh as an environment variable in an
+  # Temporary password hash passed by build-*.ysh as an environment variable in an
   # --impure build; empty in a pure build, so no temporary password is set.
   envTempPasswordHash = builtins.getEnv "TORII_INSTALLER_TEMP_PASSWORD_HASH";
   tempPasswordHash =
@@ -25,8 +24,8 @@ in
   options.my.installer = {
     enable = mkEnableOption "installer stage: temporary provisioning without production services";
 
-    # Both installers must present the production hostname: my.hostKey (the SOPS
-    # secret prefix) derives from networking.hostName.
+    # Both installers must present the production hostname: the agenix secret
+    # paths derive from networking.hostName.
     hostName = mkOption {
       type = types.str;
       default = "torii-chan";
@@ -38,7 +37,7 @@ in
       default = null;
       description = ''
         Temporary password hash (SHA-512) for the installer environment.
-        Usually injected by build-*.sh via TORII_INSTALLER_TEMP_PASSWORD_HASH
+        Usually injected by build-*.ysh via TORII_INSTALLER_TEMP_PASSWORD_HASH
         (nix build --impure). When null, no password is set (SSH key only).
       '';
     };
@@ -93,13 +92,19 @@ in
       };
     };
 
-    # The production password hashes must NOT be baked into the installer, so
-    # neededForUsers is off (no decryption at boot) and the live users get the
-    # temporary password instead. Production switches back to the normal
-    # nixos-rebuild path with the SOPS-managed hashedPasswordFile.
-    sops.secrets = {
-      "${hostKey}_${username}_password_hash".neededForUsers = lib.mkForce false;
-      "${hostKey}_root_password_hash".neededForUsers = lib.mkForce false;
+    # hosts/torii-chan/default.nix sets the production host key, so the installer
+    # forces agenix-rekey's sentinel hostPubkey to skip rekeying. Enabled secrets
+    # would become placeholders; the production services above stay off.
+    age.rekey.hostPubkey = lib.mkForce "age1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs3290gq";
+
+    my.services.emergencySsh.enable = lib.mkForce false;
+
+    # Production credentials must not be baked into the installer: disable the
+    # agenix secrets and give the live users the temporary password instead.
+    age.secrets = {
+      deploy_key.enable = lib.mkForce false;
+      user_password_hash.enable = lib.mkForce false;
+      root_password_hash.enable = lib.mkForce false;
     };
 
     users.users = {

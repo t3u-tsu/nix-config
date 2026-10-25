@@ -1,6 +1,7 @@
 #!/usr/bin/env ysh
 # Single source of truth for the node list: add a new host here, sign its cert,
-# then re-import it into SOPS (see docs/operations/adding-a-host.md).
+# then re-import it with scripts/nebula-import-secrets.ysh (see
+# docs/operations/adding-a-host.md).
 
 const FLEET = [
   {name: 'torii-chan', octet: 1, groups: ['mgmt']},
@@ -11,15 +12,27 @@ const FLEET = [
   {name: 'x1c7', octet: 101, groups: ['mgmt', 'app']},
 ]
 
-func host_key(name) {
-  return (name.lower().replace('-', '_'))
-}
-
-func host_secrets_file(name) {
-  return ($"secrets/hosts/${name}.yaml")
-}
+const DEFAULT_PREFIX = '10.0.0'
 
 func file_exists(path) {
   try { test -f $path }
   return (_error.code === 0)
+}
+
+func command_exists(name) {
+  try { command -v $name >/dev/null 2>&1 }
+  return (_error.code === 0)
+}
+
+func ca_dir_for_prefix(prefix) {
+  var home = get(ENV, 'HOME', '')
+  if (home === '') {
+    return ('')
+  }
+  var suffix = prefix.replace('.', '-')
+  return ($"${home}/.nebula-ca-${suffix}")
+}
+
+func default_ca_dir() {
+  return (ca_dir_for_prefix(DEFAULT_PREFIX))
 }

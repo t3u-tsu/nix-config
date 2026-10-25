@@ -11,7 +11,7 @@
 
 ### 2. [運用手順書](operations/)
 - [operations/adding-a-host.md](operations/adding-a-host.md) — 新規マシンの追加・初期セットアップの標準手順
-- [operations/secret-management.md](operations/secret-management.md) — SOPS / age / 1Password 鍵ライフサイクル，証明書更新
+- [operations/secret-management.md](operations/secret-management.md) — agenix-rekey / age / Bitwarden 鍵ライフサイクル，証明書更新
 - [operations/backup-and-restore.md](operations/backup-and-restore.md) — Restic バックアップ運用，障害時完全復旧 (DR) 手順
 - [operations/vps-failover.md](operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替・切戻し手順
 - [operations/emergency-cf-ssh.md](operations/emergency-cf-ssh.md) — Cloudflare Tunnel を用いた非常用 SSH アクセス手順 (帯域外管理)
@@ -25,7 +25,7 @@
 
 ### 4. [トラブルシューティング](troubleshooting/)
 - [troubleshooting/build-and-deploy.md](troubleshooting/build-and-deploy.md) — ビルド・評価・キャッシュ・デプロイ失敗時
-- [troubleshooting/secrets-and-auth.md](troubleshooting/secrets-and-auth.md) — SOPS 復号エラー，private input 認証エラー
+- [troubleshooting/secrets-and-auth.md](troubleshooting/secrets-and-auth.md) — シークレット復号エラー，private input 認証エラー
 - [troubleshooting/network-recovery.md](troubleshooting/network-recovery.md) — Nebula 不通，NAT loopback，SSH 遮断時の復旧
 - [troubleshooting/emergency-recovery.md](troubleshooting/emergency-recovery.md) — 世代ロールバック，インストーラ USB レスキュー
 

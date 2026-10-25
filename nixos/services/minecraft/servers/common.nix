@@ -3,7 +3,7 @@
 
 let
   plugins = pkgs.callPackage ../../../../_sources/generated.nix { };
-  lunachat = import ../plugins/lunachat.nix { };
+  lunachat = import ../plugins/lunachat.nix;
 
   # Fix the udev warning printed by the Paper server.
   ldLibraryPath = lib.makeLibraryPath [ pkgs.udev ];
@@ -11,7 +11,7 @@ in
 {
   inherit plugins lunachat ldLibraryPath;
 
-  # secretPath: path to the shared Velocity forwarding secret.
+  # secretPath: path to the locally generated Velocity forwarding secret.
   mkPaperGlobalPreStart = { secretPath }: ''
     mkdir -p config
     SECRET=$(cat ${secretPath})

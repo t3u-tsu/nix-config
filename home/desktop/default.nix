@@ -31,7 +31,7 @@ in
     enable = mkEnableOption "Desktop home-manager configuration (lightweight core)";
 
     full = {
-      enable = mkEnableOption "Full desktop experience (gaming, creative, media, office, AI tools)";
+      enable = mkEnableOption "Full desktop experience (gaming, creative, media, AI and hardware development tools)";
     };
   };
 

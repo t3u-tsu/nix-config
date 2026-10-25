@@ -1,8 +1,6 @@
 # SBC platform layer (Orange Pi Zero3): SD/HDD boot chain, extlinux loader and
 # static LAN networking for the shared torii-chan role.
 {
-  config,
-  lib,
   ...
 }:
 
@@ -12,8 +10,6 @@
   ];
 
   my.nix.distributedBuilds.enable = true;
-
-  my.services.emergencySsh.enable = true;
 
   boot.loader = {
     generic-extlinux-compatible.enable = true;

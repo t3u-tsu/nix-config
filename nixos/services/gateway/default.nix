@@ -17,7 +17,8 @@ with lib;
       default = true;
       description = ''
         Expose only TCP 25565 (Minecraft) on the WAN and allow SSH only via
-        the Nebula mesh. Set to false (with mkForce) during SD provisioning.
+        the Nebula mesh. Set to false to open SSH on the WAN during initial
+        provisioning; keep true in steady state.
       '';
     };
   };

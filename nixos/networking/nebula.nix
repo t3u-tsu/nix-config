@@ -7,10 +7,8 @@
 with lib;
 
 let
-  hostKey = config.my.hostKey;
-
-  serviceUser = "nebula-nebula0";
-  serviceUnit = "nebula@nebula0.service";
+  networkName = "nebula0";
+  serviceUser = "nebula-${networkName}";
 
   cfg = config.my.networking.nebula;
 
@@ -135,23 +133,24 @@ in
   };
 
   config = mkIf cfg.enable {
-    services.nebula.networks.nebula0 = {
+    services.nebula.networks.${networkName} = {
       enable = true;
       inherit (cfg) isLighthouse isRelay;
 
-      ca = config.sops.secrets.nebula_ca.path;
-      cert = config.sops.secrets."${hostKey}_nebula_cert".path;
-      key = config.sops.secrets."${hostKey}_nebula_key".path;
+      # Node and CA certificates are public; only the node key is secret.
+      ca = ./nebula/ca.crt;
+      cert = ../../hosts/${config.networking.hostName}/nebula.crt;
+      key = config.age.secrets.nebula_key.path;
 
       lighthouses = optional (!cfg.isLighthouse) cfg.lighthouse;
 
-      relays = [ cfg.lighthouse ];
+      relays = optional (!cfg.isLighthouse) cfg.lighthouse;
 
       staticHostMap = optionalAttrs (!cfg.isLighthouse) {
         "${cfg.lighthouse}" = cfg.advertiseAddrs;
       };
 
-      tun.device = "nebula0";
+      tun.device = networkName;
 
       listen = {
         host = "[::]";
@@ -181,28 +180,12 @@ in
       // optionalAttrs cfg.isLighthouse { advertise_addrs = cfg.advertiseAddrs; };
     };
 
-    networking.firewall.trustedInterfaces = [ "nebula0" ];
+    networking.firewall.trustedInterfaces = [ networkName ];
 
-    sops.secrets = {
-      nebula_ca = {
-        sopsFile = ../../secrets/common.yaml;
-        owner = "root";
-        group = serviceUser;
-        mode = "0440";
-        restartUnits = [ serviceUnit ];
-      };
-      "${hostKey}_nebula_cert" = {
-        owner = "root";
-        group = serviceUser;
-        mode = "0440";
-        restartUnits = [ serviceUnit ];
-      };
-      "${hostKey}_nebula_key" = {
-        owner = "root";
-        group = serviceUser;
-        mode = "0440";
-        restartUnits = [ serviceUnit ];
-      };
+    age.secrets.nebula_key = {
+      rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/nebula_key.age;
+      group = serviceUser;
+      mode = "0440";
     };
   };
 }

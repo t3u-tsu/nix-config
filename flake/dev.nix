@@ -33,7 +33,7 @@ in
         # shellcheck -x follows source= directives.
         shellcheck = {
           enable = true;
-          files = "scripts/.*\\.sh$";
+          files = "\\.sh$";
           entry = "${pkgs.shellcheck}/bin/shellcheck -x";
         };
         ysh-check = {
@@ -80,11 +80,14 @@ in
 
       devShells.default = pkgs.mkShell {
         packages = [
+          config.agenix-rekey.package
           pkgs.age
+          pkgs.bitwarden-cli
           pkgs.cloudflared
           pkgs.convco
           pkgs.gh
           pkgs.git
+          pkgs.just
           pkgs.mkpasswd
           pkgs.nebula
           pkgs.nh
@@ -93,7 +96,6 @@ in
           pkgs.oils-for-unix
           pkgs.opentofu
           pkgs.perl
-          pkgs.sops
           pkgs.ssh-to-age
         ];
         inputsFrom = [ config.pre-commit.devShell ];

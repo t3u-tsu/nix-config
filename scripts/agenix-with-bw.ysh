@@ -1,0 +1,52 @@
+#!/usr/bin/env ysh
+#
+# Runs agenix with the master age identity fetched from Bitwarden.
+#
+# Usage:
+#   ysh scripts/agenix-with-bw.ysh rekey -a
+#   ysh scripts/agenix-with-bw.ysh edit secrets/master/example.age
+#
+# The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt
+# (default: /run/agenix-master/master-key.txt, mode 0400) and deleted on exit.
+# The default directory is the dedicated noswap tmpfs that
+# nixos/security/agenix.nix mounts; keep age.rekey.masterIdentities pointed at
+# the same path.
+#
+# Environment: BW_MASTER_KEY_ITEM, BW_MASTER_KEY_FIELD, AGENIX_MASTER_KEY_DIR,
+# AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE, AGENIX_REQUIRE_SWAP_GUARD, and
+# AGENIX_CMD (default: agenix).
+
+source $_this_dir/agenix-bw-lib.ysh
+
+agenix_bw_swap_guard $0 @[ARGV]
+
+var agenix_cmd = get(ENV, 'AGENIX_CMD', 'agenix')
+
+if (len(ARGV) === 0) {
+  echo 'usage: ysh scripts/agenix-with-bw.ysh <agenix command> [args...]' >&2
+  exit 2
+}
+
+# Expected failures (locked vault, missing item) shouldn't log caught errexit.
+shopt --unset verbose_errexit
+
+cd $_this_dir/.. {
+  agenix_bw_require 'bw'
+  agenix_bw_require 'age-keygen'
+  agenix_bw_require $agenix_cmd
+  agenix_bw_session_init
+  agenix_bw_fetch_identity
+  agenix_bw_install_identity
+
+  # Selecting the primary identity avoids extra prompts when the Nix
+  # configuration lists several master identities.
+  var pubkey = agenix_bw_primary_identity()
+  if (pubkey === '') {
+    echo 'ERROR: cannot derive the master recipient from the Bitwarden key' >&2
+    exit 1
+  }
+
+  env AGENIX_MASTER_KEY_FILE=$agenix_bw_key_path \
+    AGENIX_REKEY_PRIMARY_IDENTITY=$pubkey \
+    $agenix_cmd @[ARGV]
+}

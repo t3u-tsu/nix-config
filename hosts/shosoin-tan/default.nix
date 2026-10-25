@@ -1,8 +1,4 @@
 {
-  config,
-  pkgs,
-  lib,
-  inputs,
   ...
 }:
 
@@ -11,6 +7,8 @@
     ./hardware.nix
     ./services
   ];
+
+  age.rekey.hostPubkey = "age16qpt6hr079pmj5dsgq5xm20x9kwamu90c2l8nkgwf8mtrhwauapqf93muk";
 
   my = {
     services.minecraft.enable = true;

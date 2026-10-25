@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  lib,
   inputs,
   ...
 }:
@@ -13,6 +12,8 @@
     inputs.nixos-hardware.nixosModules.common-pc-laptop
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
+
+  age.rekey.hostPubkey = "age1l5tjtsw70k40pzl2ndzay89zr8e475vpc2kymrpy7p67p42pggns5y2mkk";
 
   # Hardware settings (AMD CPU + HP Victus specifics)
   boot = {
@@ -119,6 +120,9 @@
   # /etc/systemd/user is a symlink into the store (environment.etc cannot write
   # inside it).
   home-manager.users.${config.my.user.name} = {
+    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
+    # to the age pubkey derived from it rather than the host key.
+    age.rekey.hostPubkey = "age1nsprt0asqmy9wmc09yffwy34hx5v2a6hvat0cnzvr8h03f8ymezqguqtmy";
     my.home.desktop.full.enable = true;
     my.home.desktop.noctalia.wallpaperPreset = "PTITSA";
     xdg.configFile."systemd/user/niri.service.d/wlr-drm-devices.conf".text = ''
@@ -133,11 +137,4 @@
   systemd.tmpfiles.rules = [
     "d /data 0755 ${config.my.user.name} users -"
   ];
-
-  sops.secrets.brokenpc_ssh_private_key = {
-    path = "/home/${config.my.user.name}/.ssh/id_ed25519";
-    owner = config.my.user.name;
-    group = "users";
-    mode = "0600";
-  };
 }

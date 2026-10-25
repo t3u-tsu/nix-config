@@ -43,7 +43,7 @@ in
       };
 
       symlinks = {
-        "forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
+        "forwarding.secret" = cfg.forwardingSecretPath;
       };
     };
   };

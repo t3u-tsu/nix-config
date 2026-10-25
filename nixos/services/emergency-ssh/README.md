@@ -14,7 +14,7 @@ The module runs an outbound Cloudflare Tunnel daemon connecting to Cloudflare Ed
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [default.nix](default.nix) | Configures `cloudflared-emergency-ssh.service`, registers Cloudflare CA keys, provisions user principals, and loads tunnel tokens via SOPS. | `my.services.emergencySsh.enable` |
+| [default.nix](default.nix) | Configures `cloudflared-emergency-ssh.service`, registers Cloudflare CA keys, provisions user principals, and loads tunnel tokens via agenix. | `my.services.emergencySsh.enable` |
 
 ## Operational Commands
 

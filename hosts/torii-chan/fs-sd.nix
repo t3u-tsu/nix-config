@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+_:
 
 {
   boot.kernelParams = [ "fsck.repair=yes" ];

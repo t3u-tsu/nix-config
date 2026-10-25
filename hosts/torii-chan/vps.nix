@@ -2,11 +2,7 @@
 # ConoHa is KVM/VirtIO with BIOS/MBR and a static IP from the control panel (no
 # DHCP). Only ONE gateway runs at a time; when this VPS is active, its Cloudflare
 # DDNS repoints torii-chan.t3u.uk and every Nebula peer reconnects.
-{
-  config,
-  lib,
-  ...
-}:
+_:
 
 let
   # RFC 5737 TEST-NET-1 addresses: never routed, so the config will NOT come up
@@ -15,18 +11,8 @@ let
   wanGateway = "192.0.2.1"; # ConoHa panel default gateway
 in
 {
-  my = {
-    services = {
-      # ConoHa VPS exposes the NIC as eth0.
-      gateway.wanInterface = "eth0";
-    };
-
-    # SSH access comes from the shared gateway profile, so the SBC and the
-    # failover VPS get the same operator key.
-    user = {
-      extraGroups = [ "wheel" ];
-    };
-  };
+  # ConoHa VPS exposes the NIC as eth0.
+  my.services.gateway.wanInterface = "eth0";
 
   # ConoHa assigns a static IPv4 and runs no DHCP for the primary NIC.
   networking = {
@@ -65,11 +51,12 @@ in
   # FIRST DEPLOY ONLY: hardening (restrictAccess = true) exposes SSH only via
   # nebula0, which is unreachable before the gateway role starts, so uncomment
   # the line below to open SSH on the WAN and revert it afterwards.
-  # my.services.gateway.restrictAccess = lib.mkForce false;
+  # my.services.gateway.restrictAccess = false;
   #
-  # SOPS: the VPS decrypts the SAME secrets as the SBC (secrets/hosts/torii-chan.yaml
-  # + secrets/services/ddns.yaml), so its age key must be added to .sops.yaml and to
-  # both files, then `sops updatekeys` (see the README).
+  # Secrets: this configuration shares age.rekey.hostPubkey with the SBC
+  # (hosts/torii-chan/default.nix). Provision the VPS with the SBC's
+  # /etc/ssh/ssh_host_ed25519_key, or give it its own hostPubkey via an
+  # extraModule and rekey before first boot.
   #
   # 512MB plan: the swapfile keeps the low-RAM VPS buildable (mirrors the SBC
   # profile); the bootstrap keeps a single root partition /dev/vda1.

@@ -7,6 +7,7 @@ Helper functions and shared assets for NixOS system evaluations.
 | File | Function / Export | Description |
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | `mkSystem` | Constructs a `nixosSystem` configuration with injected `specialArgs`, host defaults, and profile imports; serves as the library index for flake modules. |
+| [agenix.nix](agenix.nix) | `masterIdentity` | Master age identity path and public key shared by the NixOS and Home Manager agenix-rekey modules. |
 | [palette.nix](palette.nix) | `palette` | Vesper color palette (hex strings) shared by Home Manager desktop themes and greetd. |
 
 ## `mkSystem` Evaluation API

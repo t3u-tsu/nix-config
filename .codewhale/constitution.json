@@ -4,7 +4,7 @@
   "escalate_when": [
     "main へのマージまたはリモート main へのプッシュ",
     "nixos-rebuild switch の適用",
-    "新ホストの追加 (SOPS / Nebula 設定を含む)",
+    "新ホストの追加 (agenix / Nebula 設定を含む)",
     "シークレット・認証情報の変更",
     "実機の不可逆操作 (パーティション変更，フォーマット，fwupdmgr によるファームウェア更新)"
   ],

@@ -12,6 +12,7 @@ in
     services.openssh = {
       enable = true;
       ports = [ 22 ];
+      openFirewall = !cfg.restrictAccess;
       settings = {
         PermitRootLogin = "no";
         PasswordAuthentication = false;

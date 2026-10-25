@@ -1,89 +1,88 @@
 # シークレット・認証トラブルシューティング
 
-SOPS (sops-nix) 復号エラー，プライベートリポジトリ (`nix-config-private`) 認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
+agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-config-private`) 認証失敗，activation 失敗による emergency mode 突入時の切り分けと脱出手順．
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
-| SOPS 復号エラー (`failed to decrypt`) | ホスト age 鍵の不一致，`key.txt` のパーミッション・欠落 | `ssh-to-age` で鍵突合，[.sops.yaml](../../.sops.yaml) 更新，`sops updatekeys` |
+| agenix 復号エラー (`failed to decrypt`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記，rekey 漏れ | `ssh-to-age` で公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret-rekey` |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
 ---
 
-## 1. SOPS 復号失敗時の原因切り分け
+## 1. agenix 復号失敗時の原因切り分け
 
 ### 現象・エラーメッセージ
-- `sops-install-secrets: error: failed to decrypt ...`
+- `[agenix] decrypting ... failed`
 - `Error decrypting file: None of the keys could decrypt the message`
-- システムの activation 時に `activationScripts "0-sops-key-import" failed` または `sops-install-secrets.service` が失敗する．
+- システムの activation 時に `agenix.service` または `activationScripts` が失敗する．
+- `/run/agenix/` 配下にシークレットファイルが生成されない．
 - ユーザーのログイン時にパスワードが認識されない (`hashedPasswordFile` の読み込み失敗)．
 
 ### 原因
 
 | 原因 | 内容と影響 |
 | :--- | :--- |
-| ホスト秘密鍵の欠落・権限不正 | `/var/lib/sops-nix/key.txt` が存在しない，空である，または権限が `0600` 以外になっている． |
-| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が [.sops.yaml](../../.sops.yaml) や暗号化ファイルの recipient と乖離している． |
-| recipient 更新漏れ | 新ホストの公開鍵を [.sops.yaml](../../.sops.yaml) に追加したものの `sops updatekeys` を実行しておらず，[secrets/common.yaml](../../secrets/common.yaml) や `secrets/hosts/<hostname>.yaml` の暗号化メタデータにホスト鍵が含まれていない． |
+| SSH ホスト秘密鍵の欠落・権限不正 | `/etc/ssh/ssh_host_ed25519_key` が存在しない，空である，または権限が `0600` 以外になっている． |
+| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` と乖離している． |
+| 再暗号化 (rekey) 漏れ | 新規シークレットの追加やホスト公開鍵の変更後に `just secret-rekey` を実行しておらず，`secrets/rekeyed/hosts/<hostname>/` の暗号化ファイルが更新されていない． |
 
 ### 切り分け・復旧手順
 
 ```mermaid
 flowchart TD
-    Start["復号エラー発生"] --> Step1["ホストの age 鍵を確認<br>ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"]
-    Step1 --> Step2{".sops.yaml の登録鍵と一致するか？"}
-    Step2 -->|"No (鍵が変わっている)"| Fix1[".sops.yaml の &hostname 鍵を更新<br>master 鍵で sops updatekeys を実行"]
-    Step2 -->|"Yes"| Step3{"/var/lib/sops-nix/key.txt は存在するか？"}
-    Step3 -->|"No / 壊れている"| Fix2["ssh-to-age で秘密鍵から key.txt を再生成<br>chmod 600 設定"]
-    Step3 -->|"Yes"| Step4{"対象 YAML の recipient に鍵が含まれているか？"}
-    Step4 -->|"No"| Fix3["master 鍵で対象 YAML を sops updatekeys"]
+    Start["復号エラー発生"] --> Step1["ホストの age 鍵を確認<br>ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"]
+    Step1 --> Step2{"hosts/<hostname>/default.nix の<br>age.rekey.hostPubkey と一致するか？"}
+    Step2 -->|"No (鍵が変わっている)"| Fix1["default.nix の hostPubkey を更新<br>管理端末で just secret-rekey を実行"]
+    Step2 -->|"Yes"| Step3{"/etc/ssh/ssh_host_ed25519_key は<br>存在し 0600 か？"}
+    Step3 -->|"No / 権限不正"| Fix2["chmod 600 設定<br>または秘密鍵を再配置"]
+    Step3 -->|"Yes"| Step4{"secrets/rekeyed/hosts/<hostname>/ は<br>最新の鍵で再暗号化されているか？"}
+    Step4 -->|"No"| Fix3["管理端末で just secret-rekey を実行してコミット"]
     Step4 -->|"Yes"| OK["復号テスト成功"]
 ```
 
 #### Step 1: ホストの age 公開鍵を確認
 対象マシン上で SSH ホスト鍵から age 公開鍵を導出する:
 ```bash
-sudo ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
+sudo ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
 # 出力例: age1...
 ```
 
-#### Step 2: [.sops.yaml](../../.sops.yaml) の登録情報と突合
-リポジトリルートの [.sops.yaml](../../.sops.yaml) を開き，Step 1 で得られた公開鍵と一致しているか確認する (アンカー名はハイフンがアンダースコア，例: `&shosoin_tan`, `&torii_chan`):
-```bash
-grep -i -A 2 "&$(printf '%s' '<hostname>' | tr '-' '_')" .sops.yaml
-```
-鍵が異なる場合 (再インストール等)，[.sops.yaml](../../.sops.yaml) の鍵記述を新しい公開鍵へ更新する．
-
-#### Step 3: `/var/lib/sops-nix/key.txt` の確認・手動生成
-[nixos/security/sops.nix](../../nixos/security/sops.nix) の activation スクリプト `0-sops-key-import` が何らかの理由で実行されなかった場合，手動で age 秘密鍵を配置する:
-```bash
-sudo mkdir -p /var/lib/sops-nix
-sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key | sudo tee /var/lib/sops-nix/key.txt >/dev/null
-sudo chmod 600 /var/lib/sops-nix/key.txt
+#### Step 2: `hosts/<hostname>/default.nix` の登録情報と突合
+`hosts/<hostname>/default.nix` を開き，`age.rekey.hostPubkey` が Step 1 で得られた公開鍵と一致しているか確認する．
+鍵が異なる場合 (再インストール等)，`age.rekey.hostPubkey` の記述を新しい公開鍵へ更新する:
+```nix
+age.rekey.hostPubkey = "age1...";
 ```
 
-#### Step 4: master 鍵によるファイルの再暗号化
-管理端末で `master_key` を指定し，該当ホストのシークレット，共通シークレット，および当該ホストが受信していたサービスシークレットの recipient を更新する:
+#### Step 3: `/etc/ssh/ssh_host_ed25519_key` の確認・権限修正
+ホスト秘密鍵が存在し，パーミッションが `0600` に設定されているか確認する:
 ```bash
-export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
+sudo ls -la /etc/ssh/ssh_host_ed25519_key
+sudo chmod 600 /etc/ssh/ssh_host_ed25519_key
+```
 
-# ホスト個別ファイル・共通ファイル・該当サービスファイルの更新
-sops updatekeys secrets/hosts/<hostname>.yaml
-sops updatekeys secrets/common.yaml
-sops updatekeys secrets/services/<service>.yaml  # 例: shosoin-tan なら backup.yaml, minecraft.yaml
+#### Step 4: 管理端末での再暗号化 (`just secret-rekey`)
+管理端末で Bitwarden をアンロックし，全ホスト向けシークレットを再暗号化する:
+```bash
+just secret-rekey
 
-# recipients 整合性の検証 (対象ホストの公開鍵が recipient に正しく反映されているか確認)
-git diff secrets/
+# 再暗号化差分の確認 (対象ホストの暗号化ファイルが更新されていることを確認)
+git diff secrets/rekeyed/hosts/<hostname>/
 
 # 変更をコミット
-git add .sops.yaml secrets/
-git commit -m "fix(secrets): update age recipients for <hostname>"
+git add hosts/<hostname>/default.nix secrets/rekeyed/hosts/<hostname>/
+git commit -m "fix(secrets): update rekeyed secrets for <hostname>"
 ```
 
 #### Step 5: 復号テスト
 対象ホスト上で復号できることを確認する:
 ```bash
-sudo SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d secrets/hosts/<hostname>.yaml
+# 対象ホストに設定を適用
+sudo nixos-rebuild switch --flake .#<hostname>
+
+# /run/agenix/ 配下に平文が展開されているか確認
+sudo ls -la /run/agenix/
 ```
 
 ---
@@ -109,16 +108,16 @@ sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/know
 ```
 
 #### Step 2: デプロイキーの配備
-[secrets/common.yaml](../../secrets/common.yaml) に含まれる読み取り専用デプロイキーを抽出して配置する (`master_key` または既存の `/var/lib/sops-nix/key.txt` を使用):
+再暗号化済みシークレットから読み取り専用デプロイキーを復号して配置する (対象ホストの SSH ホスト秘密鍵または作業端末の SSH 鍵を使用):
 ```bash
-sudo bash -c 'SOPS_AGE_KEY_FILE=/var/lib/sops-nix/key.txt sops -d \
-  --extract "[\"nix_config_private_deploy_key\"]" \
-  secrets/common.yaml' \
+# 対象ホスト上で SSH ホスト秘密鍵を用いて復号する場合 (Live USB レスキュー時は /mnt/etc/ssh/... を指定)
+sudo age -d -i /etc/ssh/ssh_host_ed25519_key \
+  secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
   | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
 sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
 ```
 > [!TIP]
-> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵 (`~/.ssh/id_ed25519`) を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．
+> 作業端末から直接セットアップする場合は，作業機の SSH 秘密鍵 (`~/.ssh/id_ed25519`) を一時的に `/root/.ssh/nix-config-private_deploy_key` へコピーして代用してもよい．また Master 秘密鍵がある場合は `secrets/master/common/deploy_key.age` を直接復号できる．
 
 #### Step 3: 一時 SSH エイリアスの設定
 ```bash
@@ -155,7 +154,7 @@ Give root password for maintenance (or press Control-D to continue):
 ```
 
 ### 原因
-システムの activation スクリプト (シークレット復号，ユーザー・グループ作成，ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも SOPS 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
+システムの activation スクリプト (シークレット復号，ユーザー・グループ作成，ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも agenix 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
 
 ### 切り分け・復旧手順
 
@@ -205,9 +204,9 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
 ---
 
 ## 関連ドキュメント
-- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — SOPS / age 鍵管理と Nebula 証明書ローテーション
+- [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
 - [新規ホスト追加手順](../operations/adding-a-host.md) — 新規マシンの追加・初期セットアップ手順
 - [緊急時システム復旧・レスキューガイド](emergency-recovery.md) — 世代ロールバック，インストーラ USB レスキュー手順
-- [SOPS 設計リファレンス](../../secrets/README.md) — 鍵階層，シークレット暗号化モデル，ファイル構成
-- [SOPS モジュール実装](../../nixos/security/sops.nix) — 本リポジトリの sops-nix 共通モジュール定義
+- [シークレット設計リファレンス](../../secrets/README.md) — 鍵階層，シークレット暗号化モデル，ファイル構成
+- [agenix モジュール実装](../../nixos/security/agenix.nix) — 本リポジトリの agenix 共通モジュール定義
 - [プライベートリポジトリ認証モジュール](../../nixos/base/private-config.nix) — nix-config-private フェッチ用 SSH エイリアス設定

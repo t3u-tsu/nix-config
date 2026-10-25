@@ -166,7 +166,7 @@ write_configuration() {
     enable = true;
     settings = {
       PermitRootLogin = "prohibit-password";
-      PasswordAuthentication= [redacted]
+      PasswordAuthentication = false;
     };
   };
   users.users.root.openssh.authorizedKeys.keys = [${nix_keys} ];

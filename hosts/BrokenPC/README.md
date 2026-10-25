@@ -26,7 +26,7 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 | **Profile** | `desktop` |
 | **Nebula Mesh** | `10.0.0.100` (groups: `mgmt`, `app`) |
 | **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
-| **Key Services** | Local LLM inference server (`my.home.programs.llama`), SOPS secrets |
+| **Key Services** | Local LLM inference server (`my.home.programs.llama`), agenix secrets |
 
 ## Host Services & Modules
 

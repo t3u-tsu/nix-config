@@ -14,8 +14,9 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
+    agenix.url = "github:ryantm/agenix";
+    agenix-rekey = {
+      url = "github:oddlama/agenix-rekey";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-index-database = {
@@ -96,6 +97,7 @@
       { ... }:
       {
         imports = [
+          inputs.agenix-rekey.flakeModule
           ./flake/lib.nix
           ./flake/overlays.nix
           ./flake/hosts.nix

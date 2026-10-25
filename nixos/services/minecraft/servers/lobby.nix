@@ -41,11 +41,11 @@ in
         "plugins/ViaBackwards.jar" = common.plugins.viabackwards.src;
         "plugins/GSit.jar" = common.plugins.gsit.src;
         "plugins/LunaChat.jar" = common.plugins.lunachat.src;
-        "velocity-forwarding.secret" = config.sops.secrets.minecraft_forwarding_secret.path;
+        "velocity-forwarding.secret" = cfg.forwardingSecretPath;
       };
 
       files = {
-        "plugins/LunaChat/config.yml".value = common.lunachat.config.lunaChatConfig;
+        "plugins/LunaChat/config.yml".value = common.lunachat;
         "config/paper-world-defaults.yml".value = {
           entities = {
             spawning = {
@@ -76,7 +76,7 @@ in
         fi
 
         ${common.mkPaperGlobalPreStart {
-          secretPath = config.sops.secrets.minecraft_forwarding_secret.path;
+          secretPath = cfg.forwardingSecretPath;
         }}
       '';
     };

@@ -32,7 +32,7 @@ in
 
     # Wayland + fcitx5 wants the GTK/Qt IM modules unset to avoid warnings.
     # mkForce overrides what Home Manager's own i18n module sets.
-    home.sessionVariables = {
+    home.sessionVariables = mkIf (cfg.inputMethod == "fcitx5") {
       GTK_IM_MODULE = mkForce "";
       QT_IM_MODULE = mkForce "";
       XMODIFIERS = mkForce "@im=fcitx";

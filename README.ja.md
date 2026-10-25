@@ -22,7 +22,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 | エディタ | Neovim |
 | ブラウザ | Zen Browser |
 | カラーテーマ | Vesper |
-| シークレット管理 | SOPS (sops-nix) + age |
+| シークレット管理 | agenix-rekey + agenix + age |
 | メッシュ VPN | Nebula |
 | バックアップ | Restic + ZFS Mirror |
 | IaC | OpenTofu |
@@ -35,7 +35,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 - [nixos/](nixos/) — 全ホスト共通のシステムレベル NixOS モジュール群
 - [home/](home/) — Home Manager ユーザー環境モジュール群
 - [hosts/](hosts/) — マシン固有の設定・ハードウェア定義
-- [secrets/](secrets/) — SOPS で暗号化された秘密情報
+- [secrets/](secrets/) — agenix-rekey で暗号化された秘密情報
 - [scripts/](scripts/) — クラスタ運用・保守スクリプト
 - [terraform/](terraform/) — ConoHa VPS インフラの OpenTofu 定義
 - [docs/](docs/) — 設計仕様，運用手順書，ハードウェア解説，障害復旧手順
@@ -75,7 +75,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 ## 新規ホストの追加
 
-新規ホストのセットアップ手順は [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) を参照 ([hosts/_template/](hosts/_template) の複製，SOPS age 鍵登録，Nebula 証明書発行，デプロイ検証)．
+新規ホストのセットアップ手順は [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) を参照 ([hosts/_template/](hosts/_template) の複製，agenix ホスト鍵登録，Nebula 証明書発行，デプロイ検証)．
 
 ## CI/CD & 自動化
 

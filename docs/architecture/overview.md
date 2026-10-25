@@ -11,7 +11,7 @@
 | [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
 | [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
-| [secrets/](../../secrets/) | SOPS で暗号化された秘密情報 (ホスト固有およびクラスタ共通シークレット)． |
+| [secrets/](../../secrets/) | agenix-rekey で暗号化された秘密情報 (マスターおよびホスト・ユーザー別再暗号化シークレット)． |
 | [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (Nebula 証明書運用，パスワード生成等)． |
 | [terraform/](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
 | `docs/` | システム全体の設計仕様，運用手順書，ハードウェア解説，障害復旧手順． |
@@ -38,8 +38,8 @@ flake.nix
            specialArgs = { inputs };        # 全モジュールから inputs を直接参照可能
            modules = [
              { my.user.name = username; }
-             sops-nix / home-manager / nix-index-database のモジュール
-             home-manager 共通設定 (sharedModules: nix-index, sops)
+             agenix / agenix-rekey / home-manager / nix-index-database のモジュール
+             home-manager 共通設定 (sharedModules: nix-index, agenix, agenix-rekey)
              nixpkgs.overlays
              ../nixos                        # システム共通モジュール群 (基盤，セキュリティ，サービス等)
              ../nixos/profiles/${profile}    # プロファイル (desktop, tower-server, gateway 等)
@@ -60,7 +60,7 @@ flake.nix
 ```text
 mkLib.mkSystem によるモジュール合成
  ├─ nixos/                    # システム共通モジュール群 (直接注入)
- │   ├─ base, security (SOPS), dev-tools, environment, hardware
+ │   ├─ base, security (agenix), dev-tools, environment, hardware
  │   ├─ networking, services, virtualisation
  │   └─ ../home/              # Home Manager 共通設定
  │
