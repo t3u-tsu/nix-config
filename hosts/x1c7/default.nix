@@ -14,7 +14,7 @@
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen
   ];
 
-  age.rekey.hostPubkey = "age1q2gscmkrdze86dyllp3h8x7j4t7duu903d3mt3p44jnq4c6ujcrq96nu37";
+  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDEWwvK68f2ofCLbl6W1v5O7dL5Xe9YGhK7HS5aX+2rZ";
 
   boot = {
     kernelPackages = pkgs.linuxPackages_xanmod;
@@ -70,9 +70,9 @@
   };
 
   home-manager.users.${config.my.user.name} = {
-    # Home-manager secrets are decrypted with the user's SSH key, so they rekey
-    # to the age pubkey derived from it rather than the host key.
-    age.rekey.hostPubkey = "age156tpcw4l8kppamvgusqwt3dsdm3ehk094ge5rl99v80yq4d475ks9jhnyu";
+    # Home-manager secrets are decrypted with the user's ~/.ssh/id_ed25519,
+    # so agenix needs that public key, not the host key.
+    age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcgVKvJVkA7KBmdO7ogwb5v9f1qUGOCiKu1CHpOLjYU";
     my.home.desktop = {
       noctalia.wallpaperPreset = "minimal";
 

@@ -4,7 +4,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
-| agenix 復号エラー (`failed to decrypt`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記，rekey 漏れ | `ssh-to-age` で公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret-rekey` |
+| agenix 復号エラー (`failed to decrypt` / `no identity matched`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記 (`age1...` 指定等)，rekey 漏れ | `cat /etc/ssh/ssh_host_ed25519_key.pub` で SSH 公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret-rekey` |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
@@ -14,6 +14,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 
 ### 現象・エラーメッセージ
 - `[agenix] decrypting ... failed`
+- `age: error: no identity matched any of the recipients`
 - `Error decrypting file: None of the keys could decrypt the message`
 - システムの activation 時に `agenix.service` または `activationScripts` が失敗する．
 - `/run/agenix/` 配下にシークレットファイルが生成されない．
@@ -24,16 +25,16 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 | 原因 | 内容と影響 |
 | :--- | :--- |
 | SSH ホスト秘密鍵の欠落・権限不正 | `/etc/ssh/ssh_host_ed25519_key` が存在しない，空である，または権限が `0600` 以外になっている． |
-| age 公開鍵の不一致 | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key` が再生成され，そこから導出される age 鍵が `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` と乖離している． |
+| SSH ホスト公開鍵の不一致・形式誤り | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key.pub` が再生成され，`hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` と乖離している，または `ssh-ed25519 ...` ではなく `age1...` 形式で指定されている (`agenix` は復号時に SSH 秘密鍵を直接 `age -i` に渡すため，SSH 公開鍵そのものを指定する必要がある)． |
 | 再暗号化 (rekey) 漏れ | 新規シークレットの追加やホスト公開鍵の変更後に `just secret-rekey` を実行しておらず，`secrets/rekeyed/hosts/<hostname>/` の暗号化ファイルが更新されていない． |
 
 ### 切り分け・復旧手順
 
 ```mermaid
 flowchart TD
-    Start["復号エラー発生"] --> Step1["ホストの age 鍵を確認<br>ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub"]
+    Start["復号エラー発生"] --> Step1["ホストの SSH 公開鍵を確認<br>cat /etc/ssh/ssh_host_ed25519_key.pub"]
     Step1 --> Step2{"hosts/<hostname>/default.nix の<br>age.rekey.hostPubkey と一致するか？"}
-    Step2 -->|"No (鍵が変わっている)"| Fix1["default.nix の hostPubkey を更新<br>管理端末で just secret-rekey を実行"]
+    Step2 -->|"No (鍵が変わっている / age1... 形式)"| Fix1["default.nix の hostPubkey を ssh-ed25519 ... に更新<br>管理端末で just secret-rekey を実行"]
     Step2 -->|"Yes"| Step3{"/etc/ssh/ssh_host_ed25519_key は<br>存在し 0600 か？"}
     Step3 -->|"No / 権限不正"| Fix2["chmod 600 設定<br>または秘密鍵を再配置"]
     Step3 -->|"Yes"| Step4{"secrets/rekeyed/hosts/<hostname>/ は<br>最新の鍵で再暗号化されているか？"}
@@ -41,18 +42,18 @@ flowchart TD
     Step4 -->|"Yes"| OK["復号テスト成功"]
 ```
 
-#### Step 1: ホストの age 公開鍵を確認
-対象マシン上で SSH ホスト鍵から age 公開鍵を導出する:
+#### Step 1: ホストの SSH 公開鍵を確認
+対象マシン上で SSH ホスト公開鍵を確認する:
 ```bash
-sudo ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-# 出力例: age1...
+cat /etc/ssh/ssh_host_ed25519_key.pub
+# 出力例: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...
 ```
 
 #### Step 2: `hosts/<hostname>/default.nix` の登録情報と突合
-`hosts/<hostname>/default.nix` を開き，`age.rekey.hostPubkey` が Step 1 で得られた公開鍵と一致しているか確認する．
-鍵が異なる場合 (再インストール等)，`age.rekey.hostPubkey` の記述を新しい公開鍵へ更新する:
+`hosts/<hostname>/default.nix` を開き，`age.rekey.hostPubkey` が Step 1 で確認した SSH 公開鍵 (`ssh-ed25519 ...`) と一致しているか確認する．
+鍵が異なる場合 (再インストール等) や `age1...` になっている場合は，`age.rekey.hostPubkey` の記述を SSH 公開鍵へ更新する:
 ```nix
-age.rekey.hostPubkey = "age1...";
+age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
 ```
 
 #### Step 3: `/etc/ssh/ssh_host_ed25519_key` の確認・権限修正

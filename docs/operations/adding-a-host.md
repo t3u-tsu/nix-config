@@ -45,14 +45,14 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 ### Step 3: ホスト公開鍵の登録と初期シークレットのステージング
 
-1. 新マシンの SSH ホスト公開鍵 (`/etc/ssh/ssh_host_ed25519_key.pub`) からホスト age 公開鍵を取得する．
+1. 新マシンの SSH ホスト公開鍵 (`/etc/ssh/ssh_host_ed25519_key.pub`) を取得する．
    ```bash
-   ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-   # 出力例: age1...
+   cat /etc/ssh/ssh_host_ed25519_key.pub
+   # 出力例: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...
    ```
-2. `hosts/<hostname>/default.nix` にホスト公開鍵を登録する．
+2. `hosts/<hostname>/default.nix` に SSH ホスト公開鍵を登録する．
    ```nix
-   age.rekey.hostPubkey = "age1...";
+   age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
    ```
 3. ユーザーおよび root の初期パスワードハッシュをステージングする．
    ```bash
@@ -200,11 +200,11 @@ sudo mkdir -p /mnt/etc/ssh
 sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
 sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
 
-# age 公開鍵を取得
-ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
+# SSH ホスト公開鍵を取得
+cat /mnt/etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-取得した age 公開鍵を管理作業機の `hosts/<hostname>/default.nix` に `age.rekey.hostPubkey` として登録し，管理作業機側で `just secret-rekey` を実行して Git にコミットする．
+取得した SSH ホスト公開鍵 (`ssh-ed25519 ...`) を管理作業機の `hosts/<hostname>/default.nix` に `age.rekey.hostPubkey` として登録し，管理作業機側で `just secret-rekey` を実行して Git にコミットする．
 これにより `secrets/rekeyed/hosts/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群が用意されるため，追加の秘密鍵コピーは不要である．
 
 ### Step 3: プライベート Flake 入力用 deploy key の配置

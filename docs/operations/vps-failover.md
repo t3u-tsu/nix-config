@@ -84,7 +84,7 @@ sudo chmod 600 /etc/ssh/ssh_host_ed25519_key
 これにより，リポジトリ内の既存再暗号化ファイル (`nebula_key.age`，`cloudflare_api_env.age` 等) をそのまま復号でき，シークレットの再暗号化やコミットなしで即時に立ち上げられる．
 
 #### パターン B: 新規ホスト鍵を生成する場合
-VPS の `/etc/ssh/ssh_host_ed25519_key.pub` から `ssh-to-age` で公開鍵を取得し，管理端末で `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` を更新して `just secret-rekey` を実行し，Git コミットする．
+VPS の `/etc/ssh/ssh_host_ed25519_key.pub` から SSH ホスト公開鍵 (`cat /etc/ssh/ssh_host_ed25519_key.pub`) を取得し，管理端末で `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` を更新して `just secret-rekey` を実行し，Git コミットする．
 
 ### Step 4: ネットワーク設定の反映とゲートウェイ構成の適用
 1. `hosts/torii-chan/vps.nix` 内の `wanIp` および `wanGateway` を ConoHa で割り当てられた値へ書き換える．

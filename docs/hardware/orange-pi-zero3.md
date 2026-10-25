@@ -126,11 +126,11 @@ sudo dd if=result-sd-image/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M 
 #### Step 2: インストーラ起動と SSH 接続
 Orange Pi Zero3 に SD を挿入して起動する．静的 LAN IP (`192.168.0.128`) が割り当てられるため，`result-sd-temp-password.txt` の一時パスワードで SSH ログインする．
 
-#### Step 3: SSH ホスト鍵から age 鍵を導出
+#### Step 3: SSH ホスト公開鍵の取得と登録
 ```bash
-ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+cat /etc/ssh/ssh_host_ed25519_key.pub
 ```
-得られた公開鍵を `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` へ登録し，`just secret-rekey` を実行してコミットする．
+得られた SSH 公開鍵 (`ssh-ed25519 ...`) を `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` へ登録し，`just secret-rekey` を実行してコミットする．
 
 #### Step 4: 本番 SD 構成への切り替え
 ```bash
