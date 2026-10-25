@@ -13,7 +13,7 @@ graph TD
     end
 
     subgraph Layer2 ["第 2 防御層: 作業端末 RAM (一時展開)"]
-        Tmpfs["/run/user/[uid]/agenix/master-key.txt<br>(RAM tmpfs / chmod 0600 / trap 自動消去)"]
+        Tmpfs["/run/agenix-master/master-key.txt<br>(noswap tmpfs / chmod 0400 / trap 自動消去)"]
         BW -->|bw get item / notes| Tmpfs
     end
 
@@ -38,7 +38,7 @@ graph TD
 
 | 鍵の種別 | 配置場所 | 権限範囲 | 用途 |
 | :--- | :--- | :--- | :--- |
-| Master 鍵 | Bitwarden (`nix-config/agenix-master-key`) / RAM tmpfs (`/run/user/<uid>/agenix/master-key.txt`) | 全マスター暗号化ファイルの復号・再暗号化 | 新ホスト追加，鍵の更新，マスターファイルの編集 |
+| Master 鍵 | Bitwarden (`nix-config/agenix-master-key`) / RAM tmpfs (`/run/agenix-master/master-key.txt`) | 全マスター暗号化ファイルの復号・再暗号化 | 新ホスト追加，鍵の更新，マスターファイルの編集 |
 | ホスト鍵 | `/etc/ssh/ssh_host_ed25519_key` (公開鍵は `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey`) | 当該ホスト専用 (`secrets/rekeyed/hosts/<hostname>/*.age`) | 起動時の自動復号，ホスト常駐サービス用クレデンシャルの配置 (`/run/agenix/`) |
 | ユーザー SSH 鍵 | Bitwarden (`nix-config/ssh/<hostname>`) / 開発端末 (`~/.ssh/id_ed25519`) | リモートホストへの SSH 接続，Git 操作，home-manager シークレットの復号 | 運用者認証，home-manager シークレットの配布，ディザスタリカバリ時の SSH 鍵復旧 |
 
@@ -64,7 +64,7 @@ nix-config/                          # ルートフォルダ
 
 ### 1.2 RAM tmpfs 一時展開と自動消去
 
-[scripts/secret.ysh](../../scripts/secret.ysh) および [scripts/agenix-bw-lib.ysh](../../scripts/agenix-bw-lib.ysh) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/user/<uid>/agenix/master-key.txt`) へパーミッション `0600` で展開する．シェルの `trap` (EXIT/INT/TERM) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．ディスクへの秘密鍵書き込みは発生しない．
+[scripts/secret.ysh](../../scripts/secret.ysh) および [scripts/agenix-bw-lib.ysh](../../scripts/agenix-bw-lib.ysh) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/agenix-master/master-key.txt`) へパーミッション `0400` で展開する．[nixos/security/agenix.nix](../../nixos/security/agenix.nix) は `/run/agenix-master` に `noswap` 付きの専用 tmpfs をマウントし，スクリプトは systemd user scope (`MemorySwapMax=0`) で再実行されるため，秘密鍵がスワップやディスクへ流出しない．シェルの `trap` (EXIT/INT/TERM/HUP/QUIT) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．`tmpfs` 以外の領域は `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1` を明示しない限り拒否し，デフォルトの `/run/agenix-master` が `noswap` でない場合は処理を中止する．
 
 ---
 

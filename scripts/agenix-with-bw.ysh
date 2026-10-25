@@ -7,14 +7,18 @@
 #   ysh scripts/agenix-with-bw.ysh edit secrets/master/example.age
 #
 # The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt
-# (default: $XDG_RUNTIME_DIR/agenix/master-key.txt, mode 0600) and deleted on
-# exit. Configure agenix-rekey with the same path, for example:
-#   age.rekey.masterIdentities = [ "/run/user/<uid>/agenix/master-key.txt" ];
+# (default: /run/agenix-master/master-key.txt, mode 0400) and deleted on exit.
+# The default directory is the dedicated noswap tmpfs that
+# nixos/security/agenix.nix mounts; keep age.rekey.masterIdentities pointed at
+# the same path.
 #
 # Environment: BW_MASTER_KEY_ITEM, BW_MASTER_KEY_FIELD, AGENIX_MASTER_KEY_DIR,
-# and AGENIX_CMD (default: agenix).
+# AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE, AGENIX_REQUIRE_SWAP_GUARD, and
+# AGENIX_CMD (default: agenix).
 
 source $_this_dir/agenix-bw-lib.ysh
+
+agenix_bw_swap_guard $0 @[ARGV]
 
 var agenix_cmd = get(ENV, 'AGENIX_CMD', 'agenix')
 

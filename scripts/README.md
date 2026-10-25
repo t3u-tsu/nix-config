@@ -19,7 +19,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 ## Secret CLI
 
-`secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. A missing `BW_SESSION` or a locked vault triggers `bw unlock` only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+`secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. An empty `BW_SESSION` triggers `bw unlock` only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
 
 ```bash
 # Rekey every host (all arguments are passed to agenix)
@@ -80,7 +80,12 @@ BW_MASTER_KEY_ITEM=agenix-master-key \
   ysh scripts/agenix-with-bw.ysh rekey -a
 ```
 
-Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The file is created with mode 0600 and removed on exit, including on SIGINT/SIGTERM.
+Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The default
+is the dedicated noswap tmpfs at `/run/agenix-master`; the file is created with
+mode 0400 and removed on exit, including on signals (EXIT/INT/TERM/HUP/QUIT). The wrapper
+re-executes itself under a systemd user scope with `MemorySwapMax=0`; set
+`AGENIX_REQUIRE_SWAP_GUARD=1` to fail closed when that scope cannot be entered.
+Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
 
 ## Other Workflows
 

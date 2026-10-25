@@ -36,7 +36,7 @@ Access control uses four distinct layers:
 | Layer | Environment | Storage / Mechanism | Purpose |
 | :--- | :--- | :--- | :--- |
 | Layer 1: Bitwarden Vault | Bitwarden (`nix-config/`) | Secure Notes & SSH Keys | Offline isolation of `agenix-master-key`, `nebula-ca/ca.key`, and workstation SSH keys (`ssh/<hostname>`). |
-| Layer 2: Ephemeral RAM | Workstation (`/run/user/<uid>/agenix/`) | tmpfs mode 0600 & exit trap | Ephemeral identity storage during operator commands. Discarded immediately on exit. |
+| Layer 2: Ephemeral RAM | Workstation (`/run/agenix-master/`) | Dedicated noswap tmpfs, key mode 0400 & exit trap | Ephemeral identity storage during operator commands. Discarded immediately on exit. |
 | Layer 3: agenix-rekey | Git repository (`secrets/master/`) | Nix module dependency resolution | Resolves host bindings and rekeys master secrets per target host. |
 | Layer 4: Target Runtime | Fleet machines (`/run/agenix/`) | SSH host key (`/etc/ssh/ssh_host_ed25519_key`) or user SSH key (`~/.ssh/id_ed25519`) | Decrypts only the host's `secrets/rekeyed/hosts/<hostname>/*.age` files and the user's `secrets/rekeyed/home/<hostname>/<username>/*.age` files. |
 

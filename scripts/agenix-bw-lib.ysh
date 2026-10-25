@@ -9,17 +9,29 @@
 #                          runs when stdin is a TTY.
 #   BW_MASTER_KEY_ITEM     Item name (default: agenix-master-key).
 #   BW_MASTER_KEY_FIELD    notes, password, or a custom field name (default: notes).
-#   AGENIX_MASTER_KEY_DIR  Identity directory (default: $XDG_RUNTIME_DIR/agenix).
+#   AGENIX_MASTER_KEY_DIR  Identity directory (default: /run/agenix-master,
+#                          the noswap tmpfs mounted by nixos/security/agenix.nix).
+#   AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE
+#                          Set to 1 to allow an unhardened (non-tmpfs or
+#                          swappable) identity directory.
+#   AGENIX_REQUIRE_SWAP_GUARD
+#                          Set to 1 to abort instead of continuing when the
+#                          no-swap systemd scope cannot be entered.
 #
 # The identity is written to $AGENIX_MASTER_KEY_DIR/master-key.txt with mode
-# 0600. One EXIT trap removes it and any in-flight temporary files; INT/TERM
-# exit through that trap.
+# 0400. EXIT/INT/TERM/HUP/QUIT traps remove it. Call
+# `agenix_bw_swap_guard $0 @[ARGV]` immediately after sourcing so the process
+# tree runs in a systemd scope with swap disabled.
+
+ulimit -c 0
+umask 077
 
 var agenix_bw_session = get(ENV, 'BW_SESSION', '')
 var agenix_bw_session_from_env = agenix_bw_session !== ''
 var agenix_bw_identity = ''
 var agenix_bw_key_dir = ''
 var agenix_bw_key_path = ''
+var agenix_bw_tmp_path = ''
 var agenix_bw_item_raw = ''
 var agenix_bw_item_name = ''
 var agenix_bw_temp_files = []
@@ -30,20 +42,17 @@ func agenix_bw_command_exists(name) {
   return (_error.code === 0)
 }
 
-proc agenix_bw_require(name) {
-  if (not agenix_bw_command_exists(name)) {
-    echo $"ERROR: required tool '${name}' not found. Run within nix develop, or add it to PATH." >&2
-    exit 1
-  }
-}
-
 proc agenix_bw_cleanup() {
-  for path in (agenix_bw_temp_files) {
-    try { rm -f -- $path }
+  if (agenix_bw_tmp_path !== '') {
+    try { rm -f -- $agenix_bw_tmp_path }
   }
   if (agenix_bw_key_path !== '') {
     try { rm -f -- $agenix_bw_key_path }
   }
+  for path in (agenix_bw_temp_files) {
+    try { rm -f -- $path }
+  }
+  setglobal agenix_bw_identity = ''
 }
 
 proc agenix_bw_install_cleanup_trap() {
@@ -54,6 +63,117 @@ proc agenix_bw_install_cleanup_trap() {
   trap --add EXIT { agenix_bw_cleanup }
   trap --add INT { exit 130 }
   trap --add TERM { exit 143 }
+  trap --add HUP { exit 129 }
+  trap --add QUIT { exit 131 }
+}
+
+proc agenix_bw_die(msg) {
+  echo $"ERROR: ${msg}" >&2
+  exit 1
+}
+
+# Longest-prefix mount lookup from /proc/mounts. Kernel escapes whitespace in
+# mount points, so paths containing spaces safely fall back to "/".
+func agenix_bw_mount_entry(path) {
+  var mounts = ''
+  try { read --all (&mounts) < /proc/mounts }
+  if failed {
+    return (null)
+  }
+  var best = null
+  for line in (mounts.split(u'\n')) {
+    var fields = line.split(u' ')
+    if (len(fields) < 4) {
+      continue
+    }
+    var point = fields[1]
+    var matches = false
+    if (point === '/') {
+      setvar matches = path.startsWith('/')
+    } elif (path === point or path.startsWith(point ++ '/')) {
+      setvar matches = true
+    }
+    if (matches) {
+      if (best === null) {
+        setvar best = { point: point, fstype: fields[2], options: fields[3] }
+      } elif (len(point) > len(best.point)) {
+        setvar best = { point: point, fstype: fields[2], options: fields[3] }
+      }
+    }
+  }
+  return (best)
+}
+
+func agenix_bw_mount_has_option(entry, name) {
+  if (entry === null) {
+    return (false)
+  }
+  for opt in (entry.options.split(u',')) {
+    if (opt === name) {
+      return (true)
+    }
+  }
+  return (false)
+}
+
+func agenix_bw_forbidden_key_dir(dir) {
+  for bad in (['/', '/run', '/dev', '/dev/shm', '/tmp', '/var', '/home']) {
+    if (dir === bad) {
+      return (true)
+    }
+  }
+  return (false)
+}
+
+func agenix_bw_safe_key_dir(dir) {
+  var entry = agenix_bw_mount_entry(dir)
+  if (entry === null) {
+    return (false)
+  }
+  return (entry.fstype === 'tmpfs')
+}
+
+# Re-exec under a systemd user scope with MemorySwapMax=0 so neither the
+# identity file nor the process memory can reach unencrypted swap.
+proc agenix_bw_swap_guard(caller, ...args) {
+  if (get(ENV, 'AGENIX_SWAP_GUARD', '') === '1') {
+    return
+  }
+  var failure = ''
+  try { command -v systemd-run >/dev/null }
+  if failed {
+    setvar failure = 'systemd-run not found'
+  }
+  var ysh_exe = ''
+  if (failure === '') {
+    try { setvar ysh_exe = $(command -v ysh) }
+    if failed {
+      setvar failure = 'cannot locate ysh'
+    }
+  }
+  if (failure === '') {
+    try {
+      exec systemd-run --user --scope --quiet --setenv=AGENIX_SWAP_GUARD=1 \
+        -p MemorySwapMax=0 -- $ysh_exe $caller @[args]
+    }
+    if failed {
+      setvar failure = 'could not enter a no-swap systemd scope'
+    }
+  }
+  if (failure !== '') {
+    if (get(ENV, 'AGENIX_REQUIRE_SWAP_GUARD', '') === '1') {
+      echo $"ERROR: ${failure}; refusing to expose the master identity to swap" >&2
+      exit 1
+    }
+    echo $"WARN: ${failure}; the master identity may be swappable" >&2
+  }
+}
+
+proc agenix_bw_require(name) {
+  if (not agenix_bw_command_exists(name)) {
+    echo $"ERROR: required tool '${name}' not found. Run within nix develop, or add it to PATH." >&2
+    exit 1
+  }
 }
 
 func agenix_bw_parent_dir(path) {
@@ -128,6 +248,7 @@ proc agenix_bw_unlock() {
   }
   setglobal agenix_bw_session = unlocked
   setglobal agenix_bw_session_from_env = false
+  setglobal ENV.BW_SESSION = agenix_bw_session
 }
 
 proc agenix_bw_session_init() {
@@ -162,6 +283,7 @@ proc agenix_bw_session_init() {
   if (state !== 'unlocked') {
     echo $"WARN: unexpected Bitwarden status '${state}'; using the stored session." >&2
   }
+  setglobal ENV.BW_SESSION = agenix_bw_session
 }
 
 proc agenix_bw_load_item(; candidates) {
@@ -241,41 +363,93 @@ proc agenix_bw_fetch_identity() {
     exit 1
   }
   setglobal agenix_bw_identity = identity
+  setglobal agenix_bw_item_raw = ''
+  setvar text = ''
+  setvar item = null
 }
 
 proc agenix_bw_install_identity() {
-  var runtime_dir = get(ENV, 'XDG_RUNTIME_DIR', '')
-  if (runtime_dir === '') {
-    setvar runtime_dir = '/run/user/' ++ $(id -u)
+  var requested_dir = get(ENV, 'AGENIX_MASTER_KEY_DIR', '')
+  var key_dir = requested_dir
+  if (key_dir === '') {
+    setvar key_dir = '/run/agenix-master'
   }
-  var dir_override = get(ENV, 'AGENIX_MASTER_KEY_DIR', '')
-  if (dir_override !== '') {
-    setglobal agenix_bw_key_dir = dir_override
-  } else {
-    setglobal agenix_bw_key_dir = runtime_dir ++ '/agenix'
+  if (not key_dir.startsWith('/')) {
+    agenix_bw_die $"identity directory must be absolute: ${key_dir}"
   }
-  if (not agenix_bw_key_dir.startsWith('/')) {
-    echo $"ERROR: AGENIX_MASTER_KEY_DIR must be an absolute path, got '${agenix_bw_key_dir}'." >&2
-    exit 1
+  for part in (key_dir.split(u'/')) {
+    if (part === '..') {
+      agenix_bw_die $"identity directory must not contain '..': ${key_dir}"
+    }
   }
+  try { test -L $key_dir }
+  if (_error.code === 0) {
+    agenix_bw_die $"refusing symlinked identity directory: ${key_dir}"
+  }
+
+  var canonical = ''
+  try { setvar canonical = $(realpath -m -- $key_dir) }
+  if failed {
+    agenix_bw_die $"cannot resolve identity directory: ${key_dir}"
+  }
+  setvar key_dir = canonical.trim()
+  if (agenix_bw_forbidden_key_dir(key_dir)) {
+    agenix_bw_die $"refusing to use system directory as identity storage: ${key_dir}"
+  }
+  var allow_unsafe = get(ENV, 'AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE', '') === '1'
+  if (not agenix_bw_safe_key_dir(key_dir) and not allow_unsafe) {
+    var entry = agenix_bw_mount_entry(key_dir)
+    var fstype = 'unknown'
+    if (entry !== null) {
+      setvar fstype = entry.fstype
+    }
+    agenix_bw_die $"refusing non-tmpfs identity directory: ${key_dir} (${fstype}); set AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1 to override"
+  }
+
+  try { test -d $key_dir }
+  if failed {
+    try { mkdir -p $key_dir }
+    if failed {
+      agenix_bw_die $"cannot create ${key_dir}; apply nixos/security/agenix.nix or set AGENIX_MASTER_KEY_DIR"
+    }
+  }
+  try { test -w $key_dir }
+  if failed {
+    agenix_bw_die $"${key_dir} is not writable; apply nixos/security/agenix.nix or set AGENIX_MASTER_KEY_DIR"
+  }
+  try { setvar canonical = $(realpath -m -- $key_dir) }
+  if failed {
+    agenix_bw_die $"cannot resolve identity directory: ${key_dir}"
+  }
+  setvar key_dir = canonical.trim()
+  if (not agenix_bw_safe_key_dir(key_dir) and not allow_unsafe) {
+    agenix_bw_die $"refusing non-tmpfs identity directory: ${key_dir}"
+  }
+  chmod 700 $key_dir
+
+  setglobal agenix_bw_key_dir = key_dir
   setglobal agenix_bw_key_path = agenix_bw_key_dir ++ '/master-key.txt'
 
-  agenix_bw_install_cleanup_trap
-  mkdir -p $agenix_bw_key_dir
-  chmod 700 $agenix_bw_key_dir
+  var mount_entry = agenix_bw_mount_entry(key_dir)
+  if (not agenix_bw_mount_has_option(mount_entry, 'noswap')) {
+    if (key_dir === '/run/agenix-master' and not allow_unsafe) {
+      agenix_bw_die $"default identity directory ${key_dir} is not mounted with noswap; apply nixos/security/agenix.nix or set AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1"
+    }
+    echo $"WARN: ${key_dir} is not mounted with noswap; the master identity may be swappable" >&2
+  }
 
-  var tmp = $(mktemp -- $"${agenix_bw_key_dir}/master-key.XXXXXX")
-  call agenix_bw_temp_files->append(tmp)
-  try { write -- $agenix_bw_identity > $tmp }
-  if failed {
-    echo 'ERROR: cannot write the master identity to tmpfs.' >&2
-    exit 1
+  agenix_bw_install_cleanup_trap
+
+  setglobal agenix_bw_tmp_path = $(mktemp -- $"${agenix_bw_key_dir}/master-key.XXXXXX")
+  if (agenix_bw_tmp_path === '') {
+    agenix_bw_die $"cannot create a temporary file in ${key_dir}"
   }
-  try { chmod 600 $tmp; mv -f -- $tmp $agenix_bw_key_path }
-  if failed {
-    echo $"ERROR: cannot install the master identity at ${agenix_bw_key_path}." >&2
-    exit 1
-  }
+  write -- $agenix_bw_identity > $agenix_bw_tmp_path
+  chmod 400 $agenix_bw_tmp_path
+  mv -f -- $agenix_bw_tmp_path $agenix_bw_key_path
+  setglobal agenix_bw_tmp_path = ''
+  chmod 400 $agenix_bw_key_path
+  setglobal agenix_bw_identity = ''
 }
 
 proc agenix_bw_encrypt_file(; source, target, recipient) {
