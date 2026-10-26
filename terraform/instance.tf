@@ -1,5 +1,5 @@
 # Boot volume (30GB).
-# Note: NixOS is later installed over the disk via a rescue ISO (scripts/nixos-iso.sh),
+# Note: NixOS is later installed over the disk via a rescue ISO (scripts/nixos-iso.ysh),
 #       so here we temporarily deploy the ConoHa stock OS (Debian 12) to establish an SSH path.
 resource "conohavps_volume" "boot" {
   name        = "${var.instance_name}-boot"

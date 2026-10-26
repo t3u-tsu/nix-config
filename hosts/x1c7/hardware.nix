@@ -1,10 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
-
-{
+_: {
   boot = {
     initrd.availableKernelModules = [
       "xhci_pci"
@@ -12,9 +6,7 @@
       "usb_storage"
       "sd_mod"
     ];
-    initrd.kernelModules = [ ];
     kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [ ];
 
     # Arch Wiki's zram tuning; the NixOS reclaim defaults are late enough that
     # rustc/nix builds drove this 16 GiB machine into OOM.

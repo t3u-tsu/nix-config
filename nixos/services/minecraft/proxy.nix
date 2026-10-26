@@ -5,7 +5,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.minecraft;
   serverMapping = {
@@ -14,7 +13,7 @@ let
   };
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.minecraft-servers.servers.velocity = {
       enable = true;
       package = pkgs.velocity-server;

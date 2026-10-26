@@ -17,8 +17,9 @@ description: 外部 Flake パッケージ導入時の follows 制約と，extra-
 
 | priority | キャッシュ区分 | 対象キャッシュ |
 | :--- | :--- | :--- |
-| `30` | 個別ツール枠 (公式キャッシュの `40` より優先) | `niri`, `noctalia` |
-| `41` | コミュニティ枠 (公式キャッシュの直後) | `nix-community` |
-| `45` | 特定用途枠 | `ezkea` (aagl ゲームランチャー) |
+| `30` | 個別ツール枠 (公式キャッシュの `40` より優先) | `noctalia` (`noctalia.cachix.org`) |
+| `41` | コミュニティ枠 (公式キャッシュの直後) | `nix-community` (`nix-community.cachix.org`) |
+| `42` | AI エージェント・ツール枠 | `llm-agents.nix` (`cache.numtide.com`) |
+| `45` | 特定用途枠 | `ezkea` (`ezkea.cachix.org`, aagl ゲームランチャー) |
 
 `extra-substituters` と `extra-trusted-public-keys` のリスト順序は完全に一致させる．[nixos/base/nix.nix](../../../nixos/base/nix.nix) で一括管理し，外部 Flake の `nixConfig` (`nix.settings = <flake>.nixConfig;`)は参照しない．substituter URL と trusted-public-keys を [nixos/base/nix.nix](../../../nixos/base/nix.nix) に明示し，優先度と順序を揃える．

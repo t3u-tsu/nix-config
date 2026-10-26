@@ -1,5 +1,4 @@
-{ config, lib, ... }:
-{
+_: {
   # Disk layout. Start from `nixos-generate-config --root /mnt --dir /tmp/nixos`
   # and keep only fileSystems / swapDevices, switching device paths to stable
   # by-id names (`lsblk -o NAME,PATH,UUID`). Device-specific tuning belongs in

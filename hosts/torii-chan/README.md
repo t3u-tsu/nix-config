@@ -34,7 +34,7 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | File | Description | Target / Role |
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | Shared gateway host definition (host key, emergency SSH); platform wiring comes from the modules selected in [flake/hosts.nix](../../flake/hosts.nix). | Shared by SBC and VPS targets |
-| [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP, emergency SSH). | `torii-chan-hdd`, `torii-chan-sd` |
+| [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP). | `torii-chan-hdd`, `torii-chan-sd` |
 | [vps.nix](vps.nix) | Hardware and networking layer for ConoHa VPS failover instance. | `torii-chan-vps` |
 | [fs-hdd.nix](fs-hdd.nix) | Filesystem declarations for USB SATA HDD root deployment. | `torii-chan-hdd` |
 | [fs-sd.nix](fs-sd.nix) | Filesystem declarations for MicroSD root deployment. | `torii-chan-sd` |

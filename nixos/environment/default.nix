@@ -1,26 +1,31 @@
-{ config, lib, ... }:
+{ lib, ... }:
 
-with lib;
-
-let
-  cfg = config.my.packages;
-in
 {
   options.my.packages = {
-    core.enable = mkEnableOption "Core packages and shell integration" // {
+    core.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Core packages and shell integration";
     };
-    monitoring.enable = mkEnableOption "Monitoring and hardware tools" // {
+    monitoring.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Monitoring and hardware tools";
     };
-    network-tools.enable = mkEnableOption "Networking utilities" // {
+    network-tools.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Networking utilities";
     };
-    data.enable = mkEnableOption "Data processing tools" // {
+    data.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Data processing tools";
     };
-    security.enable = mkEnableOption "Security and encryption tools" // {
+    security.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Security and encryption tools";
     };
   };
 

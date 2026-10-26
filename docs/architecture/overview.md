@@ -7,7 +7,7 @@
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
 | `flake/` | flake-parts サブモジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
-| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数および共通カラーパレット (`palette.nix`)． |
+| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，および agenix マスター識別子 (`agenix.nix`)． |
 | [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
 | [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
@@ -28,7 +28,7 @@ flake.nix
  │           flake/packages.nix, flake/dev.nix
  │
  ├─ flake/lib.nix      → flake.lib.mkLib (lib/default.nix を inputs + overlays 付きで import)
- ├─ flake/overlays.nix → flake.overlays.default (nix-minecraft, niri, unstable 等)
+ ├─ flake/overlays.nix → flake.overlays.default (nix-minecraft, nur, unstable 等)
  ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
  ├─ flake/packages.nix → torii-chan-vps-iso (mkSystem のビルド成果物)
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells

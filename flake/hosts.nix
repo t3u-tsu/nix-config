@@ -32,7 +32,6 @@ in
       ];
     };
 
-    # Production on the physical SBC (HDD root)
     "torii-chan-hdd" = mkToriiChan {
       system = "aarch64-linux";
       extraModules = [
@@ -41,7 +40,6 @@ in
       ];
     };
 
-    # Production on SD card (no HDD)
     "torii-chan-sd" = mkToriiChan {
       system = "aarch64-linux";
       extraModules = [
@@ -50,7 +48,6 @@ in
       ];
     };
 
-    # VPS failover host
     "torii-chan-vps" = mkToriiChan {
       system = "x86_64-linux";
       extraModules = [
@@ -58,7 +55,6 @@ in
       ];
     };
 
-    # === Tower Servers ===
     "shosoin-tan" = mkLib.mkSystem {
       name = "shosoin-tan";
       username = "t3u";
@@ -80,7 +76,6 @@ in
       profile = "tower-server";
     };
 
-    # === Desktop ===
     "BrokenPC" = mkLib.mkSystem {
       name = "BrokenPC";
       username = "t3u";

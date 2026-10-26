@@ -4,7 +4,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.browsers;
 in
@@ -17,19 +16,21 @@ in
   ];
 
   options.my.home.desktop.browsers = {
-    enable = mkEnableOption "Web browsers";
-    zen.enable = mkOption {
-      type = types.bool;
+    enable = lib.mkEnableOption "Web browsers";
+    zen.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Enable Zen Browser.";
     };
-    chromium.enable = mkOption {
-      type = types.bool;
+    chromium.enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "Enable Chromium.";
     };
   };
 
-  config = mkIf (cfg.enable && cfg.zen.enable) {
-    my.home.desktop.browsers.userscripts.enable = mkDefault true;
-    my.home.desktop.browsers.bitwarden.enable = mkDefault true;
+  config = lib.mkIf (cfg.enable && cfg.zen.enable) {
+    my.home.desktop.browsers.userscripts.enable = lib.mkDefault true;
+    my.home.desktop.browsers.bitwarden.enable = lib.mkDefault true;
   };
 }

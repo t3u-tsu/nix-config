@@ -4,16 +4,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.graphics;
 in
 {
   options.my.services.desktop.graphics = {
-    enable = mkEnableOption "Desktop graphics (redistributable firmware + 32-bit GPU support)";
+    enable = lib.mkEnableOption "Desktop graphics (redistributable firmware + 32-bit GPU support)";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     hardware = {
       enableRedistributableFirmware = true;
       graphics = {

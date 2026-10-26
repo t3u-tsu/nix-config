@@ -25,8 +25,7 @@ Tower server for compilation, GPU compute, and off-site Restic backup reception 
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [services/default.nix](services/default.nix) | Host service aggregator importing Nebula overlay, emergency SSH, and enabling the Restic backup receiver. | `my.services.backup.receiver.enable = true;` |
-| [services/emergency-ssh.nix](services/emergency-ssh.nix) | Out-of-band emergency SSH access via Cloudflare Tunnel. | `my.services.emergencySsh.enable = true;` |
+| [services/default.nix](services/default.nix) | Host service aggregator importing Nebula overlay and enabling the Restic backup receiver (`my.services.emergencySsh.enable = true;` is enabled by the `tower-server` profile). | `my.services.backup.receiver.enable = true;` |
 | [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.3`, group `mgmt` |
 
 ## Backup Storage

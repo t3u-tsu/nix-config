@@ -5,32 +5,32 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.theme;
+  palette = import ../../lib/palette.nix;
 in
 {
   options.my.home.desktop.theme = {
-    enable = mkEnableOption "System-wide Dark Theme and Desktop Appearance";
+    enable = lib.mkEnableOption "System-wide Dark Theme and Desktop Appearance";
     cursor = {
-      name = mkOption {
-        type = types.str;
-        default = "Bibata-Modern-Amber";
+      name = lib.mkOption {
+        type = lib.types.str;
+        default = palette.cursor.name or "Bibata-Modern-Amber";
         description = "Cursor theme, shared with the Niri compositor.";
       };
-      size = mkOption {
-        type = types.int;
-        default = 24;
+      size = lib.mkOption {
+        type = lib.types.int;
+        default = palette.cursor.size or 24;
         description = "Cursor size in pixels.";
       };
     };
   };
 
-  config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      bibata-cursors
-      papirus-icon-theme
-      qt6Packages.qt6ct
+  config = lib.mkIf cfg.enable {
+    home.packages = [
+      pkgs.bibata-cursors
+      pkgs.papirus-icon-theme
+      pkgs.qt6Packages.qt6ct
     ];
 
     # Neutral Adwaita-shaped base; Noctalia's gtk3/gtk4 templates paint the

@@ -6,7 +6,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
   dsh = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.dsh;
@@ -17,7 +16,7 @@ let
   '';
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.packages = [
       dsh
       deepseek-harness-alias

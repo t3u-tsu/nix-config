@@ -16,6 +16,11 @@
   err = "#ff8080";
   link = "#80b3ff";
 
+  cursor = {
+    name = "Bibata-Modern-Amber";
+    size = 24;
+  };
+
   # Material roles without a counterpart above; the greeter needs the complete
   # Vesper set, and the "on_*" contrast partners are all black.
   on_primary = "#000000";

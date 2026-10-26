@@ -15,7 +15,6 @@ System-level background daemons, hardware integration, and policy managers for t
 | [graphics.nix](graphics.nix) | Mesa OpenGL/Vulkan hardware acceleration and 32-bit runtime libraries. | Core (`desktop.enable`) |
 | [networkmanager.nix](networkmanager.nix) | NetworkManager daemon and polkit permission delegation. | Core (`desktop.enable`) |
 | [chromium.nix](chromium.nix) | Declarative managed policies written to `/etc/chromium/policies/managed`. | Core (`desktop.enable`) |
-| [bitwarden.nix](bitwarden.nix) | System-level Bitwarden desktop and CLI packages. | Core (`desktop.enable`) |
 | [gaming.nix](gaming.nix) | Steam hardware udev rules, GameMode daemon, and offload launchers. | Full (`full.enable`) |
 | [unity.nix](unity.nix) | Rootless Podman container support backing the Unity development environment. | Full (`full.enable`) |
 | [default.nix](default.nix) | Aggregator declaring `my.services.desktop.enable` and `full.enable` aggregate options. | — |

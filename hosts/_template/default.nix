@@ -17,7 +17,8 @@
   networking.hostName = "HOSTNAME";
 
   # Host-specific overrides. Evaluation order is profile -> hosts/<name> ->
-  # extraModules (later wins, see AGENTS.md), so mkForce/mkDefault work here.
+  # extraModules (later wins, see docs/architecture/overview.md), so
+  # mkForce/mkDefault work here.
   my = {
     # Enable role-specific functionality, e.g.
     #   services.minecraft.enable = true;

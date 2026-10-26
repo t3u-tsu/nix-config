@@ -4,16 +4,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.chromium;
 in
 {
   options.my.services.desktop.chromium = {
-    enable = mkEnableOption "Chromium system-managed policies (default-browser, sync)";
+    enable = lib.mkEnableOption "Chromium system-managed policies (default-browser, sync)";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # Linux Chromium reads managed policies only from a root-owned
     # /etc/chromium/policies/managed; a user-level ~/.config path is not a
     # managed location (a user could overwrite it), so keep it system-scoped.

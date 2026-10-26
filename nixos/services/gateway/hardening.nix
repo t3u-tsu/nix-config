@@ -1,12 +1,10 @@
 { config, lib, ... }:
 
-with lib;
-
 let
   cfg = config.my.services.gateway;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     boot.kernel.sysctl = {
       "kernel.kptr_restrict" = 2;
       "kernel.dmesg_restrict" = 1;

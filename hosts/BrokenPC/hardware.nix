@@ -1,5 +1,4 @@
-{ config, lib, ... }:
-{
+_: {
   # NVMe SSD (512GB) - System
   fileSystems = {
     "/boot" = {

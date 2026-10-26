@@ -5,20 +5,19 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.creative;
 in
 {
   options.my.home.desktop.creative = {
-    enable = mkEnableOption "Creative tools";
+    enable = lib.mkEnableOption "Creative tools";
   };
 
-  config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      gimp
-      obs-studio
-      blender
+  config = lib.mkIf cfg.enable {
+    home.packages = [
+      pkgs.gimp
+      pkgs.obs-studio
+      pkgs.blender
     ];
   };
 }

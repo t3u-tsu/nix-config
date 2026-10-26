@@ -1,5 +1,4 @@
 #!/usr/bin/env ysh
-# vim: set ft=sh:
 #
 # Generate the SSH host key in the installation target for age rekeying.
 #

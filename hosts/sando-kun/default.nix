@@ -8,7 +8,6 @@
     ./services
   ];
 
-  # TODO: replace with /etc/ssh/ssh_host_ed25519_key.pub when booting the host.
   age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAMe7717AIRVTyKqmOBy3Vl7Hv+t1W8mDCPgsz48HVcj";
 
   boot.loader.grub = {

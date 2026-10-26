@@ -87,8 +87,9 @@ Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
 
 ```bash
 # Prompt for user password (with confirmation), hash with yescrypt (independent salts per host),
-# and write master secrets (supports specific hosts or --all, and optional -u/--user)
+# and write master secrets (supports specific hosts or --all)
 just secret-set-host-password --all
+just secret-set-host-password BrokenPC x1c7
 # or: ysh scripts/secrets/set-host-password.ysh BrokenPC x1c7
 
 # Propagate the new hashes into secrets/rekeyed/hosts/

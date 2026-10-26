@@ -5,16 +5,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.gpg-signing;
 in
 {
   options.my.home.desktop.gpg-signing = {
-    enable = mkEnableOption "GPG signing with an agenix-managed key";
+    enable = lib.mkEnableOption "GPG signing with an agenix-managed key";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     programs = {
       gpg.enable = true;
 

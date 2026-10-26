@@ -5,8 +5,6 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.my.virtualisation.microvm;
 in
@@ -16,10 +14,10 @@ in
   ];
 
   options.my.virtualisation.microvm = {
-    enable = mkEnableOption "MicroVM guest virtualization runner";
+    enable = lib.mkEnableOption "MicroVM guest virtualization runner";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     microvm.host.enable = true;
   };
 }

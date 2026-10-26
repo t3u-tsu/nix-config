@@ -5,15 +5,17 @@
   ...
 }:
 
-with lib;
 {
   imports = [
     inputs.unity-via-distrobox.homeModules.unity
   ];
 
-  config = mkIf config.my.home.desktop.full.enable {
+  options.my.home.desktop.dev-tools.unity.enable =
+    lib.mkEnableOption "Unity development environment via Distrobox";
+
+  config = lib.mkIf config.my.home.desktop.dev-tools.unity.enable {
     my.unity = {
-      enable = mkDefault true;
+      enable = lib.mkDefault true;
       stopOnExit = true;
       minimizeToTray = false;
     };

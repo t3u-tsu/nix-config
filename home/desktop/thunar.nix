@@ -5,26 +5,20 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.thunar;
 in
 {
   options.my.home.desktop.thunar = {
-    enable = mkEnableOption "File manager";
+    enable = lib.mkEnableOption "File manager";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # gvfs / tumbler / xfconf come from the system module
     # (nixos/services/desktop/thunar.nix).
 
     home = {
-      packages = with pkgs; [
-        file-roller # GUI Archive Manager required by thunar-archive-plugin
-        unzip
-        zip
-        p7zip
-      ];
+      packages = [ pkgs.file-roller ];
 
       # ghostty's single-instance mode ignores the working directory of a new
       # launch, so --working-directory is required here. Thunar quotes %f.

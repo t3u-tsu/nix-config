@@ -6,7 +6,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.niri;
 in
@@ -16,10 +15,12 @@ in
   ];
 
   options.my.services.desktop.niri = {
-    enable = mkEnableOption "Niri scrollable-tiling Wayland compositor";
+    enable = lib.mkEnableOption "Niri scrollable-tiling Wayland compositor";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
+    niri-flake.cache.enable = false;
+
     programs = {
       niri = {
         enable = true;

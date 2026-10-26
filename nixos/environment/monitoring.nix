@@ -5,12 +5,11 @@
   ...
 }:
 
-with lib;
 let
   pkgCfg = config.my.packages.monitoring;
 in
 {
-  config = mkIf pkgCfg.enable {
+  config = lib.mkIf pkgCfg.enable {
     environment.systemPackages = with pkgs; [
       btop
       duf

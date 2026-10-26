@@ -5,7 +5,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.minecraft;
   common = import ./common.nix { inherit pkgs lib; };
@@ -31,7 +30,7 @@ let
   } serverProperties;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.minecraft-servers.servers.nitac23s = {
       enable = true;
       package = pkgs.paperServers.paper;
@@ -57,14 +56,15 @@ in
       environment.LD_LIBRARY_PATH = common.ldLibraryPath;
 
       preStart = lib.mkAfter ''
-        RCON_PASS=$(cat ${cfg.rconSecretPath})
+        RCON_PASS=$(cat "${cfg.rconSecretPath}")
 
         if [ -L server.properties ]; then rm server.properties; fi
 
-        cat <<EOF > server.properties
+        (umask 0077; cat <<EOF > server.properties
         ${staticProps}
         rcon.password=$RCON_PASS
         EOF
+        )
         chown minecraft:minecraft server.properties
         chmod 600 server.properties
 

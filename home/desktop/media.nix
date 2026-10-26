@@ -6,45 +6,44 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.media;
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   palette = import ../../lib/palette.nix;
-  nohash = s: removePrefix "#" s;
+  nohash = s: lib.removePrefix "#" s;
 in
 {
   options.my.home.desktop.media = {
-    enable = mkEnableOption "Media players and entertainment tools";
+    enable = lib.mkEnableOption "Media players and entertainment tools";
   };
 
   imports = [
     inputs.spicetify-nix.homeManagerModules.default
   ];
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # Spicetify: declaratively-patched Spotify. No dynamic theme sync with
     # Noctalia (build-time embedding), so the Vesper palette is baked in.
     programs.spicetify = {
       enable = true;
       theme = spicePkgs.themes.comfy;
       colorScheme = "custom";
-      customColorScheme = with palette; {
-        text = nohash fg;
-        subtext = nohash fg2;
-        main = nohash bg;
-        sidebar = nohash bg;
-        player = nohash bg;
-        card = nohash card;
-        shadow = nohash bg;
-        selected-row = nohash fg;
-        button = nohash primary;
-        button-active = nohash primary;
-        button-disabled = nohash primary;
-        tab-active = nohash bg;
-        notification = nohash tertiary;
-        notification-error = nohash err;
-        misc = nohash bg;
+      customColorScheme = {
+        text = nohash palette.fg;
+        subtext = nohash palette.fg2;
+        main = nohash palette.bg;
+        sidebar = nohash palette.bg;
+        player = nohash palette.bg;
+        card = nohash palette.card;
+        shadow = nohash palette.bg;
+        selected-row = nohash palette.fg;
+        button = nohash palette.primary;
+        button-active = nohash palette.primary;
+        button-disabled = nohash palette.primary;
+        tab-active = nohash palette.bg;
+        notification = nohash palette.tertiary;
+        notification-error = nohash palette.err;
+        misc = nohash palette.bg;
       };
       enabledExtensions = with spicePkgs.extensions; [
         fullAppDisplay
@@ -54,8 +53,6 @@ in
       ];
     };
 
-    home.packages = with pkgs; [
-      vlc
-    ];
+    home.packages = [ pkgs.vlc ];
   };
 }

@@ -1,20 +1,16 @@
-{ lib, config, ... }:
+{ config, lib, ... }:
 
-with lib;
 let
   cfg = config.my.dev-tools.wch-linke;
 in
 {
   options.my.dev-tools.wch-linke = {
-    enable = mkEnableOption "WCH-LinkE programming/debugging udev rules";
+    enable = lib.mkEnableOption "WCH-LinkE programming/debugging udev rules";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.udev.extraRules = ''
-      # WCH-LinkE in RISC-V mode
       SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="8010", GROUP="dialout", MODE="0660"
-
-      # WCH-LinkE in ARM mode
       SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="8012", GROUP="dialout", MODE="0660"
     '';
   };

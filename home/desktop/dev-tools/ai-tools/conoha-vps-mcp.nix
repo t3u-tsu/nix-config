@@ -5,21 +5,32 @@
   ...
 }:
 
-with lib;
 let
   username = config.home.username;
 
-  # OpenStack credentials stay in the agenix mount; the launcher sources them
+  # OpenStack credentials stay in the agenix mount; the launcher injects them
   # into the MCP server environment instead of baking them into mcp.json.
-  conohaMcpWrapper = pkgs.writeShellApplication {
+  conohaMcpWrapper = pkgs.writeYshApplication {
     name = "conoha-vps-mcp-schema-fix";
     runtimeInputs = [ pkgs.nodejs ];
     text = ''
-      set -a
-      # shellcheck source=/dev/null
-      . "${config.age.secrets.conoha_vps_mcp_credentials.path}"
-      set +a
-      exec node ${./conoha-schema-fix.js}
+      var credentials = ""
+      read --all (&credentials) < ${config.age.secrets.conoha_vps_mcp_credentials.path}
+      for line in (credentials.lines()) {
+        var entry = line.trim()
+        if (len(entry) === 0 or entry.startsWith('#')) { continue }
+        if (entry.startsWith('export ')) { setvar entry = entry[len('export '):] }
+        var eq = entry.find('=')
+        if (eq <= 0) { continue }
+        var name = entry[:eq].trim()
+        var value = entry[eq + 1:].trim()
+        var quote = value[:1]
+        if (len(value) >= 2 and (quote === '"' or quote === "'") and value.endsWith(quote)) {
+          setvar value = value[1:-1]
+        }
+        setglobal ENV[name] = value
+      }
+      exec node ${./conoha-schema-fix.js} @ARGV
     '';
   };
 
@@ -48,9 +59,9 @@ let
   '';
 in
 {
-  config = mkIf config.my.home.desktop.dev-tools.ai-tools.enable {
+  config = lib.mkIf config.my.home.desktop.dev-tools.ai-tools.enable {
     home.packages = [
-      pkgs.nodejs # Required to run conoha-vps-mcp
+      pkgs.nodejs
       conohaMcpWrapper
     ];
 

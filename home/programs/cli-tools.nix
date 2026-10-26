@@ -1,4 +1,7 @@
-_:
+{
+  lib,
+  ...
+}:
 
 {
   programs = {
@@ -27,8 +30,8 @@ _:
 
   home = {
     sessionVariables = {
-      EDITOR = "nvim";
-      VISUAL = "nvim";
+      EDITOR = lib.mkDefault "vim";
+      VISUAL = lib.mkDefault "vim";
     };
     shellAliases = {
       ls = "eza";

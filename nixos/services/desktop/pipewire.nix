@@ -1,15 +1,14 @@
 { lib, config, ... }:
 
-with lib;
 let
   cfg = config.my.services.desktop.pipewire;
 in
 {
   options.my.services.desktop.pipewire = {
-    enable = mkEnableOption "PipeWire audio base";
+    enable = lib.mkEnableOption "PipeWire audio base";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
     services.pipewire = {

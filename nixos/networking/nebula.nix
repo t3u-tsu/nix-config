@@ -4,8 +4,6 @@
 
 { config, lib, ... }:
 
-with lib;
-
 let
   networkName = "nebula0";
   serviceUser = "nebula-${networkName}";
@@ -24,31 +22,31 @@ let
     {
       inherit (r) proto port;
     }
-    // optionalAttrs (r.group != null) { groups = [ r.group ]; }
-    // optionalAttrs (r.host != null) { inherit (r) host; }
-    // optionalAttrs (r.cidr != null) { inherit (r) cidr; }
+    // lib.optionalAttrs (r.group != null) { groups = [ r.group ]; }
+    // lib.optionalAttrs (r.host != null) { inherit (r) host; }
+    // lib.optionalAttrs (r.cidr != null) { inherit (r) cidr; }
   ) cfg.extraInbound;
 in
 {
   options.my.networking.nebula = {
-    enable = mkEnableOption "Nebula mesh VPN (nebula0)";
+    enable = lib.mkEnableOption "Nebula mesh VPN (nebula0)";
 
-    ip = mkOption {
-      type = types.str;
+    ip = lib.mkOption {
+      type = lib.types.str;
       default = "";
       example = "10.0.0.1";
       description = "Nebula IP of this node (must be within the CA network).";
     };
 
-    groups = mkOption {
-      type = types.listOf types.str;
+    groups = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ ];
       example = [ "mgmt" ];
       description = "Nebula groups this node belongs to (zone separation).";
     };
 
-    mtu = mkOption {
-      type = types.int;
+    mtu = lib.mkOption {
+      type = lib.types.int;
       default = 1320;
       description = ''
         Common tun MTU for ALL nodes. In a P2P mesh the sender's tun MTU sets the
@@ -58,26 +56,26 @@ in
       '';
     };
 
-    isLighthouse = mkOption {
-      type = types.bool;
+    isLighthouse = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Whether this node is a Lighthouse (torii-chan).";
     };
 
-    isRelay = mkOption {
-      type = types.bool;
+    isRelay = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Whether this node is a Relay (torii-chan).";
     };
 
-    lighthouse = mkOption {
-      type = types.str;
+    lighthouse = lib.mkOption {
+      type = lib.types.str;
       default = "10.0.0.1";
       description = "Nebula IP of the Lighthouse (torii-chan).";
     };
 
-    advertiseAddrs = mkOption {
-      type = types.listOf types.str;
+    advertiseAddrs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ "torii-chan.t3u.uk:4242" ];
       description = ''
         Addresses the Lighthouse advertises to clients (used to establish P2P).
@@ -86,24 +84,24 @@ in
       '';
     };
 
-    blocklist = mkOption {
-      type = types.listOf types.str;
+    blocklist = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Revoked certificate fingerprints (pki.blocklist). Apply manually to all hosts.";
     };
 
-    extraInbound = mkOption {
+    extraInbound = lib.mkOption {
       description = "Extra inbound Nebula firewall rules (services deployed on this host).";
       default = [ ];
-      type = types.listOf (
-        types.submodule {
+      type = lib.types.listOf (
+        lib.types.submodule {
           options = {
-            port = mkOption {
-              type = types.port;
+            port = lib.mkOption {
+              type = lib.types.port;
               description = "Destination port.";
             };
-            proto = mkOption {
-              type = types.enum [
+            proto = lib.mkOption {
+              type = lib.types.enum [
                 "tcp"
                 "udp"
                 "any"
@@ -111,18 +109,18 @@ in
               default = "tcp";
               description = "Protocol.";
             };
-            group = mkOption {
-              type = types.nullOr types.str;
+            group = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Allow only from the given Nebula group.";
             };
-            host = mkOption {
-              type = types.nullOr types.str;
+            host = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Allow only from this Nebula IP.";
             };
-            cidr = mkOption {
-              type = types.nullOr types.str;
+            cidr = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Allow only from this CIDR.";
             };
@@ -132,7 +130,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.nebula.networks.${networkName} = {
       enable = true;
       inherit (cfg) isLighthouse isRelay;
@@ -142,11 +140,11 @@ in
       cert = ../../hosts/${config.networking.hostName}/nebula.crt;
       key = config.age.secrets.nebula_key.path;
 
-      lighthouses = optional (!cfg.isLighthouse) cfg.lighthouse;
+      lighthouses = lib.optional (!cfg.isLighthouse) cfg.lighthouse;
 
-      relays = optional (!cfg.isLighthouse) cfg.lighthouse;
+      relays = lib.optional (!cfg.isRelay) cfg.lighthouse;
 
-      staticHostMap = optionalAttrs (!cfg.isLighthouse) {
+      staticHostMap = lib.optionalAttrs (!cfg.isLighthouse) {
         "${cfg.lighthouse}" = cfg.advertiseAddrs;
       };
 
@@ -177,7 +175,7 @@ in
           respond = true;
         };
       }
-      // optionalAttrs cfg.isLighthouse { advertise_addrs = cfg.advertiseAddrs; };
+      // lib.optionalAttrs cfg.isLighthouse { advertise_addrs = cfg.advertiseAddrs; };
     };
 
     networking.firewall.trustedInterfaces = [ networkName ];

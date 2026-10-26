@@ -8,8 +8,6 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.my.installer;
   username = config.my.user.name;
@@ -22,18 +20,18 @@ let
 in
 {
   options.my.installer = {
-    enable = mkEnableOption "installer stage: temporary provisioning without production services";
+    enable = lib.mkEnableOption "installer stage: temporary provisioning without production services";
 
     # Both installers must present the production hostname: the agenix secret
     # paths derive from networking.hostName.
-    hostName = mkOption {
-      type = types.str;
+    hostName = lib.mkOption {
+      type = lib.types.str;
       default = "torii-chan";
       description = "Hostname used by the installer environment.";
     };
 
-    temporaryPasswordHash = mkOption {
-      type = types.nullOr types.str;
+    temporaryPasswordHash = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = ''
         Temporary password hash (SHA-512) for the installer environment.
@@ -42,17 +40,14 @@ in
       '';
     };
 
-    authorizedKeys = mkOption {
-      type = types.listOf types.str;
-      default = [
-        # t3u's public key (public data, no private key committed)
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB3QNRSxPauISsWs7nob0tXfxjTsMpBEIYIjasRD9bpT t3u@BrokenPC"
-      ];
+    authorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = config.my.user.authorizedKeys;
       description = "SSH public keys for the installer root user.";
     };
 
-    allowPasswordAuthentication = mkOption {
-      type = types.bool;
+    allowPasswordAuthentication = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = ''
         Allow SSH password authentication. LAN-only installers (SBC) can enable
@@ -61,14 +56,14 @@ in
       '';
     };
 
-    firewallOpenPorts = mkOption {
-      type = types.listOf types.int;
+    firewallOpenPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.int;
       default = [ 22 ];
       description = "TCP ports opened by the installer firewall.";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # The gateway profile sets my.services.gateway.enable = true, so it needs
     # mkForce to stay off in the installer (Nebula / DDNS / NAT are not run).
     my.services.gateway.enable = lib.mkForce false;

@@ -1,5 +1,4 @@
-{ config, lib, ... }:
-{
+_: {
   # Main HDD (250GB) - System
   fileSystems = {
     "/boot" = {

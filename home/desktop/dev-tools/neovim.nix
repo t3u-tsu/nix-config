@@ -1,21 +1,24 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.dev-tools.neovim;
   palette = import ../../../lib/palette.nix;
 in
 {
   options.my.home.desktop.dev-tools.neovim = {
-    enable = mkEnableOption "Neovim text editor";
+    enable = lib.mkEnableOption "Neovim text editor";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
+    home.sessionVariables = {
+      EDITOR = "nvim";
+      VISUAL = "nvim";
+    };
+
     programs.neovim = {
       enable = true;
       viAlias = true;

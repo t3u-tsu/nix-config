@@ -8,6 +8,12 @@
 #   nix build .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage
 
 cd $_this_dir/../.. {
+  try { command -v openssl > /dev/null }
+  if failed {
+    echo 'openssl is required to issue the temporary password' >&2
+    exit 1
+  }
+
   var temp_password = get(ENV, 'TEMP_PASSWORD', '')
   if (temp_password === '') {
     setvar temp_password = $(openssl rand -hex 8)
@@ -15,20 +21,19 @@ cd $_this_dir/../.. {
 
   var password_hash = $(printf '%s\n' $temp_password | openssl passwd -6 -stdin)
 
-  var password_file = 'result-sd-temp-password.txt'
-  umask 077
-  printf 'Temporary password (installer SD root / t3u): %s\n' $temp_password > $password_file
-  printf 'Keep this file somewhere safe after the build and delete it once it is no longer needed.\n' >> $password_file
-
-  echo $"==> Temporary password issued: saved to ${password_file}"
   echo '==> Building SD image (--impure) ...'
   TORII_INSTALLER_TEMP_PASSWORD_HASH=$password_hash \
     nix build --impure .#nixosConfigurations.torii-chan-sd-installer.config.system.build.sdImage \
     -o result-sd-image
 
+  var password_file = 'result-sd-temp-password.txt'
+  umask 077
+  printf 'Temporary password (installer SD root / t3u): %s\n' $temp_password > $password_file
+  printf 'Keep this file somewhere safe after the build and delete it once it is no longer needed.\n' >> $password_file
+
   echo '==> Build complete'
   ls -lh result-sd-image/sd-image/
-  echo $"Check the temporary password at: ${password_file}"
+  echo $"Temporary password saved to: ${password_file}"
   echo 'Flashing example (always verify the device):'
   echo '  lsblk -o NAME,SIZE,MODEL'
   echo '  sudo dd if=result-sd-image/sd-image/nixos-image-sd-card-*.img of=/dev/sdX bs=4M status=progress conv=fsync'

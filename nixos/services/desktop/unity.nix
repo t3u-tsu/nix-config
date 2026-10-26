@@ -5,7 +5,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.unity;
 in
@@ -16,10 +15,10 @@ in
   ];
 
   options.my.services.desktop.unity = {
-    enable = mkEnableOption "Unity Hub & Unity Editor via Distrobox";
+    enable = lib.mkEnableOption "Unity Hub & Unity Editor via Distrobox";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.unity-via-distrobox.enable = true;
   };
 }

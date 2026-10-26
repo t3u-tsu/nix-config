@@ -38,7 +38,7 @@ tofu destroy   # Tear down VPS and stop billing (requires user approval)
 ```
 
 > [!WARNING]
-> Running `tofu apply` incurs monthly/hourly VPS charges. Modifying `admin_password` forces recreation of the VPS instance. State is stored locally in `terraform.tfstate` (excluded by [.gitignore](../.gitignore)).
+> Running `tofu apply` incurs monthly/hourly VPS charges. Modifying `admin_password` forces recreation of the VPS instance. State is stored locally in `terraform.tfstate` (excluded by [.gitignore](.gitignore)).
 
 ## NixOS Installation via Rescue ISO
 
@@ -49,7 +49,7 @@ Boot the custom minimal NixOS ISO through ConoHa API rescue mode:
 tofu apply
 
 # 2. Inject NixOS installer ISO and boot into rescue mode
-./scripts/nixos-iso.ysh install <instance_id> ./nixos-minimal.iso
+./scripts/nixos-iso.ysh install <instance_id> ../result-iso/iso/nixos-*.iso
 
 # 3. Connect via ConoHa VNC Console, configure network, partition, and install NixOS
 #    (See hosts/torii-chan/install-nixos.sh)

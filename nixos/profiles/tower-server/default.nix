@@ -1,4 +1,5 @@
-{ config, ... }:
+{ lib, ... }:
+
 {
   imports = [
     ./boot.nix
@@ -8,18 +9,14 @@
 
   config = {
     my = {
-      user = {
-        # NOTE: keep "wheel" here — setting user.extraGroups replaces the base
-        # default ([ "wheel" ] in nixos/base/user.nix), so omitting it removes
-        # sudo access for the primary user.
-        extraGroups = [
-          "wheel"
-          "video"
-          "render"
-        ];
-      };
+      user.extraGroups = [
+        "video"
+        "render"
+      ];
 
       hardware.pc-tools.enable = true;
+
+      services.emergencySsh.enable = lib.mkDefault true;
     };
   };
 }

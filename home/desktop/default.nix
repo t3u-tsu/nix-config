@@ -4,7 +4,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop;
 in
@@ -28,36 +27,37 @@ in
   ];
 
   options.my.home.desktop = {
-    enable = mkEnableOption "Desktop home-manager configuration (lightweight core)";
+    enable = lib.mkEnableOption "Desktop home-manager configuration (lightweight core)";
 
     full = {
-      enable = mkEnableOption "Full desktop experience (gaming, creative, media, AI and hardware development tools)";
+      enable = lib.mkEnableOption "Full desktop experience (gaming, creative, media, AI and hardware development tools)";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     my.home.desktop = {
-      bitwarden.enable = mkDefault true;
-      browsers.enable = mkDefault true;
-      communication.enable = mkDefault true;
-      theme.enable = mkDefault true;
-      xdg.enable = mkDefault true;
-      locales.enable = mkDefault true;
-      niri.enable = mkDefault true;
-      noctalia.enable = mkDefault true;
-      thunar.enable = mkDefault true;
-      gpg-signing.enable = mkDefault true;
-      dev-tools.enable = mkDefault true;
-      office.enable = mkDefault true;
+      bitwarden.enable = lib.mkDefault true;
+      browsers.enable = lib.mkDefault true;
+      communication.enable = lib.mkDefault true;
+      theme.enable = lib.mkDefault true;
+      xdg.enable = lib.mkDefault true;
+      locales.enable = lib.mkDefault true;
+      niri.enable = lib.mkDefault true;
+      noctalia.enable = lib.mkDefault true;
+      thunar.enable = lib.mkDefault true;
+      gpg-signing.enable = lib.mkDefault true;
+      dev-tools.enable = lib.mkDefault true;
+      office.enable = lib.mkDefault true;
 
-      creative.enable = mkDefault cfg.full.enable;
-      gaming.enable = mkDefault cfg.full.enable;
-      media.enable = mkDefault cfg.full.enable;
+      creative.enable = lib.mkDefault cfg.full.enable;
+      gaming.enable = lib.mkDefault cfg.full.enable;
+      media.enable = lib.mkDefault cfg.full.enable;
     };
 
     my.home.desktop.dev-tools = {
-      ai-tools.enable = mkDefault cfg.full.enable;
-      hardware.enable = mkDefault cfg.full.enable;
+      ai-tools.enable = lib.mkDefault cfg.full.enable;
+      hardware.enable = lib.mkDefault cfg.full.enable;
+      unity.enable = lib.mkDefault cfg.full.enable;
     };
   };
 }

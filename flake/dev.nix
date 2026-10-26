@@ -57,7 +57,57 @@ in
                 for f in (ARGV) {
                   var content = ""
                   read --all (&content) < $f
-                  var fixed = content.replace("、", "，").replace("。", "．")
+                  var lines = content.split(u'\n')
+                  var in_fence = false
+                  var fence = ""
+                  var out = []
+                  for line in (lines) {
+                    var trimmed = line.trim()
+                    var marker = ""
+                    if (len(trimmed) >= 3 and (trimmed[0:3] === '```' or trimmed[0:3] === '~~~')) {
+                      var fence_char = trimmed[0]
+                      var width = 0
+                      while (width < len(trimmed) and trimmed[width] === fence_char) {
+                        setvar width += 1
+                      }
+                      setvar marker = trimmed[0:width]
+                    }
+                    if (in_fence) {
+                      call out->append(line)
+                      if (marker !== "" and marker[0] === fence[0] and len(marker) >= len(fence) and len(marker) === len(trimmed)) {
+                        setvar in_fence = false
+                      }
+                      continue
+                    }
+                    if (marker !== "") {
+                      setvar in_fence = true
+                      setvar fence = marker
+                      call out->append(line)
+                      continue
+                    }
+                    var chunks = []
+                    var in_code = false
+                    var i = 0
+                    while (i < len(line)) {
+                      var is_tick = line[i] === '`'
+                      var j = i
+                      while (j < len(line) and (line[j] === '`') === is_tick) {
+                        setvar j += 1
+                      }
+                      var chunk = line[i:j]
+                      if (is_tick or in_code) {
+                        call chunks->append(chunk)
+                      } else {
+                        call chunks->append(chunk.replace('、', '，').replace('。', '．'))
+                      }
+                      if (is_tick) {
+                        setvar in_code = not in_code
+                      }
+                      setvar i = j
+                    }
+                    call out->append(join(chunks, ""))
+                  }
+                  var fixed = join(out, u'\n')
                   if (fixed !== content) {
                     echo $"FIXED: $f replaced 、。 with ，．"
                     write --end "" -- $fixed > $f
@@ -85,6 +135,7 @@ in
           pkgs.bitwarden-cli
           pkgs.cloudflared
           pkgs.convco
+          pkgs.curl
           pkgs.gh
           pkgs.git
           pkgs.just
@@ -95,6 +146,7 @@ in
           pkgs.nvfetcher
           pkgs.oils-for-unix
           pkgs.opentofu
+          pkgs.openssl
           pkgs.perl
           pkgs.ssh-to-age
         ];
