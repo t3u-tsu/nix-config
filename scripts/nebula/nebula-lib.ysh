@@ -1,6 +1,6 @@
 #!/usr/bin/env ysh
 # Single source of truth for the node list: add a new host here, sign its cert,
-# then re-import it with scripts/nebula-import-secrets.ysh (see
+# then re-import it with scripts/nebula/nebula-import-secrets.ysh (see
 # docs/operations/adding-a-host.md).
 
 const FLEET = [

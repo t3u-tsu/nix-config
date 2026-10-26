@@ -18,7 +18,7 @@ secrets/
 | Directory / File | Scope | Description |
 | :--- | :--- | :--- |
 | `master/common/` | Fleet-wide | Secrets shared across all machines (deploy key for `nix-config-private`). |
-| `master/hosts/<hostname>/` | Host-specific | User password hashes, root password hash, Nebula private keys, emergency tokens. |
+| `master/hosts/<hostname>/` | Host-specific | User password hashes, Nebula private keys, emergency tokens. |
 | `master/services/<service>/` | Service-specific | Service secrets (Cloudflare DDNS, Restic, Discord bridge, commit signing, ConoHa API). |
 | `rekeyed/hosts/<hostname>/` | Host-specific | Auto-generated `<hash>-<name>.age` files encrypted for the target host SSH key. Tracked in Git for offline and CI builds. |
 | `rekeyed/home/<hostname>/<username>/` | Host & user | Auto-generated `<hash>-<name>.age` files encrypted for the user SSH key used by home-manager. Tracked in Git. |
@@ -76,7 +76,8 @@ mkdir -p .secrets-staging/hosts/<hostname>
 echo -n "$SECRET" > .secrets-staging/hosts/<hostname>/user_password_hash
 
 # Preview plan
-ysh scripts/secret.ysh apply-staging --dry-run
+just secret-apply-staging --dry-run
+# or: ysh scripts/secrets/secret.ysh apply-staging --dry-run
 
 # Encrypt, shred plaintext, and rekey
 just secret-apply-staging
@@ -87,7 +88,8 @@ just secret-apply-staging
 Run tool, master identity, and environment health checks:
 
 ```bash
-ysh scripts/secret.ysh doctor
+just secret-doctor
+# or: ysh scripts/secrets/secret.ysh doctor
 ```
 
 ## References

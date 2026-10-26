@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # Lint markdown prose (parentheses, commas, prohibited words, pseudo-headings)
 # and validate relative links and heading anchors.
-# Usage: perl scripts/check-docs.pl [files...]
+# Usage: perl scripts/docs/check-docs.pl [files...]
 use strict;
 use warnings;
 use utf8;

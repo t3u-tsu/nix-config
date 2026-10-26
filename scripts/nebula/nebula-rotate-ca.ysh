@@ -7,14 +7,14 @@
 # passphrase in $CA_DIR/passphrase (chmod 600) is reused.
 #
 # Usage:
-#   ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
+#   ysh scripts/nebula/nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
 #
 #   CA_DIR defaults to ~/.nebula-ca; --prefix is the first
 #   three octets of the new overlay subnet. The node list comes from
-#   scripts/nebula-lib.ysh (FLEET).
+#   scripts/nebula/nebula-lib.ysh (FLEET).
 #
 # Re-importing the new certs into agenix is a separate step:
-#   ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+#   ysh scripts/nebula/nebula-import-secrets.ysh "$CA_DIR"
 #   just secret-rekey
 
 source $_this_dir/nebula-lib.ysh
@@ -42,7 +42,7 @@ func valid_prefix(prefix) {
 }
 
 proc usage() {
-  echo 'usage: ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix A.B.C]'
+  echo 'usage: ysh scripts/nebula/nebula-rotate-ca.ysh [CA_DIR] [--prefix A.B.C]'
   echo ''
   echo '  CA_DIR   output directory (default: ~/.nebula-ca)'
   echo '  --prefix first three octets of the overlay subnet (default: 10.0.0)'
@@ -187,5 +187,5 @@ cd $ca_dir {
 echo
 echo $"== done. Certificates written to ${ca_dir} =="
 echo 'Next, re-import them (uses the Bitwarden master identity):'
-echo $"  ysh scripts/nebula-import-secrets.ysh ${ca_dir}"
+echo $"  ysh scripts/nebula/nebula-import-secrets.ysh ${ca_dir}"
 echo '  just secret-rekey'

@@ -1,4 +1,4 @@
-# Master identity installed by scripts/agenix-with-bw.ysh on the dedicated
+# Master identity installed by scripts/secrets/secret.ysh on the dedicated
 # noswap tmpfs mounted at /run/agenix-master.
 {
   masterIdentity = {

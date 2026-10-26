@@ -155,12 +155,12 @@ Give root password for maintenance (or press Control-D to continue):
 ```
 
 ### 原因
-システムの activation スクリプト (シークレット復号，ユーザー・グループ作成，ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で `users.mutableUsers = false` が設定されており，root パスワードも agenix 経由で設定されるため，シークレット復号失敗により emergency mode に入った場合は root パスワード自体が未設定となり，メンテナンスログインすら受け付けられない状態に陥る．
+システムの activation スクリプト (シークレット復号，ユーザー・グループ作成，ファイル配置等) が非ゼロ終了すると，systemd のブートプロセスが中断して emergency mode へ突入する．本リポジトリでは [nixos/base/user.nix](../../nixos/base/user.nix) で root パスワードは未設定 (アカウントロック) となっており，パスワードによるコンソールメンテナンスログインは行えないため，ブートパラメータによるレスキューシェル起動が必要となる．
 
 ### 切り分け・復旧手順
 
-#### パターン A: メンテナンスログインが可能な場合
-1. root パスワードを入力してシェルに入る．
+#### パターン A: GRUB レスキューシェルによる復旧
+1. 再起動時に GRUB メニューで対象世代を選択し，`e` キーを押してカーネルパラメータ末尾に `init=/bin/sh` を追記してブートする．
 2. 失敗ユニットとエラーログを特定する:
    ```bash
    systemctl --failed
