@@ -64,7 +64,7 @@ nix-config/                          # ルートフォルダ
 
 ### 1.2 RAM tmpfs 一時展開と自動消去
 
-[scripts/secret.ysh](../../scripts/secret.ysh) および [scripts/agenix-bw-lib.ysh](../../scripts/agenix-bw-lib.ysh) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/agenix-master/master-key.txt`) へパーミッション `0400` で展開する．[nixos/security/agenix.nix](../../nixos/security/agenix.nix) は `/run/agenix-master` に `noswap` 付きの専用 tmpfs をマウントし，スクリプトは systemd user scope (`MemorySwapMax=0`) で再実行されるため，秘密鍵がスワップやディスクへ流出しない．シェルの `trap` (EXIT/INT/TERM/HUP/QUIT) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．`tmpfs` 以外の領域は `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1` を明示しない限り拒否し，デフォルトの `/run/agenix-master` が `noswap` でない場合は処理を中止する．
+[scripts/secrets/secret.ysh](../../scripts/secrets/secret.ysh) および [scripts/secrets/agenix-bw-lib.ysh](../../scripts/secrets/agenix-bw-lib.ysh) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/agenix-master/master-key.txt`) へパーミッション `0400` で展開する．[nixos/security/agenix.nix](../../nixos/security/agenix.nix) は `/run/agenix-master` に `noswap` 付きの専用 tmpfs をマウントし，スクリプトは systemd user scope (`MemorySwapMax=0`) で再実行されるため，秘密鍵がスワップやディスクへ流出しない．シェルの `trap` (EXIT/INT/TERM/HUP/QUIT) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．`tmpfs` 以外の領域は `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1` を明示しない限り拒否し，デフォルトの `/run/agenix-master` が `noswap` でない場合は処理を中止する．
 
 ---
 
@@ -108,7 +108,7 @@ secrets/
 
 ## 3. 日常のシークレット運用
 
-シークレット操作は [justfile](../../justfile) または [scripts/secret.ysh](../../scripts/secret.ysh) を通じて実行する．
+シークレット操作は [justfile](../../justfile) または [scripts/secrets/secret.ysh](../../scripts/secrets/secret.ysh) を通じて実行する．
 
 ### 3.1 認証セッションの初期化
 
@@ -142,7 +142,7 @@ just secret-rekey
 just secret-rekey
 
 # キャッシュを無視して全ホストを強制的に再暗号化する場合
-ysh scripts/secret.ysh rekey --force
+ysh scripts/secrets/secret.ysh rekey --force
 ```
 
 ### 3.4 平文ステージングの取り込み
@@ -155,7 +155,7 @@ mkdir -p .secrets-staging/hosts/<hostname>
 echo -n "<password_hash>" > .secrets-staging/hosts/<hostname>/user_password_hash
 
 # 取り込み計画の事前検証 (dry-run)
-ysh scripts/secret.ysh apply-staging --dry-run
+ysh scripts/secrets/secret.ysh apply-staging --dry-run
 
 # 暗号化，平文の shred 削除，および rekey を一括実行
 just secret-apply-staging
@@ -166,7 +166,7 @@ just secret-apply-staging
 必要な CLI ツール，Master 識別子の整合性，Bitwarden 接続状態，およびステージング状態を診断する．
 
 ```bash
-ysh scripts/secret.ysh doctor
+ysh scripts/secrets/secret.ysh doctor
 ```
 
 ---
@@ -199,7 +199,7 @@ nebula-cert sign \
   -out-key "$CA_DIR/<hostname>.key"
 
 # 2. 証明書の公開とノード秘密鍵の暗号化 (Bitwarden の Master 鍵を使用)
-ysh scripts/nebula-import-secrets.ysh "$CA_DIR"
+ysh scripts/nebula/nebula-import-secrets.ysh "$CA_DIR"
 
 # 3. 全ホストを再暗号化
 just secret-rekey
@@ -207,7 +207,7 @@ just secret-rekey
 
 ### 4.3 CA の一括ローテーション
 
-ルート CA を再作成する場合は，[scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，その後 [scripts/nebula-import-secrets.ysh](../../scripts/nebula-import-secrets.ysh) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret-rekey` で全ホストを再暗号化する．
+ルート CA を再作成する場合は，[scripts/nebula/nebula-rotate-ca.ysh](../../scripts/nebula/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，その後 [scripts/nebula/nebula-import-secrets.ysh](../../scripts/nebula/nebula-import-secrets.ysh) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret-rekey` で全ホストを再暗号化する．
 
 ---
 
@@ -220,7 +220,7 @@ just secret-rekey
 ホストを完全に撤退させる場合の手順．
 
 1. `hosts/<hostname>/` を削除し，[flake/hosts.nix](../../flake/hosts.nix) から該当エントリを削除する．
-2. [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストから該当ホストを削除する．
+2. [scripts/nebula/nebula-lib.ysh](../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストから該当ホストを削除する．
 3. シークレット定義ファイルを削除する．
    ```bash
    rm -rf secrets/master/hosts/<hostname>

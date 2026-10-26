@@ -60,7 +60,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/user_password_hash
    mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
    ```
-   (対話スクリプト `ysh scripts/set-host-password.ysh <hostname>` で直接 `secrets/master/` へ暗号化保存することも可能)
+   (対話スクリプト `ysh scripts/secrets/set-host-password.ysh <hostname>` で直接 `secrets/master/` へ暗号化保存することも可能)
 4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンをステージングする．
    ```bash
    echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
@@ -69,7 +69,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 ### Step 4: Nebula 証明書の発行とシークレットの一括再暗号化
 
-1. 管理者のオフライン CA ([scripts/nebula-rotate-ca.ysh](../../scripts/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`) を用いてノード証明書を発行する．
+1. 管理者のオフライン CA ([scripts/nebula/nebula-rotate-ca.ysh](../../scripts/nebula/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`) を用いてノード証明書を発行する．
    ```bash
    CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
    nebula-cert sign \
@@ -81,7 +81,7 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
      -out-crt "hosts/<hostname>/nebula.crt" \
      -out-key "$CA_DIR/<hostname>.key"
    ```
-2. [scripts/nebula-lib.ysh](../../scripts/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
+2. [scripts/nebula/nebula-lib.ysh](../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．
    ```ysh
    {name: '<hostname>', octet: X, groups: ['mgmt', ...]},
    ```

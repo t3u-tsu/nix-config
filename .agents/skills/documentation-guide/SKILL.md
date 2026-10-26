@@ -40,7 +40,7 @@ description: このリポジトリにおけるドキュメントの執筆・構�
 
 前置きと結びを書かない．「本ドキュメントでは〜を解説します」「以下に〜を示します」「以上の手順により〜できます」等の導入・メタ解説・感想を置かず，先頭から事実，定義，表，コマンド，設定例を書く．英語でも *In this document, we delve into...* や *By following this guide, you will...* を書かない．
 
-禁止語彙の完全な一覧と検出は [scripts/check-docs.pl](../../../scripts/check-docs.pl) が担う．語を機械的に置換せず，次の方針で具体化する．
+禁止語彙の完全な一覧と検出は [scripts/docs/check-docs.pl](../../../scripts/docs/check-docs.pl) が担う．語を機械的に置換せず，次の方針で具体化する．
 
 | 言語 | 禁止語 (推奨する代替) |
 | :--- | :--- |
@@ -127,7 +127,7 @@ description: このリポジトリにおけるドキュメントの執筆・構�
 変更後に次を実行し，違反ゼロを確認する．
 
 ```bash
-perl scripts/check-docs.pl
+perl scripts/docs/check-docs.pl
 ```
 
 `check-docs.pl` は全角括弧，和文に隣接する半角カンマ，禁止語彙，擬似見出しの箇条書き，相対リンク切れ，アンカー切れを検出する．同スクリプトが判定しない項目を目視で確認する．
