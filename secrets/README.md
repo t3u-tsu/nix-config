@@ -52,12 +52,23 @@ Commands use [justfile](../justfile) recipes backed by [scripts/secrets/secret.y
 
 ### Initialize Bitwarden Session
 
-Interactive runs automatically prompt for authentication when `BW_SESSION` is unset. To pre-initialize `BW_SESSION` across multiple commands or before non-interactive runs, run `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked):
+Interactive runs automatically prompt for authentication when no active session is present. Running `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked) caches the session token in the dedicated noswap tmpfs at `/run/agenix-master/bw-session` (mode 0600). Subsequent `just secret-*` commands automatically reuse the cached session without requiring `export BW_SESSION=...`.
+
+To discard the cached session and lock the vault, run `just secret-lock`:
 
 ```bash
-export BW_SESSION=$(just secret-unlock)
+# Unlock Bitwarden and cache the session token to /run/agenix-master/bw-session
+just secret-unlock
+
+# Subsequent commands automatically reuse the cached session
+just secret-rekey
+
+# Discard the cached session and lock the vault
+just secret-lock
+
+# (Optional) Export session token to environment or evaluate
+export BW_SESSION=$(just secret-unlock --raw)
 # or: eval "$(just secret-unlock --env)"
-# or: export BW_SESSION=$(ysh scripts/secrets/secret.ysh unlock)
 ```
 
 ### Rekey Host Secrets

@@ -13,9 +13,13 @@ secret-rekey *args:
 secret-edit file:
     @ysh scripts/secrets/secret.ysh edit "$@"
 
-# Unlock Bitwarden (or log in) and print the session token (use: export BW_SESSION=$(just secret-unlock)).
+# Unlock Bitwarden (or log in) and cache the session in /run/agenix-master.
 secret-unlock *args:
     @ysh scripts/secrets/secret.ysh unlock "$@"
+
+# Lock Bitwarden and clear the cached session.
+secret-lock:
+    @ysh scripts/secrets/secret.ysh lock
 
 # Encrypt staged plaintext and rekey hosts (accepts --dry-run and --no-rekey).
 secret-apply-staging *args:
