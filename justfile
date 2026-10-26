@@ -21,6 +21,14 @@ secret-apply-staging *args:
 secret-set-host-password *args:
     ysh scripts/secrets/set-host-password.ysh "$@"
 
+# Restore the workstation SSH key from Bitwarden (hostname defaults to this host).
+secret-ssh-restore *args:
+    ysh scripts/secrets/secret.ysh ssh-restore "$@"
+
+# Back up the workstation SSH key to Bitwarden (hostname defaults to this host).
+secret-ssh-backup *args:
+    ysh scripts/secrets/secret.ysh ssh-backup "$@"
+
 # Check tools, master identity consistency, staging state, and Bitwarden status.
 secret-doctor:
     ysh scripts/secrets/secret.ysh doctor

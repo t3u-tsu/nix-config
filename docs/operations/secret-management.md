@@ -178,9 +178,26 @@ just secret-set-host-password BrokenPC
 just secret-rekey
 ```
 
-### 3.6 環境診断
+### 3.6 ワークステーション SSH 鍵の復元とバックアップ
 
-必要な CLI ツール，Master 識別子の整合性，Bitwarden 接続状態，およびステージング状態を診断する．
+ワークステーションのユーザー SSH 鍵 (`~/.ssh/id_ed25519` および `~/.ssh/id_ed25519.pub`) は Bitwarden の `nix-config/ssh/<hostname>` と同期する．
+
+```bash
+# Bitwarden の nix-config/ssh/<hostname> (省略時は現在のホスト名) から SSH 鍵を復元
+just secret-ssh-restore
+# または: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--force]
+
+# ローカルの ~/.ssh/id_ed25519 を Bitwarden の nix-config/ssh/<hostname> へ登録・更新
+just secret-ssh-backup
+# または: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>]
+```
+
+- `ssh-restore` は Bitwarden から秘密鍵を取得して `ssh-keygen -y` で公開鍵を導出し，`~/.ssh/id_ed25519` (`0600`) と `~/.ssh/id_ed25519.pub` (`0644`) にアトミックに配置する (内容が異なる既存鍵がある場合は `--force` 指定時のみ上書き)．旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残っている場合は自動削除して実ファイルに置き換え，`hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との一致を確認したうえで，自ホスト実行時はユーザーの `agenix.service` と `import-gpg-key.service` を再起動して `home-manager` シークレットを即時復号する．
+- `ssh-backup` はローカルの `~/.ssh/id_ed25519` (または `--file <path>`) から公開鍵と SHA256 フィンガープリントを導出し，Bitwarden の `nix-config/ssh/<hostname>` へ SSH キーアイテム (サーバー非対応時はセキュアメモ) として登録・更新する．
+
+### 3.7 環境診断
+
+必要な CLI ツール，Master 識別子の整合性，Bitwarden 接続状態，ステージング状態，および `~/.ssh/id_ed25519` のシンボリックリンク検出・パーミッション検査・`~/.ssh/id_ed25519.pub` と `hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との公開鍵一致検査を実行する．
 
 ```bash
 just secret-doctor
