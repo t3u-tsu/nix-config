@@ -187,13 +187,13 @@ reboot
 健全な管理端末 (`BrokenPC` または `x1c7`) が手元にある場合の最短復旧フロー:
 
 1. **新マシンのディスク初期化とマウント**:
-   NixOS 公式 minimal インストーラ USB で実機を起動し，[新規ホスト追加手順](../operations/adding-a-host.md#3-新規ベアメタル導入手順-live-usb-クリーンインストール) に従いパーティショニングして `/mnt` (および `/mnt/boot`) へマウントする．
-2. **SSH ホスト秘密鍵の事前生成**:
+   NixOS 公式 minimal インストーラ USB で実機を起動し，[新規ホスト追加手順](../operations/adding-a-host.md#step-1-ディスクの準備と-ssh-ホスト鍵の生成) に従いパーティショニングして `/mnt` (および `/mnt/boot`) へマウントする．
+2. **SSH ホスト鍵の事前生成**:
+   リポジトリを取得し，ホスト鍵を対象ディスクへ生成して公開鍵を控える:
    ```bash
-   sudo mkdir -p /mnt/etc/ssh
-   sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
-   sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
-   cat /mnt/etc/ssh/ssh_host_ed25519_key.pub
+   git clone https://github.com/t3u-tsu/nix-config
+   cd nix-config
+   sudo ./scripts/install/init-host-key.sh
    ```
 3. **管理端末での公開鍵更新と再暗号化**:
    管理端末で `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を得られた SSH 公開鍵 (`ssh-ed25519 ...`) へ更新し，再暗号化を実行して Git に push する:
@@ -203,31 +203,16 @@ reboot
    git commit -m "fix(secrets): rotate host key for <hostname> recovery"
    git push origin feat/...
    ```
-4. **新マシンでの private input デプロイキー復号**:
-   新マシンのライブ環境でリポジトリを取得し，Step 2 で生成したホスト秘密鍵でデプロイキーを復号する:
+4. **新マシンでの deploy key 設定**:
+   管理端末が push したブランチを取得し，Step 2 で生成したホスト鍵でデプロイキーを復号する:
    ```bash
-   git clone https://github.com/t3u-tsu/nix-config
-   cd nix-config
-
-   sudo install -d -m 700 /root/.ssh
-   sudo ssh-keyscan -t ed25519 github.com 2>/dev/null | sudo tee -a /root/.ssh/known_hosts >/dev/null
-
-   sudo age -d -i /mnt/etc/ssh/ssh_host_ed25519_key \
-     secrets/rekeyed/hosts/<hostname>/*-deploy_key.age \
-     | sudo tee /root/.ssh/nix-config-private_deploy_key >/dev/null
-   sudo chmod 600 /root/.ssh/nix-config-private_deploy_key
-
-   sudo tee -a /root/.ssh/config >/dev/null <<'EOF'
-   Host github-nix-config-private
-     HostName github.com
-     User git
-     IdentityFile /root/.ssh/nix-config-private_deploy_key
-     IdentitiesOnly yes
-   EOF
+   git fetch origin feat/...
+   git switch feat/...
+   sudo ./scripts/install/setup-deploy-key.sh <hostname>
    ```
 5. **NixOS のインストールと再起動**:
    ```bash
-   sudo nixos-install --flake .#<hostname>
+   sudo nixos-install --no-root-passwd --flake .#<hostname>
    sudo reboot
    ```
    データサーバー (`shosoin-tan`) の場合は再起動後に [バックアップ運用 & ディザスタリカバリ (DR)](../operations/backup-and-restore.md) に従い Restic からデータを復元する．
@@ -266,18 +251,15 @@ reboot
      IdentitiesOnly yes
    EOF
    ```
-3. **ディスク準備とホスト鍵事前生成**:
-   ディスクをフォーマット・マウント後，恒久ホスト鍵を `/mnt/etc/ssh/ssh_host_ed25519_key` に生成する:
-   ```bash
-   sudo mkdir -p /mnt/etc/ssh
-   sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
-   sudo chmod 600 /mnt/etc/ssh/ssh_host_ed25519_key
-   ```
-4. **リポジトリ取得と Live USB での再暗号化**:
+3. **リポジトリ取得とホスト鍵の事前生成**:
+   ディスクをフォーマット・マウントした後，リポジトリを取得してホスト鍵を生成する:
    ```bash
    git clone https://github.com/t3u-tsu/nix-config
    cd nix-config
-
+   sudo ./scripts/install/init-host-key.sh
+   ```
+4. **ホスト公開鍵の更新と Live USB での再暗号化**:
+   ```bash
    # hosts/<hostname>/default.nix の age.rekey.hostPubkey を更新
    NEW_KEY=$(awk '{print $1, $2}' /mnt/etc/ssh/ssh_host_ed25519_key.pub)
    sed -i "s|age.rekey.hostPubkey = \"[^\"]*\";|age.rekey.hostPubkey = \"${NEW_KEY}\";|" hosts/<hostname>/default.nix
@@ -287,7 +269,7 @@ reboot
    ```
 5. **システムのインストールと再起動**:
    ```bash
-   sudo nixos-install --flake .#<hostname>
+   sudo nixos-install --no-root-passwd --flake .#<hostname>
    sudo reboot
    ```
 

@@ -19,7 +19,9 @@ sub get_repo_root {
       : File::Spec->rel2abs($script);
     my $dir      = dirname($abs);
     my $resolved = abs_path($dir);
-    return defined $resolved ? dirname($resolved) : dirname($abs);
+    return defined $resolved
+      ? dirname(dirname($resolved))
+      : dirname(dirname($abs));
 }
 
 sub read_file {

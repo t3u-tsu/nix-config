@@ -15,5 +15,5 @@ Core OS baseline configuration applied to all fleet machines.
 
 ## References
 
-- Private Flake bootstrap: [docs/operations/adding-a-host.md#step-5-プライベート-flake-入力のブートストラップ](../../docs/operations/adding-a-host.md#step-5-プライベート-flake-入力のブートストラップ)
+- Private Flake bootstrap: [docs/operations/adding-a-host.md#step-5-インストールと初回起動](../../docs/operations/adding-a-host.md#step-5-インストールと初回起動)
 - Garbage collection and updates: [docs/operations/maintenance.md](../../docs/operations/maintenance.md)

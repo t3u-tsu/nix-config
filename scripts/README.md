@@ -19,6 +19,11 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [docs/linkify-markdown.pl](docs/linkify-markdown.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | **Hardware Quirks** | | |
 | [hardware/restart-touchpad.ysh](hardware/restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
+| **Host Installation & Provisioning** | | |
+| [install/init-host-key.sh](install/init-host-key.sh) | Wrapper that runs `init-host-key.ysh` and installs `oils-for-unix` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keygen` |
+| [install/init-host-key.ysh](install/init-host-key.ysh) | Generates the SSH host key in `<target_root>/etc/ssh` and prints the public key for `age.rekey.hostPubkey`. Reuses an existing key and refuses an unmounted target root. | `ysh`, `ssh-keygen`, `mountpoint` |
+| [install/setup-deploy-key.sh](install/setup-deploy-key.sh) | Wrapper that runs `setup-deploy-key.ysh` and installs `oils-for-unix` / `age` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keyscan` |
+| [install/setup-deploy-key.ysh](install/setup-deploy-key.ysh) | Decrypts `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` with the target host key and registers the `github-nix-config-private` SSH alias for private flake inputs. | `ysh`, `age`, `ssh`, `ssh-keyscan` |
 
 ## Secret CLI
 

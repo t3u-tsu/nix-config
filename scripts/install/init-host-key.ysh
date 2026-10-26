@@ -1,0 +1,110 @@
+#!/usr/bin/env ysh
+# vim: set ft=sh:
+#
+# Generate the SSH host key in the installation target for age rekeying.
+#
+# Usage:
+#   scripts/install/init-host-key.sh [target_root]
+
+const DEFAULT_TARGET_ROOT = '/mnt'
+const HOST_KEY_PATH = 'etc/ssh/ssh_host_ed25519_key'
+
+proc usage() {
+  echo 'usage: scripts/install/init-host-key.sh [target_root]'
+  echo
+  echo 'Generate SSH host key in <target_root>/etc/ssh (default: /mnt)'
+}
+
+proc die(msg) {
+  echo $"ERROR: ${msg}" >&2
+  exit 1
+}
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
+
+func dir_exists(path) {
+  try { test -d $path }
+  return (_error.code === 0)
+}
+
+func command_exists(name) {
+  try { command -v $name >/dev/null 2>&1 }
+  return (_error.code === 0)
+}
+
+func is_mount_point(path) {
+  try { mountpoint -q $path }
+  return (_error.code === 0)
+}
+
+func is_help_arg(word) {
+  return (word === 'help' or word === '-h' or word === '--help')
+}
+
+if (len(ARGV) > 0 and is_help_arg(ARGV[0])) {
+  usage
+  exit 0
+}
+
+if (len(ARGV) > 1) {
+  usage
+  die 'too many arguments'
+}
+
+var target_root = DEFAULT_TARGET_ROOT
+if (len(ARGV) === 1) {
+  setvar target_root = ARGV[0]
+}
+
+if (not command_exists('ssh-keygen')) {
+  die 'Required command ssh-keygen not found.'
+}
+
+if (not dir_exists(target_root)) {
+  die $"Target root is not a directory: ${target_root}"
+}
+
+# A key written to an unmounted target lives in the installer RAM disk and
+# disappears on reboot, leaving every rekeyed secret undecryptable.
+if (command_exists('mountpoint') and not is_mount_point(target_root)) {
+  die $"Target root is not a mount point: ${target_root}"
+}
+
+var ssh_dir = $"${target_root}/etc/ssh"
+var key_file = $"${target_root}/${HOST_KEY_PATH}"
+var pub_file = $"${key_file}.pub"
+
+mkdir -p $ssh_dir
+chmod 755 $ssh_dir
+
+umask 077
+
+if (file_exists(key_file)) {
+  echo $"==> SSH host key already exists: ${key_file}"
+} else {
+  echo $"==> Generating SSH host key: ${key_file}"
+  ssh-keygen -t ed25519 -N "" -f $key_file
+}
+
+if (not file_exists(pub_file)) {
+  echo $"==> Deriving the public key: ${pub_file}"
+  shopt --unset verbose_errexit {
+    try { ssh-keygen -y -f $key_file > $pub_file }
+  }
+  if failed {
+    rm -f $pub_file
+    die $"Failed to derive the public key from ${key_file}"
+  }
+}
+
+chmod 600 $key_file
+chmod 644 $pub_file
+
+echo
+echo '==> SSH host public key for this machine:'
+cat $pub_file
+echo
+echo 'Register this public key in age.rekey.hostPubkey on your management machine.'

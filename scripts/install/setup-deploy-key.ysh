@@ -1,0 +1,195 @@
+#!/usr/bin/env ysh
+# vim: set ft=sh:
+#
+# Decrypt the deploy key for private flake inputs with the target machine's SSH
+# host key, and register the GitHub SSH alias in the installer environment.
+#
+# Usage:
+#   scripts/install/setup-deploy-key.sh <hostname> [target_root]
+
+const DEFAULT_TARGET_ROOT = '/mnt'
+const GITHUB_SSH_ALIAS = 'github-nix-config-private'
+const HOST_KEY_PATH = 'etc/ssh/ssh_host_ed25519_key'
+const DEPLOY_KEY_NAME = 'nix-config-private_deploy_key'
+const REQUIRED_COMMANDS = ['age', 'ssh', 'ssh-keygen', 'ssh-keyscan']
+
+# Files written here are secret; keep them unreadable from creation instead of
+# relying on the post-write chmod.
+umask 077
+
+proc usage() {
+  echo 'usage: scripts/install/setup-deploy-key.sh <hostname> [target_root]'
+  echo
+  echo 'arguments:'
+  echo '  <hostname>     Name of the NixOS host configuration'
+  echo '  [target_root]  Installation mount point (default: /mnt)'
+}
+
+proc die(msg) {
+  echo $"ERROR: ${msg}" >&2
+  exit 1
+}
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
+
+func command_exists(name) {
+  try { command -v $name >/dev/null 2>&1 }
+  return (_error.code === 0)
+}
+
+func is_help_arg(word) {
+  return (word === 'help' or word === '-h' or word === '--help')
+}
+
+func repo_root() {
+  var root = ''
+  cd $_this_dir/../.. { setvar root = PWD }
+  return (root)
+}
+
+func has_ssh_alias(config_path) {
+  if (not file_exists(config_path)) {
+    return (false)
+  }
+  var config = ""
+  read --all (&config) < $config_path
+  var alias_line = $"Host ${GITHUB_SSH_ALIAS}"
+  for line in (config.split(u'\n')) {
+    if (line.trim() === alias_line) {
+      return (true)
+    }
+  }
+  return (false)
+}
+
+proc add_github_alias(ssh_config, deploy_key) {
+  echo $"==> Configuring SSH alias in ${ssh_config}"
+  if (file_exists(ssh_config)) {
+    echo >> $ssh_config
+  }
+  cat >> $ssh_config <<EOF
+Host ${GITHUB_SSH_ALIAS}
+  HostName github.com
+  User git
+  IdentityFile ${deploy_key}
+  IdentitiesOnly yes
+  StrictHostKeyChecking accept-new
+EOF
+  chmod 600 $ssh_config
+}
+
+if (len(ARGV) === 0) {
+  usage
+  die 'hostname must be specified'
+}
+
+if (is_help_arg(ARGV[0])) {
+  usage
+  exit 0
+}
+
+if (len(ARGV) > 2) {
+  usage
+  die 'too many arguments'
+}
+
+var host = ARGV[0]
+var target_root = DEFAULT_TARGET_ROOT
+if (len(ARGV) === 2) {
+  setvar target_root = ARGV[1]
+}
+
+if (host === '' or host.contains('/')) {
+  die $"Invalid hostname: '${host}'"
+}
+if (target_root === '') {
+  die 'target_root must not be empty'
+}
+
+for name in (REQUIRED_COMMANDS) {
+  if (not command_exists(name)) {
+    die $"Required command '${name}' not found."
+  }
+}
+
+var host_key = $"${target_root}/${HOST_KEY_PATH}"
+if (not file_exists(host_key)) {
+  die $"SSH host key not found: ${host_key}. Run init-host-key.sh first."
+}
+
+var root = repo_root()
+var rekey_dir = $"${root}/secrets/rekeyed/hosts/${host}"
+var deploy_keys = glob($"${rekey_dir}/*-deploy_key.age")
+if (len(deploy_keys) === 0) {
+  die $"No *-deploy_key.age found in ${rekey_dir}. Rekey secrets on the management machine first."
+}
+var deploy_age = deploy_keys[0]
+
+var ssh_home = get(ENV, 'SSH_USER_HOME', '')
+if (ssh_home === "") {
+  setvar ssh_home = get(ENV, 'HOME', '')
+}
+if (ssh_home === "") {
+  setvar ssh_home = '/root'
+}
+
+var ssh_dir = $"${ssh_home}/.ssh"
+mkdir -p $ssh_dir
+chmod 700 $ssh_dir
+
+var known_hosts = $"${ssh_dir}/known_hosts"
+var has_github_key = false
+if (file_exists(known_hosts)) {
+  try { ssh-keygen -F github.com -f $known_hosts >/dev/null 2>&1 }
+  if (_error.code === 0) {
+    setvar has_github_key = true
+  }
+}
+if (not has_github_key) {
+  echo $"==> Scanning github.com into ${known_hosts}"
+  shopt --unset verbose_errexit {
+    try { ssh-keyscan -t ed25519 github.com >> $known_hosts 2>/dev/null }
+  }
+  if failed {
+    echo 'WARN: could not fetch the github.com host key; falling back to accept-new.' >&2
+  }
+  if (file_exists(known_hosts)) {
+    chmod 644 $known_hosts
+  }
+}
+
+var deploy_key = $"${ssh_dir}/${DEPLOY_KEY_NAME}"
+echo $"==> Decrypting deploy key into ${deploy_key}"
+shopt --unset verbose_errexit {
+  try { age -d -i $host_key $deploy_age > $deploy_key }
+}
+if failed {
+  rm -f $deploy_key
+  die $"Failed to decrypt ${deploy_age} with ${host_key}"
+}
+chmod 600 $deploy_key
+
+var ssh_config = $"${ssh_dir}/config"
+if (has_ssh_alias(ssh_config)) {
+  echo $"==> SSH alias '${GITHUB_SSH_ALIAS}' already present in ${ssh_config}"
+} else {
+  add_github_alias $ssh_config $deploy_key
+}
+
+echo '==> Testing GitHub SSH connectivity...'
+var auth_output = $(ssh -F $ssh_config \
+  -o UserKnownHostsFile=$known_hosts -o BatchMode=yes \
+  -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new \
+  -T $"git@${GITHUB_SSH_ALIAS}" 2>&1 || true)
+if (auth_output !== "") {
+  echo $auth_output
+}
+if (not auth_output.contains('successfully authenticated')) {
+  echo 'WARN: GitHub did not confirm deploy key authentication; fetching private flake inputs will fail.' >&2
+}
+
+echo '==> Deploy key configuration completed.'
+echo $"    Next: sudo nixos-install --no-root-passwd --flake .#${host}"
