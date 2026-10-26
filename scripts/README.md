@@ -40,7 +40,7 @@ ysh scripts/secrets/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_
 ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--force]
 
 # Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>]
+ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
 
 # Check tools, master identity, ~/.ssh/id_ed25519 health, staging state, and Bitwarden status
 ysh scripts/secrets/secret.ysh doctor

@@ -189,11 +189,11 @@ just secret-ssh-restore
 
 # ローカルの ~/.ssh/id_ed25519 を Bitwarden の nix-config/ssh/<hostname> へ登録・更新
 just secret-ssh-backup
-# または: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>]
+# または: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
 ```
 
 - `ssh-restore` は Bitwarden から秘密鍵を取得して `ssh-keygen -y` で公開鍵を導出し，`~/.ssh/id_ed25519` (`0600`) と `~/.ssh/id_ed25519.pub` (`0644`) にアトミックに配置する (内容が異なる既存鍵がある場合は `--force` 指定時のみ上書き)．旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残っている場合は自動削除して実ファイルに置き換え，`hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との一致を確認したうえで，自ホスト実行時はユーザーの `agenix.service` と `import-gpg-key.service` を再起動して `home-manager` シークレットを即時復号する．
-- `ssh-backup` はローカルの `~/.ssh/id_ed25519` (または `--file <path>`) から公開鍵と SHA256 フィンガープリントを導出し，Bitwarden の `nix-config/ssh/<hostname>` へ SSH キーアイテム (サーバー非対応時はセキュアメモ) として登録・更新する．
+- `ssh-backup` はローカルの `~/.ssh/id_ed25519` (または `--file <path>`) から公開鍵と SHA256 フィンガープリントを導出し，Bitwarden の `nix-config/ssh/<hostname>` へ SSH キーアイテム (サーバー非対応時はセキュアメモ) として登録・更新する (同一の秘密鍵が登録済みの場合は変更せず正常終了し，異なる鍵が既に存在する場合は誤上書き防止のため `--force` 指定時のみ上書き)．
 
 ### 3.7 環境診断
 
