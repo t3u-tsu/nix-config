@@ -50,6 +50,16 @@ Access control uses four distinct layers:
 
 Commands use [justfile](../justfile) recipes backed by [scripts/secrets/secret.ysh](../scripts/secrets/secret.ysh):
 
+### Initialize Bitwarden Session
+
+Interactive runs automatically prompt for authentication when `BW_SESSION` is unset. To pre-initialize `BW_SESSION` across multiple commands or before non-interactive runs, run `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked):
+
+```bash
+export BW_SESSION=$(just secret-unlock)
+# or: eval "$(just secret-unlock --env)"
+# or: export BW_SESSION=$(ysh scripts/secrets/secret.ysh unlock)
+```
+
 ### Rekey Host Secrets
 
 Rekey after changing `age.rekey.hostPubkey` or modifying master secrets:

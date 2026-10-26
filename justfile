@@ -13,6 +13,10 @@ secret-rekey *args:
 secret-edit file:
     @ysh scripts/secrets/secret.ysh edit "$@"
 
+# Unlock Bitwarden (or log in) and print the session token (use: export BW_SESSION=$(just secret-unlock)).
+secret-unlock *args:
+    @ysh scripts/secrets/secret.ysh unlock "$@"
+
 # Encrypt staged plaintext and rekey hosts (accepts --dry-run and --no-rekey).
 secret-apply-staging *args:
     @ysh scripts/secrets/secret.ysh apply-staging "$@"
