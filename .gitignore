@@ -16,6 +16,17 @@ master-key.txt
 *.key.txt
 *.age.key
 identity.txt
+key.txt
+keys.txt
+.env
+*.env
+.env.*
+.age-tmp.*
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
 
 .worktrees/
 

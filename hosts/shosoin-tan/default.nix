@@ -9,8 +9,7 @@
   ];
 
   # TODO: replace with /etc/ssh/ssh_host_ed25519_key.pub when booting the host.
-  # age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
-  age.rekey.hostPubkey = "age16qpt6hr079pmj5dsgq5xm20x9kwamu90c2l8nkgwf8mtrhwauapqf93muk";
+  age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC2/G7hPzedL0Tzr35StyOaZZjwBZMFuhIeAbwFxf5HF";
 
   my = {
     services.minecraft.enable = true;
