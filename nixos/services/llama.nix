@@ -2,23 +2,12 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
 let
-  cfg = config.my.home.programs.llama;
-  inherit (lib)
-    attrNames
-    concatStringsSep
-    escapeShellArgs
-    filter
-    mapAttrsToList
-    mkEnableOption
-    mkIf
-    mkOption
-    optionals
-    types
-    ;
+  cfg = config.my.services.llama;
   llama-cpp = pkgs.llama-cpp.override { useCuda = cfg.enableCuda; };
 
   # Render one INI preset section, omitting unset keys so llama-server's
@@ -26,7 +15,7 @@ let
   presetSection =
     name: preset:
     let
-      lines = filter (l: l != null) [
+      lines = lib.filter (l: l != null) [
         (if preset.ngl != null then "n-gpu-layers = ${toString preset.ngl}" else null)
         (if preset.ncmoe != null then "n-cpu-moe = ${toString preset.ncmoe}" else null)
         (if preset.ctxSize != null then "ctx-size = ${toString preset.ctxSize}" else null)
@@ -34,74 +23,74 @@ let
     in
     ''
       [${name}]
-      ${concatStringsSep "\n" lines}
+      ${lib.concatStringsSep "\n" lines}
     '';
 
   presetsIni = pkgs.writeText "llama-models.ini" (
-    concatStringsSep "\n" (mapAttrsToList presetSection cfg.presets)
+    lib.concatStringsSep "\n" (lib.mapAttrsToList presetSection cfg.presets)
   );
 in
 {
-  options.my.home.programs.llama = {
-    enable = mkEnableOption "llama.cpp inference server";
+  options.my.services.llama = {
+    enable = lib.mkEnableOption "llama.cpp inference server";
 
-    enableCuda = mkOption {
-      type = types.bool;
+    enableCuda = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Build llama.cpp with the CUDA backend.";
     };
 
-    modelsDir = mkOption {
-      type = types.str;
+    modelsDir = lib.mkOption {
+      type = lib.types.str;
       default = "/var/lib/llama/models";
       description = "Directory containing GGUF model files to serve.";
     };
 
-    modelsMax = mkOption {
-      type = types.ints.unsigned;
+    modelsMax = lib.mkOption {
+      type = lib.types.ints.unsigned;
       default = 1;
       description = "Maximum number of models to load simultaneously.";
     };
 
-    port = mkOption {
-      type = types.port;
+    port = lib.mkOption {
+      type = lib.types.port;
       default = 8080;
       description = "HTTP API port.";
     };
 
-    host = mkOption {
-      type = types.str;
+    host = lib.mkOption {
+      type = lib.types.str;
       default = "127.0.0.1";
       description = "Address to bind.";
     };
 
-    threads = mkOption {
-      type = types.nullOr types.ints.positive;
+    threads = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
       default = null;
       description = "CPU thread count (null = let llama.cpp pick automatically).";
     };
 
-    presets = mkOption {
-      type = types.attrsOf (
-        types.submodule {
+    presets = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
           options = {
-            ngl = mkOption {
-              type = types.nullOr (
-                types.oneOf [
-                  types.ints.unsigned
-                  types.str
+            ngl = lib.mkOption {
+              type = lib.types.nullOr (
+                lib.types.oneOf [
+                  lib.types.ints.unsigned
+                  lib.types.str
                 ]
               );
               default = null;
               description = "Layers to offload to the GPU, or 'all'. Leave null to let --fit decide automatically.";
             };
-            ncmoe = mkOption {
-              type = types.nullOr types.ints.unsigned;
+            ncmoe = lib.mkOption {
+              type = lib.types.nullOr lib.types.ints.unsigned;
               default = null;
               description = "Layers whose MoE experts stay on the CPU. Leave null to let --fit offload MoE automatically.";
             };
-            ctxSize = mkOption {
-              type = types.nullOr types.ints.unsigned;
+            ctxSize = lib.mkOption {
+              type = lib.types.nullOr lib.types.ints.unsigned;
               default = null;
               description = "Prompt context size. Leave null to use the model's native context with --fit reduction enabled; set 0 explicitly to forbid context reduction.";
             };
@@ -112,23 +101,32 @@ in
       description = "Per-model presets. Each key must match a GGUF file name in modelsDir without the .gguf extension.";
     };
 
-    sleepIdleSeconds = mkOption {
-      type = types.int;
+    sleepIdleSeconds = lib.mkOption {
+      type = lib.types.int;
       default = -1;
       description = "Idle seconds before unloading the model (-1 = disabled).";
     };
   };
 
-  config = mkIf cfg.enable {
-    systemd.user.services.llama-server = {
-      Unit = {
-        Description = "llama.cpp inference server";
-      };
-      Install = {
-        WantedBy = [ "default.target" ];
-      };
-      Service = {
-        ExecStart = escapeShellArgs (
+  config = lib.mkIf cfg.enable {
+    nixpkgs.overlays = [
+      inputs.llama-cpp.overlays.default
+      (_final: prev: {
+        llama-cpp = prev.llama-cpp.override {
+          cudaPackages = prev.cudaPackages // {
+            cccl = prev.cudaPackages.cuda_cccl;
+          };
+        };
+      })
+    ];
+
+    systemd.services.llama-server = {
+      description = "llama.cpp inference server";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      serviceConfig = {
+        User = config.my.user.name;
+        ExecStart = lib.escapeShellArgs (
           [
             "${llama-cpp}/bin/llama-server"
             "--models-dir"
@@ -142,11 +140,11 @@ in
             "--sleep-idle-seconds"
             (toString cfg.sleepIdleSeconds)
           ]
-          ++ optionals (cfg.threads != null) [
+          ++ lib.optionals (cfg.threads != null) [
             "--threads"
             (toString cfg.threads)
           ]
-          ++ optionals (cfg.presets != { }) [
+          ++ lib.optionals (cfg.presets != { }) [
             "--models-preset"
             "${presetsIni}"
           ]

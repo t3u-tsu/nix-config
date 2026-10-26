@@ -3,11 +3,9 @@
   inputs,
   osConfig,
   lib,
-  pkgs,
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.browsers;
   palette = import ../../../lib/palette.nix;
@@ -15,7 +13,7 @@ in
 {
   imports = [ inputs.zen-browser.homeModules.default ];
 
-  config = mkIf (cfg.enable && cfg.zen.enable) {
+  config = lib.mkIf (cfg.enable && cfg.zen.enable) {
     programs.zen-browser = {
       enable = true;
       # Non-browser handlers stay in home/desktop/xdg.nix (handlr); this
@@ -177,7 +175,6 @@ in
             };
           };
 
-          # Force-overwrite containers.json on activation.
           containersForce = true;
 
           spaces = {
@@ -236,7 +233,6 @@ in
             "browser.toolbars.bookmarks.visibility" = "always";
             "browser.bookmarks.addedImportButton" = false;
 
-            # Disable the built-in password manager
             "signon.rememberSignons" = false;
             "signon.autofillForms" = false;
             "signon.generation.enabled" = false;

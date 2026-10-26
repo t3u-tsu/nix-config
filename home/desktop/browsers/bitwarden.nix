@@ -5,7 +5,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.browsers.bitwarden;
   manifest = pkgs.writeText "com.8bit.bitwarden.json" (
@@ -20,10 +19,10 @@ let
 in
 {
   options.my.home.desktop.browsers.bitwarden = {
-    enable = mkEnableOption "Bitwarden browser integration (Firefox/Zen native messaging host)";
+    enable = lib.mkEnableOption "Bitwarden browser integration (Firefox/Zen native messaging host)";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # Zen has no ~/.mozilla/firefox profile, so the desktop app will not create
     # this manifest for it. The app does rewrite it when present, and a home.file
     # symlink into the read-only store makes that rewrite fail with EROFS, which

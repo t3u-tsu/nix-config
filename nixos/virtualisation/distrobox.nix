@@ -5,17 +5,15 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.my.virtualisation.distrobox;
 in
 {
   options.my.virtualisation.distrobox = {
-    enable = mkEnableOption "Distrobox container environment with Podman";
+    enable = lib.mkEnableOption "Distrobox container environment with Podman";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     virtualisation.podman = {
       enable = true;
       dockerCompat = true;

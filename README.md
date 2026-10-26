@@ -14,24 +14,24 @@ Declarative NixOS configuration managing workstations, servers, and network gate
 
 | Component | Technology |
 | :--- | :--- |
-| **OS** | NixOS 26.05 |
-| **WM / Compositor** | niri (Wayland) |
-| **Desktop Shell / Bar** | Noctalia |
-| **Shell** | zsh + pure + Atuin |
-| **Terminal** | Ghostty |
-| **Editor** | Neovim |
-| **Browser** | Zen Browser |
-| **Color Theme** | Vesper |
-| **Secrets Management** | agenix-rekey + agenix + age |
-| **Mesh VPN** | Nebula |
-| **Backup** | Restic + ZFS Mirror |
-| **IaC** | OpenTofu |
+| OS | NixOS 26.05 |
+| WM / Compositor | niri (Wayland) |
+| Desktop Shell / Bar | Noctalia |
+| Shell | zsh + pure + Atuin |
+| Terminal | Ghostty |
+| Editor | Neovim |
+| Browser | Zen Browser |
+| Color Theme | Vesper |
+| Secrets Management | agenix-rekey + agenix + age |
+| Mesh VPN | Nebula |
+| Backup | Restic + ZFS Mirror |
+| IaC | OpenTofu |
 
 ## Directory Structure
 
 - [flake.nix](flake.nix) — flake-parts entrypoint
 - [flake/](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
-- [lib/](lib/) — `mkSystem` builder and shared color palette
+- [lib/](lib/) — `mkSystem` builder, shared color palette (`palette.nix`), and agenix master identity (`agenix.nix`)
 - [nixos/](nixos/) — Shared system-level NixOS modules
 - [home/](home/) — Home Manager user-level configurations
 - [hosts/](hosts/) — Host definitions and hardware configurations
@@ -81,7 +81,7 @@ See [docs/operations/adding-a-host.md](docs/operations/adding-a-host.md) for hos
 
 | Workflow | Trigger & Details |
 | :--- | :--- |
-| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`, `markdown-link-check`, `docs-check`), and enforces Conventional Commits via `convco` |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | Evaluates all hosts, runs pre-commit linters (`nixfmt`, `statix`, `ysh-check`, `shellcheck`, `ja-punctuation`, `docs-check`), and enforces Conventional Commits via `convco` |
 | [Scheduled Auto Update](.github/workflows/auto-update.yml) | Runs daily at 04:00 JST. Synchronizes upstream sources via nvfetcher, updates [flake.lock](flake.lock), validates in CI, and pushes updates to `main` |
 
 ## Documentation

@@ -11,6 +11,7 @@ Fleet-wide system services and background daemons managed by NixOS modules.
 | [discord-bridge/](discord-bridge/README.md) | Go-based Minecraft Discord bridge bot (whitelist management, status query UNIX socket). | `shosoin-tan` | [discord-bridge/](discord-bridge/README.md) |
 | [emergency-ssh/](emergency-ssh/README.md) | Out-of-band SSH access via Cloudflare Tunnel for remote recovery during mesh network outages. | Servers & Gateway (`torii-chan`, `sando-kun`, `kagutsuchi-sama`, `shosoin-tan`) | [emergency-ssh/](emergency-ssh/README.md) |
 | [gateway/](gateway/README.md) | Edge gateway routing, Nebula Lighthouse/Relay, Cloudflare DDNS, and Minecraft port forwarding. | `torii-chan` | [gateway/](gateway/README.md) |
+| [llama.nix](llama.nix) | Local `llama.cpp` inference server (`systemd.services.llama-server`) with per-model INI presets and optional CUDA acceleration. | `BrokenPC` | [docs/hardware/hybrid-gpu.md](../../docs/hardware/hybrid-gpu.md) |
 | [minecraft/](minecraft/README.md) | Minecraft Paper network (domain-routed proxy, lobby, and survival servers). | `shosoin-tan` | [minecraft/](minecraft/README.md) |
 | [default.nix](default.nix) | Service module aggregator. | Fleet-wide | — |
 

@@ -51,16 +51,17 @@ nix-config/                          # ルートフォルダ
 ├── agenix-master-key                # [セキュアメモ] AGE-SECRET-KEY-1... (agenix-rekey Master 鍵)
 ├── nebula-ca/                       # [サブフォルダ] オフライン CA 秘密鍵バックアップ
 │   └── ca.key                       # [セキュアメモ] Nebula ルート CA 秘密鍵
-└── ssh/                             # [サブフォルダ] 対外認証用 SSH 鍵
+└── ssh/                             # [サブフォルダ] 対外認証・フェイルオーバー用 SSH 鍵
     ├── BrokenPC                     # [SSH キー] BrokenPC の id_ed25519 (秘密鍵・公開鍵)
-    └── x1c7                         # [SSH キー] x1c7 の id_ed25519 (秘密鍵・公開鍵)
+    ├── x1c7                         # [SSH キー] x1c7 の id_ed25519 (秘密鍵・公開鍵)
+    └── torii-chan                   # [SSH キー] torii-chan の ssh_host_ed25519_key (VPS フェイルオーバー用ホスト鍵)
 ```
 
 | アイテム | 種別 | 格納内容 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `nix-config/agenix-master-key` | セキュアメモ | `AGE-SECRET-KEY-1...` | agenix-rekey の Master age 秘密鍵．Bech32 形式テキストとして保持する． |
 | `nix-config/nebula-ca/ca.key` | セキュアメモ | `ca.key` | Nebula ルート CA 秘密鍵のディザスタリカバリ用バックアップ． |
-| `nix-config/ssh/<hostname>` | SSH キー | `id_ed25519` (秘密鍵・公開鍵) | Bitwarden の SSH キーアイテム形式で保管し，端末復旧時に取り出す． |
+| `nix-config/ssh/<hostname>` | SSH キー | `id_ed25519` / `ssh_host_ed25519_key` | 開発端末のユーザー SSH 鍵 (`BrokenPC`, `x1c7`) および `torii-chan` の VPS フェイルオーバー用 SSH ホスト鍵を Bitwarden の SSH キーアイテム形式で保管し，復旧時に取り出す． |
 
 ### 1.2 RAM tmpfs 一時展開と自動消去
 
@@ -100,7 +101,7 @@ secrets/
 | ホスト別配布データ | `secrets/rekeyed/hosts/<hostname>/*.age` | age 暗号化 (ホスト公開鍵) | `agenix rekey` が出力する各ホスト専用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理し CI での純粋ビルドを維持する． |
 | ユーザー別配布データ | `secrets/rekeyed/home/<hostname>/<username>/*.age` | age 暗号化 (ユーザー SSH 公開鍵) | home-manager の `age.secrets` 用暗号化ファイル (`<hash>-<secret名>.age`)．Git 管理する． |
 | 平文公開データ | `nixos/networking/nebula/ca.crt`, `hosts/<hostname>/nebula.crt` | 平文ファイル | 暗号化不要な公開証明書データ． |
-| ローカル自動生成 | Minecraft forwarding secret, RCON password | 起動時生成 | shosoin-tan のサービス起動時に `openssl rand` で生成し，Git 管理から除外する． |
+| ローカル自動生成 | `/var/lib/minecraft/secrets/` (`forwarding.secret`, `nitac23s-rcon.secret`) | 起動時生成 | `shosoin-tan` の `minecraft-secrets.service` 起動時に `openssl rand` で生成し，Git 管理から除外する． |
 | 一時ステージング | `.secrets-staging/` | 平文一時配置 (`.gitignore`) | Master 鍵を持たない環境で暗号化対象の平文を一時配置する領域．暗号化後に shred 破棄される． |
 
 ---
@@ -171,7 +172,7 @@ root パスワード廃止に伴い，ログイン資格情報は `user_password
 just secret-set-host-password --all
 
 # 特定ホストのみ更新する場合
-just secret-set-host-password -u BrokenPC
+just secret-set-host-password BrokenPC
 
 # 更新後は再暗号化を実行して反映
 just secret-rekey
@@ -212,7 +213,7 @@ nebula-cert sign \
   -groups "mgmt,..." \
   -ca-crt "$CA_DIR/ca.crt" \
   -ca-key "$CA_DIR/ca.key" \
-  -out-crt "hosts/<hostname>/nebula.crt" \
+  -out-crt "$CA_DIR/<hostname>.crt" \
   -out-key "$CA_DIR/<hostname>.key"
 
 # 2. 証明書の公開とノード秘密鍵の暗号化 (Bitwarden の Master 鍵を使用)

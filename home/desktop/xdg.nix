@@ -5,16 +5,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.xdg;
 in
 {
   options.my.home.desktop.xdg = {
-    enable = mkEnableOption "XDG associations and desktop integration";
+    enable = lib.mkEnableOption "XDG associations and desktop integration";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     xdg.userDirs = {
       enable = true;
       createDirectories = true;

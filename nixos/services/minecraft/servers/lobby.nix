@@ -5,13 +5,12 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.minecraft;
   common = import ./common.nix { inherit pkgs lib; };
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.minecraft-servers.servers.lobby = {
       enable = true;
       package = pkgs.paperServers.paper;

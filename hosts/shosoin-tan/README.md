@@ -26,10 +26,9 @@ Home tower server hosting Minecraft services, Discord Bridge, and Restic backups
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [services/default.nix](services/default.nix) | Host service aggregator importing backup, Discord bridge, emergency SSH, and Nebula mesh modules. | Imported in [default.nix](default.nix) |
+| [services/default.nix](services/default.nix) | Host service aggregator importing backup, Discord bridge, and Nebula mesh modules (`my.services.emergencySsh.enable = true;` is enabled by the `tower-server` profile). | Imported in [default.nix](default.nix) |
 | [services/backup.nix](services/backup.nix) | Two-tier Restic backup client scheduling local snapshots to ZFS and off-site snapshots over Nebula. | `my.services.backup.enable = true;` |
-| [services/discord-bridge.nix](services/discord-bridge.nix) | Discord Bridge bot service interfacing with the Paper server via UNIX domain socket. | `my.services.discord-bridge.enable = true;` |
-| [services/emergency-ssh.nix](services/emergency-ssh.nix) | Out-of-band emergency SSH access via Cloudflare Tunnel. | `my.services.emergencySsh.enable = true;` |
+| [services/discord-bridge.nix](services/discord-bridge.nix) | Discord Bridge bot service interfacing with the Paper server via UNIX domain socket. | `my.services.minecraft-discord-bridge.enable = true;` |
 | [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.4`, groups: `mgmt`, `app` |
 
 ## Key Services

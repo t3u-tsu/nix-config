@@ -5,16 +5,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.fonts;
 in
 {
   options.my.services.desktop.fonts = {
-    enable = mkEnableOption "System fonts";
+    enable = lib.mkEnableOption "System fonts";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     fonts = {
       packages = with pkgs; [
         noto-fonts-cjk-sans

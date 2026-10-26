@@ -1,15 +1,14 @@
 { config, lib, ... }:
 
-with lib;
 let
   cfg = config.my.services.desktop.bluetooth;
 in
 {
   options.my.services.desktop.bluetooth = {
-    enable = mkEnableOption "Bluetooth (bluez daemon, power-on at boot)";
+    enable = lib.mkEnableOption "Bluetooth (bluez daemon, power-on at boot)";
 
-    experimental = mkOption {
-      type = types.bool;
+    experimental = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = ''
         Opt in to bluez experimental features (LE Audio and related profiles).
@@ -19,7 +18,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     hardware.bluetooth = {
       enable = true;
       powerOnBoot = true;

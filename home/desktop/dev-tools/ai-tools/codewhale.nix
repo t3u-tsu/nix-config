@@ -5,14 +5,13 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.dev-tools.ai-tools;
   sources = pkgs.callPackage ../../../../_sources/generated.nix { };
 
   codewhale = pkgs.stdenv.mkDerivation {
     pname = "codewhale";
-    version = removePrefix "v" sources.codewhale.version;
+    version = lib.removePrefix "v" sources.codewhale.version;
     inherit (sources.codewhale) src;
 
     dontUnpack = true;
@@ -35,7 +34,7 @@ let
   };
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.packages = [ codewhale ];
   };
 }

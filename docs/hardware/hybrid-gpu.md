@@ -17,7 +17,7 @@ flowchart TD
         end
 
         subgraph ComputePipeline["推論計算パイプライン"]
-            Llama["llama-server (systemd ユーザーサービス)"]
+            Llama["llama-server (systemd システムサービス)"]
             dGPU["NVIDIA RTX 3050 Ti Mobile (01:00.0)<br>3D 回路: 物理破損 / CUDA・GEMM: 正常"]
             PowerState["RTD3 動的電源制御<br>(finegrained = true)"]
 
@@ -142,44 +142,42 @@ nixpkgs.config.cudaCapabilities = [ "8.6" ];
 
 ### llama.cpp サービス構成とメモリチューニング
 
-推論バックエンドとして [hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix) にて `llama-server` を運用している．
+推論バックエンドとして [nixos/services/llama.nix](../../nixos/services/llama.nix) および [hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix) にてシステムサービス `systemd.services.llama-server` を運用している．
 
 ```nix
-home-manager.users.${config.my.user.name} = {
-  my.home.programs.llama = {
-    enable = true;
-    enableCuda = true;
-    modelsDir = "/data/llama/models";
-    modelsMax = 1;
-    sleepIdleSeconds = 300; # アイドル 5 分でモデル解放・GPU 電源オフ
-    presets = {
-      # 3B/4B: VRAM に完全オフロード
-      "G9v3-3B-Q4_K_M" = {
-        ngl = 99;
-        ncmoe = 0;
-        ctxSize = 32768;
-      };
-      "Qwen3.5-4B-Q4_K_M" = {
-        ngl = 99;
-        ncmoe = 0;
-        ctxSize = 16384;
-      };
-      # 9B: 一部層のみ GPU オフロード (VRAM 4GB 制限)
-      "Qwen3.5-9B-Q4_K_M" = {
-        ngl = 12;
-        ncmoe = 0;
-        ctxSize = 32768;
-      };
-      "Ornith-1.5-9B-Q4_K_M" = {
-        ngl = 12;
-        ncmoe = 0;
-        ctxSize = 32768;
-      };
-      # MoE / 小型モデル: --fit による自動フィッティングに委ねる
-      "Ling-3.0-tiny-Q4_K_M" = { };
-      "Ling-3.0-tiny-Uncensored-Abliterated.Q8_0" = { };
-      "LFM2.5-8B-A1B-Q4_0" = { };
+my.services.llama = {
+  enable = true;
+  enableCuda = true;
+  modelsDir = "/data/llama/models";
+  modelsMax = 1;
+  sleepIdleSeconds = 300; # アイドル 5 分でモデル解放・GPU 電源オフ
+  presets = {
+    # 3B/4B: VRAM に完全オフロード
+    "G9v3-3B-Q4_K_M" = {
+      ngl = 99;
+      ncmoe = 0;
+      ctxSize = 32768;
     };
+    "Qwen3.5-4B-Q4_K_M" = {
+      ngl = 99;
+      ncmoe = 0;
+      ctxSize = 16384;
+    };
+    # 9B: 一部層のみ GPU オフロード (VRAM 4GB 制限)
+    "Qwen3.5-9B-Q4_K_M" = {
+      ngl = 12;
+      ncmoe = 0;
+      ctxSize = 32768;
+    };
+    "Ornith-1.5-9B-Q4_K_M" = {
+      ngl = 12;
+      ncmoe = 0;
+      ctxSize = 32768;
+    };
+    # MoE / 小型モデル: --fit による自動フィッティングに委ねる
+    "Ling-3.0-tiny-Q4_K_M" = { };
+    "Ling-3.0-tiny-Uncensored-Abliterated.Q8_0" = { };
+    "LFM2.5-8B-A1B-Q4_0" = { };
   };
 };
 ```

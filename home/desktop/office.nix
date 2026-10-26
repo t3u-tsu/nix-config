@@ -5,18 +5,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.office;
 in
 {
   options.my.home.desktop.office = {
-    enable = mkEnableOption "Office suite (LibreOffice)";
+    enable = lib.mkEnableOption "Office suite (LibreOffice)";
   };
 
-  config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      libreoffice
-    ];
+  config = lib.mkIf cfg.enable {
+    home.packages = [ pkgs.libreoffice ];
   };
 }

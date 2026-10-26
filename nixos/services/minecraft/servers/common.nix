@@ -14,7 +14,7 @@ in
   # secretPath: path to the locally generated Velocity forwarding secret.
   mkPaperGlobalPreStart = { secretPath }: ''
     mkdir -p config
-    SECRET=$(cat ${secretPath})
+    SECRET=$(cat "${secretPath}")
 
     # If the config file is a symlink into the Nix store (or similar), it cannot
     # be rewritten, so remove/move it aside and place a real file instead
@@ -22,7 +22,7 @@ in
       rm "config/paper-global.yml"
     fi
 
-    cat <<EOF > config/paper-global.yml
+    (umask 0077; cat <<EOF > "config/paper-global.yml"
     # Fix global config version warning
     config-version: 31
     proxies:
@@ -31,7 +31,8 @@ in
         online-mode: true
         secret: $SECRET
     EOF
-    chown minecraft:minecraft config/paper-global.yml
-    chmod 600 config/paper-global.yml
+    )
+    chown minecraft:minecraft "config/paper-global.yml"
+    chmod 600 "config/paper-global.yml"
   '';
 }

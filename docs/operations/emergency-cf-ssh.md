@@ -148,7 +148,7 @@ just secret-apply-staging
 `just secret-apply-staging` は平文トークンを Master 鍵で `secrets/master/hosts/<hostname>/emergency_ssh_token.age` へ暗号化して shred 破棄し，全ホスト向けに再暗号化を行う．既存のマスターシークレットを直接更新する場合は `just secret-edit secrets/master/hosts/<hostname>/emergency_ssh_token.age` を実行した後に `just secret-rekey` を行う．
 
 ### Step 3: NixOS 設定の有効化と反映
-各ホストの設定 (例: `hosts/<hostname>/services/emergency-ssh.nix` または [hosts/torii-chan/default.nix](../../hosts/torii-chan/default.nix)) で本機能を有効化する:
+プロファイル ([nixos/profiles/tower-server/default.nix](../../nixos/profiles/tower-server/default.nix)) またはホスト設定 ([hosts/torii-chan/default.nix](../../hosts/torii-chan/default.nix)) で本機能を有効化する:
 
 ```nix
 my.services.emergencySsh.enable = true;

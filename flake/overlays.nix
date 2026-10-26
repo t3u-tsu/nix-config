@@ -1,11 +1,6 @@
 { inputs, lib, ... }:
 {
   flake.overlays.default = lib.composeManyExtensions [
-    inputs.nix-minecraft.overlay
-
-    inputs.niri.overlays.niri
-    inputs.nur.overlays.default
-
     # ffado / libcamera / roc-toolkit are broken on 32-bit, so disable them there.
     (final: prev: {
       pkgsi686Linux = prev.pkgsi686Linux // {

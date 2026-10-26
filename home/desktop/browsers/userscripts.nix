@@ -5,18 +5,10 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.browsers.userscripts;
 
-  sources = import ../../../_sources/generated.nix {
-    inherit (pkgs)
-      fetchgit
-      fetchurl
-      fetchFromGitHub
-      dockerTools
-      ;
-  };
+  sources = pkgs.callPackage ../../../_sources/generated.nix { };
 
   # Gecko application id directory Firefox reads profile extensions from.
   extensionDir = "share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
@@ -133,16 +125,16 @@ let
 in
 {
   options.my.home.desktop.browsers.userscripts = {
-    enable = mkEnableOption "Zen userscripts packaged as declarative extensions";
-    packages = mkOption {
-      type = types.listOf types.package;
+    enable = lib.mkEnableOption "Zen userscripts packaged as declarative extensions";
+    packages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
       readOnly = true;
       description = "Userscript-backed extensions to install into the Zen profile.";
     };
   };
 
   config = {
-    my.home.desktop.browsers.userscripts.packages = optionals cfg.enable [
+    my.home.desktop.browsers.userscripts.packages = lib.optionals cfg.enable [
       (mkUserscriptXpi {
         pname = "aki-boost";
         geckoId = "aki-boost@t3u.internal";

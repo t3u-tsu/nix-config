@@ -1,5 +1,4 @@
 #!/usr/bin/env ysh
-# vim: set ft=sh:
 #
 # Decrypt the deploy key for private flake inputs with the target machine's SSH
 # host key, and register the GitHub SSH alias in the installer environment.
@@ -11,7 +10,8 @@ const DEFAULT_TARGET_ROOT = '/mnt'
 const GITHUB_SSH_ALIAS = 'github-nix-config-private'
 const HOST_KEY_PATH = 'etc/ssh/ssh_host_ed25519_key'
 const DEPLOY_KEY_NAME = 'nix-config-private_deploy_key'
-const REQUIRED_COMMANDS = ['age', 'ssh', 'ssh-keygen', 'ssh-keyscan']
+const GITHUB_HOST_KEY = 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+const REQUIRED_COMMANDS = ['age', 'ssh', 'ssh-keygen']
 
 # Files written here are secret; keep them unreadable from creation instead of
 # relying on the post-write chmod.
@@ -149,13 +149,8 @@ if (file_exists(known_hosts)) {
   }
 }
 if (not has_github_key) {
-  echo $"==> Scanning github.com into ${known_hosts}"
-  shopt --unset verbose_errexit {
-    try { ssh-keyscan -t ed25519 github.com >> $known_hosts 2>/dev/null }
-  }
-  if failed {
-    echo 'WARN: could not fetch the github.com host key; falling back to accept-new.' >&2
-  }
+  echo $"==> Writing the official github.com host key to ${known_hosts}"
+  echo $GITHUB_HOST_KEY >> $known_hosts
   if (file_exists(known_hosts)) {
     chmod 644 $known_hosts
   }

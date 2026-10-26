@@ -5,16 +5,15 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.thunar;
 in
 {
   options.my.services.desktop.thunar = {
-    enable = mkEnableOption "Thunar file manager";
+    enable = lib.mkEnableOption "Thunar file manager";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     programs = {
       thunar = {
         enable = true;
@@ -24,12 +23,12 @@ in
         ];
       };
 
-      xfconf.enable = true; # Required for Thunar settings persistence
+      xfconf.enable = true;
     };
 
     services = {
-      gvfs.enable = true; # Required for file manager features (Trash, Mounts)
-      tumbler.enable = true; # Required for file manager thumbnails
+      gvfs.enable = true;
+      tumbler.enable = true;
     };
   };
 }

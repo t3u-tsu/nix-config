@@ -5,73 +5,72 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.hardware.nvidia;
 in
 {
   options.my.hardware.nvidia = {
-    enable = mkEnableOption "NVIDIA driver support";
-    open = mkOption {
-      type = types.bool;
+    enable = lib.mkEnableOption "NVIDIA driver support";
+    open = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Use the open-source NVIDIA kernel modules (Turing or newer).";
     };
     powerManagement = {
-      enable = mkOption {
-        type = types.bool;
+      enable = lib.mkOption {
+        type = lib.types.bool;
         default = false;
         description = "Enable NVIDIA power management (systemd suspend/resume hooks).";
       };
-      finegrained = mkOption {
-        type = types.bool;
+      finegrained = lib.mkOption {
+        type = lib.types.bool;
         default = false;
         description = "Fine-grained power management (Runtime D3); requires PRIME offload.";
       };
     };
     prime = {
-      enable = mkEnableOption "NVIDIA PRIME support (Hybrid graphics)";
+      enable = lib.mkEnableOption "NVIDIA PRIME support (Hybrid graphics)";
       offload = {
-        enable = mkOption {
-          type = types.bool;
+        enable = lib.mkOption {
+          type = lib.types.bool;
           default = true;
           description = "Enable PRIME offload mode";
         };
       };
       sync = {
-        enable = mkOption {
-          type = types.bool;
+        enable = lib.mkOption {
+          type = lib.types.bool;
           default = false;
           description = "Enable PRIME sync mode";
         };
       };
-      nvidiaBusId = mkOption {
-        type = types.str;
+      nvidiaBusId = lib.mkOption {
+        type = lib.types.str;
         default = "";
         description = "PCI bus ID of the NVIDIA GPU, e.g. \"PCI:1:0:0\".";
       };
-      amdgpuBusId = mkOption {
-        type = types.str;
+      amdgpuBusId = lib.mkOption {
+        type = lib.types.str;
         default = "";
         description = "PCI bus ID of the AMD GPU, e.g. \"PCI:7:0:0\".";
       };
-      intelBusId = mkOption {
-        type = types.str;
+      intelBusId = lib.mkOption {
+        type = lib.types.str;
         default = "";
         description = "PCI bus ID of the Intel GPU, e.g. \"PCI:0:2:0\".";
       };
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # mkBefore (mkOrder 500, ahead of the default 1000) keeps "nvidia" first so
     # BrokenPC's [ "amdgpu" ] follows; a host needing the iGPU first must
     # mkForce [ "amdgpu" "nvidia" ] — mkForce drops this module's entry.
-    services.xserver.videoDrivers = mkBefore [ "nvidia" ];
+    services.xserver.videoDrivers = lib.mkBefore [ "nvidia" ];
 
     hardware.graphics = {
-      enable = true;
-      enable32Bit = pkgs.stdenv.hostPlatform.isx86_64;
+      enable = lib.mkDefault true;
+      enable32Bit = lib.mkDefault pkgs.stdenv.hostPlatform.isx86_64;
     };
 
     boot.blacklistedKernelModules = [ "nouveau" ];
@@ -88,9 +87,9 @@ in
       powerManagement.finegrained = cfg.powerManagement.finegrained;
       inherit (cfg) open;
       nvidiaSettings = true;
-      package = mkDefault config.boot.kernelPackages.nvidiaPackages.stable;
+      package = lib.mkDefault config.boot.kernelPackages.nvidiaPackages.stable;
 
-      prime = mkIf cfg.prime.enable {
+      prime = lib.mkIf cfg.prime.enable {
         offload = {
           enable = cfg.prime.offload.enable;
           enableOffloadCmd = cfg.prime.offload.enable;

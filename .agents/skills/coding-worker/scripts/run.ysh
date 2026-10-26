@@ -11,6 +11,8 @@
 
 shopt --unset verbose_errexit
 
+var pi_session_id = ''
+
 func file_exists(path) {
   try { test -f $path }
   return (_error.code === 0)
@@ -37,6 +39,10 @@ proc stream_pi_events(log_file, resp_file) {
     if failed { continue }
 
     var event_type = get(event, 'type', '')
+    if (event_type === 'session') {
+      setglobal pi_session_id = get(event, 'id', '')
+      continue
+    }
     if (event_type === 'tool_execution_start') {
       var tool = get(event, 'toolName', '')
       var args = get(event, 'args', {})
@@ -82,7 +88,9 @@ proc stream_pi_events(log_file, resp_file) {
 var orig_umask = $(umask)
 umask 077
 
-var depth = int(get(ENV, '__CODING_WORKER_DEPTH', '0')) + 1
+var depth = 0
+try { setvar depth = int(get(ENV, '__CODING_WORKER_DEPTH', '0')) }
+setvar depth += 1
 setglobal ENV.__CODING_WORKER_DEPTH = str(depth)
 if (depth >= 2) {
   echo $"ERROR: coding-worker recursion limit exceeded (depth: ${depth})" >&2
@@ -193,11 +201,20 @@ case (worker) {
       call pi_args->extend(['--session-id', session_id])
     }
 
+    var pi_session_was_empty = (session_id === '')
     try {
       pi @[pi_args] @[extra_args] -- $prompt < /dev/null 2>> $log_file | stream_pi_events $log_file $resp_file
     }
     var pipeline_status = _pipeline_status
-    setvar exit_code = pipeline_status[0]
+    if (len(pipeline_status) > 0) {
+      setvar exit_code = pipeline_status[0]
+    } else {
+      setvar exit_code = 1
+    }
+
+    if (pi_session_was_empty and continue_flag === '1' and pi_session_id !== '') {
+      setvar session_id = pi_session_id
+    }
   }
   ('dsh') {
     var dsh_args = []

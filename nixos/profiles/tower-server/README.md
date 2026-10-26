@@ -9,7 +9,7 @@ Baseline configuration shared across all headless tower servers (`shosoin-tan`, 
 | [boot.nix](boot.nix) | Stock kernel packages (`pkgs.linuxPackages`). | Keeps legacy Nehalem and Ivy Bridge drivers stable |
 | [security.nix](security.nix) | Firewall policy clearing public TCP ports so SSH is reachable only over `nebula0`. | `allowedTCPPorts = mkForce []` |
 | [ssh.nix](ssh.nix) | OpenSSH server hardening. | `PasswordAuthentication = false`, `PermitRootLogin = "no"` |
-| [default.nix](default.nix) | Profile aggregator with hardware diagnostics. | Enables `pc-tools`; adds the primary user to `wheel`, `video`, `render` |
+| [default.nix](default.nix) | Profile aggregator with hardware diagnostics and emergency SSH access. | Enables `pc-tools` and `emergencySsh`; adds the primary user to `wheel`, `video`, `render` |
 
 ## References
 

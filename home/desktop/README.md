@@ -15,7 +15,7 @@ Desktop modules provide a baseline configuration and an optional full workstatio
 
 | Module / Directory | Description |
 | :--- | :--- |
-| [bitwarden.nix](bitwarden.nix) | Bitwarden desktop client with persistent autostart configuration. |
+| [bitwarden.nix](bitwarden.nix) | Bitwarden desktop client, CLI (`bitwarden-cli`), and persistent autostart configuration. |
 | [browsers/](browsers/README.md) | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). |
 | [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
 | [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |

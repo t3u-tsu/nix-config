@@ -5,36 +5,21 @@ use strict;
 use warnings;
 use utf8;
 use open qw(:std :utf8);
-use Cwd qw(abs_path);
 use File::Basename qw(dirname);
-use File::Spec;
+use FindBin;
+use lib $FindBin::RealBin;
 use Getopt::Long qw(GetOptions);
+use DocsLib qw(
+  closes_fence
+  fence_start
+  get_repo_files
+  get_repo_root
+  normpath
+  read_file
+  relpath
+);
 
 my $TOKEN_RE = qr/`([^`\n]+)`/;
-
-sub get_repo_root {
-    my $script = __FILE__;
-    my $abs    = File::Spec->file_name_is_absolute($script)
-      ? $script
-      : File::Spec->rel2abs($script);
-    my $dir      = dirname($abs);
-    my $resolved = abs_path($dir);
-    return defined $resolved
-      ? dirname(dirname($resolved))
-      : dirname(dirname($abs));
-}
-
-sub read_file {
-    my ($path) = @_;
-    open my $fh, '<:encoding(UTF-8)', $path or return undef;
-    my $content = do {
-        local $/;
-        local $SIG{__WARN__} = sub { };
-        <$fh>;
-    };
-    close $fh;
-    return defined $content ? $content : '';
-}
 
 sub write_file {
     my ($path, $content) = @_;
@@ -42,161 +27,6 @@ sub write_file {
     print {$fh} $content;
     close $fh;
     return 1;
-}
-
-sub normpath {
-    my ($path) = @_;
-    return '.' if !defined $path || $path eq '';
-    my $absolute = $path =~ m{^/} ? 1 : 0;
-    my @parts;
-    for my $component (split m{/+}, $path) {
-        next if $component eq '' || $component eq '.';
-        if ($component eq '..') {
-            if (@parts && $parts[-1] ne '..') { pop @parts }
-            elsif (!$absolute)               { push @parts, '..' }
-            next;
-        }
-        push @parts, $component;
-    }
-    my $joined = join '/', @parts;
-    if ($absolute) { return "/$joined" }
-    return $joined eq '' ? '.' : $joined;
-}
-
-sub relpath {
-    my ($target, $base) = @_;
-    $target = normpath($target);
-    $base   = normpath($base);
-    return $target if $target eq $base;
-
-    my $prefix = $base eq '/' ? '/' : "$base/";
-    return substr($target, length $prefix) if index($target, $prefix) == 0;
-
-    my @target_parts = split m{/}, $target;
-    my @base_parts   = split m{/}, $base;
-    shift @target_parts if @target_parts && $target_parts[0] eq '';
-    shift @base_parts   if @base_parts   && $base_parts[0]   eq '';
-    while (@target_parts && @base_parts && $target_parts[0] eq $base_parts[0]) {
-        shift @target_parts;
-        shift @base_parts;
-    }
-    return join '/', (('..') x scalar @base_parts), @target_parts;
-}
-
-sub glob_to_regex {
-    my ($pattern) = @_;
-    my $regex = '';
-    my @chars = split //, $pattern;
-    for (my $i = 0; $i < @chars; $i++) {
-        my $char = $chars[$i];
-        if    ($char eq '*') { $regex .= '.*' }
-        elsif ($char eq '?') { $regex .= '.' }
-        elsif ($char eq '[') {
-            my $close = index($pattern, ']', $i + 1);
-            if ($close < 0) { $regex .= '\['; next }
-            my $set = substr($pattern, $i + 1, $close - $i - 1);
-            $set =~ s/^!/^/;
-            $set =~ s/\\/\\\\/g;
-            $regex .= "[$set]";
-            $i = $close;
-        }
-        else { $regex .= quotemeta($char) }
-    }
-    return qr/^$regex$/s;
-}
-
-sub git_listed_files {
-    my ($repo_root) = @_;
-    open my $saved_stderr, '>&', \*STDERR or return ();
-    open STDERR, '>', File::Spec->devnull
-      or do { open STDERR, '>&', $saved_stderr; return () };
-
-    my $fh;
-    {
-        local $SIG{__WARN__} = sub { };
-        open $fh, '-|', 'git', '-C', $repo_root, 'ls-files', '-co',
-          '--exclude-standard';
-    }
-    unless ($fh) {
-        open STDERR, '>&', $saved_stderr;
-        return ();
-    }
-    my @lines = <$fh>;
-    my $ok    = close $fh;
-    open STDERR, '>&', $saved_stderr;
-    return () unless $ok;
-    chomp @lines;
-    return grep { length } @lines;
-}
-
-sub matches_ignored {
-    my ($rel, $regexes, $is_dir) = @_;
-    for my $regex (@$regexes) {
-        return 1 if $rel =~ $regex;
-    }
-    my @parts = split m{/}, $rel;
-    my $name  = $parts[-1];
-    for my $regex (@$regexes) {
-        return 1 if $name =~ $regex;
-    }
-    return 0 unless $is_dir;
-    for my $part (@parts) {
-        for my $regex (@$regexes) {
-            return 1 if $part =~ $regex;
-        }
-    }
-    return 0;
-}
-
-sub walk_repo {
-    my ($root, $rel, $regexes, $found) = @_;
-    my $abs = length $rel ? "$root/$rel" : $root;
-    opendir my $dh, $abs or return;
-    my @entries = sort grep { $_ ne '.' && $_ ne '..' } readdir $dh;
-    closedir $dh;
-    for my $entry (@entries) {
-        my $rel_entry = length $rel ? "$rel/$entry" : $entry;
-        my $abs_entry = "$abs/$entry";
-        if (-d $abs_entry) {
-            next if matches_ignored($rel_entry, $regexes, 1);
-            walk_repo($root, $rel_entry, $regexes, $found);
-        }
-        elsif (-f $abs_entry) {
-            next if matches_ignored($rel_entry, $regexes, 0);
-            push @$found, $rel_entry;
-        }
-    }
-    return;
-}
-
-sub walk_repo_files {
-    my ($repo_root) = @_;
-    my @patterns = ('.git');
-    my $gitignore = File::Spec->catfile($repo_root, '.gitignore');
-    if (-e $gitignore) {
-        my $content = read_file($gitignore);
-        if (defined $content) {
-            for my $line (split /\n/, $content, -1) {
-                $line =~ s/^\s+//;
-                $line =~ s/\s+$//;
-                next if $line eq '' || $line =~ /^#/;
-                $line =~ s{/+\z}{};
-                push @patterns, $line;
-            }
-        }
-    }
-    my @regexes = map { glob_to_regex($_) } grep { !/^!/ } @patterns;
-    my @found;
-    walk_repo($repo_root, '', \@regexes, \@found);
-    return @found;
-}
-
-sub get_repo_files {
-    my ($repo_root) = @_;
-    my @files = grep { -f File::Spec->catfile($repo_root, $_) }
-      git_listed_files($repo_root);
-    return @files if @files;
-    return walk_repo_files($repo_root);
 }
 
 sub process_markdown_file {
@@ -213,7 +43,7 @@ sub process_markdown_file {
     }
 
     my @lines = split /\n/, $content, -1;
-    my $in_code_block = 0;
+    my $fence;
     my @new_lines;
     my @change_summaries;
     my $changes_count = 0;
@@ -221,12 +51,15 @@ sub process_markdown_file {
     for my $line_index (0 .. $#lines) {
         my $line = $lines[$line_index];
 
-        if ($line =~ /^\s*```/) {
-            $in_code_block = !$in_code_block;
+        if ($fence) {
+            $fence = undef if closes_fence($line, $fence);
             push @new_lines, $line;
             next;
         }
-        if ($in_code_block) {
+
+        my $start_fence = fence_start($line);
+        if ($start_fence) {
+            $fence = $start_fence;
             push @new_lines, $line;
             next;
         }

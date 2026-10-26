@@ -15,13 +15,20 @@
 
 shopt --unset verbose_errexit
 
+proc die(msg) { error $msg }
+
 var region = 'c3j1'
 var region_env = get(ENV, 'CONOHAVPS_REGION', '')
 if (region_env !== '') { setvar region = region_env }
 
 var wait_timeout = 600
 var wait_timeout_env = get(ENV, 'CONOHAVPS_WAIT_TIMEOUT', '')
-if (wait_timeout_env !== '') { setvar wait_timeout = int(wait_timeout_env) }
+if (wait_timeout_env !== '') {
+  try { setvar wait_timeout = int(wait_timeout_env) }
+  if failed {
+    die $"invalid CONOHAVPS_WAIT_TIMEOUT: ${wait_timeout_env}"
+  }
+}
 const WAIT_INTERVAL = 10
 
 var identity = $"https://identity.${region}.conoha.io/v3"
@@ -61,13 +68,22 @@ proc get_token() {
       },
     },
   }
-  var headers = $(curl -sS --max-time 30 -D - -o /dev/null -X POST \
-    -H 'Content-Type: application/json' -H 'Accept: application/json' \
-    -d $(json write (body)) $"${identity}/auth/tokens")
+  var headers = ''
+  try {
+    setvar headers = $(curl -sS --max-time 30 -D - -o /dev/null -X POST \
+      -H 'Content-Type: application/json' -H 'Accept: application/json' \
+      -d $(json write (body)) $"${identity}/auth/tokens")
+  }
+  if failed {
+    die 'failed to request an auth token'
+  }
   for line in (headers.split(u'\n')) {
     if (line.lower().startsWith('x-subject-token:')) {
-      var parts = line.split(':')
-      echo $[parts[1].trim()]
+      var token = line[len("x-subject-token:"):].trim()
+      if (token === '') {
+        die 'x-subject-token header is empty'
+      }
+      echo $token
       return
     }
   }
@@ -76,9 +92,14 @@ proc get_token() {
 
 proc server_status(token, id) {
   var res = null
-  curl -sS --max-time 30 $"${compute}/servers/${id}" -H $"X-Auth-Token: ${token}" |
-    json read (&res)
-  echo $[res.server.status]
+  try {
+    curl -sS --max-time 30 $"${compute}/servers/${id}" -H $"X-Auth-Token: ${token}" |
+      json read (&res)
+    echo $[res.server.status]
+  }
+  if failed {
+    echo UNKNOWN
+  }
 }
 
 proc server_details(token, id) {
@@ -157,6 +178,11 @@ proc upload_iso(token, image_id, file) {
 
 proc stop_server(token, id) {
   echo '==> Stopping server'
+  var status = $(server_status $token $id)
+  if (status === 'SHUTOFF') {
+    echo '  (already SHUTOFF, skipping)'
+    return
+  }
   var code = ''
   try {
     setvar code = $(server_action $token $id $(json write ({'os-stop': null})))
@@ -164,19 +190,11 @@ proc stop_server(token, id) {
   if failed {
     return 1
   }
-  case (code) {
-    ('202') {
-      wait_status $token $id SHUTOFF shutdown
-    }
-    ('409') {
-      echo '  (already SHUTOFF, skipping)'
-      return
-    }
-    (else) {
-      echo $"ERROR: os-stop failed (HTTP ${code})" >&2
-      return 1
-    }
+  if (code !== '202') {
+    echo $"ERROR: os-stop failed (HTTP ${code})" >&2
+    return 1
   }
+  wait_status $token $id SHUTOFF shutdown
 }
 
 var cmd = ''
@@ -350,13 +368,17 @@ case (cmd) {
     var id = ARGV[1]
     var res = null
     server_details $token $id | json read (&res)
-    var server = res.server
+    var server = get(res, 'server', null)
+    if (server === null) {
+      echo 'ERROR: could not fetch the server details' >&2
+      exit 1
+    }
     json write ({
       id: server.id,
       name: server.name,
       status: server.status,
-      vm_state: server['OS-EXT-STS:vm_state'],
-      task_state: server['OS-EXT-STS:task_state'],
+      vm_state: get(server, 'OS-EXT-STS:vm_state', null),
+      task_state: get(server, 'OS-EXT-STS:task_state', null),
       addresses: server.addresses,
       created: server.created,
       updated: server.updated,

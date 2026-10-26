@@ -25,8 +25,7 @@ Tower server running on BIOS/MBR partitioning with an Intel Core i7-860 processo
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [services/default.nix](services/default.nix) | Host service aggregator importing Nebula overlay and emergency SSH access modules. | Imported in [default.nix](default.nix) |
-| [services/emergency-ssh.nix](services/emergency-ssh.nix) | Out-of-band emergency SSH access via Cloudflare Tunnel. | `my.services.emergencySsh.enable = true;` |
+| [services/default.nix](services/default.nix) | Host service aggregator importing the Nebula overlay module (`my.services.emergencySsh.enable = true;` is enabled by the `tower-server` profile). | Imported in [default.nix](default.nix) |
 | [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.2`, group `mgmt` |
 
 ## Quick Operations

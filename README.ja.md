@@ -31,7 +31,7 @@ Nix Flakes でワークステーション，サーバー群，ネットワーク
 
 - [flake.nix](flake.nix) — flake-parts エントリポイント
 - [flake/](flake/) — flake-parts モジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)
-- [lib/](lib/) — `mkSystem` システムビルダーと共通カラーパレット
+- [lib/](lib/) — `mkSystem` システムビルダー，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)
 - [nixos/](nixos/) — 全ホスト共通のシステムレベル NixOS モジュール群
 - [home/](home/) — Home Manager ユーザー環境モジュール群
 - [hosts/](hosts/) — マシン固有の設定・ハードウェア定義
@@ -81,7 +81,7 @@ nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo 
 
 | ワークフロー | トリガー・内容 |
 | :--- | :--- |
-| [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター (`nixfmt`, `statix`, `shellcheck`, `ja-punctuation`, `markdown-link-check`, `docs-check`) の実行，`convco` による Conventional Commits 検証 |
+| [Nix Flake Check](.github/workflows/nix-check.yml) | 全ホストの評価，pre-commit リンター (`nixfmt`, `statix`, `ysh-check`, `shellcheck`, `ja-punctuation`, `docs-check`) の実行，`convco` による Conventional Commits 検証 |
 | [Scheduled Auto Update](.github/workflows/auto-update.yml) | 毎日 04:00 JST に実行．nvfetcher による外部パッケージ追従，[flake.lock](flake.lock) 更新，CI 検証を経て `main` へ反映 |
 
 ## ドキュメント

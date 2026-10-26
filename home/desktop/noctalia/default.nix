@@ -6,7 +6,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.noctalia;
   wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
@@ -16,9 +15,9 @@ in
   imports = [ inputs.noctalia.homeModules.default ];
 
   options.my.home.desktop.noctalia = {
-    enable = mkEnableOption "Noctalia Wayland shell (bar, launcher, notifications, wallpaper)";
-    wallpaperPreset = mkOption {
-      type = types.enum [
+    enable = lib.mkEnableOption "Noctalia Wayland shell (bar, launcher, notifications, wallpaper)";
+    wallpaperPreset = lib.mkOption {
+      type = lib.types.enum [
         "PTITSA"
         "ka256"
         "suzushiro"
@@ -29,7 +28,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     programs.noctalia = {
       enable = true;
       systemd.enable = true;

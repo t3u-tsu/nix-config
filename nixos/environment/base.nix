@@ -5,12 +5,11 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.packages.core;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       file
       git

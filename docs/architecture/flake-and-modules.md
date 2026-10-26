@@ -8,7 +8,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 - [flake/hosts.nix](../../flake/hosts.nix): 各ホストの `nixosConfigurations` を定義する．
 - [flake/lib.nix](../../flake/lib.nix): `mkLib` を公開し，flake inputs と overlays を合成したライブラリを提供する．
-- [flake/overlays.nix](../../flake/overlays.nix): nixpkgs のオーバーレイ群 (`nix-minecraft`, `niri`, `unstable` 等) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．
+- [flake/overlays.nix](../../flake/overlays.nix): nixpkgs のオーバーレイ群 (`nix-minecraft`, `nur`, `unstable` 等) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．
 - [flake/packages.nix](../../flake/packages.nix): カスタムビルド成果物 (例: `torii-chan-vps-iso`) を `packages.${system}` に公開する．
 - [flake/dev.nix](../../flake/dev.nix): pre-commit hooks (`git-hooks.nix`) および開発シェル (`devShells`) を提供する．
 
@@ -43,10 +43,14 @@ mkLib.mkSystem {
 | オプション階層 | 配置場所 | 役割と具体例 |
 | :--- | :--- | :--- |
 | `my.user.name` | [nixos/base/user.nix](../../nixos/base/user.nix) | プライマリユーザー名の定義 (全モジュールで参照) |
+| `my.base.<name>` | `nixos/base/` | OS 基本設定 (例: `my.base.i18n`) |
+| `my.dev-tools.<name>` | `nixos/dev-tools/` | 開発用ハードウェア・システム設定 (例: `my.dev-tools.enable`) |
 | `my.networking.<name>` | `nixos/networking/` | ネットワークおよびメッシュ機能 (例: `my.networking.nebula`) |
-| `my.services.<name>` | `nixos/services/` | システムレベルの共有サービス (例: `my.services.minecraft`, `my.services.gateway`) |
+| `my.services.<name>` | `nixos/services/` | システムレベルの共有サービス (例: `my.services.minecraft`, `my.services.gateway`, `my.services.llama`) |
 | `my.packages.<category>` | `nixos/environment/` | 目的別の共通パッケージ群 (例: `my.packages.core`, `my.packages.network-tools`) |
 | `my.hardware.<name>` | `nixos/hardware/` | ハードウェア機能の抽象化 (例: `my.hardware.nvidia`, `my.hardware.pc-tools`) |
+| `my.virtualisation.<name>` | `nixos/virtualisation/` | コンテナおよび軽量 VM 基盤 (例: `my.virtualisation.distrobox`, `my.virtualisation.microvm`) |
+| `my.installer.<name>` | [hosts/torii-chan/installer-common.nix](../../hosts/torii-chan/installer-common.nix) | ブートストラップインストーラ共通設定 (例: `my.installer.enable`, `my.installer.hostName`) |
 | `my.home.desktop.<category>.<name>` | `home/desktop/` | デスクトップ環境のユーザー設定 (例: `my.home.desktop.dev-tools.ghostty`) |
 
 ### オプション設計の原則
@@ -62,7 +66,7 @@ mkLib.mkSystem {
 
 1. 標準リポジトリ (nixpkgs stable / unstable) にパッケージが存在する場合に最優先で採用する (`pkgs.<name>` または `pkgs.unstable.<name>`)．
 2. nixpkgs に存在しない，または最新リリースの追従が必要な単体バイナリや Git リポジトリには nvfetcher (`_sources/`) を採用し，日次自動更新ワークフロー (`auto-update.yml`) でハッシュ値を更新する．
-3. 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合は Flake inputs ([flake.nix](../../flake.nix)) を採用する (例: `niri`, `nix-minecraft`)．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断する (詳細は `nix-cache-optimization` スキル参照)．
+3. 上流プロジェクトが Flake として NixOS モジュールやオーバーレイを提供している場合は Flake inputs ([flake.nix](../../flake.nix)) を採用する (例: `noctalia`, `nix-minecraft`, `llm-agents`)．コンパイル負荷の高い外部 Flake パッケージは，`follows = "nixpkgs"` によるバイナリキャッシュ不整合と nixpkgs インスタンス複製のトレードオフを考慮して判断し，[nixos/base/nix.nix](../../nixos/base/nix.nix) の `extra-substituters` (`noctalia.cachix.org?priority=30`, `nix-community.cachix.org?priority=41`, `cache.numtide.com?priority=42`, `ezkea.cachix.org?priority=45`) で優先度を一元管理する (詳細は `nix-cache-optimization` スキル参照)．
 
 ---
 

@@ -5,23 +5,22 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.dev-tools.nix;
 in
 {
   options.my.home.desktop.dev-tools.nix = {
-    enable = mkEnableOption "Nix ecosystem development tools";
+    enable = lib.mkEnableOption "Nix ecosystem development tools";
   };
 
-  config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      nh
-      nix-du
-      nix-output-monitor
-      nix-tree
-      nixfmt
-      statix
+  config = lib.mkIf cfg.enable {
+    home.packages = [
+      pkgs.nh
+      pkgs.nix-du
+      pkgs.nix-output-monitor
+      pkgs.nix-tree
+      pkgs.nixfmt
+      pkgs.statix
     ];
   };
 }

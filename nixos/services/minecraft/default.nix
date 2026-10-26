@@ -34,6 +34,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nixpkgs.overlays = [
+      inputs.nix-minecraft.overlay
+    ];
+
     services.minecraft-servers = {
       enable = true;
       eula = true;
@@ -64,8 +68,8 @@ in
             fi
           }
 
-          generate ${cfg.forwardingSecretPath}
-          generate ${cfg.rconSecretPath}
+          generate "${cfg.forwardingSecretPath}"
+          generate "${cfg.rconSecretPath}"
         '';
       };
     }

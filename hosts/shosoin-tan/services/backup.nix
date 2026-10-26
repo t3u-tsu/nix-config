@@ -20,7 +20,6 @@
     sshKeyFile = config.age.secrets.restic_ssh_key.path;
 
     backupPrepareCommand = ''
-      # Disable auto-save and flush to disk for all servers
       for server in lobby nitac23s; do
         if [ -S /run/minecraft/$server.sock ]; then
           ${pkgs.tmux}/bin/tmux -S /run/minecraft/$server.sock send-keys "save-off" ENTER
@@ -31,7 +30,6 @@
     '';
 
     backupCleanupCommand = ''
-      # Re-enable auto-save
       for server in lobby nitac23s; do
         if [ -S /run/minecraft/$server.sock ]; then
           ${pkgs.tmux}/bin/tmux -S /run/minecraft/$server.sock send-keys "save-on" ENTER
@@ -42,9 +40,6 @@
 
   # SSH configuration for restic backup (kagutsuchi-sama over nebula0).
   # restic's SSH identity comes from my.services.backup.sshKeyFile.
-  programs.ssh.extraConfig = ''
-    Host 10.0.0.3
-      StrictHostKeyChecking no
-      UserKnownHostsFile /dev/null
-  '';
+  programs.ssh.knownHosts."10.0.0.3".publicKey =
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVL9zWhWDBJNs7J14zAD+FHK5sHOcaFSP8p8EFaY1CI";
 }

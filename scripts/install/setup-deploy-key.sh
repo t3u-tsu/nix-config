@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# setup-deploy-key.sh - Thin wrapper for setup-deploy-key.ysh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +12,9 @@ fi
 missing_pkgs=()
 command -v ysh >/dev/null 2>&1 || missing_pkgs+=("oils-for-unix")
 command -v age >/dev/null 2>&1 || missing_pkgs+=("age")
+if ! command -v ssh-keygen >/dev/null 2>&1; then
+  missing_pkgs+=("openssh")
+fi
 
 if [ ${#missing_pkgs[@]} -eq 0 ]; then
   exec ysh "${YSH_SCRIPT}" "$@"

@@ -1,35 +1,36 @@
-{ lib, ... }@moduleArgs:
+{ config, lib, ... }:
 
-with lib;
 let
-  cfg = moduleArgs.config.my.base.i18n;
+  cfg = config.my.base.i18n;
 in
 {
   options.my.base.i18n = {
-    enable = mkEnableOption "System-wide i18n and locale settings" // {
+    enable = lib.mkOption {
+      type = lib.types.bool;
       default = true;
+      description = "System-wide i18n and locale settings";
     };
-    defaultLocale = mkOption {
-      type = types.str;
+    defaultLocale = lib.mkOption {
+      type = lib.types.str;
       default = "ja_JP.UTF-8";
       description = "Default system locale";
     };
-    supportedLocales = mkOption {
-      type = types.listOf types.str;
+    supportedLocales = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [
         "ja_JP.UTF-8/UTF-8"
         "en_US.UTF-8/UTF-8"
       ];
       description = "List of locales to generate";
     };
-    consoleKeyMap = mkOption {
-      type = types.str;
+    consoleKeyMap = lib.mkOption {
+      type = lib.types.str;
       default = "us";
       description = "Keymap for the system console";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     i18n = {
       inherit (cfg) defaultLocale supportedLocales;
     };

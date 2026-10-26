@@ -11,7 +11,6 @@ let
   wanGateway = "192.0.2.1"; # ConoHa panel default gateway
 in
 {
-  # ConoHa VPS exposes the NIC as eth0.
   my.services.gateway.wanInterface = "eth0";
 
   # ConoHa assigns a static IPv4 and runs no DHCP for the primary NIC.
@@ -44,7 +43,7 @@ in
   boot.loader = {
     grub = {
       enable = true;
-      device = "/dev/vda"; # install GRUB to the MBR
+      device = "/dev/vda";
     };
   };
 

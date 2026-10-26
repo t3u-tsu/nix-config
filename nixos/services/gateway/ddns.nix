@@ -1,12 +1,10 @@
 { config, lib, ... }:
 
-with lib;
-
 let
   cfg = config.my.services.gateway;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.ddclient = {
       enable = true;
       protocol = "cloudflare";

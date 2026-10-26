@@ -1,10 +1,10 @@
 {
   config,
+  inputs,
   lib,
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop;
 in
@@ -21,45 +21,47 @@ in
     ./graphics.nix
     ./networkmanager.nix
     ./chromium.nix
-    ./bitwarden.nix
   ];
 
   options.my.services.desktop = {
-    enable = mkEnableOption "Desktop system services (lightweight core)";
+    enable = lib.mkEnableOption "Desktop system services (lightweight core)";
 
     full = {
-      enable = mkEnableOption "Full desktop system services (gaming, Unity/Distrobox)";
+      enable = lib.mkEnableOption "Full desktop system services (gaming, Unity/Distrobox)";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
+    nixpkgs.overlays = [
+      inputs.nur.overlays.default
+    ];
+
     my = {
       services.desktop = {
-        niri.enable = mkDefault true;
-        greetd.enable = mkDefault true;
-        pipewire.enable = mkDefault true;
-        thunar.enable = mkDefault true;
-        graphics.enable = mkDefault true;
-        networkmanager.enable = mkDefault true;
-        bluetooth.enable = mkDefault true;
-        fonts.enable = mkDefault true;
-        chromium.enable = mkDefault true;
-        bitwarden.enable = mkDefault true;
+        niri.enable = lib.mkDefault true;
+        greetd.enable = lib.mkDefault true;
+        pipewire.enable = lib.mkDefault true;
+        thunar.enable = lib.mkDefault true;
+        graphics.enable = lib.mkDefault true;
+        networkmanager.enable = lib.mkDefault true;
+        bluetooth.enable = lib.mkDefault true;
+        fonts.enable = lib.mkDefault true;
+        chromium.enable = lib.mkDefault true;
 
-        gaming.enable = mkDefault cfg.full.enable;
-        unity.enable = mkDefault cfg.full.enable;
+        gaming.enable = lib.mkDefault cfg.full.enable;
+        unity.enable = lib.mkDefault cfg.full.enable;
       };
 
       # Rootless podman + distrobox backing the Unity workflow (the external
       # unity module only enables podman; subuid/subgid ranges live here).
-      virtualisation.distrobox.enable = mkDefault cfg.full.enable;
+      virtualisation.distrobox.enable = lib.mkDefault cfg.full.enable;
 
-      user.extraGroups = mkDefault [
-        "wheel"
+      user.extraGroups = [
         "networkmanager"
         "video"
+        "render"
         "audio"
-        "dialout"
+        "gamemode"
       ];
     };
   };

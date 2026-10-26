@@ -26,14 +26,14 @@ Secondary portable laptop deployed at Site A and off-site, running NixOS with Ni
 | **Profile** | `desktop` |
 | **Nebula Mesh** | `10.0.0.100` (groups: `mgmt`, `app`) |
 | **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
-| **Key Services** | Local LLM inference server (`my.home.programs.llama`), agenix secrets |
+| **Key Services** | Local LLM inference server (`my.services.llama`), agenix secrets |
 
 ## Host Services & Modules
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
 | [services/default.nix](services/default.nix) | Host service aggregator importing local LLM inference and Nebula overlay modules. | Imported in [default.nix](default.nix) |
-| [services/llama.nix](services/llama.nix) | Local LLM inference server using CUDA on the compute-only RTX 3050 Ti Mobile dGPU. | `my.home.programs.llama.enable = true;` |
+| [services/llama.nix](services/llama.nix) | Local LLM inference server (`systemd.services.llama-server`) using CUDA on the compute-only RTX 3050 Ti Mobile dGPU. | `my.services.llama.enable = true;` |
 | [services/nebula.nix](services/nebula.nix) | Nebula encrypted overlay mesh node definition. | Node IP `10.0.0.100`, groups: `mgmt`, `app` |
 
 ## Quick Operations

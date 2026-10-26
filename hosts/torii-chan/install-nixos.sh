@@ -21,7 +21,6 @@ die() {
   exit 1
 }
 
-# network: manually configure a static IP (fallback)
 cmd_network() {
   [ -n "$IPV4" ] || die "IPV4 is not set. Example: IPV4=203.0.113.10 GATEWAY=203.0.113.1 install-nixos network"
   [ -n "$GATEWAY" ] || die "GATEWAY is not set."
@@ -55,7 +54,6 @@ cmd_network() {
   echo "==> Network configuration complete"
 }
 
-# status: show the current state
 cmd_status() {
   echo "==> Interfaces / IP"
   ip -brief addr 2>/dev/null || ip addr
@@ -73,7 +71,6 @@ cmd_status() {
   lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
 }
 
-# install: partition -> format -> swap -> nixos-install
 cmd_install() {
   # write_configuration bakes both values into configuration.nix, so reject them
   # here rather than producing an unbootable network config after partitioning.
@@ -121,10 +118,9 @@ cmd_install() {
   echo "    1. Disable swap and unmount the disk"
   echo "       swapoff /mnt/swapfile && umount /mnt"
   echo "    2. Eject the ISO and reboot from the local machine"
-  echo "       ./terraform/scripts/nixos-iso.sh eject <instance_id>"
+  echo "       ./terraform/scripts/nixos-iso.ysh eject <instance_id>"
 }
 
-# generate configuration.nix (called from install)
 write_configuration() {
   # Build the Nix list string of authorizedKeys (one key per line)
   local nix_keys=""
@@ -184,7 +180,6 @@ EOF
   sed -n '1,60p' /mnt/etc/nixos/configuration.nix
 }
 
-# main
 cmd="${1:-help}"
 case "${cmd}" in
   network)

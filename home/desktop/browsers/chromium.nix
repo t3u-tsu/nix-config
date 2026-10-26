@@ -4,12 +4,11 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.browsers;
 in
 {
-  config = mkIf (cfg.enable && cfg.chromium.enable) {
+  config = lib.mkIf (cfg.enable && cfg.chromium.enable) {
     programs.chromium = {
       enable = true;
       commandLineArgs = [

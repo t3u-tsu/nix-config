@@ -1,5 +1,4 @@
-{ config, lib, ... }:
-{
+_: {
   # SSD (500GB) - System
   fileSystems = {
     "/boot" = {

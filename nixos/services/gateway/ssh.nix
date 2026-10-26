@@ -1,12 +1,10 @@
 { config, lib, ... }:
 
-with lib;
-
 let
   cfg = config.my.services.gateway;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     security.sudo.wheelNeedsPassword = true;
 
     services.openssh = {

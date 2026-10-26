@@ -112,7 +112,7 @@ rules.auth.unix.settings = {
 rules.auth.fprintd.order = config.security.pam.services.greetd.rules.auth.unix.order + 10;
 ```
 
-x1c7 では `sudo` と `polkit-1` について，[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で `fprintd` ルールを `pam_unix` の直後 (11710) へ移し，`max-tries=1` / `timeout=10` に短縮している．`su` は既定スタック (`pam_fprintd` 11400 → `pam_unix` 11700) のままである．
+x1c7 では `sudo` と `polkit-1` について，[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で既定の順序 (`pam_fprintd` 11400 → `pam_unix` 11700) を維持したまま `max-tries = 3`, `timeout = 5` に短縮し，5 秒のタイムアウトまたは 3 回の失敗でパスワード入力へフォールバックする構成としている．`su` は既定スタック (`timeout = 30`, `max-tries = 3`) のままである．
 
 ---
 
@@ -346,7 +346,7 @@ Noctalia は 2 つの認証トランザクションを直列化して処理す�
 - `greetd` / `polkit-1` / `sudo` は，いずれも「1 リクエスト = 1 PAM トランザクション」を前提としたプロトコル / API / 実装であり，設定や PAM 順序の工夫では並行化できない．並行化には各プロジェクト本体の改修が必要である．
 - 本リポジトリでの現実的な選択肢として，以下のアプローチが挙げられる．
   - greetd では，本体や noctalia-greeter を改修しない限り完全な並行化は行えない．現在の「空送信フォールスルー」を維持しつつ，`pam_fprintd` の `timeout` を短縮して体感待ち時間を低減する設計が妥当である．
-  - polkit-1, sudo, su では，`pam_unix try_first_pass` を優先するか，`pam_fprintd` に `timeout=10` などを設定して 30 秒間のブロックを回避する ([fprintd-triage-notes.md](fprintd-triage-notes.md) の推奨と一致)．
+  - polkit-1, sudo, su では，既定の順序 (`pam_fprintd` → `pam_unix`) のまま `pam_fprintd` に `timeout = 5`, `max-tries = 3` などを設定して 30 秒間のブロックを回避し，タイムアウトや失敗時に速やかにパスワード入力へフォールバックさせる ([fprintd-triage-notes.md](fprintd-triage-notes.md) の推奨と一致)．
   - 完全な並行認証が必要な場合は，GDM 相当の dual-PAM オーケストレータを実装するか，Noctalia ロック画面のような D-Bus 直接呼び出しと明示調停を組み合わせる方式を採用する．
 
 ---

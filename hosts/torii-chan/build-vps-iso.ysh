@@ -7,6 +7,12 @@
 #   nix build .#torii-chan-vps-iso -o result-iso
 
 cd $_this_dir/../.. {
+  try { command -v openssl > /dev/null }
+  if failed {
+    echo 'openssl is required to issue the temporary password' >&2
+    exit 1
+  }
+
   var temp_password = get(ENV, 'TEMP_PASSWORD', '')
   if (temp_password === '') {
     setvar temp_password = $(openssl rand -hex 8)
@@ -14,17 +20,16 @@ cd $_this_dir/../.. {
 
   var password_hash = $(printf '%s\n' $temp_password | openssl passwd -6 -stdin)
 
+  echo '==> Starting ISO build (--impure)...'
+  TORII_INSTALLER_TEMP_PASSWORD_HASH=$password_hash \
+    nix build --impure .#torii-chan-vps-iso -o result-iso
+
   var password_file = 'result-iso-temp-password.txt'
   umask 077
   printf 'Temporary password (for root / t3u in the live environment): %s\n' $temp_password > $password_file
   printf 'Keep this file safe even after the ISO build completes, and delete it once no longer needed.\n' >> $password_file
 
-  echo $"==> Temporary password issued: saved to ${password_file}"
-  echo '==> Starting ISO build (--impure)...'
-  TORII_INSTALLER_TEMP_PASSWORD_HASH=$password_hash \
-    nix build --impure .#torii-chan-vps-iso -o result-iso
-
   echo '==> Build complete'
   ls -lh result-iso/iso/
-  echo $"Check the temporary password: ${password_file}"
+  echo $"Temporary password saved to: ${password_file}"
 }

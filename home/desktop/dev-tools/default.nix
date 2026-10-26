@@ -4,13 +4,12 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.dev-tools;
 in
 {
   options.my.home.desktop.dev-tools = {
-    enable = mkEnableOption "Development tools category";
+    enable = lib.mkEnableOption "Development tools category";
   };
 
   imports = [
@@ -23,14 +22,14 @@ in
     ./unity.nix
   ];
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     my.home.desktop.dev-tools = {
-      neovim.enable = mkDefault true;
-      git-tools.enable = mkDefault true;
-      ghostty.enable = mkDefault true;
-      nix.enable = mkDefault true;
-      # ai-tools / hardware default to false; the desktop aggregate turns them
-      # on with my.home.desktop.full.enable (they pull in heavy packages).
+      neovim.enable = lib.mkDefault true;
+      git-tools.enable = lib.mkDefault true;
+      ghostty.enable = lib.mkDefault true;
+      nix.enable = lib.mkDefault true;
+      # ai-tools / hardware / unity default to false; the desktop aggregate
+      # turns them on with my.home.desktop.full.enable (they pull in heavy packages).
     };
   };
 }

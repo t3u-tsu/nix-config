@@ -5,7 +5,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.home.desktop.niri;
   palette = import ../../../lib/palette.nix;
@@ -27,10 +26,10 @@ let
 in
 {
   options.my.home.desktop.niri = {
-    enable = mkEnableOption "Niri scrollable-tiling Wayland compositor";
+    enable = lib.mkEnableOption "Niri scrollable-tiling Wayland compositor";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     # niri-flake's typed `programs.niri.settings` does not cover niri v26.04
     # features such as `blur` / `background-effect`, and `programs.niri.config`
     # fully replaces it, so the `@name@` placeholders in config.kdl are the only
@@ -39,15 +38,14 @@ in
       builtins.readFile ./config.kdl
     );
 
-    home.packages = with pkgs; [
-      xwayland-satellite
-      wl-clipboard
-      wl-mirror
-      jq
-      loupe
-      grim
-      slurp
-      adwaita-icon-theme
+    home.packages = [
+      pkgs.xwayland-satellite
+      pkgs.wl-clipboard
+      pkgs.wl-mirror
+      pkgs.loupe
+      pkgs.grim
+      pkgs.slurp
+      pkgs.adwaita-icon-theme
     ];
   };
 }

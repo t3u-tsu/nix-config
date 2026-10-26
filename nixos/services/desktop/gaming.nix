@@ -6,7 +6,6 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.gaming;
 
@@ -19,20 +18,20 @@ in
   inherit (aaglModule) imports;
 
   options.my.services.desktop.gaming = {
-    enable = mkEnableOption "System-wide gaming services (Steam, GameMode, aagl)";
+    enable = lib.mkEnableOption "System-wide gaming services (Steam, GameMode, aagl)";
     aagl = {
-      enable = mkOption {
-        type = types.bool;
+      enable = lib.mkOption {
+        type = lib.types.bool;
         default = true;
         description = "aagl game launchers (an-anime-game-launcher)";
       };
     };
     nvidiaOffload = {
-      enable = mkEnableOption "Run Steam and every game launched through it on the NVIDIA dGPU (PRIME offload)";
+      enable = lib.mkEnableOption "Run Steam and every game launched through it on the NVIDIA dGPU (PRIME offload)";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     nixpkgs.overlays = aaglModule.nixpkgs.overlays;
 
     programs = {

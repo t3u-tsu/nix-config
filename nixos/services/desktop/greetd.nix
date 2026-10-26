@@ -6,51 +6,50 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.services.desktop.greetd;
   palette = import ../../../lib/palette.nix;
-  greeterOutput = optionalAttrs (cfg.greeterOutput != null) { output = cfg.greeterOutput; };
+  greeterOutput = lib.optionalAttrs (cfg.greeterOutput != null) { output = cfg.greeterOutput; };
   greeterWallpaperPath = "/var/lib/noctalia-greeter/wallpaper.jpg";
 
   # The greeter expects the complete Vesper set, upper case.
   greeterPalette = {
-    primary = toUpper palette.primary;
-    on_primary = toUpper palette.on_primary;
-    secondary = toUpper palette.secondary;
-    on_secondary = toUpper palette.on_secondary;
-    tertiary = toUpper palette.tertiary;
-    on_tertiary = toUpper palette.on_tertiary;
-    error = toUpper palette.err;
-    on_error = toUpper palette.on_error;
-    surface = toUpper palette.bg;
-    on_surface = toUpper palette.fg;
-    surface_variant = toUpper palette.bg2;
-    on_surface_variant = toUpper palette.fg2;
-    outline = toUpper palette.low;
-    shadow = toUpper palette.shadow;
-    hover = toUpper palette.hover;
-    on_hover = toUpper palette.on_hover;
+    primary = lib.toUpper palette.primary;
+    on_primary = lib.toUpper palette.on_primary;
+    secondary = lib.toUpper palette.secondary;
+    on_secondary = lib.toUpper palette.on_secondary;
+    tertiary = lib.toUpper palette.tertiary;
+    on_tertiary = lib.toUpper palette.on_tertiary;
+    error = lib.toUpper palette.err;
+    on_error = lib.toUpper palette.on_error;
+    surface = lib.toUpper palette.bg;
+    on_surface = lib.toUpper palette.fg;
+    surface_variant = lib.toUpper palette.bg2;
+    on_surface_variant = lib.toUpper palette.fg2;
+    outline = lib.toUpper palette.low;
+    shadow = lib.toUpper palette.shadow;
+    hover = lib.toUpper palette.hover;
+    on_hover = lib.toUpper palette.on_hover;
   };
 in
 {
   imports = [ inputs.noctalia-greeter.nixosModules.default ];
 
   options.my.services.desktop.greetd = {
-    enable = mkEnableOption "greetd login manager with the Noctalia greeter";
-    greeterOutput = mkOption {
-      type = types.nullOr types.attrs;
+    enable = lib.mkEnableOption "greetd login manager with the Noctalia greeter";
+    greeterOutput = lib.mkOption {
+      type = lib.types.nullOr (lib.types.attrsOf lib.types.anything);
       default = null;
       description = "Greeter output (connector) overrides, e.g. { name = \"eDP-1\"; }. Set per host.";
     };
-    greeterWallpaper = mkOption {
-      type = types.nullOr types.str;
+    greeterWallpaper = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Absolute path to a wallpaper image copied into the greeter state dir. Set per host.";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     services.displayManager.noctalia-greeter = {
       enable = true;
       settings = {
@@ -88,8 +87,8 @@ in
           timeout = 300;
         };
         cursor = {
-          theme = "Bibata-Modern-Amber";
-          size = 24;
+          theme = palette.cursor.name;
+          size = palette.cursor.size;
           path = "/run/current-system/sw/share/icons";
         };
       }
@@ -113,7 +112,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${pkgs.coreutils}/bin/install -o greeter -g greeter -m 0640 '${cfg.greeterWallpaper}' ${greeterWallpaperPath}";
+        ExecStart = "${pkgs.coreutils}/bin/install -o greeter -g greeter -m 0640 ${lib.escapeShellArg cfg.greeterWallpaper} ${greeterWallpaperPath}";
       };
     };
 

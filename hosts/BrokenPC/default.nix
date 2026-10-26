@@ -34,7 +34,6 @@
       "i8042.nopnp"
       "acpi.ec_no_wakeup=1"
     ];
-    extraModulePackages = [ ];
     kernelPackages = pkgs.linuxPackages_xanmod;
     loader.grub = {
       enable = true;
@@ -88,7 +87,9 @@
         greetd.greeterOutput = {
           name = "eDP-1";
         };
-        greetd.greeterWallpaper = "/home/${config.my.user.name}/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
+        greetd.greeterWallpaper = "${
+          config.users.users.${config.my.user.name}.home
+        }/Pictures/wallpapers/PTITSA/144133008_p0.jpg";
         bluetooth.experimental = true;
       };
     };

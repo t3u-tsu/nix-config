@@ -9,9 +9,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@main
 
@@ -21,18 +26,12 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Magic Nix Cache
-        uses: cachix/cachix-action@master
-        with:
-          name: niri
-          skipPush: true
-
       - name: Deploy key for the private flake input
         run: |
           install -d -m 700 ~/.ssh
           printf '%s\n' "${{ secrets.NIX_CONFIG_PRIVATE_DEPLOY_KEY }}" > ~/.ssh/nix-config-private
           chmod 600 ~/.ssh/nix-config-private
-          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
           cat >> ~/.ssh/config <<'SSHCONF'
           Host github-nix-config-private
             HostName github.com
@@ -46,6 +45,7 @@ jobs:
 
   convco-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@main
         with:
@@ -58,13 +58,19 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Check Conventional Commits (convco)
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_BEFORE: ${{ github.event.before }}
         run: |
-          if [ -n "${{ github.event.pull_request.base.sha }}" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] \
-            && git merge-base --is-ancestor "${{ github.event.before }}" HEAD 2>/dev/null; then
-            BASE="${{ github.event.before }}"
+          if [ -n "$PR_BASE_SHA" ]; then
+            BASE="$PR_BASE_SHA"
+          elif [ "$EVENT_BEFORE" != "0000000000000000000000000000000000000000" ] \
+            && git merge-base --is-ancestor "$EVENT_BEFORE" HEAD 2>/dev/null; then
+            BASE="$EVENT_BEFORE"
           else
             BASE="$(git merge-base origin/main HEAD 2>/dev/null || echo origin/main)"
           fi
-          nix develop .#convco --command convco check --ignore-reverts "$BASE..HEAD"
+          if [ "$BASE" = "$(git rev-parse HEAD)" ]; then
+            exit 0
+          fi
+          nix run nixpkgs#convco -- check --ignore-reverts "$BASE..HEAD"

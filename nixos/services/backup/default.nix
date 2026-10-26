@@ -5,8 +5,6 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.my.services.backup;
 
@@ -29,7 +27,7 @@ let
           IdentityFile ${cfg.sshKeyFile}
       ''
     else
-      warn "my.services.backup: sshKeyFile is set but remoteRepo '${cfg.remoteRepo}' has no user@host, so no IdentityFile is emitted" "";
+      lib.warn "my.services.backup: sshKeyFile is set but remoteRepo '${cfg.remoteRepo}' has no user@host, so no IdentityFile is emitted" "";
 
   mkBackup = name: repo: {
     ${name} = {
@@ -56,57 +54,57 @@ in
   imports = [ ./receiver.nix ];
 
   options.my.services.backup = {
-    enable = mkEnableOption "restic backup configuration";
+    enable = lib.mkEnableOption "restic backup configuration";
 
-    paths = mkOption {
-      type = types.listOf types.str;
+    paths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "List of paths to backup";
     };
 
-    exclude = mkOption {
-      type = types.listOf types.str;
+    exclude = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "List of patterns to exclude";
     };
 
-    passwordFile = mkOption {
-      type = types.str;
+    passwordFile = lib.mkOption {
+      type = lib.types.str;
       description = "Path to the file containing the restic repository password";
     };
 
-    localRepo = mkOption {
-      type = types.nullOr types.str;
+    localRepo = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Path to local repository (e.g. /mnt/tank/backups)";
     };
 
-    remoteRepo = mkOption {
-      type = types.nullOr types.str;
+    remoteRepo = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "URL of remote repository (e.g. sftp:user@host:/path)";
     };
 
-    sshKeyFile = mkOption {
-      type = types.nullOr types.str;
+    sshKeyFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "SSH private key added as an IdentityFile for the remote repository's host.";
     };
 
-    backupPrepareCommand = mkOption {
-      type = types.nullOr types.str;
+    backupPrepareCommand = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Command to run before backup starts";
     };
 
-    backupCleanupCommand = mkOption {
-      type = types.nullOr types.str;
+    backupCleanupCommand = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Command to run after backup finishes";
     };
 
-    timerConfig = mkOption {
-      type = types.attrs;
+    timerConfig = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
       default = {
         OnCalendar = "00/2:00:00";
         RandomizedDelaySec = "10m";
@@ -115,16 +113,16 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = [ pkgs.restic ];
 
     # restic has no ssh-key option: its SFTP backend shells out to the system ssh
     # client, so the identity has to arrive through ssh_config.
     programs.ssh.extraConfig = sshIdentity;
 
-    services.restic.backups = mkMerge [
-      (mkIf (cfg.localRepo != null) (mkBackup "local-backup" cfg.localRepo))
-      (mkIf (cfg.remoteRepo != null) (mkBackup "remote-backup" cfg.remoteRepo))
+    services.restic.backups = lib.mkMerge [
+      (lib.mkIf (cfg.localRepo != null) (mkBackup "local-backup" cfg.localRepo))
+      (lib.mkIf (cfg.remoteRepo != null) (mkBackup "remote-backup" cfg.remoteRepo))
     ];
   };
 }

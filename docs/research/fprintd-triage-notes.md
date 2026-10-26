@@ -38,7 +38,7 @@
 - 指を置かない限り最大 30 秒パスワード入力欄が出ない．実測値: `sudo ls /proc/9706/fd` の実行時，指を置かない場合は 30 秒のタイムアウトまでパスワードプロンプトが表示されず待機状態となった．
 - `greetd` は先行設定 (`0ae6aae` / `d09c7ac`)で `pam_unix` 優先 (`use_first_pass`)に変更済みであったが，`polkit-1`, `sudo`, `su` は未適用であった．
 - 副次効果: pam_fprintd が最大 30 秒デバイスを Claim し続けるため，同時に複数の認証要求が来ると後続が `Device was already claimed` で即座に失敗し，パスワード認証へフォールスルーする．
-- 後日 [hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で `sudo` / `polkit-1` の `fprintd` ルールを `pam_unix` の直後 (11710)へ移し，`max-tries=1` / `timeout=10` に短縮した．`su` は既定スタックのままである．
+- 後日 [hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で `sudo` / `polkit-1` は既定の順序 (`pam_fprintd` 11400 → `pam_unix` 11700) を維持したまま `max-tries = 3`, `timeout = 5` に短縮し，5 秒のタイムアウトまたは 3 回の失敗でパスワード入力へフォールバックする構成とした．`su` は既定スタックのままである．
 
 ### 3. 指紋不一致 / MoC テンプレート — Working as Designed
 - ログの `Failed to match fingerprint` (pam_fprintd / greeter / polkit-kde)は `verify-no-match` の正常通知である．Synaptics ドライバは `fpi_print_set_device_stored(print, TRUE)` で照合をチップ内で行い，不一致時に `BMKT_FP_NO_MATCH` → `FPI_MATCH_FAIL` を返す．

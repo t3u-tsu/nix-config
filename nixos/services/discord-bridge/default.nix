@@ -6,8 +6,6 @@
   ...
 }:
 
-with lib;
-
 let
   cfg = config.my.services.minecraft-discord-bridge;
   format = pkgs.formats.toml { };
@@ -16,47 +14,47 @@ let
   bridgePkg = inputs.minecraft-discord-bridge.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Read at start so the values never enter the world-readable Nix store.
-  secretEnv = concatStringsSep "\n" (
-    mapAttrsToList (
-      name: file: "export ${name}=$(cat ${escapeShellArg file})"
+  secretEnv = lib.concatStringsSep "\n" (
+    lib.mapAttrsToList (
+      name: file: "export ${name}=\"$(cat ${lib.escapeShellArg file})\""
     ) cfg.environmentSecretFiles
   );
 
   launcher = pkgs.writeShellScript "minecraft-discord-bridge-start" ''
     ${secretEnv}
-    exec ${bridgePkg}/bin/minecraft-discord-bridge -c ${configFile}
+    exec ${lib.escapeShellArg "${bridgePkg}/bin/minecraft-discord-bridge"} -c ${lib.escapeShellArg configFile}
   '';
 in
 {
   options.my.services.minecraft-discord-bridge = {
-    enable = mkEnableOption "Minecraft Discord Bridge";
+    enable = lib.mkEnableOption "Minecraft Discord Bridge";
 
-    settings = mkOption {
+    settings = lib.mkOption {
       inherit (format) type;
       default = { };
       description = "Configuration for the bridge (TOML format)";
     };
 
-    environmentFiles = mkOption {
-      type = types.listOf types.path;
+    environmentFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
       default = [ ];
       description = "Files containing environment variables (secrets)";
     };
 
-    environmentSecretFiles = mkOption {
-      type = types.attrsOf types.str;
+    environmentSecretFiles = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
       default = { };
       description = ''
         Environment variables whose values are read from the given files when the
         bridge starts, for secrets that are not already in systemd EnvironmentFile format.
       '';
-      example = literalExpression ''
+      example = lib.literalExpression ''
         { RCON_PASS_nitac23s = "/var/lib/minecraft/secrets/nitac23s-rcon.secret"; }
       '';
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     systemd.services.minecraft-discord-bridge = {
       description = "Minecraft Discord Bridge";
       after = [ "network-online.target" ];

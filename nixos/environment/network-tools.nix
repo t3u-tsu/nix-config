@@ -5,12 +5,11 @@
   ...
 }:
 
-with lib;
 let
   cfg = config.my.packages.network-tools;
 in
 {
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       bandwhich
       cloudflared
@@ -18,7 +17,6 @@ in
       dnsutils
       gping
       iftop
-      lsof
       mtr
       nebula
       nmap
