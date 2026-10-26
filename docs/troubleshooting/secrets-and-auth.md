@@ -101,6 +101,8 @@ error: Failed to fetch git repository 'ssh://git@github-nix-config-private/t3u-t
 
 ### 切り分け・復旧手順
 
+新規インストール時は [scripts/install/setup-deploy-key.sh](../../scripts/install/setup-deploy-key.sh) が Step 1〜3 をまとめて実行する．以下は手動で復旧する場合の手順である．
+
 #### Step 1: root の SSH 環境の準備
 Flake の評価および Git フェッチは root 権限で実行されるため，root の SSH 設定を初期化する:
 ```bash
