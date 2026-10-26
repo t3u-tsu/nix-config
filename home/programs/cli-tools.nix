@@ -34,6 +34,7 @@ _:
       ls = "eza";
       ll = "eza -l";
       la = "eza -a";
+      da = "direnv allow";
     };
   };
 }
