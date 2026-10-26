@@ -1,10 +1,10 @@
 # Desktop Profile (`nixos/profiles/desktop/`)
 
-Configures system-level services and Home Manager user environments for graphical desktop workstations.
+Configures system-level services and Home Manager user environments for graphical desktop systems.
 
 ## Profile Architecture
 
-Desktop modules are divided into a lightweight baseline core and an opt-in full workstation stack:
+Desktop modules are divided into a lightweight baseline core and an opt-in full desktop stack:
 
 | Tier | Option Flags | Included Components |
 | :--- | :--- | :--- |

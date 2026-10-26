@@ -7,7 +7,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | Domain / Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
 | **Secrets Management** | | |
-| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for rekey, editing, staged imports, workstation SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
+| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for rekey, editing, staged imports, user SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
 | [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item lookup, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen`, `ssh-keygen`, `base64` |
 | [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
@@ -36,7 +36,7 @@ ysh scripts/secrets/secret.ysh rekey
 # Edit a master secret
 ysh scripts/secrets/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
 
-# Restore workstation SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
+# Restore user SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
 ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
 
 # Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>

@@ -35,8 +35,8 @@ Access control uses four distinct layers:
 
 | Layer | Environment | Storage / Mechanism | Purpose |
 | :--- | :--- | :--- | :--- |
-| Layer 1: Bitwarden Vault | Bitwarden (`nix-config/`) | Secure Notes & SSH Keys | Offline isolation of `agenix-master-key`, `nebula-ca/ca.key`, workstation SSH keys (`ssh/<hostname>`), and failover host key (`ssh/torii-chan`). |
-| Layer 2: Ephemeral RAM | Workstation (`/run/agenix-master/`) | Dedicated noswap tmpfs, key mode 0400 & exit trap | Ephemeral identity storage during operator commands. Discarded immediately on exit. |
+| Layer 1: Bitwarden Vault | Bitwarden (`nix-config/`) | Secure Notes & SSH Keys | Offline isolation of `agenix-master-key`, `nebula-ca/ca.key`, user SSH keys (`ssh/<hostname>`), and failover host key (`ssh/torii-chan`). |
+| Layer 2: Ephemeral RAM | Operator machine (`/run/agenix-master/`) | Dedicated noswap tmpfs, key mode 0400 & exit trap | Ephemeral identity storage during operator commands. Discarded immediately on exit. |
 | Layer 3: agenix-rekey | Git repository (`secrets/master/`) | Nix module dependency resolution | Resolves host bindings and rekeys master secrets per target host. |
 | Layer 4: Target Runtime | Fleet machines (`/run/agenix/`) | SSH host key (`/etc/ssh/ssh_host_ed25519_key`) or user SSH key (`~/.ssh/id_ed25519`) | Decrypts only the host's `secrets/rekeyed/hosts/<hostname>/*.age` files and the user's `secrets/rekeyed/home/<hostname>/<username>/*.age` files. |
 
@@ -44,7 +44,7 @@ Access control uses four distinct layers:
 
 - `nix-config/agenix-master-key` (Secure Note): Primary age secret key (`AGE-SECRET-KEY-1...`).
 - `nix-config/nebula-ca/ca.key` (Secure Note): Disaster recovery backup of the offline Nebula root CA private key.
-- `nix-config/ssh/<hostname>` (SSH Key): User workstation SSH keys (`id_ed25519` for `BrokenPC`, `x1c7`) and the `torii-chan` SSH host key (`ssh_host_ed25519_key`) for VPS failover.
+- `nix-config/ssh/<hostname>` (SSH Key): User SSH keys (`id_ed25519` for `BrokenPC`, `x1c7`) and the `torii-chan` SSH host key (`ssh_host_ed25519_key`) for VPS failover.
 
 ## Common Workflows
 
@@ -98,7 +98,7 @@ just secret-set-host-password <host>
 just secret-rekey
 ```
 
-### Restore or Back Up Workstation SSH Keys
+### Restore or Back Up User SSH Keys
 
 Synchronize `~/.ssh/id_ed25519` (`0600`) and `~/.ssh/id_ed25519.pub` (`0644`) with the Bitwarden `nix-config/ssh/<hostname>` SSH Key item (falling back to a Secure Note when the server rejects SSH Key items). Both `ssh-restore` and `ssh-backup` exit cleanly without changes when the target already holds the identical private key; when the existing key differs and `--force` is not passed, they prompt for confirmation (`[y/N]`) on an interactive TTY (overwriting only on `y` / `yes`) or abort in non-interactive environments (`--force` overwrites without prompting). Before overwriting, `ssh-restore` backs up existing `~/.ssh/id_ed25519` and `~/.ssh/id_ed25519.pub` files to `~/.ssh/id_ed25519.bak` and `~/.ssh/id_ed25519.pub.bak`, and `ssh-backup` creates the new Bitwarden item before moving the previous `nix-config/ssh/<hostname>` item to the Bitwarden Trash (`bw delete item`). `ssh-restore` also removes stale `sops-nix` symlinks (`~/.ssh/id_ed25519 -> /run/secrets/...`), verifies the derived public key against `home-manager` `age.rekey.hostPubkey` in `hosts/<hostname>/default.nix`, and restarts the user `agenix.service` and `import-gpg-key.service` units on the target host:
 
@@ -114,7 +114,7 @@ just secret-ssh-backup
 
 ### Diagnostics
 
-Run tool, master identity, workstation SSH key (`~/.ssh/id_ed25519` symlink/mode and `age.rekey.hostPubkey` match), and environment health checks:
+Run tool, master identity, user SSH key (`~/.ssh/id_ed25519` symlink/mode and `age.rekey.hostPubkey` match), and environment health checks:
 
 ```bash
 just secret-doctor

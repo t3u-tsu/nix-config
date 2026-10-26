@@ -1,6 +1,6 @@
 # Browser Environments (`home/desktop/browsers/`)
 
-Web browser configuration and integration modules for graphical workstations, managing Zen Browser (Firefox-based), Chromium, userscript packaging, and desktop password manager IPC.
+Web browser configuration and integration modules for graphical desktops, managing Zen Browser (Firefox-based), Chromium, userscript packaging, and desktop password manager IPC.
 
 ## Architecture & Integration
 
