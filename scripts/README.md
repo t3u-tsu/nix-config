@@ -7,8 +7,8 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | Domain / Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
 | **Secrets Management** | | |
-| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for rekey, editing, staged imports, and environment checks. | `bw`, `age`, `age-keygen`, `agenix` |
-| [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen` |
+| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for rekey, editing, staged imports, workstation SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
+| [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item lookup, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen`, `ssh-keygen`, `base64` |
 | [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
 | [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`), the default CA directory, and file helpers. | Sourced by Nebula scripts |
@@ -36,7 +36,13 @@ ysh scripts/secrets/secret.ysh rekey
 # Edit a master secret
 ysh scripts/secrets/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
 
-# Check tools, master identity consistency, staging state, and Bitwarden status
+# Restore workstation SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
+ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
+
+# Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>
+ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
+
+# Check tools, master identity, ~/.ssh/id_ed25519 health, staging state, and Bitwarden status
 ysh scripts/secrets/secret.ysh doctor
 ```
 
@@ -66,6 +72,8 @@ ysh scripts/secrets/secret.ysh apply-staging --no-rekey
 just secret-rekey
 just secret-edit secrets/master/hosts/BrokenPC/user_password_hash.age
 just secret-apply-staging
+just secret-ssh-restore
+just secret-ssh-backup
 just secret-doctor
 just check
 just lint

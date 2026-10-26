@@ -98,9 +98,23 @@ just secret-set-host-password <host>
 just secret-rekey
 ```
 
+### Restore or Back Up Workstation SSH Keys
+
+Synchronize `~/.ssh/id_ed25519` (`0600`) and `~/.ssh/id_ed25519.pub` (`0644`) with the Bitwarden `nix-config/ssh/<hostname>` SSH Key item (falling back to a Secure Note when the server rejects SSH Key items). Both `ssh-restore` and `ssh-backup` exit cleanly without changes when the target already holds the identical private key; when the existing key differs and `--force` is not passed, they prompt for confirmation (`[y/N]`) on an interactive TTY (overwriting only on `y` / `yes`) or abort in non-interactive environments (`--force` overwrites without prompting). Before overwriting, `ssh-restore` backs up existing `~/.ssh/id_ed25519` and `~/.ssh/id_ed25519.pub` files to `~/.ssh/id_ed25519.bak` and `~/.ssh/id_ed25519.pub.bak`, and `ssh-backup` creates the new Bitwarden item before moving the previous `nix-config/ssh/<hostname>` item to the Bitwarden Trash (`bw delete item`). `ssh-restore` also removes stale `sops-nix` symlinks (`~/.ssh/id_ed25519 -> /run/secrets/...`), verifies the derived public key against `home-manager` `age.rekey.hostPubkey` in `hosts/<hostname>/default.nix`, and restarts the user `agenix.service` and `import-gpg-key.service` units on the target host:
+
+```bash
+# Restore ~/.ssh/id_ed25519 and .pub from Bitwarden (defaults to current hostname)
+just secret-ssh-restore
+# or: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
+
+# Register or update Bitwarden nix-config/ssh/<hostname> from local ~/.ssh/id_ed25519
+just secret-ssh-backup
+# or: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
+```
+
 ### Diagnostics
 
-Run tool, master identity, and environment health checks:
+Run tool, master identity, workstation SSH key (`~/.ssh/id_ed25519` symlink/mode and `age.rekey.hostPubkey` match), and environment health checks:
 
 ```bash
 just secret-doctor

@@ -5,6 +5,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
 | agenix 復号エラー (`failed to decrypt` / `no identity matched`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記 (`age1...` 指定等)，rekey 漏れ | `cat /etc/ssh/ssh_host_ed25519_key.pub` で SSH 公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret-rekey` |
+| `home-manager` の `agenix.service` 復号失敗 (`~/.ssh/id_ed25519 not present`) | ワークステーションの `~/.ssh/id_ed25519` 欠落，または旧 `sops-nix` のリンク切れ (`/run/secrets/...`) | `just secret-doctor` で状態確認，`just secret-ssh-restore` で Bitwarden から復元 |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
@@ -19,12 +20,14 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 - システムの activation 時に `agenix.service` または `activationScripts` が失敗する．
 - `/run/agenix/` 配下にシークレットファイルが生成されない．
 - ユーザーのログイン時にパスワードが認識されない (`hashedPasswordFile` の読み込み失敗)．
+- ワークステーション上でユーザー systemd の `agenix.service` が `~/.ssh/id_ed25519 not present` でスキップまたは失敗し，GPG 鍵等の `home-manager` シークレットが復号されない．
 
 ### 原因
 
 | 原因 | 内容と影響 |
 | :--- | :--- |
 | SSH ホスト秘密鍵の欠落・権限不正 | `/etc/ssh/ssh_host_ed25519_key` が存在しない，空である，または権限が `0600` 以外になっている． |
+| ワークステーション SSH 鍵の欠落・リンク切れ | `~/.ssh/id_ed25519` が未配置，または旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残存しており，`home-manager` の `agenix.service` が復号鍵を参照できない． |
 | SSH ホスト公開鍵の不一致・形式誤り | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key.pub` が再生成され，`hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` と乖離している，または `ssh-ed25519 ...` ではなく `age1...` 形式で指定されている (`agenix` は復号時に SSH 秘密鍵を直接 `age -i` に渡すため，SSH 公開鍵そのものを指定する必要がある)． |
 | 再暗号化 (rekey) 漏れ | 新規シークレットの追加やホスト公開鍵の変更後に `just secret-rekey` を実行しておらず，`secrets/rekeyed/hosts/<hostname>/` の暗号化ファイルが更新されていない． |
 
@@ -84,6 +87,17 @@ sudo nixos-rebuild switch --flake .#<hostname>
 
 # /run/agenix/ 配下に平文が展開されているか確認
 sudo ls -la /run/agenix/
+```
+
+#### Step 6: ワークステーションのユーザー SSH 鍵復旧 (`home-manager` `agenix.service` 失敗時)
+ワークステーションで `~/.ssh/id_ed25519` の欠落や旧 `sops-nix` のシンボリックリンク残存により `home-manager` の `agenix.service` が復号できない場合は，診断のうえ Bitwarden (`nix-config/ssh/<hostname>`) から復元する:
+```bash
+# シンボリックリンク残存・パーミッション・公開鍵整合性を検査
+just secret-doctor
+
+# Bitwarden から ~/.ssh/id_ed25519 (0600) と .pub (0644) を配置し，
+# ユーザーの agenix.service と import-gpg-key.service を再起動
+just secret-ssh-restore
 ```
 
 ---
