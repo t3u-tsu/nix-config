@@ -112,16 +112,24 @@ secrets/
 
 ### 3.1 認証セッションの初期化
 
-対話端末では，環境変数 `BW_SESSION` が未設定の場合に各コマンドが自動で Bitwarden の認証を行う．事前にセッショントークンを取得して環境変数へ設定する場合や，非対話実行の前準備には `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock [--raw | --env]`) を使用する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンを出力する．
+対話端末では，セッションが未確立の場合に各コマンドが自動で Bitwarden の認証を行う．事前に認証を済ませておく場合は `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock`) を実行する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンを専用 tmpfs (`/run/agenix-master/bw-session`，パーミッション `0600`) に安全に自動キャッシュする．一度キャッシュされると，以降の全 `just secret-*` コマンドは `export BW_SESSION=...` を行わずにセッションを自動再利用する．
+
+キャッシュされたセッションを破棄して保管庫をロックする場合は，`just secret-lock` (`ysh scripts/secrets/secret.ysh lock`) を実行する．
 
 ```bash
-# セッショントークンを取得して環境変数に設定 (未ログイン時は bw login，ロック時は bw unlock を自動実行)
-export BW_SESSION=$(just secret-unlock)
-# または: eval "$(just secret-unlock --env)"
-# または: export BW_SESSION=$(ysh scripts/secrets/secret.ysh unlock)
+# Bitwarden をアンロックしてセッションを tmpfs (/run/agenix-master/bw-session) にキャッシュ
+# 以降のコマンドで export BW_SESSION=... の指定は不要
+just secret-unlock
 
-# ワンショット実行
-BW_SESSION=$(just secret-unlock) just secret-rekey
+# 任意のシークレット操作 (キャッシュされたセッションを自動再利用)
+just secret-rekey
+
+# 作業終了後にセッションを破棄して保管庫をロック
+just secret-lock
+
+# (参考) セッショントークンを環境変数として取得する従来形式
+export BW_SESSION=$(just secret-unlock --raw)
+# または: eval "$(just secret-unlock --env)"
 ```
 
 ### 3.2 マスターファイルの編集

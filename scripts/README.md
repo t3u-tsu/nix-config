@@ -7,7 +7,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | Domain / Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
 | **Secrets Management** | | |
-| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for Bitwarden session unlock, rekey, editing, staged imports, user SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
+| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for Bitwarden session unlock and lock, rekey, editing, staged imports, user SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
 | [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item lookup, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen`, `ssh-keygen`, `base64` |
 | [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
@@ -27,12 +27,14 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 ## Secret CLI
 
-`scripts/secrets/secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. An empty `BW_SESSION` triggers interactive `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+`scripts/secrets/secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running `unlock` caches the session token in the dedicated noswap tmpfs at `/run/agenix-master/bw-session` (mode 0600), so subsequent commands automatically reuse the session without requiring `export BW_SESSION=...`. Running `lock` clears the cached session and locks the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
 
 ```bash
-# Log in or unlock Bitwarden and print the session token (--raw default, or --env for export statement)
-export BW_SESSION=$(ysh scripts/secrets/secret.ysh unlock)
-# or: eval "$(ysh scripts/secrets/secret.ysh unlock --env)"
+# Unlock Bitwarden and cache the session token to /run/agenix-master/bw-session
+ysh scripts/secrets/secret.ysh unlock
+
+# Lock Bitwarden and clear the cached session
+ysh scripts/secrets/secret.ysh lock
 
 # Rekey every host (all arguments are passed to agenix)
 ysh scripts/secrets/secret.ysh rekey
@@ -73,13 +75,14 @@ ysh scripts/secrets/secret.ysh apply-staging --no-rekey
 ### Common Justfile Recipes
 
 ```bash
-export BW_SESSION=$(just secret-unlock)
+just secret-unlock
 just secret-rekey
 just secret-edit secrets/master/hosts/BrokenPC/user_password_hash.age
 just secret-apply-staging
 just secret-ssh-restore
 just secret-ssh-backup
 just secret-doctor
+just secret-lock
 just check
 just lint
 just fmt path/to/file.nix
