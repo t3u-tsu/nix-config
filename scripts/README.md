@@ -9,7 +9,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | **Secrets Management** | | |
 | [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for rekey, editing, staged imports, and environment checks. | `bw`, `age`, `age-keygen`, `agenix` |
 | [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen` |
-| [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user/root passwords (`mkpasswd`) and writes `secrets/master/hosts/<hostname>/{user,root}_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
+| [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
 | [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`), the default CA directory, and file helpers. | Sourced by Nebula scripts |
 | [nebula/nebula-import-secrets.ysh](nebula/nebula-import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
@@ -81,10 +81,12 @@ Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
 ### Set or Update Host Passwords
 
 ```bash
-# Prompt for t3u and root passwords, hash with SHA-512, and write both master secrets
-ysh scripts/secrets/set-host-password.ysh BrokenPC
+# Prompt for user password (with confirmation), hash with yescrypt (independent salts per host),
+# and write master secrets (supports specific hosts or --all, and optional -u/--user)
+just secret-set-host-password --all
+# or: ysh scripts/secrets/set-host-password.ysh BrokenPC x1c7
 
-# Propagate the new hashes into secrets/rekeyed/hosts/BrokenPC/
+# Propagate the new hashes into secrets/rekeyed/hosts/
 just secret-rekey
 ```
 

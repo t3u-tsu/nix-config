@@ -37,9 +37,6 @@ in
       user_password_hash = {
         rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/user_password_hash.age;
       };
-      root_password_hash = {
-        rekeyFile = ../../secrets/master/hosts/${config.networking.hostName}/root_password_hash.age;
-      };
     };
   };
 }

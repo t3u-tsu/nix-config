@@ -9,7 +9,7 @@ description: 新ホストを追加するときの手順．
 
 1. `cp -r hosts/_template hosts/<hostname>` を実行し，`HOSTNAME` プレースホルダ，`hardware.nix` (ファイルシステム / スワップ)，`services/nebula.nix` (IP / グループ)を実機に合わせて編集する．
 2. [flake/hosts.nix](../../../flake/hosts.nix) に `mkLib.mkSystem { name; system; username; profile; extraModules?; }` の定義を追加する (`profile` は `desktop` / `tower-server` / `gateway` から選択)．
-3. `ysh scripts/secrets/set-host-password.ysh <hostname>` で初期パスワードを設定し，`hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を登録して `just secret-rekey` を実行する (詳細は [docs/operations/secret-management.md](../../../docs/operations/secret-management.md))．
+3. `just secret-set-host-password <hostname>` で初期パスワードを設定し，`hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を登録して `just secret-rekey` を実行する (詳細は [docs/operations/secret-management.md](../../../docs/operations/secret-management.md))．
 4. 既存 CA で `nebula-cert sign` を実行し，[scripts/nebula/nebula-lib.ysh](../../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストへ追記して `ysh scripts/nebula/nebula-import-secrets.ysh` で証明書とノード鍵を取り込む (詳細は [docs/architecture/network-topology.md](../../../docs/architecture/network-topology.md))．
 5. 初回評価に必要な private flake input (SSH エイリアス設定等)をブートストラップする (詳細は [docs/operations/adding-a-host.md](../../../docs/operations/adding-a-host.md))．
 6. `nix flake check` で全体評価を行い，`nix build .#nixosConfigurations.<name>.config.system.build.toplevel --no-link` で事前ビルドを検証する．

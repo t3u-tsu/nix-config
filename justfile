@@ -17,6 +17,10 @@ secret-edit file:
 secret-apply-staging *args:
     ysh scripts/secrets/secret.ysh apply-staging "$@"
 
+# Set user password with yescrypt and encrypt to master secrets (accepts hostnames or --all).
+secret-set-host-password *args:
+    ysh scripts/secrets/set-host-password.ysh "$@"
+
 # Check tools, master identity consistency, staging state, and Bitwarden status.
 secret-doctor:
     ysh scripts/secrets/secret.ysh doctor
@@ -29,7 +33,10 @@ check:
 lint:
     pre-commit run --all-files
 
-# Format Nix files with nixfmt.
+# Format Nix files with nixfmt (formats all tracked Nix files when no argument is given).
 fmt *files:
-    @if [ "$#" -eq 0 ]; then echo 'usage: just fmt <file...>' >&2; exit 2; fi
-    nixfmt -- "$@"
+    @if [ "$#" -eq 0 ]; then \
+        git ls-files '*.nix' | xargs nixfmt --; \
+    else \
+        nixfmt -- "$@"; \
+    fi

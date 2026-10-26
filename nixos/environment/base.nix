@@ -14,6 +14,7 @@ in
     environment.systemPackages = with pkgs; [
       file
       git
+      just
       tmux
       vim
       which

@@ -51,7 +51,6 @@ in
       };
 
       users.root = {
-        hashedPasswordFile = config.age.secrets.root_password_hash.path;
         openssh.authorizedKeys.keys = config.my.user.authorizedKeys;
       };
     };

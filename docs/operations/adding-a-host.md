@@ -54,13 +54,12 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
    ```nix
    age.rekey.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...";
    ```
-3. ユーザーおよび root の初期パスワードハッシュをステージングする．
+3. ユーザーの初期パスワードハッシュをステージングする (root アカウントはパスワードを持たずロックされるため設定不要)．
    ```bash
    mkdir -p .secrets-staging/hosts/<hostname>
-   mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/user_password_hash
-   mkpasswd -m sha-512 -s > .secrets-staging/hosts/<hostname>/root_password_hash
+   mkpasswd -m yescrypt -s > .secrets-staging/hosts/<hostname>/user_password_hash
    ```
-   (対話スクリプト `ysh scripts/secrets/set-host-password.ysh <hostname>` で直接 `secrets/master/` へ暗号化保存することも可能)
+   (対話コマンド `just secret-set-host-password <hostname>` で直接 `secrets/master/` へ暗号化保存することも可能)
 4. サーバー機で非常用帯域外アクセス (Cloudflare Tunnel) を有効化する場合は，Cloudflare Zero Trust で Tunnel を作成し，認証トークンをステージングする．
    ```bash
    echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token

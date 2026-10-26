@@ -104,7 +104,6 @@ in
     age.secrets = {
       deploy_key.enable = lib.mkForce false;
       user_password_hash.enable = lib.mkForce false;
-      root_password_hash.enable = lib.mkForce false;
     };
 
     users.users = {
