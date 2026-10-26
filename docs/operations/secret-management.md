@@ -176,7 +176,7 @@ Nebula ネットワークの暗号化通信に使用する証明書と秘密鍵�
 
 ### 4.1 オフライン CA 原則
 
-Nebula ルート CA の秘密鍵 (`ca.key`) は，運用者のオフライン環境 (`~/.nebula-ca-10-0-0/ca.key`) にのみ保持し，リポジトリや稼働ホストには配置しない．
+Nebula ルート CA の秘密鍵 (`ca.key`) は，運用者のオフライン環境 (`~/.nebula-ca/ca.key`) にのみ保持し，リポジトリや稼働ホストには配置しない．
 ディザスタリカバリ用バックアップは Bitwarden の `nix-config/nebula-ca/ca.key` に保管する．
 ルート CA 公開証明書 (`ca.crt`) は機密性がないため，平文ファイル `nixos/networking/nebula/ca.crt` としてリポジトリにコミットする．
 
@@ -185,7 +185,7 @@ Nebula ルート CA の秘密鍵 (`ca.key`) は，運用者のオフライン環
 各ノードの証明書発行と秘密鍵暗号化の手順．
 
 ```bash
-CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
+CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
 
 # 1. オフライン CA でノード証明書を発行
 nebula-cert sign \

@@ -9,7 +9,7 @@
 # Usage:
 #   ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
 #
-#   CA_DIR defaults to ~/.nebula-ca-<prefix, dots->hyphens>; --prefix is the first
+#   CA_DIR defaults to ~/.nebula-ca; --prefix is the first
 #   three octets of the new overlay subnet. The node list comes from
 #   scripts/nebula-lib.ysh (FLEET).
 #
@@ -44,7 +44,7 @@ func valid_prefix(prefix) {
 proc usage() {
   echo 'usage: ysh scripts/nebula-rotate-ca.ysh [CA_DIR] [--prefix A.B.C]'
   echo ''
-  echo '  CA_DIR   output directory (default: ~/.nebula-ca-<prefix with dots as hyphens>)'
+  echo '  CA_DIR   output directory (default: ~/.nebula-ca)'
   echo '  --prefix first three octets of the overlay subnet (default: 10.0.0)'
 }
 
@@ -82,7 +82,7 @@ if (not valid_prefix(prefix)) {
 }
 
 if (ca_dir === '') {
-  setvar ca_dir = ca_dir_for_prefix(prefix)
+  setvar ca_dir = default_ca_dir()
 }
 if (ca_dir === '') {
   echo 'ERROR: HOME is unset; pass CA_DIR explicitly.' >&2
