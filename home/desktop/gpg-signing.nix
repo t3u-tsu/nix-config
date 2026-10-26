@@ -37,11 +37,17 @@ in
       maxCacheTtl = 86400;
     };
 
-    home.activation.importGpgKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      GPG_KEY_PATH="${config.age.secrets.gpg_private_key.path}"
-      if [ -f "$GPG_KEY_PATH" ]; then
-        $DRY_RUN_CMD ${pkgs.gnupg}/bin/gpg --batch --import "$GPG_KEY_PATH" || true
-      fi
-    '';
+    systemd.user.services.import-gpg-key = {
+      Unit = {
+        Description = "Import the agenix-managed GPG signing key";
+        After = [ "agenix.service" ];
+        Requires = [ "agenix.service" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.gnupg}/bin/gpg --batch --import ${config.age.secrets.gpg_private_key.path}";
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
   };
 }

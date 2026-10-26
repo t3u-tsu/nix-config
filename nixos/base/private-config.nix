@@ -7,6 +7,8 @@
   age.secrets.deploy_key = {
     rekeyFile = ../../secrets/master/common/deploy_key.age;
     owner = "root";
+    # Readable by the users group so unprivileged users (e.g. t3u) can
+    # evaluate flakes and fetch private flake inputs without root.
     group = "users";
     mode = "0440";
   };
