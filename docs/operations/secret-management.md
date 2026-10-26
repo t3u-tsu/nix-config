@@ -192,8 +192,8 @@ just secret-ssh-backup
 # または: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
 ```
 
-- `ssh-restore` は Bitwarden から秘密鍵を取得して `ssh-keygen -y` で公開鍵を導出し，`~/.ssh/id_ed25519` (`0600`) と `~/.ssh/id_ed25519.pub` (`0644`) にアトミックに配置する (内容が異なる既存鍵がある場合は `--force` 指定時のみ上書き)．旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残っている場合は自動削除して実ファイルに置き換え，`hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との一致を確認したうえで，自ホスト実行時はユーザーの `agenix.service` と `import-gpg-key.service` を再起動して `home-manager` シークレットを即時復号する．
-- `ssh-backup` はローカルの `~/.ssh/id_ed25519` (または `--file <path>`) から公開鍵と SHA256 フィンガープリントを導出し，Bitwarden の `nix-config/ssh/<hostname>` へ SSH キーアイテム (サーバー非対応時はセキュアメモ) として登録・更新する (同一の秘密鍵が登録済みの場合は変更せず正常終了し，異なる鍵が既に存在する場合は誤上書き防止のため `--force` 指定時のみ上書き)．
+- `ssh-restore` は Bitwarden から秘密鍵を取得して `ssh-keygen -y` で公開鍵を導出し，`~/.ssh/id_ed25519` (`0600`) と `~/.ssh/id_ed25519.pub` (`0644`) にアトミックに配置する (同一の秘密鍵が配置済みの場合は変更せず正常終了し，内容が異なる既存鍵があり `--force` 未指定の場合は対話端末 (TTY) で上書き確認プロンプト `[y/N]` を表示して `y` / `yes` 入力時のみ上書きし，非対話環境ではエラー終了する．`--force` 指定時は確認なしで上書きする．上書き時は，旧ファイルを `~/.ssh/id_ed25519.bak` および `~/.ssh/id_ed25519.pub.bak` へ退避する)．旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残っている場合は自動削除して実ファイルに置き換え，`hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との一致を確認したうえで，自ホスト実行時はユーザーの `agenix.service` と `import-gpg-key.service` を再起動して `home-manager` シークレットを即時復号する．
+- `ssh-backup` はローカルの `~/.ssh/id_ed25519` (または `--file <path>`) から公開鍵と SHA256 フィンガープリントを導出し，Bitwarden の `nix-config/ssh/<hostname>` へ SSH キーアイテム (サーバー非対応時はセキュアメモ) として登録・更新する (同一の秘密鍵が登録済みの場合は変更せず正常終了し，異なる鍵が既に存在し `--force` 未指定の場合は対話端末 (TTY) で上書き確認プロンプト `[y/N]` を表示して `y` / `yes` 入力時のみ上書きし，非対話環境ではエラー終了する．`--force` 指定時は確認なしで上書きする．上書き時は，新アイテムを作成したうえで旧アイテムを Bitwarden のゴミ箱 (Trash) へ移動 (`bw delete item`) する)．
 
 ### 3.7 環境診断
 

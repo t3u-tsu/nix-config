@@ -7,31 +7,31 @@ set positional-arguments
 
 # Rekey host secrets, passing agenix arguments through.
 secret-rekey *args:
-    ysh scripts/secrets/secret.ysh rekey "$@"
+    @ysh scripts/secrets/secret.ysh rekey "$@"
 
 # Edit a master secret file.
 secret-edit file:
-    ysh scripts/secrets/secret.ysh edit "$@"
+    @ysh scripts/secrets/secret.ysh edit "$@"
 
 # Encrypt staged plaintext and rekey hosts (accepts --dry-run and --no-rekey).
 secret-apply-staging *args:
-    ysh scripts/secrets/secret.ysh apply-staging "$@"
+    @ysh scripts/secrets/secret.ysh apply-staging "$@"
 
 # Set user password with yescrypt and encrypt to master secrets (accepts hostnames or --all).
 secret-set-host-password *args:
-    ysh scripts/secrets/set-host-password.ysh "$@"
+    @ysh scripts/secrets/set-host-password.ysh "$@"
 
 # Restore the workstation SSH key from Bitwarden (hostname defaults to this host).
 secret-ssh-restore *args:
-    ysh scripts/secrets/secret.ysh ssh-restore "$@"
+    @ysh scripts/secrets/secret.ysh ssh-restore "$@"
 
 # Back up the workstation SSH key to Bitwarden (hostname defaults to this host).
 secret-ssh-backup *args:
-    ysh scripts/secrets/secret.ysh ssh-backup "$@"
+    @ysh scripts/secrets/secret.ysh ssh-backup "$@"
 
 # Check tools, master identity consistency, staging state, and Bitwarden status.
 secret-doctor:
-    ysh scripts/secrets/secret.ysh doctor
+    @ysh scripts/secrets/secret.ysh doctor
 
 # Check flake outputs without building.
 check:
