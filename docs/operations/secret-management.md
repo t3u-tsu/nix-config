@@ -79,7 +79,6 @@ secrets/
 │   │   └── deploy_key.age           # GitHub プライベートリポジトリ取得用 deploy key
 │   ├── hosts/<hostname>/            # ホスト固有シークレット
 │   │   ├── user_password_hash.age   # ユーザーパスワードハッシュ
-│   │   ├── root_password_hash.age   # root パスワードハッシュ
 │   │   ├── nebula_key.age           # Nebula メッシュ VPN ノード秘密鍵
 │   │   └── emergency_ssh_token.age  # Cloudflare Tunnel 認証トークン (常駐サーバー機)
 │   └── services/<service>/          # サービス固有シークレット
