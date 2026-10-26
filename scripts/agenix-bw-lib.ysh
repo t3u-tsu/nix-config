@@ -254,7 +254,13 @@ proc agenix_bw_unlock() {
 proc agenix_bw_session_init() {
   agenix_bw_require 'bw'
   var status_raw = ''
-  try { setvar status_raw = $(env -u BW_SESSION bw status --raw) }
+  try {
+    if (agenix_bw_session !== '') {
+      setvar status_raw = $(env BW_SESSION=$agenix_bw_session bw status --raw)
+    } else {
+      setvar status_raw = $(bw status --raw)
+    }
+  }
   if failed {
     echo 'ERROR: bw status failed. Check that the Bitwarden CLI is configured.' >&2
     exit 1

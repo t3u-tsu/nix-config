@@ -4,7 +4,7 @@
   my.services.minecraft-discord-bridge = {
     enable = true;
     settings = {
-      discord.admin_guild_id = "SET_VIA_ENV";
+      discord.admin_guild_id = "1457247750499602569";
       database.path = "/var/lib/minecraft-discord-bridge/bridge.db";
       bridge.socket_path = "/run/minecraft-discord-bridge/bridge.sock";
       servers.nitac23s = {

@@ -7,8 +7,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
 | [secret.ysh](secret.ysh) | Unified CLI for rekey, editing, staged imports, and environment checks. | `bw`, `age`, `age-keygen`, `agenix` |
-| [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, and atomic encryption helpers used by `secret.ysh` and the agenix wrappers. | `bw`, `age`, `age-keygen` |
-| [agenix-with-bw.ysh](agenix-with-bw.ysh) | Runs an arbitrary `agenix` command with the Bitwarden master identity. | `bw`, `age`, `age-keygen`, `agenix` |
+| [agenix-bw-lib.ysh](agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen` |
 | [nebula-lib.ysh](nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`), the default CA directory, and file helpers. | Sourced by Nebula scripts |
 | [nebula-import-secrets.ysh](nebula-import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
 | [nebula-rotate-ca.ysh](nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert`, `script`, `sort`, `base64` |
@@ -67,22 +66,11 @@ just lint
 just fmt path/to/file.nix
 ```
 
-## Low-Level agenix Wrapper
-
-```bash
-# A valid BW_SESSION is reused; a locked vault prompts for the master password
-ysh scripts/agenix-with-bw.ysh rekey -a
-ysh scripts/agenix-with-bw.ysh edit secrets/master/example.age
-
-# Point both Bitwarden and agenix-rekey at a custom identity directory
-BW_MASTER_KEY_ITEM=agenix-master-key \
-  AGENIX_MASTER_KEY_DIR="${XDG_RUNTIME_DIR}/agenix" \
-  ysh scripts/agenix-with-bw.ysh rekey -a
-```
+## Secret CLI Configuration
 
 Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The default
 is the dedicated noswap tmpfs at `/run/agenix-master`; the file is created with
-mode 0400 and removed on exit, including on signals (EXIT/INT/TERM/HUP/QUIT). The wrapper
+mode 0400 and removed on exit, including on signals (EXIT/INT/TERM/HUP/QUIT). The CLI
 re-executes itself under a systemd user scope with `MemorySwapMax=0`; set
 `AGENIX_REQUIRE_SWAP_GUARD=1` to fail closed when that scope cannot be entered.
 Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
