@@ -112,14 +112,16 @@ secrets/
 
 ### 3.1 認証セッションの初期化
 
-対話端末では，環境変数 `BW_SESSION` が未設定の場合にスクリプトが自動で `bw unlock` を対話実行する．非対話実行時は事前にセッションキーを環境変数に設定する．
+対話端末では，環境変数 `BW_SESSION` が未設定の場合に各コマンドが自動で Bitwarden の認証を行う．事前にセッショントークンを取得して環境変数へ設定する場合や，非対話実行の前準備には `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock [--raw | --env]`) を使用する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンを出力する．
 
 ```bash
-# セッションキーを取得して環境変数に設定
-export BW_SESSION=$(bw unlock --raw)
+# セッショントークンを取得して環境変数に設定 (未ログイン時は bw login，ロック時は bw unlock を自動実行)
+export BW_SESSION=$(just secret-unlock)
+# または: eval "$(just secret-unlock --env)"
+# または: export BW_SESSION=$(ysh scripts/secrets/secret.ysh unlock)
 
-# またはワンショット実行
-BW_SESSION=$(bw unlock --raw) just secret-rekey
+# ワンショット実行
+BW_SESSION=$(just secret-unlock) just secret-rekey
 ```
 
 ### 3.2 マスターファイルの編集
