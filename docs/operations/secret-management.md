@@ -141,7 +141,8 @@ just secret-rekey
 just secret-rekey
 
 # キャッシュを無視して全ホストを強制的に再暗号化する場合
-ysh scripts/secrets/secret.ysh rekey --force
+just secret-rekey --force
+# または: ysh scripts/secrets/secret.ysh rekey --force
 ```
 
 ### 3.4 平文ステージングの取り込み
@@ -154,18 +155,35 @@ mkdir -p .secrets-staging/hosts/<hostname>
 echo -n "<password_hash>" > .secrets-staging/hosts/<hostname>/user_password_hash
 
 # 取り込み計画の事前検証 (dry-run)
-ysh scripts/secrets/secret.ysh apply-staging --dry-run
+just secret-apply-staging --dry-run
+# または: ysh scripts/secrets/secret.ysh apply-staging --dry-run
 
 # 暗号化，平文の shred 削除，および rekey を一括実行
 just secret-apply-staging
 ```
 
-### 3.5 環境診断
+### 3.5 ユーザーパスワードハッシュの一括更新
+
+root パスワード廃止に伴い，ログイン資格情報は `user_password_hash.age` (yescrypt) に一本化されている．ホストのユーザーパスワードを設定・更新する場合，メモリ内で直接 yescrypt ハッシュを生成して暗号化できる:
+
+```bash
+# 全ホストの user パスワードを一括更新 (ホスト毎にソルトを個別生成)
+just secret-set-host-password --all
+
+# 特定ホストのみ更新する場合
+just secret-set-host-password -u BrokenPC
+
+# 更新後は再暗号化を実行して反映
+just secret-rekey
+```
+
+### 3.6 環境診断
 
 必要な CLI ツール，Master 識別子の整合性，Bitwarden 接続状態，およびステージング状態を診断する．
 
 ```bash
-ysh scripts/secrets/secret.ysh doctor
+just secret-doctor
+# または: ysh scripts/secrets/secret.ysh doctor
 ```
 
 ---

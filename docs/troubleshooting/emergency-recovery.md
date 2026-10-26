@@ -237,14 +237,14 @@ reboot
 
 1. **Live USB 上での Master 秘密鍵と運用者鍵の展開**:
    Web またはスマートフォン等で Bitwarden を開き，`nix-config/agenix-master-key` と `nix-config/ssh/<hostname>` を取得する．
-   agenix-rekey が要求する tmpfs パス (`/run/user/1000/agenix/master-key.txt`) に Master 鍵を展開する:
+   agenix-rekey が要求する tmpfs パス (`/run/agenix-master/master-key.txt`) に，noswap tmpfs をマウントして Master 鍵を展開する:
    ```bash
-   sudo mkdir -p /run/user/1000/agenix
-   sudo chmod 700 /run/user/1000/agenix
-   cat <<'EOF' | sudo tee /run/user/1000/agenix/master-key.txt >/dev/null
+   sudo mkdir -p -m 0700 /run/agenix-master
+   sudo mount -t tmpfs -o noswap,nodev,noexec,nosuid,size=1M tmpfs /run/agenix-master
+   cat <<'EOF' | sudo tee /run/agenix-master/master-key.txt >/dev/null
    AGE-SECRET-KEY-1...
    EOF
-   sudo chmod 600 /run/user/1000/agenix/master-key.txt
+   sudo chmod 0400 /run/agenix-master/master-key.txt
    ```
 2. **運用者 SSH 鍵と private input 設定**:
    ```bash

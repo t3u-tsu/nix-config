@@ -3,7 +3,7 @@
 # Rebind and recover the AMD I2C controller and Synaptics touchpad on HP Victus 16.
 #
 # Usage:
-#   ysh scripts/restart-touchpad.ysh
+#   ysh scripts/hardware/restart-touchpad.ysh
 #
 # Re-executes through pkexec when not running as root.
 
