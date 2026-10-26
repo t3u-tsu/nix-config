@@ -8,7 +8,7 @@
 
 [日本語](README.ja.md)
 
-Declarative NixOS configuration managing workstations, servers, and network gateways with Nix Flakes.
+Declarative NixOS configuration managing desktops, servers, and network gateways with Nix Flakes.
 
 ## Tech Stack
 

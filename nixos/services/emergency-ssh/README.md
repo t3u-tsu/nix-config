@@ -25,7 +25,7 @@ systemctl status cloudflared-emergency-ssh.service
 # Inspect systemd credentials and token loading
 systemctl show cloudflared-emergency-ssh.service -p LoadCredential
 
-# Connect via CLI from an administrative workstation
+# Connect via CLI from a client machine
 cloudflared access ssh --hostname <hostname>-cf-ssh.t3u.uk
 ```
 

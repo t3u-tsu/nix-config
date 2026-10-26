@@ -178,9 +178,9 @@ just secret-set-host-password BrokenPC
 just secret-rekey
 ```
 
-### 3.6 ワークステーション SSH 鍵の復元とバックアップ
+### 3.6 ユーザー SSH 鍵の復元とバックアップ
 
-ワークステーションのユーザー SSH 鍵 (`~/.ssh/id_ed25519` および `~/.ssh/id_ed25519.pub`) は Bitwarden の `nix-config/ssh/<hostname>` と同期する．
+作業端末のユーザー SSH 鍵 (`~/.ssh/id_ed25519` および `~/.ssh/id_ed25519.pub`) は Bitwarden の `nix-config/ssh/<hostname>` と同期する．
 
 ```bash
 # Bitwarden の nix-config/ssh/<hostname> (省略時は現在のホスト名) から SSH 鍵を復元
