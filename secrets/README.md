@@ -48,7 +48,7 @@ Access control uses four distinct layers:
 
 ## Common Workflows
 
-Commands use [justfile](../justfile) recipes backed by [scripts/secret.ysh](../scripts/secret.ysh):
+Commands use [justfile](../justfile) recipes backed by [scripts/secrets/secret.ysh](../scripts/secrets/secret.ysh):
 
 ### Rekey Host Secrets
 
