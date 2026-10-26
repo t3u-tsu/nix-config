@@ -68,9 +68,9 @@ sed -i 's/HOSTNAME/<hostname>/g' default.nix README.md
 
 ### Step 4: Nebula 証明書の発行とシークレットの一括再暗号化
 
-1. 管理者のオフライン CA ([scripts/nebula/nebula-rotate-ca.ysh](../../scripts/nebula/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca-10-0-0`) を用いてノード証明書を発行する．
+1. 管理者のオフライン CA ([scripts/nebula/nebula-rotate-ca.ysh](../../scripts/nebula/nebula-rotate-ca.ysh) の既定配置先: `~/.nebula-ca`) を用いてノード証明書を発行する．
    ```bash
-   CA_DIR="${CA_DIR:-$HOME/.nebula-ca-10-0-0}"
+   CA_DIR="${CA_DIR:-$HOME/.nebula-ca}"
    nebula-cert sign \
      -name "<hostname>" \
      -networks "10.0.0.X/24" \

@@ -24,15 +24,10 @@ func command_exists(name) {
   return (_error.code === 0)
 }
 
-func ca_dir_for_prefix(prefix) {
+func default_ca_dir() {
   var home = get(ENV, 'HOME', '')
   if (home === '') {
     return ('')
   }
-  var suffix = prefix.replace('.', '-')
-  return ($"${home}/.nebula-ca-${suffix}")
-}
-
-func default_ca_dir() {
-  return (ca_dir_for_prefix(DEFAULT_PREFIX))
+  return ($"${home}/.nebula-ca")
 }

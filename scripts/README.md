@@ -95,7 +95,7 @@ just secret-rekey
 A full CA rotation issues a new root CA and signs all node certificates anew:
 
 ```bash
-# Generate a new CA in ~/.nebula-ca-10-0-0 and issue certs for all nodes in FLEET
+# Generate a new CA in ~/.nebula-ca and issue certs for all nodes in FLEET
 ysh scripts/nebula/nebula-rotate-ca.ysh
 
 # Publish ca.crt / hosts/<name>/nebula.crt and encrypt keys to secrets/master/
