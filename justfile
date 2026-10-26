@@ -13,11 +13,11 @@ secret-rekey *args:
 secret-edit file:
     @ysh scripts/secrets/secret.ysh edit "$@"
 
-# Unlock Bitwarden (or log in) and cache the session in /run/agenix-master.
+# Unlock Bitwarden (or log in) and hand the session to the in-memory agent.
 secret-unlock *args:
     @ysh scripts/secrets/secret.ysh unlock "$@"
 
-# Lock Bitwarden and clear the cached session.
+# Lock Bitwarden and purge the in-memory session agent.
 secret-lock:
     @ysh scripts/secrets/secret.ysh lock
 

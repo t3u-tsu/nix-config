@@ -9,6 +9,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | **Secrets Management** | | |
 | [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for Bitwarden session unlock and lock, rekey, editing, staged imports, user SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
 | [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item lookup, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen`, `ssh-keygen`, `base64` |
+| `secrets/agenix-bw-agent.pl` | In-memory Bitwarden session daemon holding the session token strictly in process RAM over a Unix domain socket with an automatic sliding inactivity timeout. | `perl`, `bw` |
 | [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
 | [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`), the default CA directory, and file helpers. | Sourced by Nebula scripts |
@@ -27,13 +28,13 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 ## Secret CLI
 
-`scripts/secrets/secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running `unlock` caches the session token in the dedicated noswap tmpfs at `/run/agenix-master/bw-session` (mode 0600), so subsequent commands automatically reuse the session without requiring `export BW_SESSION=...`. Running `lock` clears the cached session and locks the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+`scripts/secrets/secret.ysh` wraps the Bitwarden master identity and the agenix-rekey commands. When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running `unlock` passes the session token to an in-memory resident agent daemon (`agenix-bw-agent.pl`) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running `lock` signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
 
 ```bash
-# Unlock Bitwarden and cache the session token to /run/agenix-master/bw-session
+# Unlock Bitwarden and store the session in the in-memory agent
 ysh scripts/secrets/secret.ysh unlock
 
-# Lock Bitwarden and clear the cached session
+# Lock Bitwarden, zero agent memory, and terminate the agent
 ysh scripts/secrets/secret.ysh lock
 
 # Rekey every host (all arguments are passed to agenix)

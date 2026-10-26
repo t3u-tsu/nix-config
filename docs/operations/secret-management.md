@@ -112,19 +112,25 @@ secrets/
 
 ### 3.1 認証セッションの初期化
 
-対話端末では，セッションが未確立の場合に各コマンドが自動で Bitwarden の認証を行う．事前に認証を済ませておく場合は `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock`) を実行する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンを専用 tmpfs (`/run/agenix-master/bw-session`，パーミッション `0600`) に安全に自動キャッシュする．一度キャッシュされると，以降の全 `just secret-*` コマンドは `export BW_SESSION=...` を行わずにセッションを自動再利用する．
+対話端末では，セッションが未確立の場合に各コマンドが自動で Bitwarden の認証を行う．事前に認証を済ませておく場合は `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock`) を実行する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンをインメモリ常駐エージェント (`agenix-bw-agent.pl`，Unix ドメインソケット経由) に渡す．
 
-キャッシュされたセッションを破棄して保管庫をロックする場合は，`just secret-lock` (`ysh scripts/secrets/secret.ysh lock`) を実行する．
+セッショントークンはファイルシステム (tmpfs を含む) に一切書き出されず，エージェントプロセスのヒープメモリ (RAM) 上のみに保持される．一度エージェントへ保持されると，以降の全 `just secret-*` コマンドは `export BW_SESSION=...` を行わずにソケット経由でセッションを自動再利用する．
+
+エージェントプロセスは 15 分無操作で自律的にメモリをゼロクリアして終了し，`bw lock` を発行する (コマンド実行ごとに 15 分延長されるスライディング方式，環境変数 `AGENIX_BW_SESSION_TTL` で変更可能)．
+
+【Fail-Closed 設計】: 仮に攻撃者や障害によってエージェントが kill されたり停止させられたとしても，プロセスメモリごとセッションが完全消滅するため，ディスクや tmpfs に盗まれる平文ファイルは一切残らない．
+
+セッションを明示的に破棄して保管庫をロックする場合は，`just secret-lock` (`ysh scripts/secrets/secret.ysh lock`) を実行する．エージェントに終了とメモリ消去を指示し，即座に保管庫をロックする．
 
 ```bash
-# Bitwarden をアンロックしてセッションを tmpfs (/run/agenix-master/bw-session) にキャッシュ
+# Bitwarden をアンロックしてインメモリ常駐エージェントにセッションを保持
 # 以降のコマンドで export BW_SESSION=... の指定は不要
 just secret-unlock
 
-# 任意のシークレット操作 (キャッシュされたセッションを自動再利用)
+# 任意のシークレット操作 (エージェントからセッションを自動再利用しタイマーを延長)
 just secret-rekey
 
-# 作業終了後にセッションを破棄して保管庫をロック
+# 作業終了後にエージェントを終了・メモリ消去して保管庫をロック
 just secret-lock
 
 # (参考) セッショントークンを環境変数として取得する従来形式

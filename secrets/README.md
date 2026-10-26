@@ -52,18 +52,22 @@ Commands use [justfile](../justfile) recipes backed by [scripts/secrets/secret.y
 
 ### Initialize Bitwarden Session
 
-Interactive runs automatically prompt for authentication when no active session is present. Running `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked) caches the session token in the dedicated noswap tmpfs at `/run/agenix-master/bw-session` (mode 0600). Subsequent `just secret-*` commands automatically reuse the cached session without requiring `export BW_SESSION=...`.
+Interactive runs automatically prompt for authentication when no active session is present. Running `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked) starts the in-memory agent daemon (`scripts/secrets/agenix-bw-agent.pl`) over a mode 0600 Unix domain socket. The session token is stored exclusively in process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent `just secret-*` commands automatically retrieve the session token over the socket without requiring `export BW_SESSION=...`.
 
-To discard the cached session and lock the vault, run `just secret-lock`:
+The agent implements a sliding 15-minute inactivity timeout (customizable via `AGENIX_BW_SESSION_TTL`), reset on every command invocation. When the timer expires, the agent zero-fills its memory, runs `bw lock`, and terminates.
+
+Under this fail-closed architecture, if the agent process is terminated or killed, the session vanishes completely with no persisted artifacts left behind on disk or tmpfs.
+
+To explicitly purge the in-memory session, terminate the agent, and lock the vault, run `just secret-lock`:
 
 ```bash
-# Unlock Bitwarden and cache the session token to /run/agenix-master/bw-session
+# Unlock Bitwarden and hold the session in the in-memory agent
 just secret-unlock
 
-# Subsequent commands automatically reuse the cached session
+# Subsequent commands automatically reuse the session and reset the inactivity timer
 just secret-rekey
 
-# Discard the cached session and lock the vault
+# Zero agent memory, terminate the agent daemon, and lock the vault
 just secret-lock
 
 # (Optional) Export session token to environment or evaluate
