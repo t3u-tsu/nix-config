@@ -185,7 +185,7 @@ just secret-rekey
 ```bash
 # Bitwarden の nix-config/ssh/<hostname> (省略時は現在のホスト名) から SSH 鍵を復元
 just secret-ssh-restore
-# または: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--force]
+# または: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
 
 # ローカルの ~/.ssh/id_ed25519 を Bitwarden の nix-config/ssh/<hostname> へ登録・更新
 just secret-ssh-backup

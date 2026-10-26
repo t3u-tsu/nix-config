@@ -105,7 +105,7 @@ Synchronize `~/.ssh/id_ed25519` (`0600`) and `~/.ssh/id_ed25519.pub` (`0644`) wi
 ```bash
 # Restore ~/.ssh/id_ed25519 and .pub from Bitwarden (defaults to current hostname)
 just secret-ssh-restore
-# or: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--force]
+# or: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
 
 # Register or update Bitwarden nix-config/ssh/<hostname> from local ~/.ssh/id_ed25519
 just secret-ssh-backup

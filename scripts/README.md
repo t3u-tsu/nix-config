@@ -37,7 +37,7 @@ ysh scripts/secrets/secret.ysh rekey
 ysh scripts/secrets/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
 
 # Restore workstation SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--force]
+ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
 
 # Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>
 ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
