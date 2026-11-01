@@ -28,7 +28,7 @@ flake.nix
  │           flake/packages.nix, flake/dev.nix
  │
  ├─ flake/lib.nix      → flake.lib.mkLib (lib/default.nix を inputs + overlays 付きで import)
- ├─ flake/overlays.nix → flake.overlays.default (nix-minecraft, nur, unstable 等)
+ ├─ flake/overlays.nix → flake.overlays.default (unstable, ubootOrangePiZero3, writeYsh 等)
  ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
  ├─ flake/packages.nix → torii-chan-vps-iso (mkSystem のビルド成果物)
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
@@ -49,7 +49,7 @@ flake.nix
 ```
 
 > [!NOTE]
-> 外部モジュール (`nix-minecraft`, `noctalia-greeter`, `zen-browser`, `noctalia`) は，利用先のモジュール (`nixos/services/` や `home/desktop/`) で直接インポートし，スコープを局所化する．
+> 外部モジュール (`nix-minecraft`, `noctalia-greeter`, `zen-browser`, `noctalia` 等) および外部オーバーレイ (`nur`, `nix-minecraft`, `llama-cpp`, `aagl`) は，利用先のモジュール (`nixos/services/` や `home/desktop/`) で直接インポート・適用し，スコープを局所化する．
 
 ---
 

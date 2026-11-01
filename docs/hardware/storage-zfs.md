@@ -107,21 +107,22 @@ NixOS で ZFS サポートを有効化する場合，意図しないホストに
 
 ### NixOS 宣言と自動マウント
 
-NixOS での ZFS 宣言 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix), [hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix)):
+NixOS での ZFS 宣言 ([hosts/shosoin-tan/default.nix](../../hosts/shosoin-tan/default.nix), [hosts/shosoin-tan/hardware.nix](../../hosts/shosoin-tan/hardware.nix), [nixos/base/default.nix](../../nixos/base/default.nix)):
 
 ```nix
-# default.nix
-boot = {
-  supportedFilesystems = [ "zfs" ];
-  zfs.forceImportRoot = false;
-};
+# hosts/shosoin-tan/default.nix
+boot.supportedFilesystems = [ "zfs" ];
+networking.hostId = "8425e349";
 
-# hardware.nix
+# hosts/shosoin-tan/hardware.nix
 boot.zfs.extraPools = [ "tank-1tb" ];
+
+# nixos/base/default.nix
+boot.zfs.forceImportRoot = false;
 ```
 
 - `boot.zfs.extraPools`: 起動時に `tank-1tb` を自動的にインポートする．
-- `boot.zfs.forceImportRoot = false`: 26.11 以降の既定値変更に備え，強制インポートを明示的に抑止．他ホストへの誤アタッチやダーティな状態での破壊的インポートを未然に防止する．
+- `boot.zfs.forceImportRoot = false`: 全ホスト共通のベース設定 ([nixos/base/default.nix](../../nixos/base/default.nix)) で定義し，26.11 以降の既定値変更に備えて強制インポートを明示的に抑止する．他ホストへの誤アタッチやダーティな状態での破壊的インポートを未然に防止する．
 
 ### 初期作成コマンド (参考)
 

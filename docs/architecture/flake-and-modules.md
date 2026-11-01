@@ -8,7 +8,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 - [flake/hosts.nix](../../flake/hosts.nix): 各ホストの `nixosConfigurations` を定義する．
 - [flake/lib.nix](../../flake/lib.nix): `mkLib` を公開し，flake inputs と overlays を合成したライブラリを提供する．
-- [flake/overlays.nix](../../flake/overlays.nix): nixpkgs のオーバーレイ群 (`nix-minecraft`, `nur`, `unstable` 等) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．
+- [flake/overlays.nix](../../flake/overlays.nix): 全ホスト共通の nixpkgs オーバーレイ群 (`unstable`, `ubootOrangePiZero3`, 32-bit PipeWire 回避策) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．外部オーバーレイ (`nur`, `nix-minecraft`, `llama-cpp`, `aagl`) は利用先のモジュールで局所的に適用する．
 - [flake/packages.nix](../../flake/packages.nix): カスタムビルド成果物 (例: `torii-chan-vps-iso`) を `packages.${system}` に公開する．
 - [flake/dev.nix](../../flake/dev.nix): pre-commit hooks (`git-hooks.nix`) および開発シェル (`devShells`) を提供する．
 
