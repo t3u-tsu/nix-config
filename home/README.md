@@ -7,7 +7,7 @@ User-specific configurations managed with Home Manager.
 | Directory / File | Description |
 | :--- | :--- |
 | [shell/](shell/README.md) | Interactive shell environment, prompt, and command history. |
-| [programs/](programs/README.md) | CLI tools, Git, SSH client, and local LLM services. |
+| [programs/](programs/README.md) | CLI tools, Git, and SSH client. |
 | [desktop/](desktop/README.md) | Desktop environment (Wayland compositor, shell, browsers, apps). |
 | [agenix.nix](agenix.nix) | Sets the user SSH key as the agenix-rekey identity and reads home secrets from `secrets/rekeyed/home/`. |
 | [default.nix](default.nix) | Aggregates base home modules. |

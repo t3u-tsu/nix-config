@@ -53,7 +53,7 @@ Antigravity エージェントのツール運用ルールと親オーケスト�
    {
      "Subagents": [
        {"Role": "Docs Editor", "TypeName": "self", "Prompt": "作業ディレクトリ: ...\n担当: docs/...\nゴール: ...\n完了報告: send_message"},
-       {"Role": "Comment Reviewer", "TypeName": "self", "Prompt": "作業ディレクトリ: ...\n担当: modules/...\nゴール: hush 精査\n完了報告: send_message"}
+       {"Role": "Comment Reviewer", "TypeName": "self", "Prompt": "作業ディレクトリ: ...\n担当: nixos/..., home/...\nゴール: hush 精査\n完了報告: send_message"}
      ]
    }
    ```
