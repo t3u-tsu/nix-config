@@ -124,7 +124,7 @@ in
           name = "docs-check";
           description = "Lint markdown prose and validate relative links and heading anchors";
           files = "\\.md$";
-          entry = "${pkgs.perl}/bin/perl scripts/docs/check-docs.pl";
+          entry = "${pkgs.perl}/bin/perl scripts/docs/check.pl";
         };
       };
 

@@ -7,18 +7,26 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | Domain / Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
 | **Secrets Management** | | |
-| [secrets/secret.ysh](secrets/secret.ysh) | Unified CLI for Bitwarden session unlock and lock, rekey, editing, staged imports, user SSH key sync, and environment checks. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
-| [secrets/agenix-bw-lib.ysh](secrets/agenix-bw-lib.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item lookup, and atomic encryption helpers used by `secret.ysh`. | `bw`, `age`, `age-keygen`, `ssh-keygen`, `base64` |
-| [secrets/agenix-bw-agent.pl](secrets/agenix-bw-agent.pl) | In-memory Bitwarden session daemon holding the session token strictly in process RAM over a Unix domain socket with an automatic sliding inactivity timeout. | `perl`, `bw` |
-| [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
+| [secrets/secret.ysh](secrets/secret.ysh) | Backward-compatibility router that forwards subcommands to the single-purpose scripts below. | Same as the target script |
+| [secrets/rekey.ysh](secrets/rekey.ysh) | Re-encrypt every master secret for all hosts with the Bitwarden master identity. | `bw`, `age-keygen`, `agenix` |
+| [secrets/edit.ysh](secrets/edit.ysh) | Decrypt a master secret into the noswap tmpfs, open it in `$EDITOR`, and wipe it on exit. | `bw`, `age-keygen`, `agenix` |
+| [secrets/unlock.ysh](secrets/unlock.ysh) | Log in to Bitwarden or unlock the vault and hand the session to the in-memory agent. | `bw` |
+| [secrets/lock.ysh](secrets/lock.ysh) | Lock Bitwarden and purge the in-memory session agent. | `bw`, `perl` |
+| [secrets/apply-staging.ysh](secrets/apply-staging.ysh) | Encrypt plaintext under `.secrets-staging` into `secrets/master`, shred it, and optionally rekey. | `bw`, `age`, `age-keygen`, `agenix` |
+| [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hash the user password with yescrypt (`mkpasswd -m yescrypt`) and encrypt it to the master secrets. | `mkpasswd`, `bw`, `age`, `age-keygen` |
+| [secrets/ssh-restore.ysh](secrets/ssh-restore.ysh) | Restore `~/.ssh/id_ed25519` and `.pub` from the Bitwarden `nix-config/ssh` folder. | `bw`, `ssh-keygen`, `base64` |
+| [secrets/ssh-backup.ysh](secrets/ssh-backup.ysh) | Back up `~/.ssh/id_ed25519` and `.pub` to the Bitwarden `nix-config/ssh` folder. | `bw`, `ssh-keygen`, `base64` |
+| [secrets/doctor.ysh](secrets/doctor.ysh) | Check tools, master identity consistency, the user SSH key, staging state, and Bitwarden status. | `bw`, `age`, `age-keygen`, `agenix`, `ssh-keygen`, `base64` |
+| [secrets/lib/bitwarden.ysh](secrets/lib/bitwarden.ysh) | Shared Bitwarden session handling, master-identity extraction, SSH key item helpers, workflow helpers, and atomic encryption functions. | Sourced by secrets scripts |
+| [secrets/lib/agent.pl](secrets/lib/agent.pl) | In-memory Bitwarden session daemon holding the session token strictly in process RAM over a Unix domain socket with an automatic sliding inactivity timeout. | `perl`, `bw` |
 | **Nebula Mesh VPN** | | |
-| [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet loader importing node mappings (`name\|octet\|groups\|ip`) dynamically from `lib/nebula-fleet.nix`, with default CA directory and file helpers. | Sourced by Nebula scripts |
-| [nebula/nebula-import-secrets.ysh](nebula/nebula-import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
-| [nebula/nebula-rotate-ca.ysh](nebula/nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert`, `script`, `sort`, `base64` |
+| [nebula/lib/fleet.ysh](nebula/lib/fleet.ysh) | Shared fleet loader importing node mappings (`name\|octet\|groups\|ip`) dynamically from [lib/nebula-fleet.nix](../lib/nebula-fleet.nix), with default CA directory and file helpers. | Sourced by Nebula scripts |
+| [nebula/import-secrets.ysh](nebula/import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
+| [nebula/rotate-ca.ysh](nebula/rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert`, `script`, `sort`, `base64` |
 | **Documentation & QA** | | |
-| [docs/DocsLib.pm](docs/DocsLib.pm) | Shared Perl module for repository root resolution, git-tracked file discovery, path normalization, and markdown code-fence stripping. | Sourced by docs scripts |
-| [docs/check-docs.pl](docs/check-docs.pl) | Lints markdown prose (parentheses, commas, prohibited words, pseudo-headings) and validates relative links and heading anchors. | Perl core (run via pre-commit) |
-| [docs/linkify-markdown.pl](docs/linkify-markdown.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
+| [docs/lib/DocsLib.pm](docs/lib/DocsLib.pm) | Shared Perl module for repository root resolution, git-tracked file discovery, path normalization, and markdown code-fence stripping. | Sourced by docs scripts |
+| [docs/check.pl](docs/check.pl) | Lints markdown prose (parentheses, commas, prohibited words, pseudo-headings) and validates relative links and heading anchors. | Perl core (run via pre-commit) |
+| [docs/linkify.pl](docs/linkify.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | **Hardware Quirks** | | |
 | [hardware/restart-touchpad.ysh](hardware/restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 | **Host Installation & Provisioning** | | |
@@ -29,29 +37,31 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 ## Secret CLI
 
-[secrets/secret.ysh](secrets/secret.ysh) wraps the Bitwarden master identity and the agenix-rekey commands. When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running `unlock` passes the session token to an in-memory resident agent daemon ([agenix-bw-agent.pl](secrets/agenix-bw-agent.pl)) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running `lock` signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+Run `just secret <recipe>` for the common operations, or call a single-purpose script directly. All command scripts, including [rekey](secrets/rekey.ysh), [edit](secrets/edit.ysh), [unlock](secrets/unlock.ysh), [lock](secrets/lock.ysh), [apply-staging](secrets/apply-staging.ysh), [set-host-password](secrets/set-host-password.ysh), [ssh-restore](secrets/ssh-restore.ysh), [ssh-backup](secrets/ssh-backup.ysh), and [doctor](secrets/doctor.ysh), share the Bitwarden helpers in [secrets/lib/bitwarden.ysh](secrets/lib/bitwarden.ysh). When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running [unlock](secrets/unlock.ysh) passes the session token to an in-memory resident agent daemon ([secrets/lib/agent.pl](secrets/lib/agent.pl)) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running [lock](secrets/lock.ysh) signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+
+The legacy [secrets/secret.ysh](secrets/secret.ysh) router still forwards `secret.ysh <command>` invocations to the matching script.
 
 ```bash
 # Unlock Bitwarden and store the session in the in-memory agent (also supports --raw / --env)
-ysh scripts/secrets/secret.ysh unlock
+ysh scripts/secrets/unlock.ysh
 
 # Lock Bitwarden, zero agent memory, and terminate the agent
-ysh scripts/secrets/secret.ysh lock
+ysh scripts/secrets/lock.ysh
 
 # Rekey every host (all arguments are passed to agenix)
-ysh scripts/secrets/secret.ysh rekey
+ysh scripts/secrets/rekey.ysh
 
 # Edit a master secret
-ysh scripts/secrets/secret.ysh edit secrets/master/hosts/BrokenPC/user_password_hash.age
+ysh scripts/secrets/edit.ysh secrets/master/hosts/BrokenPC/user_password_hash.age
 
 # Restore user SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
+ysh scripts/secrets/ssh-restore.ysh [hostname] [--file <path>] [--force]
 
 # Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
+ysh scripts/secrets/ssh-backup.ysh [hostname] [--file <path>] [--force]
 
 # Check tools, master identity, ~/.ssh/id_ed25519 health, staging state, and Bitwarden status
-ysh scripts/secrets/secret.ysh doctor
+ysh scripts/secrets/doctor.ysh
 ```
 
 ### Staged Imports
@@ -65,13 +75,13 @@ ysh scripts/secrets/secret.ysh doctor
 
 ```bash
 # Show the encryption plan without touching Bitwarden or the files
-ysh scripts/secrets/secret.ysh apply-staging --dry-run
+ysh scripts/secrets/apply-staging.ysh --dry-run
 
 # Encrypt staged files, shred the plaintext, and rekey every host
-ysh scripts/secrets/secret.ysh apply-staging
+ysh scripts/secrets/apply-staging.ysh
 
 # Encrypt and remove staging files without rekeying
-ysh scripts/secrets/secret.ysh apply-staging --no-rekey
+ysh scripts/secrets/apply-staging.ysh --no-rekey
 ```
 
 ### Common Justfile Recipes
@@ -124,7 +134,7 @@ Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
 # and write master secrets (supports specific hosts or --all)
 just secret set-host-password --all
 just secret set-host-password BrokenPC x1c7
-# or: just secret-set-host-password BrokenPC x1c7
+# or: ysh scripts/secrets/set-host-password.ysh BrokenPC x1c7
 
 # Propagate the new hashes into secrets/rekeyed/hosts/
 just secret rekey
@@ -137,11 +147,11 @@ A full CA rotation issues a new root CA and signs all node certificates anew:
 ```bash
 # Generate a new CA in ~/.nebula-ca and issue certs for all nodes in FLEET
 just nebula rotate-ca
-# or: ysh scripts/nebula/nebula-rotate-ca.ysh
+# or: ysh scripts/nebula/rotate-ca.ysh
 
 # Publish ca.crt / hosts/<name>/nebula.crt and encrypt keys to secrets/master/
 just nebula import-secrets
-# or: ysh scripts/nebula/nebula-import-secrets.ysh
+# or: ysh scripts/nebula/import-secrets.ysh
 
 # Distribute rekeyed secrets to each host
 just secret rekey

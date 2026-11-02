@@ -57,11 +57,11 @@ Access control uses four distinct layers:
 
 ## Common Workflows
 
-Commands use [justfile](../justfile) recipes backed by [scripts/secrets/secret.ysh](../scripts/secrets/secret.ysh):
+Commands use [justfile](../justfile) recipes backed by the single-purpose scripts under [scripts/secrets/](../scripts/secrets/):
 
 ### Initialize Bitwarden Session
 
-Interactive runs automatically prompt for authentication when no active session is present. Running `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked) starts the in-memory agent daemon (`scripts/secrets/agenix-bw-agent.pl`) over a mode 0600 Unix domain socket. The session token is stored exclusively in process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent `just secret-*` commands automatically retrieve the session token over the socket without requiring `export BW_SESSION=...`.
+Interactive runs automatically prompt for authentication when no active session is present. Running `just secret-unlock` (runs `bw login` when unauthenticated or `bw unlock` when locked) starts the in-memory agent daemon (`scripts/secrets/lib/agent.pl`) over a mode 0600 Unix domain socket. The session token is stored exclusively in process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent `just secret-*` commands automatically retrieve the session token over the socket without requiring `export BW_SESSION=...`.
 
 The agent implements a sliding 15-minute inactivity timeout (customizable via `AGENIX_BW_SESSION_TTL`), reset on every command invocation. When the timer expires, the agent zero-fills its memory, runs `bw lock`, and terminates.
 
@@ -111,7 +111,7 @@ echo -n "$SECRET" > .secrets-staging/hosts/<hostname>/user_password_hash
 
 # Preview plan
 just secret-apply-staging --dry-run
-# or: ysh scripts/secrets/secret.ysh apply-staging --dry-run
+# or: ysh scripts/secrets/apply-staging.ysh --dry-run
 
 # Encrypt, shred plaintext, and rekey
 just secret-apply-staging
@@ -139,11 +139,11 @@ Synchronize `~/.ssh/id_ed25519` (`0600`) and `~/.ssh/id_ed25519.pub` (`0644`) wi
 ```bash
 # Restore ~/.ssh/id_ed25519 and .pub from Bitwarden (defaults to current hostname)
 just secret-ssh-restore
-# or: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
+# or: ysh scripts/secrets/ssh-restore.ysh [hostname] [--file <path>] [--force]
 
 # Register or update Bitwarden nix-config/ssh/<hostname> from local ~/.ssh/id_ed25519
 just secret-ssh-backup
-# or: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
+# or: ysh scripts/secrets/ssh-backup.ysh [hostname] [--file <path>] [--force]
 ```
 
 ### Diagnostics
@@ -152,7 +152,7 @@ Run tool, master identity, user SSH key (`~/.ssh/id_ed25519` symlink/mode and `a
 
 ```bash
 just secret-doctor
-# or: ysh scripts/secrets/secret.ysh doctor
+# or: ysh scripts/secrets/doctor.ysh
 ```
 
 ## References

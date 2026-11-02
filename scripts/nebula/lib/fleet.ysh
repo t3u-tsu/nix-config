@@ -24,7 +24,7 @@ func default_ca_dir() {
 }
 
 func load_fleet_from_nix() {
-  var root_dir = _this_dir ++ '/../..'
+  var root_dir = _this_dir ++ '/../../..'
   var nix_file = root_dir ++ '/lib/nebula-fleet.nix'
   if (not file_exists(nix_file)) {
     return (false)

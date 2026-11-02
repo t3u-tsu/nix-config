@@ -65,7 +65,7 @@ nix-config/                          # ルートフォルダ
 
 ### 1.2 RAM tmpfs 一時展開と自動消去
 
-[scripts/secrets/secret.ysh](../../scripts/secrets/secret.ysh) および [scripts/secrets/agenix-bw-lib.ysh](../../scripts/secrets/agenix-bw-lib.ysh) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/agenix-master/master-key.txt`) へパーミッション `0400` で展開する．[nixos/security/agenix.nix](../../nixos/security/agenix.nix) は `/run/agenix-master` に `noswap` 付きの専用 tmpfs をマウントし，スクリプトは systemd user scope (`MemorySwapMax=0`) で再実行されるため，秘密鍵がスワップやディスクへ流出しない．シェルの `trap` (EXIT/INT/TERM/HUP/QUIT) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．`tmpfs` 以外の領域は `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1` を明示しない限り拒否し，デフォルトの `/run/agenix-master` が `noswap` でない場合は処理を中止する．
+[scripts/secrets/lib/bitwarden.ysh](../../scripts/secrets/lib/bitwarden.ysh) と各コマンドスクリプト (例: [scripts/secrets/rekey.ysh](../../scripts/secrets/rekey.ysh)) は，作業時に Master 秘密鍵を RAM 上の tmpfs (`/run/agenix-master/master-key.txt`) へパーミッション `0400` で展開する．[nixos/security/agenix.nix](../../nixos/security/agenix.nix) は `/run/agenix-master` に `noswap` 付きの専用 tmpfs をマウントし，スクリプトは systemd user scope (`MemorySwapMax=0`) で再実行されるため，秘密鍵がスワップやディスクへ流出しない．シェルの `trap` (EXIT/INT/TERM/HUP/QUIT) により，正常終了・エラー・シグナル割り込みを問わず一時ファイルは即時に自動削除される．`tmpfs` 以外の領域は `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1` を明示しない限り拒否し，デフォルトの `/run/agenix-master` が `noswap` でない場合は処理を中止する．
 
 ---
 
@@ -108,11 +108,11 @@ secrets/
 
 ## 3. 日常のシークレット運用
 
-シークレット操作は [justfile](../../justfile) または [scripts/secrets/secret.ysh](../../scripts/secrets/secret.ysh) を通じて実行する．
+シークレット操作は [justfile](../../justfile) または [scripts/README.md](../../scripts/README.md) に一覧したコマンド別スクリプトを通じて実行する．
 
 ### 3.1 認証セッションの初期化
 
-対話端末では，セッションが未確立の場合に各コマンドが自動で Bitwarden の認証を行う．事前に認証を済ませておく場合は `just secret-unlock` (`ysh scripts/secrets/secret.ysh unlock`) を実行する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンをインメモリ常駐エージェント (`agenix-bw-agent.pl`，Unix ドメインソケット経由) に渡す．
+対話端末では，セッションが未確立の場合に各コマンドが自動で Bitwarden の認証を行う．事前に認証を済ませておく場合は `just secret-unlock` (`ysh scripts/secrets/unlock.ysh`) を実行する．未ログイン (`unauthenticated`) 時は `bw login`，ロック (`locked`) 時は `bw unlock` を自動判別して対話実行し，取得したセッショントークンをインメモリ常駐エージェント (`scripts/secrets/lib/agent.pl`，Unix ドメインソケット経由) に渡す．
 
 セッショントークンはファイルシステム (tmpfs を含む) に一切書き出されず，エージェントプロセスのヒープメモリ (RAM) 上のみに保持される．一度エージェントへ保持されると，以降の全 `just secret-*` コマンドは `export BW_SESSION=...` を行わずにソケット経由でセッションを自動再利用する．
 
@@ -120,7 +120,7 @@ secrets/
 
 【Fail-Closed 設計】: 仮に攻撃者や障害によってエージェントが kill されたり停止させられたとしても，プロセスメモリごとセッションが完全消滅するため，ディスクや tmpfs に盗まれる平文ファイルは一切残らない．
 
-セッションを明示的に破棄して保管庫をロックする場合は，`just secret-lock` (`ysh scripts/secrets/secret.ysh lock`) を実行する．エージェントに終了とメモリ消去を指示し，即座に保管庫をロックする．
+セッションを明示的に破棄して保管庫をロックする場合は，`just secret-lock` (`ysh scripts/secrets/lock.ysh`) を実行する．エージェントに終了とメモリ消去を指示し，即座に保管庫をロックする．
 
 ```bash
 # Bitwarden をアンロックしてインメモリ常駐エージェントにセッションを保持
@@ -159,7 +159,7 @@ just secret-rekey
 
 # キャッシュを無視して全ホストを強制的に再暗号化する場合
 just secret-rekey --force
-# または: ysh scripts/secrets/secret.ysh rekey --force
+# または: ysh scripts/secrets/rekey.ysh --force
 ```
 
 ### 3.4 平文ステージングの取り込み
@@ -173,7 +173,7 @@ echo -n "<password_hash>" > .secrets-staging/hosts/<hostname>/user_password_hash
 
 # 取り込み計画の事前検証 (dry-run)
 just secret-apply-staging --dry-run
-# または: ysh scripts/secrets/secret.ysh apply-staging --dry-run
+# または: ysh scripts/secrets/apply-staging.ysh --dry-run
 
 # 暗号化，平文の shred 削除，および rekey を一括実行
 just secret-apply-staging
@@ -201,11 +201,11 @@ just secret-rekey
 ```bash
 # Bitwarden の nix-config/ssh/<hostname> (省略時は現在のホスト名) から SSH 鍵を復元
 just secret-ssh-restore
-# または: ysh scripts/secrets/secret.ysh ssh-restore [hostname] [--file <path>] [--force]
+# または: ysh scripts/secrets/ssh-restore.ysh [hostname] [--file <path>] [--force]
 
 # ローカルの ~/.ssh/id_ed25519 を Bitwarden の nix-config/ssh/<hostname> へ登録・更新
 just secret-ssh-backup
-# または: ysh scripts/secrets/secret.ysh ssh-backup [hostname] [--file <path>] [--force]
+# または: ysh scripts/secrets/ssh-backup.ysh [hostname] [--file <path>] [--force]
 ```
 
 - `ssh-restore` は Bitwarden から秘密鍵を取得して `ssh-keygen -y` で公開鍵を導出し，`~/.ssh/id_ed25519` (`0600`) と `~/.ssh/id_ed25519.pub` (`0644`) にアトミックに配置する (同一の秘密鍵が配置済みの場合は変更せず正常終了し，内容が異なる既存鍵があり `--force` 未指定の場合は対話端末 (TTY) で上書き確認プロンプト `[y/N]` を表示して `y` / `yes` 入力時のみ上書きし，非対話環境ではエラー終了する．`--force` 指定時は確認なしで上書きする．上書き時は，旧ファイルを `~/.ssh/id_ed25519.bak` および `~/.ssh/id_ed25519.pub.bak` へ退避する)．旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残っている場合は自動削除して実ファイルに置き換え，`hosts/<hostname>/default.nix` の `home-manager` 側 `age.rekey.hostPubkey` との一致を確認したうえで，自ホスト実行時はユーザーの `agenix.service` と `import-gpg-key.service` を再起動して `home-manager` シークレットを即時復号する．
@@ -217,7 +217,7 @@ just secret-ssh-backup
 
 ```bash
 just secret-doctor
-# または: ysh scripts/secrets/secret.ysh doctor
+# または: ysh scripts/secrets/doctor.ysh
 ```
 
 ---
@@ -250,7 +250,7 @@ nebula-cert sign \
   -out-key "$CA_DIR/<hostname>.key"
 
 # 2. 証明書の公開とノード秘密鍵の暗号化 (Bitwarden の Master 鍵を使用)
-ysh scripts/nebula/nebula-import-secrets.ysh "$CA_DIR"
+ysh scripts/nebula/import-secrets.ysh "$CA_DIR"
 
 # 3. 全ホストを再暗号化
 just secret-rekey
@@ -258,7 +258,7 @@ just secret-rekey
 
 ### 4.3 CA の一括ローテーション
 
-ルート CA を再作成する場合は，[scripts/nebula/nebula-rotate-ca.ysh](../../scripts/nebula/nebula-rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，その後 [scripts/nebula/nebula-import-secrets.ysh](../../scripts/nebula/nebula-import-secrets.ysh) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret-rekey` で全ホストを再暗号化する．
+ルート CA を再作成する場合は，[scripts/nebula/rotate-ca.ysh](../../scripts/nebula/rotate-ca.ysh) で新 CA と全ノードの証明書・鍵を一括生成し，その後 [scripts/nebula/import-secrets.ysh](../../scripts/nebula/import-secrets.ysh) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret-rekey` で全ホストを再暗号化する．
 
 ---
 
@@ -271,7 +271,7 @@ just secret-rekey
 ホストを完全に撤退させる場合の手順．
 
 1. `hosts/<hostname>/` を削除し，[flake/hosts.nix](../../flake/hosts.nix) から該当エントリを削除する．
-2. [scripts/nebula/nebula-lib.ysh](../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストから該当ホストを削除する．
+2. [lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の `nodes` から該当ホストを削除する (`FLEET` は [scripts/nebula/lib/fleet.ysh](../../scripts/nebula/lib/fleet.ysh) が読み込む)．
 3. シークレット定義ファイルを削除する．
    ```bash
    rm -rf secrets/master/hosts/<hostname>

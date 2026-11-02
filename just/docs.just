@@ -7,8 +7,8 @@ default:
 
 # Lint markdown prose and validate relative links and heading anchors.
 check:
-    @perl scripts/docs/check-docs.pl
+    @perl scripts/docs/check.pl
 
 # Scan markdown files and convert raw in-text file paths into relative links (accepts --check).
 linkify *args:
-    @perl scripts/docs/linkify-markdown.pl "$@"
+    @perl scripts/docs/linkify.pl "$@"

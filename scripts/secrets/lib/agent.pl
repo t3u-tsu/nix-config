@@ -8,10 +8,10 @@
 # SET or GET the agent locks the vault, drops the token, and exits.
 #
 # Usage:
-#   agenix-bw-agent.pl get          Print the token (exit 1 when empty)
-#   agenix-bw-agent.pl set <token>  Store the token, starting the agent if needed
-#   agenix-bw-agent.pl status       Print "OK active <sec>" or "OK empty <sec>"
-#   agenix-bw-agent.pl lock         Lock the vault and purge the agent memory
+#   agent.pl get          Print the token (exit 1 when empty)
+#   agent.pl set <token>  Store the token, starting the agent if needed
+#   agent.pl status       Print "OK active <sec>" or "OK empty <sec>"
+#   agent.pl lock         Lock the vault and purge the agent memory
 #
 # Environment:
 #   AGENIX_BW_AGENT_SOCK   Socket path (default: $XDG_RUNTIME_DIR/agenix-bw-agent.sock,
@@ -39,7 +39,7 @@ my $SHUTTING_DOWN = 0;
 # struct sockaddr_un truncates longer paths, which would silently move the
 # socket away from the path the caller asked for.
 if (length $SOCK_PATH > 107) {
-  print STDERR "agenix-bw-agent.pl: socket path is too long: $SOCK_PATH\n";
+  print STDERR "agent.pl: socket path is too long: $SOCK_PATH\n";
   exit 2;
 }
 
@@ -304,7 +304,7 @@ sub client_lock {
 }
 
 sub usage {
-  print STDERR "usage: agenix-bw-agent.pl <get|set <token>|status|lock>\n";
+  print STDERR "usage: agent.pl <get|set <token>|status|lock>\n";
 }
 
 my $command = shift @ARGV // '';

@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 # Convert in-text file references into relative markdown links.
-# Usage: perl scripts/docs/linkify-markdown.pl [--check]
+# Usage: perl scripts/docs/linkify.pl [--check]
 use strict;
 use warnings;
 use utf8;
 use open qw(:std :utf8);
 use File::Basename qw(dirname);
 use FindBin;
-use lib $FindBin::RealBin;
+use lib "$FindBin::RealBin/lib";
 use Getopt::Long qw(GetOptions);
 use DocsLib qw(
   closes_fence
@@ -152,12 +152,12 @@ sub main {
     );
     if (!$options_ok) {
         print STDERR
-"Usage: perl scripts/docs/linkify-markdown.pl [--check]\n";
+"Usage: perl scripts/docs/linkify.pl [--check]\n";
         return 2;
     }
     if ($help) {
         print
-"Usage: perl scripts/docs/linkify-markdown.pl [--check]\n\nConvert in-text file references to relative markdown links.\n";
+"Usage: perl scripts/docs/linkify.pl [--check]\n\nConvert in-text file references to relative markdown links.\n";
         return 0;
     }
 
@@ -193,7 +193,7 @@ sub main {
                 print "  ... and $remaining more.\n";
             }
             print
-"\nRun 'perl scripts/docs/linkify-markdown.pl' to convert them automatically.\n";
+"\nRun 'perl scripts/docs/linkify.pl' to convert them automatically.\n";
             return 1;
         }
         print

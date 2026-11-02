@@ -147,7 +147,7 @@ nebula-cert sign \
 証明書と秘密鍵を取り込むスクリプトを実行する．Bitwarden セッションが必要なため，開発シェル内で実行する．
 ```bash
 just nebula import-secrets
-# または: ysh scripts/nebula/nebula-import-secrets.ysh
+# または: ysh scripts/nebula/import-secrets.ysh
 ```
 証明書を `hosts/<hostname>/nebula.crt` に配置し，ノード秘密鍵を `secrets/master/hosts/<hostname>/nebula_key.age` へ暗号化保存する．
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # Lint markdown prose (parentheses, commas, prohibited words, pseudo-headings)
 # and validate relative links and heading anchors.
-# Usage: perl scripts/docs/check-docs.pl [files...]
+# Usage: perl scripts/docs/check.pl [files...]
 use strict;
 use warnings;
 use utf8;
@@ -9,7 +9,7 @@ use open qw(:std :utf8);
 use File::Basename qw(dirname);
 use File::Spec;
 use FindBin;
-use lib $FindBin::RealBin;
+use lib "$FindBin::RealBin/lib";
 use DocsLib qw(
   closes_fence
   fence_start
