@@ -21,6 +21,7 @@ in
     ./graphics.nix
     ./networkmanager.nix
     ./chromium.nix
+    ./bitwarden.nix
   ];
 
   options.my.services.desktop = {
@@ -47,6 +48,7 @@ in
         bluetooth.enable = lib.mkDefault true;
         fonts.enable = lib.mkDefault true;
         chromium.enable = lib.mkDefault true;
+        bitwarden.enable = lib.mkDefault true;
 
         gaming.enable = lib.mkDefault cfg.full.enable;
         unity.enable = lib.mkDefault cfg.full.enable;
