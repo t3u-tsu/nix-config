@@ -32,8 +32,8 @@ sub get_repo_root {
     my $dir      = dirname($abs);
     my $resolved = abs_path($dir);
     return defined $resolved
-      ? dirname(dirname($resolved))
-      : dirname(dirname($abs));
+      ? dirname(dirname(dirname($resolved)))
+      : dirname(dirname(dirname($abs)));
 }
 
 sub read_file {

@@ -1,5 +1,5 @@
-# Master identity installed by scripts/secrets/secret.ysh on the dedicated
-# noswap tmpfs mounted at /run/agenix-master.
+# Master identity installed by the scripts/secrets/*.ysh command scripts on the
+# dedicated noswap tmpfs mounted at /run/agenix-master.
 {
   masterIdentity = {
     identity = "/run/agenix-master/master-key.txt";

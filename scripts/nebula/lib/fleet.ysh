@@ -1,0 +1,59 @@
+#!/usr/bin/env ysh
+#
+# Shared Nebula mesh helpers. Loads the node fleet from lib/nebula-fleet.nix.
+
+var FLEET = []
+var FLEET_SUBNET = '10.0.0.0/24'
+
+func file_exists(path) {
+  try { test -f $path }
+  return (_error.code === 0)
+}
+
+func command_exists(name) {
+  try { command -v $name >/dev/null 2>&1 }
+  return (_error.code === 0)
+}
+
+func default_ca_dir() {
+  var home = get(ENV, 'HOME', '')
+  if (home === '') {
+    return ('')
+  }
+  return ($"${home}/.nebula-ca")
+}
+
+func load_fleet_from_nix() {
+  var root_dir = _this_dir ++ '/../../..'
+  var nix_file = root_dir ++ '/lib/nebula-fleet.nix'
+  if (not file_exists(nix_file)) {
+    echo $"ERROR: ${nix_file} not found" >&2
+    return (false)
+  }
+  if (not command_exists('nix')) {
+    echo 'ERROR: nix is required to read lib/nebula-fleet.nix; run within nix develop' >&2
+    return (false)
+  }
+  var json_str = ''
+  try { setvar json_str = $(nix eval --json --file $nix_file) }
+  if (_error.code !== 0 or json_str === '') {
+    return (false)
+  }
+  var parsed = null
+  try { json read (&parsed) <<< $json_str }
+  if (_error.code !== 0 or parsed === null) {
+    return (false)
+  }
+  if (parsed.subnet !== null) {
+    setglobal FLEET_SUBNET = parsed.subnet
+  }
+  if (parsed.fleet !== null) {
+    setglobal FLEET = parsed.fleet
+  }
+  return (true)
+}
+
+if (not load_fleet_from_nix()) {
+  echo 'ERROR: failed to load the Nebula fleet from lib/nebula-fleet.nix' >&2
+  exit 1
+}

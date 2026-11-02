@@ -9,6 +9,8 @@ let
   serviceUser = "nebula-${networkName}";
 
   cfg = config.my.networking.nebula;
+  fleet = import ../../lib/nebula-fleet.nix;
+  nodeInfo = fleet.nodes.${config.networking.hostName} or null;
 
   inboundRules = [
     {
@@ -33,14 +35,14 @@ in
 
     ip = lib.mkOption {
       type = lib.types.str;
-      default = "";
+      default = if nodeInfo != null then nodeInfo.ip else "";
       example = "10.0.0.1";
       description = "Nebula IP of this node (must be within the CA network).";
     };
 
     groups = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = if nodeInfo != null then nodeInfo.groups else [ ];
       example = [ "mgmt" ];
       description = "Nebula groups this node belongs to (zone separation).";
     };

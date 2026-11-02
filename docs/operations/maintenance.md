@@ -14,14 +14,20 @@ GitHub Actions のスケジュールワークフローが毎日日本時間 04:0
 ### 手動での更新実行
 開発環境 (`nix develop` または direnv) 下で，ローカルのパッケージやロックファイルを先行して更新する場合:
 ```bash
-# nvfetcher パッケージの更新
+# nvfetcher パッケージの更新 (just update nvfetcher と等価)
 nvfetcher
 
-# flake inputs の更新
+# flake inputs の更新 (just update flake と等価)
 nix flake update
 
 # 変更の検証
 nix flake check
+```
+
+特定の入力やパッケージのみを更新する場合は recipe に引数を渡す．
+```bash
+just update flake nixpkgs
+just update nvfetcher
 ```
 
 ---
@@ -37,6 +43,12 @@ nix flake check
 # 14日以上前の古い世代を手動で削除 (システム世代およびユーザープロファイル)
 sudo nix-collect-garbage --delete-older-than 14d
 nix-collect-garbage --delete-older-than 14d
+
+# nh 経由で各プロファイルの古い世代を削除 (既定は最新 1 世代を保持)
+just gc
+
+# 保持期間を揃えて削除する場合
+just gc --keep-since 14d
 
 # ハードリンクによる重複ブロックの手動最適化
 sudo nix-store --optimise
@@ -64,10 +76,14 @@ nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-lin
 
 # ドライランでカーネル更新の有無を確認
 nixos-rebuild dry-build --flake .#<hostname>
+
+# nh 経由の同等操作 (just build / just diff)
+just build
+just diff
 ```
 
 ### Step 2: 設定適用と再起動
-`dev-workflow` に準拠し，デスクトップ環境では `pkexec`，ヘッドレス機では `sudo` を用いて設定を適用する．
+`dev-workflow` に準拠し，デスクトップ環境では `pkexec`，ヘッドレス機では `sudo` を用いて設定を適用する (`just switch` / `just boot` は内部で `nh` を呼ぶ)．
 ```bash
 # デスクトップ環境 (Polkit GUI 認証)
 pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>

@@ -8,6 +8,7 @@ Helper functions and shared assets for NixOS system evaluations.
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | `mkSystem` | Constructs a `nixosSystem` configuration with injected `specialArgs`, host defaults, and profile imports; serves as the library index for flake modules. |
 | [agenix.nix](agenix.nix) | `masterIdentity` | Master age identity path and public key shared by the NixOS and Home Manager agenix-rekey modules. |
+| [nebula-fleet.nix](nebula-fleet.nix) | `prefix`, `nodes`, `fleet` | Single source of truth for Nebula mesh VPN IP allocations and node security groups shared by NixOS modules and operator scripts. |
 | [palette.nix](palette.nix) | `palette` | Vesper color palette (hex strings) shared by Home Manager desktop themes and greetd. |
 
 ## `mkSystem` Evaluation API

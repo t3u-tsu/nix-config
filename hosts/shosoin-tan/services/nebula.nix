@@ -3,11 +3,6 @@ _:
 {
   my.networking.nebula = {
     enable = true;
-    ip = "10.0.0.4";
-    groups = [
-      "mgmt"
-      "app"
-    ];
     extraInbound = [
       {
         port = 22;

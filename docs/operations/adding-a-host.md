@@ -97,11 +97,7 @@ sed -i "s|# age.rekey.hostPubkey = \"SSH_HOST_PUBKEY\";|age.rekey.hostPubkey = \
 各ファイルを編集・確認する．
 - `hosts/<hostname>/default.nix`: `age.rekey.hostPubkey` に公開鍵が設定されていることを確認する．
 - `hosts/<hostname>/hardware.nix`: デバイスパスを `/dev/disk/by-id/` へ置き換えるなど，必要に応じて調整する．
-- `hosts/<hostname>/services/nebula.nix`: 割り当てた Nebula IP とグループを設定する．
-  ```nix
-  my.networking.nebula.ip = "10.0.0.X";
-  my.networking.nebula.groups = [ "mgmt" ];
-  ```
+- `hosts/<hostname>/services/nebula.nix`: 必要に応じて個別設定を調整する (`my.networking.nebula.enable = true` で [lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の設定が自動適用される)．
 
 #### 2.3 Flake へのホスト登録
 [flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する．
@@ -124,7 +120,8 @@ Master 鍵を用いて初期シークレットを作成し，対象機向けに�
 
 #### 3.1 ユーザー初期パスワードの設定
 ```bash
-just secret-set-host-password <hostname>
+just secret set-host-password <hostname>
+# または: ysh scripts/secrets/set-host-password.ysh <hostname>
 ```
 対話プロンプトで入力したパスワードが yescrypt でハッシュ化され，`secrets/master/hosts/<hostname>/user_password_hash.age` に暗号化保存される．root アカウントはパスワードを持たずロックされるため，一般ユーザーのみ設定する．
 
@@ -142,14 +139,15 @@ nebula-cert sign \
   -out-key "$CA_DIR/<hostname>.key"
 ```
 
-[scripts/nebula/nebula-lib.ysh](../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．`octet` は割り当てた IP の第 4 オクテットと一致させる．
-```ysh
-{name: '<hostname>', octet: X, groups: ['mgmt']},
+[lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の `nodes` にエントリを追加する．`octet` は割り当てた IP の第 4 オクテットと一致させる (NixOS 設定と運用スクリプトの双方が自動連携する)．
+```nix
+<hostname> = mkNode X [ "mgmt" ];
 ```
 
 証明書と秘密鍵を取り込むスクリプトを実行する．Bitwarden セッションが必要なため，開発シェル内で実行する．
 ```bash
-ysh scripts/nebula/nebula-import-secrets.ysh
+just nebula import-secrets
+# または: ysh scripts/nebula/import-secrets.ysh
 ```
 証明書を `hosts/<hostname>/nebula.crt` に配置し，ノード秘密鍵を `secrets/master/hosts/<hostname>/nebula_key.age` へ暗号化保存する．
 
@@ -158,13 +156,13 @@ ysh scripts/nebula/nebula-import-secrets.ysh
 ```bash
 mkdir -p .secrets-staging/hosts/<hostname>
 echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
-just secret-apply-staging
+just secret apply-staging
 ```
 詳細は [非常用 SSH アクセス運用マニュアル](emergency-cf-ssh.md) を参照する．
 
 #### 3.4 ホスト向けシークレットの一括再暗号化
 ```bash
-just secret-rekey
+just secret rekey
 ```
 Master 秘密鍵を用いて，`secrets/rekeyed/hosts/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群を生成する．`*-deploy_key.age` もここに含まれ，Step 5 で使用する．
 
@@ -206,7 +204,7 @@ git switch feat/add-<hostname>
 sudo ./scripts/install/setup-deploy-key.sh <hostname>
 ```
 
-スクリプトは `/mnt/etc/ssh/ssh_host_ed25519_key` で `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` を復号し，`/root/.ssh/nix-config-private_deploy_key` に配置して `~/.ssh/config` へ `github-nix-config-private` エイリアスを追記する．`age` が無い環境では `nix-shell` で導入する．
+スクリプトは `/mnt/etc/ssh/ssh_host_ed25519_key` で `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` を復号し，`/root/.ssh/nix-config-private_deploy_key` に配置して `~/.ssh/config` へ `github-nix-config-private` エイリアスを追記する．`age` が無い環境では `nix-shell` で導入する．ラッパーと `.ysh` 本体の関係は [scripts/install/README.md](../../scripts/install/README.md) を参照する．
 
 インストーラ環境の `/root/.ssh` は RAM 上にあり，再起動で消える．起動後のシステムでは [nixos/base/private-config.nix](../../nixos/base/private-config.nix) が `/etc/ssh/ssh_config` と `/etc/ssh/ssh_known_hosts` を管理する．
 

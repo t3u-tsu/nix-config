@@ -1,58 +1,91 @@
-# List available recipes.
+# List available subcommands and recipes.
 default:
     @just --list
 
-# Pass recipe arguments as "$@" so paths and agenix flags keep their boundaries.
 set positional-arguments
 
-# Rekey host secrets, passing agenix arguments through.
-secret-rekey *args:
-    @ysh scripts/secrets/secret.ysh rekey "$@"
+# System operations (switch, test, boot, build, diff, gc).
+mod system 'just/system.just'
 
-# Edit a master secret file.
-secret-edit file:
-    @ysh scripts/secrets/secret.ysh edit "$@"
+# Secrets management via agenix and Bitwarden.
+mod secret 'just/secret.just'
 
-# Unlock Bitwarden (or log in) and hand the session to the in-memory agent.
-secret-unlock *args:
-    @ysh scripts/secrets/secret.ysh unlock "$@"
+# Quality assurance, linting, and formatting.
+mod qa 'just/qa.just'
 
-# Lock Bitwarden and purge the in-memory session agent.
-secret-lock:
-    @ysh scripts/secrets/secret.ysh lock
+# Documentation verification and link rewriting.
+mod docs 'just/docs.just'
 
-# Encrypt staged plaintext and rekey hosts (accepts --dry-run and --no-rekey).
-secret-apply-staging *args:
-    @ysh scripts/secrets/secret.ysh apply-staging "$@"
+# Dependency and external package updates.
+mod update 'just/update.just'
 
-# Set user password with yescrypt and encrypt to master secrets (accepts hostnames or --all).
-secret-set-host-password *args:
-    @ysh scripts/secrets/set-host-password.ysh "$@"
+# Nebula mesh VPN CA and certificate operations.
+mod nebula 'just/nebula.just'
 
-# Restore the user SSH key from Bitwarden (hostname defaults to this host).
-secret-ssh-restore *args:
-    @ysh scripts/secrets/secret.ysh ssh-restore "$@"
+# Hardware quirks and recovery helpers.
+mod hardware 'just/hardware.just'
 
-# Back up the user SSH key to Bitwarden (hostname defaults to this host).
-secret-ssh-backup *args:
-    @ysh scripts/secrets/secret.ysh ssh-backup "$@"
+# Shortcut: Build and activate system configuration.
+switch *args:
+    @just system switch "$@"
 
-# Check tools, master identity consistency, staging state, and Bitwarden status.
-secret-doctor:
-    @ysh scripts/secrets/secret.ysh doctor
+# Shortcut: Build and activate system configuration temporarily without bootloader update.
+test *args:
+    @just system test "$@"
 
-# Check flake outputs without building.
+# Shortcut: Preview system changes without applying (dry run).
+diff *args:
+    @just system diff "$@"
+
+# Shortcut: Build system configuration without activating.
+build *args:
+    @just system build "$@"
+
+# Shortcut: Check flake outputs without building.
 check:
-    nix flake check --no-build
+    @just qa check
 
-# Run all pre-commit hooks.
+# Shortcut: Run all pre-commit hooks.
 lint:
-    pre-commit run --all-files
+    @just qa lint
 
-# Format Nix files with nixfmt (formats all tracked Nix files when no argument is given).
+# Shortcut: Format Nix files.
 fmt *files:
-    @if [ "$#" -eq 0 ]; then \
-        git ls-files '*.nix' | xargs nixfmt --; \
-    else \
-        nixfmt -- "$@"; \
-    fi
+    @just qa fmt "$@"
+
+# Legacy backward-compatibility aliases
+[private]
+secret-rekey *args:
+    @just secret rekey "$@"
+
+[private]
+secret-edit file:
+    @just secret edit "$@"
+
+[private]
+secret-unlock *args:
+    @just secret unlock "$@"
+
+[private]
+secret-lock:
+    @just secret lock
+
+[private]
+secret-apply-staging *args:
+    @just secret apply-staging "$@"
+
+[private]
+secret-set-host-password *args:
+    @just secret set-host-password "$@"
+
+[private]
+secret-ssh-restore *args:
+    @just secret ssh-restore "$@"
+
+[private]
+secret-ssh-backup *args:
+    @just secret ssh-backup "$@"
+
+[private]
+secret-doctor:
+    @just secret doctor

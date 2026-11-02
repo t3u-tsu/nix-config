@@ -7,12 +7,12 @@
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
 | `flake/` | flake-parts サブモジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
-| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，および agenix マスター識別子 (`agenix.nix`)． |
+| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，および Nebula ノード台帳 (`nebula-fleet.nix`)． |
 | [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
 | [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
 | [secrets/](../../secrets/) | agenix-rekey で暗号化された秘密情報 (マスターおよびホスト・ユーザー別再暗号化シークレット)． |
-| [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (Nebula 証明書運用，パスワード生成等)． |
+| [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (シークレット管理，Nebula 証明書運用，ハードウェア復旧，ドキュメント検査等)． |
 | [terraform/](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
 | `docs/` | システム全体の設計仕様，運用手順書，ハードウェア解説，障害復旧手順． |
 

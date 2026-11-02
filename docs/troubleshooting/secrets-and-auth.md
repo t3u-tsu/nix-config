@@ -4,8 +4,8 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 
 | 障害現象 | 主な原因 | 推奨復旧アプローチ |
 | :--- | :--- | :--- |
-| agenix 復号エラー (`failed to decrypt` / `no identity matched`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記 (`age1...` 指定等)，rekey 漏れ | `cat /etc/ssh/ssh_host_ed25519_key.pub` で SSH 公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret-rekey` |
-| `home-manager` の `agenix.service` 復号失敗 (`~/.ssh/id_ed25519 not present`) | 作業端末の `~/.ssh/id_ed25519` 欠落，または旧 `sops-nix` のリンク切れ (`/run/secrets/...`) | `just secret-doctor` で状態確認，`just secret-ssh-restore` で Bitwarden から復元 |
+| agenix 復号エラー (`failed to decrypt` / `no identity matched`) | ホスト SSH 鍵の不一致，`age.rekey.hostPubkey` 未登録・誤記 (`age1...` 指定等)，rekey 漏れ | `cat /etc/ssh/ssh_host_ed25519_key.pub` で SSH 公開鍵突合，`hosts/<hostname>/default.nix` 更新，`just secret rekey` |
+| `home-manager` の `agenix.service` 復号失敗 (`~/.ssh/id_ed25519 not present`) | 作業端末の `~/.ssh/id_ed25519` 欠落，または旧 `sops-nix` のリンク切れ (`/run/secrets/...`) | `just secret doctor` で状態確認，`just secret ssh-restore` で Bitwarden から復元 |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
 
@@ -29,7 +29,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 | SSH ホスト秘密鍵の欠落・権限不正 | `/etc/ssh/ssh_host_ed25519_key` が存在しない，空である，または権限が `0600` 以外になっている． |
 | ユーザー SSH 鍵の欠落・リンク切れ | `~/.ssh/id_ed25519` が未配置，または旧 `sops-nix` 時代のシンボリックリンク (`~/.ssh/id_ed25519 -> /run/secrets/...`) が残存しており，`home-manager` の `agenix.service` が復号鍵を参照できない． |
 | SSH ホスト公開鍵の不一致・形式誤り | マシンの再インストールやストレージ換装により `/etc/ssh/ssh_host_ed25519_key.pub` が再生成され，`hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` と乖離している，または `ssh-ed25519 ...` ではなく `age1...` 形式で指定されている (`agenix` は復号時に SSH 秘密鍵を直接 `age -i` に渡すため，SSH 公開鍵そのものを指定する必要がある)． |
-| 再暗号化 (rekey) 漏れ | 新規シークレットの追加やホスト公開鍵の変更後に `just secret-rekey` を実行しておらず，`secrets/rekeyed/hosts/<hostname>/` の暗号化ファイルが更新されていない． |
+| 再暗号化 (rekey) 漏れ | 新規シークレットの追加やホスト公開鍵の変更後に `just secret rekey` を実行しておらず，`secrets/rekeyed/hosts/<hostname>/` の暗号化ファイルが更新されていない． |
 
 ### 切り分け・復旧手順
 
@@ -37,11 +37,11 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 flowchart TD
     Start["復号エラー発生"] --> Step1["ホストの SSH 公開鍵を確認<br>cat /etc/ssh/ssh_host_ed25519_key.pub"]
     Step1 --> Step2{"hosts/<hostname>/default.nix の<br>age.rekey.hostPubkey と一致するか？"}
-    Step2 -->|"No (鍵が変わっている / age1... 形式)"| Fix1["default.nix の hostPubkey を ssh-ed25519 ... に更新<br>管理端末で just secret-rekey を実行"]
+    Step2 -->|"No (鍵が変わっている / age1... 形式)"| Fix1["default.nix の hostPubkey を ssh-ed25519 ... に更新<br>管理端末で just secret rekey を実行"]
     Step2 -->|"Yes"| Step3{"/etc/ssh/ssh_host_ed25519_key は<br>存在し 0600 か？"}
     Step3 -->|"No / 権限不正"| Fix2["chmod 600 設定<br>または秘密鍵を再配置"]
     Step3 -->|"Yes"| Step4{"secrets/rekeyed/hosts/<hostname>/ は<br>最新の鍵で再暗号化されているか？"}
-    Step4 -->|"No"| Fix3["管理端末で just secret-rekey を実行してコミット"]
+    Step4 -->|"No"| Fix3["管理端末で just secret rekey を実行してコミット"]
     Step4 -->|"Yes"| OK["復号テスト成功"]
 ```
 
@@ -66,10 +66,10 @@ sudo ls -la /etc/ssh/ssh_host_ed25519_key
 sudo chmod 600 /etc/ssh/ssh_host_ed25519_key
 ```
 
-#### Step 4: 管理端末での再暗号化 (`just secret-rekey`)
+#### Step 4: 管理端末での再暗号化 (`just secret rekey`)
 管理端末で Bitwarden をアンロックし，全ホスト向けシークレットを再暗号化する:
 ```bash
-just secret-rekey
+just secret rekey
 
 # 再暗号化差分の確認 (対象ホストの暗号化ファイルが更新されていることを確認)
 git diff secrets/rekeyed/hosts/<hostname>/
@@ -93,11 +93,11 @@ sudo ls -la /run/agenix/
 作業端末で `~/.ssh/id_ed25519` の欠落や旧 `sops-nix` のシンボリックリンク残存により `home-manager` の `agenix.service` が復号できない場合は，診断のうえ Bitwarden (`nix-config/ssh/<hostname>`) から復元する:
 ```bash
 # シンボリックリンク残存・パーミッション・公開鍵整合性を検査
-just secret-doctor
+just secret doctor
 
 # Bitwarden から ~/.ssh/id_ed25519 (0600) と .pub (0644) を配置し，
 # ユーザーの agenix.service と import-gpg-key.service を再起動
-just secret-ssh-restore
+just secret ssh-restore
 ```
 
 ---

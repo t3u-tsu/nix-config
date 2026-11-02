@@ -7,65 +7,35 @@
 # passphrase in $CA_DIR/passphrase (chmod 600) is reused.
 #
 # Usage:
-#   ysh scripts/nebula/nebula-rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
+#   ysh scripts/nebula/rotate-ca.ysh [CA_DIR]
 #
-#   CA_DIR defaults to ~/.nebula-ca; --prefix is the first
-#   three octets of the new overlay subnet. The node list comes from
-#   scripts/nebula/nebula-lib.ysh (FLEET).
+#   CA_DIR defaults to ~/.nebula-ca. The node list and subnet are loaded from
+#   lib/nebula-fleet.nix by scripts/nebula/lib/fleet.ysh.
 #
 # Re-importing the new certs into agenix is a separate step:
-#   ysh scripts/nebula/nebula-import-secrets.ysh "$CA_DIR"
-#   just secret-rekey
+#   ysh scripts/nebula/import-secrets.ysh "$CA_DIR"
+#   just secret rekey
 
-source $_this_dir/nebula-lib.ysh
+source $_this_dir/lib/fleet.ysh
 
 const CA_NAME = 't3u-home-ca'
 const DURATION = '87600h'
 
 shopt --unset verbose_errexit
 
-func parse_octet(part) {
-  var value = 0
-  try { setvar value = int(part) }
-  if failed { return (-1) }
-  if (str(value) !== part or value < 0 or value > 255) { return (-1) }
-  return (value)
-}
-
-func valid_prefix(prefix) {
-  var parts = prefix.split(u'.')
-  if (len(parts) !== 3) { return (false) }
-  for part in (parts) {
-    if (parse_octet(part) < 0) { return (false) }
-  }
-  return (true)
-}
-
 proc usage() {
-  echo 'usage: ysh scripts/nebula/nebula-rotate-ca.ysh [CA_DIR] [--prefix A.B.C]'
+  echo 'usage: ysh scripts/nebula/rotate-ca.ysh [CA_DIR]'
   echo ''
   echo '  CA_DIR   output directory (default: ~/.nebula-ca)'
-  echo '  --prefix first three octets of the overlay subnet (default: 10.0.0)'
 }
 
 var ca_dir = ''
-var prefix = DEFAULT_PREFIX
 var i = 0
 while (i < len(ARGV)) {
   var arg = ARGV[i]
   if (arg === '-h' or arg === '--help') {
     usage
     exit 0
-  } elif (arg === '--prefix') {
-    if (i + 1 >= len(ARGV)) {
-      echo 'ERROR: --prefix needs a value' >&2
-      exit 2
-    }
-    setvar prefix = ARGV[i + 1]
-    setvar i += 2
-  } elif (arg.startsWith('--prefix=')) {
-    setvar prefix = arg[len('--prefix='):]
-    setvar i += 1
   } else {
     if (ca_dir !== '') {
       echo 'ERROR: only one CA_DIR may be given' >&2
@@ -76,11 +46,6 @@ while (i < len(ARGV)) {
   }
 }
 
-if (not valid_prefix(prefix)) {
-  echo $"ERROR: --prefix must be three octets like 10.0.0, got '${prefix}'." >&2
-  exit 2
-}
-
 if (ca_dir === '') {
   setvar ca_dir = default_ca_dir()
 }
@@ -88,7 +53,7 @@ if (ca_dir === '') {
   echo 'ERROR: HOME is unset; pass CA_DIR explicitly.' >&2
   exit 2
 }
-var subnet = $"${prefix}.0/24"
+var subnet = FLEET_SUBNET
 
 for tool in (['nebula-cert', 'script', 'sort', 'base64']) {
   if (not command_exists(tool)) {
@@ -169,8 +134,7 @@ cd $ca_dir {
 
   for node in (FLEET) {
     var name = node.name
-    var octet = node.octet
-    var ip = $"${prefix}.${octet}"
+    var ip = node.ip
     var groups = join(node.groups, ',')
     echo $"== sign ${name} (${ip}/24, ${groups}) =="
     run_nebula $passphrase nebula-cert sign \
@@ -187,5 +151,5 @@ cd $ca_dir {
 echo
 echo $"== done. Certificates written to ${ca_dir} =="
 echo 'Next, re-import them (uses the Bitwarden master identity):'
-echo $"  ysh scripts/nebula/nebula-import-secrets.ysh ${ca_dir}"
-echo '  just secret-rekey'
+echo $"  ysh scripts/nebula/import-secrets.ysh ${ca_dir}"
+echo '  just secret rekey'
