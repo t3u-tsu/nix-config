@@ -146,6 +146,7 @@ in
           pkgs.nvfetcher
           pkgs.oils-for-unix
           pkgs.opentofu
+          pkgs.openssh
           pkgs.openssl
           pkgs.perl
           pkgs.ssh-to-age

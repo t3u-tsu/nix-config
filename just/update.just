@@ -10,5 +10,10 @@ flake *inputs:
     nix flake update "$@"
 
 # Update nvfetcher managed package sources.
-sources *pkgs:
+nvfetcher *pkgs:
     nvfetcher -c nvfetcher.toml -o _sources "$@"
+
+# Backward-compatibility alias for nvfetcher.
+[private]
+sources *pkgs:
+    @just update nvfetcher "$@"
