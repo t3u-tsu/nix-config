@@ -27,7 +27,7 @@ apply-staging *args:
 
 # Set user password with yescrypt and encrypt to master secrets (accepts hostnames or --all).
 set-host-password *args:
-    @ysh scripts/secrets/set-host-password.ysh "$@"
+    @ysh scripts/secrets/secret.ysh set-host-password "$@"
 
 # Restore the user SSH key from Bitwarden (hostname defaults to this host).
 ssh-restore *args:
