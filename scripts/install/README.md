@@ -17,7 +17,7 @@ Minimal rescue environments and standard NixOS minimal installer ISOs do not hav
 
 1. **`.sh` Wrapper (Bootstrap Entry Point)**:
    - Written in portable Bash (`set -euo pipefail`).
-   - Checks if required tools (`ysh`, `ssh-keygen`, `age`) are present in `PATH`.
+   - Checks whether the tools the paired `.ysh` script needs (`ysh` plus `ssh-keygen`, and `age` for `setup-deploy-key`) are present in `PATH`.
    - If missing, launches `nix-shell -p oils-for-unix ...` on the fly to provide a transient runtime.
    - Execs the corresponding `.ysh` script transparently.
 

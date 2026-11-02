@@ -107,7 +107,7 @@ nebula-cert sign \
 # 秘密鍵をステージング領域に配置して暗号化・rekey
 mkdir -p .secrets-staging/hosts/<hostname>
 mv "$CA_DIR/<hostname>.key" .secrets-staging/hosts/<hostname>/nebula_key
-just secret-apply-staging
+just secret apply-staging
 
 git add hosts/<hostname>/nebula.crt secrets/
 git commit -m "fix(nebula): refresh certificate for <hostname>"

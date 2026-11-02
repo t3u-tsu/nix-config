@@ -121,7 +121,7 @@ Master 鍵を用いて初期シークレットを作成し，対象機向けに�
 #### 3.1 ユーザー初期パスワードの設定
 ```bash
 just secret set-host-password <hostname>
-# または: just secret-set-host-password <hostname>
+# または: ysh scripts/secrets/set-host-password.ysh <hostname>
 ```
 対話プロンプトで入力したパスワードが yescrypt でハッシュ化され，`secrets/master/hosts/<hostname>/user_password_hash.age` に暗号化保存される．root アカウントはパスワードを持たずロックされるため，一般ユーザーのみ設定する．
 
@@ -156,13 +156,13 @@ just nebula import-secrets
 ```bash
 mkdir -p .secrets-staging/hosts/<hostname>
 echo -n "<cloudflared_token>" > .secrets-staging/hosts/<hostname>/emergency_ssh_token
-just secret-apply-staging
+just secret apply-staging
 ```
 詳細は [非常用 SSH アクセス運用マニュアル](emergency-cf-ssh.md) を参照する．
 
 #### 3.4 ホスト向けシークレットの一括再暗号化
 ```bash
-just secret-rekey
+just secret rekey
 ```
 Master 秘密鍵を用いて，`secrets/rekeyed/hosts/<hostname>/` 配下に当該マシンの SSH ホスト鍵で復号可能な暗号化ファイル群を生成する．`*-deploy_key.age` もここに含まれ，Step 5 で使用する．
 
@@ -204,7 +204,7 @@ git switch feat/add-<hostname>
 sudo ./scripts/install/setup-deploy-key.sh <hostname>
 ```
 
-スクリプトは `/mnt/etc/ssh/ssh_host_ed25519_key` で `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` を復号し，`/root/.ssh/nix-config-private_deploy_key` に配置して `~/.ssh/config` へ `github-nix-config-private` エイリアスを追記する．`age` が無い環境では `nix-shell` で導入する．
+スクリプトは `/mnt/etc/ssh/ssh_host_ed25519_key` で `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` を復号し，`/root/.ssh/nix-config-private_deploy_key` に配置して `~/.ssh/config` へ `github-nix-config-private` エイリアスを追記する．`age` が無い環境では `nix-shell` で導入する．ラッパーと `.ysh` 本体の関係は [scripts/install/README.md](../../scripts/install/README.md) を参照する．
 
 インストーラ環境の `/root/.ssh` は RAM 上にあり，再起動で消える．起動後のシステムでは [nixos/base/private-config.nix](../../nixos/base/private-config.nix) が `/etc/ssh/ssh_config` と `/etc/ssh/ssh_known_hosts` を管理する．
 

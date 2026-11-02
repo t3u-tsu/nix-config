@@ -18,7 +18,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    git checkout -b feat/topic-name
    ```
 
-2. Nix ファイルや設定ファイルを編集する (実装)．ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `just secret-edit` で編集する ([secrets/README.md](../../../secrets/README.md))．
+2. Nix ファイルや設定ファイルを編集する (実装)．ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `just secret edit` で編集する ([secrets/README.md](../../../secrets/README.md))．
 
 3. 検証:
 
@@ -39,7 +39,7 @@ description: このリポジトリで設定変更を適用するときの手順�
 
    **実行コマンド**:
    ```bash
-   # 全ホストの評価・エラーの早期検知
+   # 全ホストの評価・エラーの早期検知 (pre-commit は just lint でも可)
    nix flake check
 
    # 設定がビルドできることを確認する場合 (事前ビルド)
@@ -65,6 +65,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    - レビューで判明した問題点や改善事項は，作業ツリー内でコードやドキュメントへ直接反映する．
 
 5. 設定の適用:
+   [justfile](../../../justfile) の `just switch` / `just test` / `just boot` / `just diff` は内部で `nh os` を呼び，同等の操作を行う (`just --list system` で一覧)．承認が必要な点は `nixos-rebuild switch` と同じである．
    デスクトップ環境 (Polkit エージェント稼働ホスト)では，事前承認を得たうえでエージェントが `pkexec` 経由で実行できる:
    ```bash
    pkexec --keep-cwd nixos-rebuild dry-activate --flake .#<hostname>

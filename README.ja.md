@@ -31,7 +31,7 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 
 - [flake.nix](flake.nix) — flake-parts エントリポイント
 - [flake/](flake/) — flake-parts モジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)
-- [lib/](lib/) — `mkSystem` システムビルダー，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)
+- [lib/](lib/) — `mkSystem` システムビルダー，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，Nebula ノード台帳 (`nebula-fleet.nix`)
 - [nixos/](nixos/) — 全ホスト共通のシステムレベル NixOS モジュール群
 - [home/](home/) — Home Manager ユーザー環境モジュール群
 - [hosts/](hosts/) — マシン固有の設定・ハードウェア定義
@@ -62,6 +62,8 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 ```bash
 sudo nixos-rebuild switch --flake .#BrokenPC
 ```
+
+`nix develop` 内では [justfile](justfile) が同等の操作をラップする．`just diff` で変更のプレビュー，`just switch` / `just build` / `just boot` が `nh os` を実行し，`just secret <recipe>` が暗号化シークレットを管理する．
 
 Nebula 経由でのリモートサーバーへのデプロイ:
 ```bash

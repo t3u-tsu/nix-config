@@ -84,7 +84,7 @@ sudo chmod 600 /etc/ssh/ssh_host_ed25519_key
 これにより，リポジトリ内の既存再暗号化ファイル (`nebula_key.age`，`cloudflare_api_env.age` 等) をそのまま復号でき，シークレットの再暗号化やコミットなしで即時に立ち上げられる．
 
 #### パターン B: 新規ホスト鍵を生成する場合
-VPS の `/etc/ssh/ssh_host_ed25519_key.pub` から SSH ホスト公開鍵 (`cat /etc/ssh/ssh_host_ed25519_key.pub`) を取得し，管理端末で `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` を更新して `just secret-rekey` を実行し，Git コミットする．
+VPS の `/etc/ssh/ssh_host_ed25519_key.pub` から SSH ホスト公開鍵 (`cat /etc/ssh/ssh_host_ed25519_key.pub`) を取得し，管理端末で `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` を更新して `just secret rekey` を実行し，Git コミットする．
 
 ### Step 4: ネットワーク設定の反映とゲートウェイ構成の適用
 1. `hosts/torii-chan/vps.nix` 内の `wanIp` および `wanGateway` を ConoHa で割り当てられた値へ書き換える．
@@ -110,7 +110,7 @@ Cloudflare DDNS サービスにより `torii-chan.t3u.uk` の A レコードが 
 
 ### Step 1: 物理 SBC の起動と疎通確認
 1. 物理マシンを起動し，LAN 内および Nebula 内で拠点T SBC (`torii-chan`, `10.0.0.1`) の疎通を確認する．
-2. パターン B でホスト公開鍵を更新していた場合は，SBC のホスト公開鍵を `hosts/torii-chan/default.nix` に戻して `just secret-rekey` を適用する (パターン A で共有していた場合は再暗号化不要)．
+2. パターン B でホスト公開鍵を更新していた場合は，SBC のホスト公開鍵を `hosts/torii-chan/default.nix` に戻して `just secret rekey` を適用する (パターン A で共有していた場合は再暗号化不要)．
 
 ### Step 2: DNS 切り戻し確認
 物理 SBC 上の Cloudflare DDNS により A レコードが拠点Tのグローバル IP へ戻ることを確認する (必要に応じて手動切戻し)．

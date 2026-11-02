@@ -10,12 +10,12 @@
 #   ysh scripts/nebula/rotate-ca.ysh [CA_DIR] [--prefix 10.0.0]
 #
 #   CA_DIR defaults to ~/.nebula-ca; --prefix is the first
-#   three octets of the new overlay subnet. The node list comes from
-#   scripts/nebula/lib/fleet.ysh (FLEET).
+#   three octets of the new overlay subnet. The node list is loaded from
+#   lib/nebula-fleet.nix by scripts/nebula/lib/fleet.ysh into FLEET.
 #
 # Re-importing the new certs into agenix is a separate step:
 #   ysh scripts/nebula/import-secrets.ysh "$CA_DIR"
-#   just secret-rekey
+#   just secret rekey
 
 source $_this_dir/lib/fleet.ysh
 
@@ -188,4 +188,4 @@ echo
 echo $"== done. Certificates written to ${ca_dir} =="
 echo 'Next, re-import them (uses the Bitwarden master identity):'
 echo $"  ysh scripts/nebula/import-secrets.ysh ${ca_dir}"
-echo '  just secret-rekey'
+echo '  just secret rekey'

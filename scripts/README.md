@@ -21,10 +21,10 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [secrets/lib/agent.pl](secrets/lib/agent.pl) | In-memory Bitwarden session daemon holding the session token strictly in process RAM over a Unix domain socket with an automatic sliding inactivity timeout. | `perl`, `bw` |
 | **Nebula Mesh VPN** | | |
 | [nebula/lib/fleet.ysh](nebula/lib/fleet.ysh) | Shared fleet loader importing node mappings (`name\|octet\|groups\|ip`) dynamically from [lib/nebula-fleet.nix](../lib/nebula-fleet.nix), with default CA directory and file helpers. | Sourced by Nebula scripts |
-| [nebula/import-secrets.ysh](nebula/import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
-| [nebula/rotate-ca.ysh](nebula/rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert`, `script`, `sort`, `base64` |
+| [nebula/import-secrets.ysh](nebula/import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `ysh`, `nix`, `bw`, `age`, `age-keygen` |
+| [nebula/rotate-ca.ysh](nebula/rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `ysh`, `nix`, `nebula-cert`, `script`, `sort`, `base64` |
 | **Documentation & QA** | | |
-| [docs/lib/DocsLib.pm](docs/lib/DocsLib.pm) | Shared Perl module for repository root resolution, git-tracked file discovery, path normalization, and markdown code-fence stripping. | Sourced by docs scripts |
+| [docs/lib/DocsLib.pm](docs/lib/DocsLib.pm) | Shared Perl module for repository root resolution, git-tracked file discovery, path normalization, and markdown code-fence stripping. | Perl core |
 | [docs/check.pl](docs/check.pl) | Lints markdown prose (parentheses, commas, prohibited words, pseudo-headings) and validates relative links and heading anchors. | Perl core (run via pre-commit) |
 | [docs/linkify.pl](docs/linkify.pl) | Scans markdown files and converts raw in-text file paths into relative links. | Perl core |
 | **Hardware Quirks** | | |
@@ -35,9 +35,11 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [install/setup-deploy-key.sh](install/setup-deploy-key.sh) | Wrapper that runs `setup-deploy-key.ysh` and installs `oils-for-unix` / `age` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keyscan` |
 | [install/setup-deploy-key.ysh](install/setup-deploy-key.ysh) | Decrypts `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` with the target host key and registers the `github-nix-config-private` SSH alias for private flake inputs. | `ysh`, `age`, `ssh`, `ssh-keyscan` |
 
+Installer wrapper behaviour and usage are described in [install/README.md](install/README.md).
+
 ## Secret CLI
 
-Run `just secret <recipe>` for the common operations, or call a single-purpose script directly. All command scripts, including [rekey](secrets/rekey.ysh), [edit](secrets/edit.ysh), [unlock](secrets/unlock.ysh), [lock](secrets/lock.ysh), [apply-staging](secrets/apply-staging.ysh), [set-host-password](secrets/set-host-password.ysh), [ssh-restore](secrets/ssh-restore.ysh), [ssh-backup](secrets/ssh-backup.ysh), and [doctor](secrets/doctor.ysh), share the Bitwarden helpers in [secrets/lib/bitwarden.ysh](secrets/lib/bitwarden.ysh). When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running [unlock](secrets/unlock.ysh) passes the session token to an in-memory resident agent daemon ([secrets/lib/agent.pl](secrets/lib/agent.pl)) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running [lock](secrets/lock.ysh) signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
+Run `just secret <recipe>` for the common operations, or call a single-purpose script directly. Each recipe is also listed by `just --list secret`. All command scripts, including [rekey](secrets/rekey.ysh), [edit](secrets/edit.ysh), [unlock](secrets/unlock.ysh), [lock](secrets/lock.ysh), [apply-staging](secrets/apply-staging.ysh), [set-host-password](secrets/set-host-password.ysh), [ssh-restore](secrets/ssh-restore.ysh), [ssh-backup](secrets/ssh-backup.ysh), and [doctor](secrets/doctor.ysh), share the Bitwarden helpers in [secrets/lib/bitwarden.ysh](secrets/lib/bitwarden.ysh). When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running [unlock](secrets/unlock.ysh) passes the session token to an in-memory resident agent daemon ([secrets/lib/agent.pl](secrets/lib/agent.pl)) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running [lock](secrets/lock.ysh) signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
 
 The legacy [secrets/secret.ysh](secrets/secret.ysh) router still forwards `secret.ysh <command>` invocations to the matching script.
 
@@ -102,7 +104,14 @@ just switch
 just diff
 just test
 just build
+just system boot
 just system gc
+just system rollback
+just system info
+
+# Dependency updates
+just update flake
+just update nvfetcher
 
 # QA and documentation
 just check
@@ -114,6 +123,9 @@ just docs linkify
 # Nebula mesh VPN
 just nebula rotate-ca
 just nebula import-secrets
+
+# Hardware quirks
+just hardware restart-touchpad
 ```
 
 ## Secret CLI Configuration
@@ -145,7 +157,7 @@ just secret rekey
 A full CA rotation issues a new root CA and signs all node certificates anew:
 
 ```bash
-# Generate a new CA in ~/.nebula-ca and issue certs for all nodes in FLEET
+# Generate a new CA in ~/.nebula-ca and issue certs for every node in lib/nebula-fleet.nix
 just nebula rotate-ca
 # or: ysh scripts/nebula/rotate-ca.ysh
 

@@ -27,10 +27,15 @@ func load_fleet_from_nix() {
   var root_dir = _this_dir ++ '/../../..'
   var nix_file = root_dir ++ '/lib/nebula-fleet.nix'
   if (not file_exists(nix_file)) {
+    echo $"ERROR: ${nix_file} not found" >&2
+    return (false)
+  }
+  if (not command_exists('nix')) {
+    echo 'ERROR: nix is required to read lib/nebula-fleet.nix; run within nix develop' >&2
     return (false)
   }
   var json_str = ''
-  try { setvar json_str = $(nix eval --json --impure --expr "import ${nix_file}") }
+  try { setvar json_str = $(nix eval --json --file $nix_file) }
   if (_error.code !== 0 or json_str === '') {
     return (false)
   }
@@ -49,6 +54,6 @@ func load_fleet_from_nix() {
 }
 
 if (not load_fleet_from_nix()) {
-  echo 'ERROR: failed to load nebula fleet from lib/nebula-fleet.nix' >&2
+  echo 'ERROR: failed to load the Nebula fleet from lib/nebula-fleet.nix' >&2
   exit 1
 }

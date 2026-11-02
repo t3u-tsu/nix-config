@@ -130,7 +130,7 @@ Orange Pi Zero3 に SD を挿入して起動する．静的 LAN IP (`192.168.0.1
 ```bash
 cat /etc/ssh/ssh_host_ed25519_key.pub
 ```
-得られた SSH 公開鍵 (`ssh-ed25519 ...`) を `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` へ登録し，`just secret-rekey` を実行してコミットする．
+得られた SSH 公開鍵 (`ssh-ed25519 ...`) を `hosts/torii-chan/default.nix` の `age.rekey.hostPubkey` へ登録し，`just secret rekey` を実行してコミットする．
 
 #### Step 4: 本番 SD 構成への切り替え
 ```bash

@@ -198,7 +198,7 @@ reboot
 3. **管理端末での公開鍵更新と再暗号化**:
    管理端末で `hosts/<hostname>/default.nix` の `age.rekey.hostPubkey` を得られた SSH 公開鍵 (`ssh-ed25519 ...`) へ更新し，再暗号化を実行して Git に push する:
    ```bash
-   just secret-rekey
+   just secret rekey
    git add hosts/<hostname>/default.nix secrets/rekeyed/hosts/<hostname>/
    git commit -m "fix(secrets): rotate host key for <hostname> recovery"
    git push origin feat/...
@@ -265,7 +265,7 @@ reboot
    sed -i "s|age.rekey.hostPubkey = \"[^\"]*\";|age.rekey.hostPubkey = \"${NEW_KEY}\";|" hosts/<hostname>/default.nix
 
    # nix develop シェル内で再暗号化を実行
-   nix develop --command just secret-rekey
+   nix develop --command just secret rekey
    ```
 5. **システムのインストールと再起動**:
    ```bash

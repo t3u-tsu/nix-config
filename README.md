@@ -31,7 +31,7 @@ Declarative NixOS configuration managing desktops, servers, and network gateways
 
 - [flake.nix](flake.nix) — flake-parts entrypoint
 - [flake/](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
-- [lib/](lib/) — `mkSystem` builder, shared color palette (`palette.nix`), and agenix master identity (`agenix.nix`)
+- [lib/](lib/) — `mkSystem` builder, shared color palette (`palette.nix`), agenix master identity (`agenix.nix`), and the Nebula fleet registry (`nebula-fleet.nix`)
 - [nixos/](nixos/) — Shared system-level NixOS modules
 - [home/](home/) — Home Manager user-level configurations
 - [hosts/](hosts/) — Host definitions and hardware configurations
@@ -62,6 +62,8 @@ Apply configuration locally:
 ```bash
 sudo nixos-rebuild switch --flake .#BrokenPC
 ```
+
+Inside `nix develop`, the [justfile](justfile) wraps these operations: `just diff` previews changes, `just switch` / `just build` / `just boot` drive `nh os`, and `just secret <recipe>` manages encrypted secrets.
 
 Deploy to a remote machine over Nebula:
 ```bash
