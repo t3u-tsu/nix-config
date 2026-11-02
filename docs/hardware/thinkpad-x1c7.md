@@ -1,6 +1,6 @@
 # ThinkPad X1 Carbon Gen 7 ハードウェア構成と最適化ガイド
 
-Lenovo ThinkPad X1 Carbon Gen 7 (`x1c7`) におけるハードウェア仕様，電源・サーマル管理，ログイン認証，スリープ動作，およびオーディオ消失回避ワークアラウンドの技術仕様と設計要点．
+Lenovo ThinkPad X1 Carbon Gen 7 (`x1c7`) におけるハードウェア仕様，電源・サーマル管理，入力デバイス調整，ログイン認証，スリープ動作，およびオーディオ消失回避ワークアラウンドの技術仕様と設計要点．
 
 ```mermaid
 flowchart TD
@@ -8,9 +8,15 @@ flowchart TD
         subgraph PowerThermal["電源・サーマル協調制御"]
             TLP["TLP 5層設定<br>(powersave + EPP 自律制御)"]
             Throttled["throttled (EC スロットル解除)<br>AC: PL1 25W / BAT: PL1 15W"]
-            Platform["ACPI platform_profile<br>(balanced / performance)"]
+            Platform["ACPI platform_profile<br>AC: balanced / BAT: low-power"]
             TLP <--> Throttled
             TLP --> Platform
+        end
+
+        subgraph InputDevices["入力デバイス (Niri / libinput)"]
+            TrackPoint["Elan TrackPoint (ETPS/2)<br>accel-profile flat<br>scroll-button 274"]
+            Touchpad["Synaptics I2C タッチパッド<br>dwtp"]
+            TrackPoint --- Touchpad
         end
 
         subgraph MemorySwap["メモリ・OOM 防止スタック"]
@@ -51,12 +57,12 @@ flowchart TD
 | ネットワーク | Intel Wireless-AC 9560 (CNVi, `iwlwifi`) / Bluetooth 5.0 (`8087:0aaa`) |
 | Thunderbolt 3 | Intel JHL6540 (Alpine Ridge，カーネルネイティブ管理) |
 | オーディオ | Intel HDA with Sound Open Firmware (SOF DSP) |
-| 入力 / センサー | Synaptics I2C タッチパッド & TrackPoint，Synaptics Prometheus 指紋センサー (`06cb:00bd`) |
+| 入力 / センサー | Elan TrackPoint (`ETPS/2 Elantech TrackPoint`) & Synaptics I2C タッチパッド，Synaptics Prometheus 指紋センサー (`06cb:00bd`) |
 | セキュリティ | STMicroelectronics TPM 2.0 (LUKS 移行準備用) |
 
 ### カーネル選定とハードウェアモジュール
 
-カーネルには [pkgs.linuxPackages_xanmod](../../hosts/x1c7/default.nix) を採用し，デスクトップの対話的応答性とタスクスケジューリングを低レイテンシ化している．[nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen](../../hosts/x1c7/default.nix) をインポートし，トラックポイント，Intel マイクロコード，VA-API，およびラップトップ・SSD 共通モジュールを導入している．
+カーネルには [pkgs.linuxPackages_xanmod](../../hosts/x1c7/default.nix) を採用し，デスクトップの対話的応答性とタスクスケジューリングを低レイテンシ化している．[nixos-hardware.nixosModules.lenovo-thinkpad-x1-7th-gen](../../hosts/x1c7/default.nix) をインポートし，Intel マイクロコード，VA-API，およびラップトップ・SSD 共通モジュールを導入している．このモジュールが有効化する `hardware.trackpoint` は本機の TrackPoint に適用されない ([3. 入力デバイス](#3-入力デバイス-trackpoint--タッチパッド)を参照)．
 
 ### メモリ・スワップチューニング (OOM 回避)
 
@@ -94,7 +100,17 @@ ThinkPad の電源・サーマル制御は，以下の 3 層構造で連携し�
 ### TLP 設定要点
 
 #### バッテリー充電閾値
-`START_CHARGE_THRESH_BAT0 = 75` および `STOP_CHARGE_THRESH_BAT0 = 80` を設定している．AC 常時接続環境におけるバッテリーセルの劣化を大幅に抑制する (満充電が必要な際は `sudo tlp fullcharge` で一時解除可能)．
+`START_CHARGE_THRESH_BAT0 = 75` および `STOP_CHARGE_THRESH_BAT0 = 80` を設定している．AC 常時接続環境におけるバッテリーセルの劣化を抑える．TLP は起動時に閾値を `charge_control_start_threshold` / `charge_control_stop_threshold` へ書き込み，値は EC が保持する．
+
+S3 中も EC は給電されるため閾値は維持される．Lenovo 機の `tlp resume` は，スリープ中に AC 給電状態が変化した場合と EC をリセットする機種に限り閾値を書き戻すため，通常の S3 復帰では値が変化しない．一時的に解除した状態も同じ扱いとなり，次回起動時の `tlp.service` または `sudo tlp setcharge` で設定値へ戻る．
+
+| コマンド | 動作 | 設定値への復帰 |
+| :--- | :--- | :--- |
+| `sudo tlp fullcharge` | ベンダー既定値 (96/100) を一時適用し 100% まで充電する | 次回起動時または `sudo tlp setcharge` |
+| `sudo tlp chargeonce` | 開始閾値を停止閾値の直前 (79%) へ一時的に引き上げ，設定済みの停止閾値 (80%) まで充電する．充電残量が 79% を超えている場合はエラー終了する | 次回起動時または `sudo tlp setcharge` |
+| `sudo tlp recalibrate` | AC 接続のまま満放電してから 100% まで再充電し，容量計を再調整する | 次回起動時または `sudo tlp setcharge` |
+
+`recalibrate` は数時間かかるため，完了まで AC を接続したままにする．
 
 #### D-Bus 連携 (tlp.pd)
 `services.tlp.pd.enable = true` により `net.hadess.PowerProfiles` D-Bus インターフェースを提供し，Noctalia デスクトップの `power_profile` バーウィジェットからプロファイルを切り替えられる．
@@ -104,7 +120,9 @@ XanMod カーネルは `CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y` でビルド�
 
 #### 動的ブーストと省電力
 - `CPU_HWP_DYN_BOOST_ON_AC = 1`: AC 駆動時の急激な負荷スパイクに対し動的ブーストを適用し UI 応答性を維持する．
-- `PLATFORM_PROFILE_ON_AC` / `PLATFORM_PROFILE_ON_BAT = "balanced"`: AC・BAT ともに静音性を維持しつつ，高負荷時は Noctalia ウィジェットから性能モードへ引き上げられる．
+- `PLATFORM_PROFILE_ON_AC = "balanced"`: AC 駆動では静音性を優先し，高負荷時は Noctalia ウィジェットから性能モードへ引き上げられる．
+- `PLATFORM_PROFILE_ON_BAT = "low-power"`: バッテリー駆動では EC の低消費電力サーマルテーブルを選択し，ファンカーブと電力上限を引き下げてバッテリー持続時間を延ばす．
+- `PLATFORM_PROFILE_ON_SAV = "low-power"`: Noctalia の power-saver プロファイル選択時も同じサーマルテーブルを使用する．
 - `PCIE_ASPM_ON_BAT = "powersave"`: バッテリー駆動時に PCIe リンク (NVMe, Wi-Fi, Thunderbolt) を低電力ステートへ移行させる．
 
 #### USB 自動サスペンドの除外
@@ -132,9 +150,50 @@ Whiskey Lake 世代では BIOS ファームウェアにより MSR 0x150 への�
 sudo systemctl restart throttled
 ```
 
+### ファン制御を thinkfan に委ねない理由
+
+`/sys/firmware/acpi/platform_profile` の値は ACPI DYTC を経由して EC に渡り，EC が保持するサーマルテーブル (ファンカーブと PL1/PL2 の上限) を切り替える．ファン回転数はこのテーブルに従って EC が決定する．
+
+thinkfan は hwmon の `pwm1_enable` を手動制御へ切り替え，ユーザー空間から PWM 値を書き込む．手動制御中は EC のファンカーブが無効になり，throttled が許可する PL2 バースト (AC 35 W) に対してファン回転が追従しない区間が生じる．この区間で発熱が蓄積するとサーマルトリップや筐体温度の上昇を招くため，本ホストでは thinkfan を導入せず，ファン制御は EC (platform_profile) に，CPU 側の上限は throttled の PL1/PL2 に分離する．
+
 ---
 
-## 3. ディスプレイ・ログイン認証 (Noctalia Greeter & 指紋認証)
+## 3. 入力デバイス (TrackPoint & タッチパッド)
+
+### ハードウェアの判別
+
+本機の TrackPoint は Elan 製 (`ETPS/2 Elantech TrackPoint`) であり，Synaptics 製の TrackPoint を前提とする設定は適用されない．代表例が nixos-hardware の `hardware.trackpoint` である．このモジュールは udev ルールで `hardware.trackpoint.device` (既定値 `TPPS/2 IBM TrackPoint`) の serio 属性 (`sensitivity`, `speed`, `press_to_select` 等) を書き換え，`hardware.trackpoint.emulateWheel` を X11 の `inputClassSections` で実装する．Elan TrackPoint はこれらの serio 属性を公開せず，デバイス名も既定値と一致せず，Niri は X11 の設定を読まないため，このモジュールの設定は反映されない．TrackPoint とタッチパッドの調整は [Niri の入力設定](../../home/desktop/niri/config.kdl) で行う．
+
+### libinput 設定
+
+| デバイス | 設定 | 効果 |
+| :--- | :--- | :--- |
+| TrackPoint | `accel-profile "flat"` | 加速度補正を無効化し，スティックの押し込み量とカーソル移動量を比例させる |
+| TrackPoint | `scroll-method "on-button-down"` + `scroll-button 274` | センターボタン (`BTN_MIDDLE` = 274) を押している間，スティック操作をスクロールへ変換する |
+| タッチパッド | `dwtp` | トラックポイント操作中のタッチパッド入力を無効化し，パームタッチによる誤入力を防ぐ |
+
+```kdl
+input {
+    trackpoint {
+        accel-profile "flat"
+        scroll-method "on-button-down"
+        scroll-button 274
+    }
+    touchpad {
+        dwtp
+    }
+}
+```
+
+既存の `tap`, `dwt`, `natural-scroll` 等のタッチパッド設定と併記する．デバイス名と割り当てられた設定は次で確認する．
+
+```bash
+libinput list-devices | grep -A4 -E "TrackPoint|Touchpad"
+```
+
+---
+
+## 4. ディスプレイ・ログイン認証 (Noctalia Greeter & 指紋認証)
 
 ### Noctalia Greeter
 
@@ -179,7 +238,7 @@ fprintd-list "$USER"                  # 登録済み指紋の一覧
 
 ---
 
-## 4. サスペンド動作と S3 Deep Sleep
+## 5. サスペンド動作と S3 Deep Sleep
 
 ### S3 vs s2idle のトレードオフ
 
@@ -198,7 +257,7 @@ Bluetooth デバイス接続状態でサスペンドすると即座に復帰す�
 
 ---
 
-## 5. オーディオ消失回避ワークアラウンド (ALSA UCM & PipeWire)
+## 6. オーディオ消失回避ワークアラウンド (ALSA UCM & PipeWire)
 
 ### 障害の技術的背景
 
@@ -251,9 +310,20 @@ in
 - 内蔵スピーカーの `PlaybackPriority` を `200` から `900` に引き上げ，常に選択可能なプライマリシンクとして維持する．
 - PipeWire と WirePlumber の双方が ALSA カードを直接開いて UCM 設定を参照するため，両方の systemd ユーザーサービスに環境変数 `ALSA_CONFIG_UCM2` を渡す (片方のみに設定すると未パッチの UCM が読み込まれ，スピーカーが再び消失する)．
 
+### ミュート LED の同期
+
+スピーカーのミュート LED は `/sys/class/leds/platform::mute`，マイクのミュート LED は `/sys/class/leds/platform::micmute` として公開される．HDA コーデックドライバが提供する LED トリガ `audio-mute` / `audio-micmute` をこれらの LED に割り当てると，ALSA ミキサーの該当スイッチの状態が LED に反映される．PipeWire のミュート操作も ALSA ミキサーを経由するため，LED 同期用のデーモンや udev ルールを追加せずに追従する．
+
+```bash
+grep -H . /sys/class/leds/platform::mute/trigger /sys/class/leds/platform::micmute/trigger
+wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle   # LED が消灯・点灯することを確認
+```
+
+出力の `[...]` が現在のトリガであり，`[audio-mute]` / `[audio-micmute]` であれば有効である．
+
 ---
 
-## 6. ファームウェア・BIOS 注意事項
+## 7. ファームウェア・BIOS 注意事項
 
 ### カスタム Secure Boot 鍵の登録リスク (文鎮化警告)
 
@@ -271,6 +341,7 @@ BIOS の `Config -> Thunderbolt 3 -> Thunderbolt BIOS Assist Mode` は，Linux �
 - [x1c7 システム構成](../../hosts/x1c7/default.nix) — x1c7 固有のシステムモジュール設定
 - [x1c7 ハードウェア定義](../../hosts/x1c7/hardware.nix) — ハードウェア構成とメモリ・スワップ設定
 - [電源・サーマル設定](../../hosts/x1c7/services/power.nix) — TLP および throttled の省電力・発熱制御設定
+- [Niri 入力設定](../../home/desktop/niri/config.kdl) — TrackPoint とタッチパッドの libinput 設定
 - [オーディオパッチ](../../hosts/x1c7/services/audio.nix) — ALSA UCM / PipeWire スピーカー消失対策パッチ
 - [デスクトップログイン設計](../../nixos/services/desktop/greetd.nix) — Noctalia Greeter および PAM 認証スタック設定
 - [並行待ち受けアーキテクチャ調査](../research/parallel-auth-architecture.md) — PAM 逐次性と並行待ち受けの設計調査

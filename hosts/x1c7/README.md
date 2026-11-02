@@ -23,6 +23,8 @@ Lenovo ThinkPad X1 Carbon Gen 7 (20QES11500) running NixOS with Niri (Wayland), 
 | **Kernel** | `pkgs.linuxPackages_xanmod` (low latency, high interactive responsiveness) |
 | **Nebula Mesh** | `10.0.0.101` (groups: `mgmt`, `app`) |
 | **Compositor & Shell** | Niri Wayland compositor, Noctalia desktop shell & greeter |
+| **Power Profile** | ACPI DYTC platform profile: `balanced` on AC, `low-power` on battery |
+| **Pointing** | Niri/libinput: Elan TrackPoint (flat accel, middle-button scroll) and touchpad `dwtp` |
 
 ## Host Services & Modules
 
@@ -35,7 +37,9 @@ Lenovo ThinkPad X1 Carbon Gen 7 (20QES11500) running NixOS with Niri (Wayland), 
 
 ## Key Optimizations
 
-- Manages power and thermals via TLP battery thresholds (75/80%), `throttled` PL1/PL2 envelope limits, and a Noctalia power-profile D-Bus widget.
+- Manages power and thermals via TLP battery thresholds (75/80%), ACPI DYTC platform profiles (`balanced` on AC, `low-power` on battery), `throttled` PL1/PL2 envelope limits, and a Noctalia power-profile D-Bus widget.
+- Leaves fan control to the EC through `platform_profile`; `thinkfan` is omitted because manual `pwm1` control conflicts with the EC fan curve under PL2 bursts.
+- Tunes the Elan TrackPoint (`ETPS/2 Elantech TrackPoint`) in Niri instead of `hardware.trackpoint`, which targets IBM/Synaptics serio attributes and X11 wheel emulation: flat acceleration, middle-button (274) scrolling, and touchpad `dwtp`.
 - Combines zram (100% RAM) with a 16 GiB swapfile and sets `vm.watermark_scale_factor = 125` to prevent OOM kills during parallel Nix builds.
 - Patches ALSA UCM and PipeWire in [services/audio.nix](services/audio.nix) to keep internal speakers active when external HDMI displays connect.
 - Integrates `fprintd` fingerprint authentication across PAM services alongside the Noctalia greeter on `eDP-1`, with TLP `USB_DENYLIST` disabling autosuspend for `06cb:00bd`.

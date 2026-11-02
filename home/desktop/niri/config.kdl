@@ -38,9 +38,16 @@ input {
     touchpad {
         tap
         dwt
+        dwtp
         natural-scroll
         scroll-method "two-finger"
         click-method "clickfinger"
+    }
+    trackpoint {
+        accel-profile "flat"
+        accel-speed 0.0
+        scroll-method "on-button-down"
+        scroll-button 274
     }
 }
 screenshot-path "@home-directory@/Pictures/Screenshots/%Y-%m-%d %H-%M-%S.png"
