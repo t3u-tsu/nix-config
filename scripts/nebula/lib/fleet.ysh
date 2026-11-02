@@ -3,7 +3,7 @@
 # Shared Nebula mesh helpers. Loads the node fleet from lib/nebula-fleet.nix.
 
 var FLEET = []
-var DEFAULT_PREFIX = '10.0.0'
+var FLEET_SUBNET = '10.0.0.0/24'
 
 func file_exists(path) {
   try { test -f $path }
@@ -44,8 +44,8 @@ func load_fleet_from_nix() {
   if (_error.code !== 0 or parsed === null) {
     return (false)
   }
-  if (parsed.prefix !== null) {
-    setglobal DEFAULT_PREFIX = parsed.prefix
+  if (parsed.subnet !== null) {
+    setglobal FLEET_SUBNET = parsed.subnet
   }
   if (parsed.fleet !== null) {
     setglobal FLEET = parsed.fleet

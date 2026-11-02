@@ -25,5 +25,6 @@ let
 in
 {
   inherit prefix nodes;
+  subnet = "${prefix}.0/24";
   fleet = builtins.attrValues (builtins.mapAttrs (name: info: info // { inherit name; }) nodes);
 }
