@@ -97,11 +97,7 @@ sed -i "s|# age.rekey.hostPubkey = \"SSH_HOST_PUBKEY\";|age.rekey.hostPubkey = \
 各ファイルを編集・確認する．
 - `hosts/<hostname>/default.nix`: `age.rekey.hostPubkey` に公開鍵が設定されていることを確認する．
 - `hosts/<hostname>/hardware.nix`: デバイスパスを `/dev/disk/by-id/` へ置き換えるなど，必要に応じて調整する．
-- `hosts/<hostname>/services/nebula.nix`: 割り当てた Nebula IP とグループを設定する．
-  ```nix
-  my.networking.nebula.ip = "10.0.0.X";
-  my.networking.nebula.groups = [ "mgmt" ];
-  ```
+- `hosts/<hostname>/services/nebula.nix`: 必要に応じて個別設定を調整する (`my.networking.nebula.enable = true` で [lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の設定が自動適用される)．
 
 #### 2.3 Flake へのホスト登録
 [flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する．
@@ -124,7 +120,8 @@ Master 鍵を用いて初期シークレットを作成し，対象機向けに�
 
 #### 3.1 ユーザー初期パスワードの設定
 ```bash
-just secret-set-host-password <hostname>
+just secret set-host-password <hostname>
+# または: just secret-set-host-password <hostname>
 ```
 対話プロンプトで入力したパスワードが yescrypt でハッシュ化され，`secrets/master/hosts/<hostname>/user_password_hash.age` に暗号化保存される．root アカウントはパスワードを持たずロックされるため，一般ユーザーのみ設定する．
 
@@ -142,14 +139,15 @@ nebula-cert sign \
   -out-key "$CA_DIR/<hostname>.key"
 ```
 
-[scripts/nebula/nebula-lib.ysh](../../scripts/nebula/nebula-lib.ysh) の `FLEET` リストにエントリを追加する．`octet` は割り当てた IP の第 4 オクテットと一致させる．
-```ysh
-{name: '<hostname>', octet: X, groups: ['mgmt']},
+[lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の `nodes` にエントリを追加する．`octet` は割り当てた IP の第 4 オクテットと一致させる (NixOS 設定と運用スクリプトの双方が自動連携する)．
+```nix
+<hostname> = mkNode X [ "mgmt" ];
 ```
 
 証明書と秘密鍵を取り込むスクリプトを実行する．Bitwarden セッションが必要なため，開発シェル内で実行する．
 ```bash
-ysh scripts/nebula/nebula-import-secrets.ysh
+just nebula import-secrets
+# または: ysh scripts/nebula/nebula-import-secrets.ysh
 ```
 証明書を `hosts/<hostname>/nebula.crt` に配置し，ノード秘密鍵を `secrets/master/hosts/<hostname>/nebula_key.age` へ暗号化保存する．
 

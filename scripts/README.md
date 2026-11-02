@@ -12,7 +12,7 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | [secrets/agenix-bw-agent.pl](secrets/agenix-bw-agent.pl) | In-memory Bitwarden session daemon holding the session token strictly in process RAM over a Unix domain socket with an automatic sliding inactivity timeout. | `perl`, `bw` |
 | [secrets/set-host-password.ysh](secrets/set-host-password.ysh) | Hashes user password with yescrypt (`mkpasswd -m yescrypt`) and writes `secrets/master/hosts/<hostname>/user_password_hash.age`. | `mkpasswd`, `bw`, `age`, `age-keygen` |
 | **Nebula Mesh VPN** | | |
-| [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet registry defining `FLEET` node mappings (`name\|last-octet\|groups`), the default CA directory, and file helpers. | Sourced by Nebula scripts |
+| [nebula/nebula-lib.ysh](nebula/nebula-lib.ysh) | Shared fleet loader importing node mappings (`name\|octet\|groups\|ip`) dynamically from `lib/nebula-fleet.nix`, with default CA directory and file helpers. | Sourced by Nebula scripts |
 | [nebula/nebula-import-secrets.ysh](nebula/nebula-import-secrets.ysh) | Publishes Nebula CA and node certs, and encrypts node private keys to `secrets/master/hosts/<hostname>/nebula_key.age`. | `bw`, `age`, `age-keygen` |
 | [nebula/nebula-rotate-ca.ysh](nebula/nebula-rotate-ca.ysh) | One-shot Nebula CA recreation and bulk node re-signing. | `nebula-cert`, `script`, `sort`, `base64` |
 | **Documentation & QA** | | |

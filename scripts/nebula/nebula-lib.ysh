@@ -1,18 +1,9 @@
 #!/usr/bin/env ysh
-# Single source of truth for the node list: add a new host here, sign its cert,
-# then re-import it with scripts/nebula/nebula-import-secrets.ysh (see
-# docs/operations/adding-a-host.md).
+#
+# Shared Nebula mesh helpers. Loads the node fleet from lib/nebula-fleet.nix.
 
-const FLEET = [
-  {name: 'torii-chan', octet: 1, groups: ['mgmt']},
-  {name: 'sando-kun', octet: 2, groups: ['mgmt']},
-  {name: 'kagutsuchi-sama', octet: 3, groups: ['mgmt']},
-  {name: 'shosoin-tan', octet: 4, groups: ['mgmt', 'app']},
-  {name: 'BrokenPC', octet: 100, groups: ['mgmt', 'app']},
-  {name: 'x1c7', octet: 101, groups: ['mgmt', 'app']},
-]
-
-const DEFAULT_PREFIX = '10.0.0'
+var FLEET = []
+var DEFAULT_PREFIX = '10.0.0'
 
 func file_exists(path) {
   try { test -f $path }
@@ -30,4 +21,34 @@ func default_ca_dir() {
     return ('')
   }
   return ($"${home}/.nebula-ca")
+}
+
+func load_fleet_from_nix() {
+  var root_dir = _this_dir ++ '/../..'
+  var nix_file = root_dir ++ '/lib/nebula-fleet.nix'
+  if (not file_exists(nix_file)) {
+    return (false)
+  }
+  var json_str = ''
+  try { setvar json_str = $(nix eval --json --impure --expr "import ${nix_file}") }
+  if (_error.code !== 0 or json_str === '') {
+    return (false)
+  }
+  var parsed = null
+  try { json read (&parsed) <<< $json_str }
+  if (_error.code !== 0 or parsed === null) {
+    return (false)
+  }
+  if (parsed.prefix !== null) {
+    setglobal DEFAULT_PREFIX = parsed.prefix
+  }
+  if (parsed.fleet !== null) {
+    setglobal FLEET = parsed.fleet
+  }
+  return (true)
+}
+
+if (not load_fleet_from_nix()) {
+  echo 'ERROR: failed to load nebula fleet from lib/nebula-fleet.nix' >&2
+  exit 1
 }

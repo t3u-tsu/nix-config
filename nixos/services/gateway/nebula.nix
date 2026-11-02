@@ -7,8 +7,6 @@ in
   config = lib.mkIf cfg.enable {
     my.networking.nebula = {
       enable = true;
-      ip = "10.0.0.1";
-      groups = [ "mgmt" ];
       isLighthouse = true;
       isRelay = true;
       extraInbound = [
