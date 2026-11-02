@@ -1,9 +1,6 @@
 result
 result-*
 
-.codewhale/*
-!.codewhale/constitution.json
-
 .direnv
 
 .pre-commit-config.yaml
@@ -31,3 +28,4 @@ keys.txt
 .worktrees/
 
 .agents/skills/coding-worker/.state/
+.codewhale/*
