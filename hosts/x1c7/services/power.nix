@@ -33,7 +33,7 @@ _:
 
         # Keep AC fan curve gentle by default; Noctalia's widget can lift it to performance.
         PLATFORM_PROFILE_ON_AC = "balanced";
-        PLATFORM_PROFILE_ON_BAT = "balanced";
+        PLATFORM_PROFILE_ON_BAT = "low-power";
         PLATFORM_PROFILE_ON_SAV = "low-power";
 
         PCIE_ASPM_ON_BAT = "powersave";
