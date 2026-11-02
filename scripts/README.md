@@ -77,17 +77,33 @@ ysh scripts/secrets/secret.ysh apply-staging --no-rekey
 ### Common Justfile Recipes
 
 ```bash
-just secret-unlock
-just secret-rekey
-just secret-edit secrets/master/hosts/BrokenPC/user_password_hash.age
-just secret-apply-staging
-just secret-ssh-restore
-just secret-ssh-backup
-just secret-doctor
-just secret-lock
+# Secrets management (subcommand: just secret <recipe>, legacy: just secret-<recipe>)
+just secret unlock
+just secret rekey
+just secret edit secrets/master/hosts/BrokenPC/user_password_hash.age
+just secret apply-staging
+just secret ssh-restore
+just secret ssh-backup
+just secret doctor
+just secret lock
+
+# System operations (subcommand: just system <recipe>)
+just switch
+just diff
+just test
+just build
+just system gc
+
+# QA and documentation
 just check
 just lint
 just fmt path/to/file.nix
+just docs check
+just docs linkify
+
+# Nebula mesh VPN
+just nebula rotate-ca
+just nebula import-secrets
 ```
 
 ## Secret CLI Configuration
@@ -106,12 +122,12 @@ Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
 ```bash
 # Prompt for user password (with confirmation), hash with yescrypt (independent salts per host),
 # and write master secrets (supports specific hosts or --all)
-just secret-set-host-password --all
-just secret-set-host-password BrokenPC x1c7
-# or: ysh scripts/secrets/set-host-password.ysh BrokenPC x1c7
+just secret set-host-password --all
+just secret set-host-password BrokenPC x1c7
+# or: just secret-set-host-password BrokenPC x1c7
 
 # Propagate the new hashes into secrets/rekeyed/hosts/
-just secret-rekey
+just secret rekey
 ```
 
 ### Rotate the Fleet Nebula CA
@@ -120,11 +136,13 @@ A full CA rotation issues a new root CA and signs all node certificates anew:
 
 ```bash
 # Generate a new CA in ~/.nebula-ca and issue certs for all nodes in FLEET
-ysh scripts/nebula/nebula-rotate-ca.ysh
+just nebula rotate-ca
+# or: ysh scripts/nebula/nebula-rotate-ca.ysh
 
 # Publish ca.crt / hosts/<name>/nebula.crt and encrypt keys to secrets/master/
-ysh scripts/nebula/nebula-import-secrets.ysh
+just nebula import-secrets
+# or: ysh scripts/nebula/nebula-import-secrets.ysh
 
 # Distribute rekeyed secrets to each host
-just secret-rekey
+just secret rekey
 ```
