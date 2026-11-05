@@ -44,10 +44,10 @@
   };
   gsit = {
     pname = "gsit";
-    version = "3.7.0";
+    version = "3.8.0";
     src = fetchurl {
-      url = "https://github.com/Gecolay/GSit/releases/download/3.7.0/GSit-3.7.0.jar";
-      sha256 = "sha256-kyFMIy/lNaZFethxHLHgXQ5zCkkc4wPjnjDHb4jdLjA=";
+      url = "https://github.com/Gecolay/GSit/releases/download/3.8.0/GSit-3.8.0.jar";
+      sha256 = "sha256-ZpggtCBH6sR27HVBQsaC3KTzluC4TxeOeVnPI25kzEo=";
     };
   };
   hush = {
