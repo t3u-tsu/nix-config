@@ -28,7 +28,15 @@ in
       templates = "${config.home.homeDirectory}/Templates";
     };
 
-    home.packages = [ pkgs.handlr-regex ];
+    home.packages = [
+      pkgs.handlr-regex
+      pkgs.xdg-terminal-exec
+    ];
+
+    # FreeDesktop Default Terminal Execution Specification
+    xdg.configFile."xdg-terminals.list".text = ''
+      com.mitchellh.ghostty.desktop
+    '';
 
     # Zen claims text/html, the http(s)/about/unknown schemes, text/plain and
     # application/json through setAsDefaultBrowser, so only the non-browser
@@ -42,9 +50,9 @@ in
 
       run $HANDLR set text/markdown marktext.desktop
 
-      run $HANDLR set text/plain nvim-ghostty.desktop
-      run $HANDLR set application/json nvim-ghostty.desktop
-      run $HANDLR set 'text/*' nvim-ghostty.desktop
+      run $HANDLR set text/plain nvim.desktop
+      run $HANDLR set application/json nvim.desktop
+      run $HANDLR set 'text/*' nvim.desktop
 
       run $HANDLR set 'image/*' swayimg.desktop
 
