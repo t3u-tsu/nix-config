@@ -4,8 +4,6 @@ return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
   config = function()
-    local lspconfig = require("lspconfig")
-
     -- LSP がバッファにアタッチされたときのキーバインド設定
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -39,6 +37,7 @@ return {
     })
 
     -- サーバー設定 (PATH に存在する場合のみ起動)
+    -- Neovim 0.11+ のネイティブ vim.lsp.config / vim.lsp.enable API を使用
     local servers = {
       nil_ls = {
         cmd = "nil",
@@ -85,7 +84,10 @@ return {
 
     for name, srv in pairs(servers) do
       if vim.fn.executable(srv.cmd) == 1 then
-        lspconfig[name].setup(srv.opts)
+        if next(srv.opts) ~= nil then
+          vim.lsp.config(name, srv.opts)
+        end
+        vim.lsp.enable(name)
       end
     end
   end,
