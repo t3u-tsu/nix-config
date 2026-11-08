@@ -50,9 +50,9 @@ in
 
       run $HANDLR set text/markdown marktext.desktop
 
-      run $HANDLR set text/plain nvim-ghostty.desktop
-      run $HANDLR set application/json nvim-ghostty.desktop
-      run $HANDLR set 'text/*' nvim-ghostty.desktop
+      run $HANDLR set text/plain nvim.desktop
+      run $HANDLR set application/json nvim.desktop
+      run $HANDLR set 'text/*' nvim.desktop
 
       run $HANDLR set 'image/*' swayimg.desktop
 
