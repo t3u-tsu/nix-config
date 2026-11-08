@@ -38,11 +38,12 @@ in
       builtins.readFile ./config.kdl
     );
 
+    programs.swayimg.enable = true;
+
     home.packages = [
       pkgs.xwayland-satellite
       pkgs.wl-clipboard
       pkgs.wl-mirror
-      pkgs.loupe
       pkgs.grim
       pkgs.slurp
       pkgs.adwaita-icon-theme
