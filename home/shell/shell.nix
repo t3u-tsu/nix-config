@@ -31,6 +31,7 @@
         "hdel"
       ];
     };
+    dotDir = "${config.xdg.configHome}/zsh";
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -38,6 +39,10 @@
         "sudo"
       ];
       theme = "";
+      extraConfig = ''
+        export ZSH_COMPDUMP="${config.xdg.cacheHome}/zsh/zcompdump-''${SHORT_HOST:-$HOST}-''${ZSH_VERSION}"
+        mkdir -p "$(dirname "$ZSH_COMPDUMP")"
+      '';
     };
 
     initContent = ''
@@ -106,4 +111,6 @@
       }
     '';
   };
+
+  home.file.".zshenv".enable = false;
 }
