@@ -1,13 +1,15 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
-  programs.zsh.initContent = ''
-    # Must run after oh-my-zsh, which overwrites the prompt
+  programs.zsh.initContent = lib.mkOrder 1000 ''
+    # Must run after oh-my-zsh (order 800), which overwrites the prompt
     fpath+=("${pkgs.unstable.pure-prompt}/share/zsh/site-functions")
     autoload -U promptinit; promptinit
 
     PURE_CMD_MAX_EXEC_TIME=2
     zstyle :prompt:pure:git:stash show yes
+    zstyle :prompt:pure:git:fetch only_upstream yes
+    zstyle :prompt:pure:environment:nix-shell show yes
 
     zstyle :prompt:pure:path color cyan
     zstyle :prompt:pure:git:branch color yellow
