@@ -7,7 +7,7 @@
 - ブランチ: 大きな作業 (新ホスト追加，モジュール新設，複数ファイル変更)は `feat/`・`fix/`・`refactor/`・`docs/`・`chore/`・`revert/` のトピックブランチで実施する．単一パッケージ追加などの軽微な変更は `main` に直接コミット・push してよい (GitHub Actions の auto-update による `nvfetcher` と [flake.lock](flake.lock) の直接コミットを含む)．
 - ブランチ名: Conventional Commits の型に合わせる．新たな型を追加する場合は [.github/workflows/nix-check.yml](.github/workflows/nix-check.yml) の push トリガーも更新する．
 - コミット・PR: Conventional Commits に準拠し，マージは必ず GitHub PR を作成してリモート上で行う (`gh pr merge`．ローカルマージメッセージは `convco` フックで拒否されるため)．
-- 承認: `main` へのマージ，リモート `main` への push，`nixos-rebuild switch` の実行 (`pkexec` 経由・ユーザー手動実行)は，事前にユーザーの明示的な承認を必須とする．
+- 承認: `main` へのマージ，リモート `main` への push，`nixos-rebuild switch` の実行 (`pkexec` 経由・ユーザー手動実行)は，事前にユーザーの明示的な承認を必須とする．特に `main` へのマージは，トピックブランチ／PR の設定を手元実機で `switch` して動作確認が完了していることを前提とする．
 - 言語: ユーザーへの報告は日本語，コード内コメントとコミットメッセージは英語とする．リポジトリ内ドキュメント (本ファイル・`docs/`・`.agents/`・[TODO.md](TODO.md))は日本語で記述し，句読点は `，．` を厳守する (pre-commit の `ja-punctuation` が全角の読点・句点を自動置換する)．ルートの [README.md](README.md) / [README.ja.md](README.ja.md) は常に同期し，サブディレクトリの `README.md` は英語のみとする．
 - コメント: `hush` スキル (`~/.agents/skills/hush/`)に従い，自明な解説やコードの言い換えを書かず名前で意図を表現する．コードのみから意図を読み取れない場合のみ 1〜2 行にとどめる．
 - スクリプト言語: 新規スクリプト (Nix 内のインライン生成を含む)は，システム操作・自動化・プロビジョニングは `ysh` スキル (`~/.agents/skills/ysh/`)を参照し **YSH (`.ysh`)** で記述する．テキスト処理・ドキュメント静的検査は **Perl (`.pl`)** で記述する (優先順位: YSH → Perl)．Python スクリプトは新規作成・保守を行わない．レスキュー・インストーラ ISO などの最小環境 (例: [hosts/torii-chan/install-nixos.sh](hosts/torii-chan/install-nixos.sh))に限り例外として Bash を使用する．

@@ -8,7 +8,7 @@ Desktop modules provide a baseline configuration and an optional full desktop su
 
 | Option | Description | Included Modules |
 | :--- | :--- | :--- |
-| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `gpg-signing`, `locales`, `niri`, `noctalia`, `office`, `theme`, `thunar`, `xdg` |
+| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `documents`, `gpg-signing`, `locales`, `niri`, `noctalia`, `theme`, `thunar`, `xdg` |
 | `my.home.desktop.full.enable` | Full desktop suite | Adds `gaming`, `creative`, `media`, and heavy dev/AI tooling |
 
 ## Modules
@@ -20,13 +20,13 @@ Desktop modules provide a baseline configuration and an optional full desktop su
 | [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). |
 | [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). |
 | [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). |
+| [documents.nix](documents.nix) | Document viewers and office tools (LibreOffice, Sioyek, MarkText). |
 | [gaming.nix](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. |
 | [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and agenix-managed commit signing key import. |
 | [locales.nix](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. |
 | [media.nix](media.nix) | Media playback (Spotify via Spicetify, VLC). |
 | [niri/](niri/README.md) | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). |
 | [noctalia/](noctalia/README.md) | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). |
-| [office.nix](office.nix) | Office suite (LibreOffice). |
 | [theme.nix](theme.nix) | GTK, Qt, and cursor theming derived from [lib/palette.nix](../../lib/palette.nix). |
 | [thunar.nix](thunar.nix) | Thunar file manager user preferences. |
 | [xdg.nix](xdg.nix) | XDG base directories and default MIME application associations. |

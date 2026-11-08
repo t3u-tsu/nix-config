@@ -64,12 +64,14 @@ description: このリポジトリで設定変更を適用するときの手順�
    - 自然言語・ドキュメント・コメント品質では，執筆方針，文体，他ドキュメントとの整合性，相互参照，コード内コメント (`hush` 規約)を確認する (サブエージェントへの文章改善委譲は [GEMINI.md](../../../GEMINI.md) を参照)．
    - レビューで判明した問題点や改善事項は，作業ツリー内でコードやドキュメントへ直接反映する．
 
-5. 設定の適用:
+5. 設定の適用 (マージ前実機検証):
+   トピックブランチの push や PR 作成は先行して構わないが，**`main` へのマージは必ず手元の実機で `switch` (または `test`) を実行し，ユーザーが動作確認を行ってから承認・実行する**．壊れた設定や想定外の挙動を `main` に混入させないための鉄則とする．ワークツリーで作業中の場合は `--flake .worktrees/<topic-name>/main#<hostname>` を指定して適用する．
+
    [justfile](../../../justfile) の `just switch` / `just test` / `just boot` / `just diff` は内部で `nh os` を呼び，同等の操作を行う (`just --list system` で一覧)．承認が必要な点は `nixos-rebuild switch` と同じである．
    デスクトップ環境 (Polkit エージェント稼働ホスト)では，事前承認を得たうえでエージェントが `pkexec` 経由で実行できる:
    ```bash
-   pkexec --keep-cwd nixos-rebuild dry-activate --flake .#<hostname>
-   pkexec --keep-cwd nixos-rebuild switch --flake .#<hostname>
+   pkexec --keep-cwd nixos-rebuild dry-activate --flake .worktrees/<topic-name>/main#<hostname>
+   pkexec --keep-cwd nixos-rebuild switch --flake .worktrees/<topic-name>/main#<hostname>
    ```
    **実行前の事前告知ルール**:
    エージェントが `pkexec` を伴うコマンドツールを発行した瞬間に，ユーザーのデスクトップ上に Polkit の GUI 認証ダイアログが即時ポップアップする．そのため，ツール実行中・実行後の事後報告ではなく，**必ずコマンド実行直前のメッセージで「これから pkexec を実行します (認証ダイアログが表示されます)」と明示告知を行ってからツールを呼び出すこと**．ユーザーは実行コマンドを確認し，指紋認証やパスワード入力で承認する．
@@ -97,6 +99,9 @@ description: このリポジトリで設定変更を適用するときの手順�
 
 7. PR の作成とマージ (`gh`):
    ユーザー承認のもと実行する．マージは GitHub PR を作成してリモート上で行う (ローカルマージメッセージは `convco` フックで拒否されるため)．説明文は一時ファイルを作成し `--body-file` で渡す (`--body` はシェル置換で本文が壊れるため使用禁止)．
+
+   **`main` マージ前の必須要件 (実機確認)**:
+   PR 作成やトピックブランチの push は先行して行ってよいが，`main` へのマージ (`gh pr merge`) は**必ず手元実機での `switch` 適用とユーザーによる動作確認が完了した後にのみ実行する**．誤った設定や未検証の差分を `main` に混入させないため，この順序を厳守する．
 
    **CI (`gh pr checks`)の待機判断**:
    - ローカルで `flake check` や事前ビルドが通っている場合は，リモート CI の完了を待たずにユーザー承認のもと即座にマージ (`gh pr merge --merge --delete-branch`)する．

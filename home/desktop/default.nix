@@ -23,7 +23,7 @@ in
     ./xdg.nix
     ./locales.nix
     ./thunar.nix
-    ./office.nix
+    ./documents.nix
   ];
 
   options.my.home.desktop = {
@@ -47,7 +47,7 @@ in
       thunar.enable = lib.mkDefault true;
       gpg-signing.enable = lib.mkDefault true;
       dev-tools.enable = lib.mkDefault true;
-      office.enable = lib.mkDefault true;
+      documents.enable = lib.mkDefault true;
 
       creative.enable = lib.mkDefault cfg.full.enable;
       gaming.enable = lib.mkDefault cfg.full.enable;

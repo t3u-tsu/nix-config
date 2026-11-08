@@ -38,13 +38,15 @@ in
 
       run $HANDLR set inode/directory thunar.desktop
 
-      run $HANDLR set application/pdf zen-beta.desktop
+      run $HANDLR set application/pdf sioyek.desktop
+
+      run $HANDLR set text/markdown marktext.desktop
 
       run $HANDLR set text/plain nvim-ghostty.desktop
       run $HANDLR set application/json nvim-ghostty.desktop
       run $HANDLR set 'text/*' nvim-ghostty.desktop
 
-      run $HANDLR set 'image/*' org.gnome.Loupe.desktop
+      run $HANDLR set 'image/*' swayimg.desktop
 
       run $HANDLR set application/vnd.openxmlformats-officedocument.spreadsheetml.sheet calc.desktop
       run $HANDLR set application/vnd.ms-excel calc.desktop
