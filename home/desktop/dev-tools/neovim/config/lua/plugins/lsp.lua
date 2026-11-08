@@ -82,11 +82,13 @@ return {
       },
     }
 
+    local has_cmp, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+    local default_caps = has_cmp and cmp_lsp.default_capabilities() or vim.lsp.protocol.make_client_capabilities()
+
     for name, srv in pairs(servers) do
       if vim.fn.executable(srv.cmd) == 1 then
-        if next(srv.opts) ~= nil then
-          vim.lsp.config(name, srv.opts)
-        end
+        local opts = vim.tbl_deep_extend("force", { capabilities = default_caps }, srv.opts or {})
+        vim.lsp.config(name, opts)
         vim.lsp.enable(name)
       end
     end
