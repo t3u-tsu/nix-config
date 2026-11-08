@@ -16,6 +16,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       pkgs.nh
+      pkgs.nil
       pkgs.nix-du
       pkgs.nix-output-monitor
       pkgs.nix-tree

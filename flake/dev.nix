@@ -142,6 +142,7 @@ in
           pkgs.mkpasswd
           pkgs.nebula
           pkgs.nh
+          pkgs.nil
           pkgs.nix-tree
           pkgs.nvfetcher
           pkgs.oils-for-unix

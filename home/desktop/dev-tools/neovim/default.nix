@@ -26,6 +26,7 @@ in
       vimAlias = true;
       extraPackages = with pkgs; [
         gcc
+        lua-language-server
         tree-sitter
       ];
       initLua = ''
