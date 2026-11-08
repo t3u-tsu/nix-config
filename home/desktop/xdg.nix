@@ -28,7 +28,15 @@ in
       templates = "${config.home.homeDirectory}/Templates";
     };
 
-    home.packages = [ pkgs.handlr-regex ];
+    home.packages = [
+      pkgs.handlr-regex
+      pkgs.xdg-terminal-exec
+    ];
+
+    # FreeDesktop Default Terminal Execution Specification
+    xdg.configFile."xdg-terminals.list".text = ''
+      com.mitchellh.ghostty.desktop
+    '';
 
     # Zen claims text/html, the http(s)/about/unknown schemes, text/plain and
     # application/json through setAsDefaultBrowser, so only the non-browser
