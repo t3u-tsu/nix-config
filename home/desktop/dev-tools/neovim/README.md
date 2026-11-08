@@ -15,3 +15,4 @@ Modular and portable Neovim setup managed with Home Manager.
     - [oil.lua](config/lua/plugins/oil.lua): Buffer-like file manager (`-` key).
     - [telescope.lua](config/lua/plugins/telescope.lua): Fuzzy finder for files, grep, and buffers (`<leader>f*`).
     - [treesitter.lua](config/lua/plugins/treesitter.lua): Tree-sitter syntax highlighting and indentation.
+    - [ysh.lua](config/lua/plugins/ysh.lua): Oils / YSH syntax highlighting and filetype support (`oils.vim`).

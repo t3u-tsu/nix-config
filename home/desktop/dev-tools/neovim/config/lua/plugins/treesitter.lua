@@ -13,6 +13,7 @@ return {
         "vimdoc",
         "nix",
         "bash",
+        "perl",
         "markdown",
         "markdown_inline",
       },

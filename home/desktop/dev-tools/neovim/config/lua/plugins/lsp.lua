@@ -77,6 +77,10 @@ return {
         cmd = "bash-language-server",
         opts = {},
       },
+      perlnavigator = {
+        cmd = "perlnavigator",
+        opts = {},
+      },
     }
 
     for name, srv in pairs(servers) do
