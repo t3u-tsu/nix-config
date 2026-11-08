@@ -8,3 +8,4 @@ Modular and portable Neovim setup managed with Home Manager.
 - [config/](config/): Self-contained Neovim configuration directory, portable to non-Nix environments (`~/.config/nvim/`).
   - [config/init.lua](config/init.lua): Entry point.
   - [config/lua/config/options.lua](config/lua/config/options.lua): Core editor options.
+  - [config/lua/config/theme.lua](config/lua/config/theme.lua): Vesper color palette highlights with Nix fallback.
