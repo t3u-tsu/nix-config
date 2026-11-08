@@ -9,3 +9,5 @@ Modular and portable Neovim setup managed with Home Manager.
   - [config/init.lua](config/init.lua): Entry point.
   - [config/lua/config/options.lua](config/lua/config/options.lua): Core editor options.
   - [config/lua/config/theme.lua](config/lua/config/theme.lua): Vesper color palette highlights with Nix fallback.
+  - [config/lua/config/lazy.lua](config/lua/config/lazy.lua): `lazy.nvim` plugin manager bootstrap and configuration.
+  - [config/lua/plugins/](config/lua/plugins/): Directory for plugin specifications (one file per plugin/tool).
