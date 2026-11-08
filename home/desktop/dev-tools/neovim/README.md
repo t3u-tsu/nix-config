@@ -11,3 +11,4 @@ Modular and portable Neovim setup managed with Home Manager.
   - [config/lua/config/theme.lua](config/lua/config/theme.lua): Vesper color palette highlights with Nix fallback.
   - [config/lua/config/lazy.lua](config/lua/config/lazy.lua): `lazy.nvim` plugin manager bootstrap and configuration.
   - [config/lua/plugins/](config/lua/plugins/): Directory for plugin specifications (one file per plugin/tool).
+    - [treesitter.lua](config/lua/plugins/treesitter.lua): Tree-sitter syntax highlighting and indentation.

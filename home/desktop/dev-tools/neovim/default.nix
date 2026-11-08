@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -23,6 +24,10 @@ in
       enable = true;
       viAlias = true;
       vimAlias = true;
+      extraPackages = with pkgs; [
+        gcc
+        tree-sitter
+      ];
       initLua = ''
         vim.g.nix_palette = {
           bg = "${palette.bg}",
