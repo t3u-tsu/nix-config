@@ -13,7 +13,7 @@ in
   };
 
   imports = [
-    ./neovim.nix
+    ./neovim
     ./git-tools.nix
     ./nix.nix
     ./ai-tools
