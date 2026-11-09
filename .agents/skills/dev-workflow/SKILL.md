@@ -11,8 +11,9 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```bash
    git fetch origin main
 
-   # 一時ワークツリーを作成して作業する場合
+   # 一時ワークツリーを作成して作業する場合 (.pre-commit-config.yaml もリンクする)
    git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
+   ln -sf ~/nix-config/.pre-commit-config.yaml .worktrees/topic-name/main/.pre-commit-config.yaml
 
    # 単独ブランチで作業する場合
    git checkout -b feat/topic-name
@@ -39,7 +40,7 @@ description: このリポジトリで設定変更を適用するときの手順�
 
    **実行コマンド**:
    ```bash
-   # 全ホストの評価・エラーの早期検知 (pre-commit は just lint でも可)
+   # 全ホストの評価・エラーの早期検知 (pre-commit は just qa lint でも可)
    nix flake check
 
    # 設定がビルドできることを確認する場合 (事前ビルド)

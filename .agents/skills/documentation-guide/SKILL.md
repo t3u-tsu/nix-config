@@ -14,7 +14,7 @@ description: このリポジトリにおけるドキュメントの執筆・構�
 | ルート [README.md](../../../README.md) / [README.ja.md](../../../README.ja.md) | 英 / 日 (常に同期) | 概要，Tech Stack，全体構成，クイックスタート | 詳細手順，ホスト別の深掘り |
 | [docs/](../../../docs/README.md) | 日本語 | システム横断の設計仕様，運用手順，ハードウェア解説，障害復旧，調査ノート | 実装コード |
 | コードディレクトリの `README.md` (`hosts/*/`, `nixos/*/`, `home/*/`) | 英語 | 当該ディレクトリの索引，モジュール一覧，ハードウェア諸元，主要コマンド | 長大な運用手順，システム横断の設計 |
-| [AGENTS.md](../../../AGENTS.md)，[GEMINI.md](../../../GEMINI.md)，[TODO.md](../../../TODO.md) | 日本語 | エージェントの行動規範，ツール運用制約，実装進捗 | 技術仕様 |
+| [AGENTS.md](../../../AGENTS.md)，[GEMINI.md](../../../GEMINI.md)，[TODO.md](../../../TODO.md) | 日本語 | 全エージェント共通の行動規範，Antigravity (`agy`) 固有のツール仕様，実装進捗 | 技術仕様 |
 | `.agents/skills/` | 日 / 英 | エージェントが実行する作業手順・ノウハウ | 恒久的なシステム仕様 |
 
 同一の手順を複数箇所に書かない．新ホスト追加，age 鍵登録，private flake input のブートストラップ等は `docs/operations/` に置き，他のドキュメントからはリンクする．
