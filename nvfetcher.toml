@@ -36,3 +36,8 @@ fetch.url = "https://github.com/Hmbown/Codewhale/releases/download/$ver/codewhal
 src.git = "https://github.com/ro80t/hush.git"
 src.branch = "main"
 fetch.github = "ro80t/hush"
+
+[superpowers]
+src.git = "https://github.com/obra/superpowers.git"
+src.branch = "main"
+fetch.github = "obra/superpowers"
