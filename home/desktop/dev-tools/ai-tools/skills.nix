@@ -18,7 +18,7 @@ in
       ".agents/skills/ysh".source = ./skills/ysh;
       ".gemini/config/skills.json".text = builtins.toJSON {
         entries = [
-          { path = "~/.agents/skills"; }
+          { path = "${config.home.homeDirectory}/.agents/skills"; }
         ];
       };
     };
