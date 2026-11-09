@@ -202,9 +202,7 @@ in
           # Links opened from outside Zen with no matching route land in Home.
           spaceRouting.defaultExternalRoute = homeSpace;
 
-          pins = import (inputs.nix-config-private + "/zen/pins.nix") {
-            inherit homeSpace schoolSpace devSpace;
-          };
+          pins = import (inputs.nix-config-private + "/zen/pins.nix") { };
 
           # Betterfox (BetterZen) adds privacy, telemetry and performance prefs with mkDefault
           presets.betterfox.enable = true;
