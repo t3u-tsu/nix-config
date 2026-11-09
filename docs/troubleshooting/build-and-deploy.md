@@ -126,7 +126,7 @@ nix flake check
 ### 切り分け・復旧手順
 
 #### Step 1: 事前ビルド (必須)
-認証保留時間の長期化やタイムアウトを防ぐため，必ず一般ユーザー権限で事前ビルドを完了させる ([GEMINI.md](../../GEMINI.md) 運用ルール):
+認証保留時間の長期化やタイムアウトを防ぐため，必ず一般ユーザー権限で事前ビルドを完了させる ([.agents/skills/dev-workflow/SKILL.md](../../.agents/skills/dev-workflow/SKILL.md) 参照):
 
 ```bash
 nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel --no-link

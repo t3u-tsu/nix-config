@@ -11,8 +11,16 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    home.file.".agents/skills/hush".source = "${sources.hush.src}/skills/hush";
-
-    home.file.".agents/skills/ysh".source = ./skills/ysh;
+    home.file = {
+      ".agents/skills/hush".source = "${sources.hush.src}/skills/hush";
+      ".agents/skills/dispatching-parallel-agents".source =
+        "${sources.superpowers.src}/skills/dispatching-parallel-agents";
+      ".agents/skills/ysh".source = ./skills/ysh;
+      ".gemini/config/skills.json".text = builtins.toJSON {
+        entries = [
+          { path = "~/.agents/skills"; }
+        ];
+      };
+    };
   };
 }

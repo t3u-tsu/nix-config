@@ -70,6 +70,18 @@
       sha256 = "sha256-k9A1ptno5uxcw8+mC9BoB0KWaop6ccS+APgpwjJzM2o=";
     };
   };
+  superpowers = {
+    pname = "superpowers";
+    version = "22f0b463e7a5e579904dd6211a520321035526f7";
+    src = fetchFromGitHub {
+      owner = "obra";
+      repo = "superpowers";
+      rev = "22f0b463e7a5e579904dd6211a520321035526f7";
+      fetchSubmodules = false;
+      sha256 = "sha256-rP5YsyGuPd9YSW/Fj3aukrq1bLuV+nwwQMK4JaZQgkI=";
+    };
+    date = "2026-11-03";
+  };
   viabackwards = {
     pname = "viabackwards";
     version = "5.12.2";

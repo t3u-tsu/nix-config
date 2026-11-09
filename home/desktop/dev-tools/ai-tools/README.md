@@ -11,7 +11,7 @@ Autonomous coding agents, MCP server integrations, and agent skills managed with
 | [deepseek-harness.nix](deepseek-harness.nix) | DeepSeek Harness (`dsh`) CLI and the `deepseek-harness` symlink alias. | Packaged via `inputs.llm-agents` |
 | [codewhale.nix](codewhale.nix) | Terminal coding agent for DeepSeek models (`codewhale`). | Binary release tracked by `nvfetcher` |
 | [conoha-vps-mcp.nix](conoha-vps-mcp.nix) | ConoHa VPS MCP server for CodeWhale with credentials and a schema sanitizer wrapper. | Installs Node.js and writes `~/.codewhale/mcp.json` |
-| [skills.nix](skills.nix) | Agent skills deployment into `~/.agents/skills/`. | Links the external `hush` skill (via `nvfetcher`) and the repository [skills/ysh/](skills/ysh) |
+| [skills.nix](skills.nix) | Agent skills deployment into `~/.agents/skills/` and `~/.gemini/config/skills.json`. | Links `hush` and `dispatching-parallel-agents` (via `nvfetcher`) and the repository [skills/ysh/](skills/ysh) |
 | [default.nix](default.nix) | AI tooling module aggregator. | Declares `my.home.desktop.dev-tools.ai-tools.enable` |
 
 ## Model Context Protocol (MCP) Integration
