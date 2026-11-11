@@ -204,3 +204,4 @@ my.services.llama = {
 - [BrokenPC ホスト定義](../../hosts/BrokenPC/default.nix) — BrokenPC 固有のモジュールインポートと設定
 - [BrokenPC ハードウェア構成](../../hosts/BrokenPC/hardware.nix) — ハードウェアスキャン定義とファイルシステム設定
 - [推論サービス定義](../../hosts/BrokenPC/services/llama.nix) — llama.cpp 推論サーバーおよびモデルプリセット定義
+- [推論サービスモジュール](../../nixos/services/llama/default.nix) — `llama-server` ユニットとプリセット描画を担う共通モジュール (`my.services.llama.*`)
