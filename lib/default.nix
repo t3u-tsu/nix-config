@@ -1,12 +1,15 @@
 {
-  nixpkgs,
   inputs,
-  home-manager,
-  agenix,
-  agenix-rekey,
   overlays ? [ ],
 }:
-
+let
+  inherit (inputs)
+    nixpkgs
+    home-manager
+    agenix
+    agenix-rekey
+    ;
+in
 {
   # Builds a nixosConfiguration from a role profile plus ../hosts/<name>/default.nix;
   # extraModules are appended last so callers can override what the profile set.

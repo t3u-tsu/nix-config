@@ -63,10 +63,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # mkBefore (mkOrder 500, ahead of the default 1000) keeps "nvidia" first so
-    # drivers a host appends (e.g. an AMD iGPU for PRIME) follow it; a host
-    # needing the iGPU first must mkForce its own list, which drops this
-    # module's entry.
+    # mkBefore (mkOrder 500) keeps "nvidia" ahead of drivers hosts append (e.g.
+    # an AMD iGPU for PRIME); a host needing the iGPU first must mkForce its own
+    # list, which drops this module's entry.
     services.xserver.videoDrivers = lib.mkBefore [ "nvidia" ];
 
     hardware.graphics = {

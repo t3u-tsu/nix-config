@@ -24,7 +24,7 @@ mkSystem {
 ```
 
 - Injects flake `inputs` into `specialArgs`.
-- Imports `nixos/profiles/${profile}` and `hosts/${name}/default.nix`.
+- Imports `home/`, `nixos/`, `nixos/profiles/${profile}`, and `hosts/${name}/default.nix`.
 - Evaluates `extraModules` last, allowing targeted per-host overrides.
 
 ## References

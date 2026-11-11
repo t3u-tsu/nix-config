@@ -6,12 +6,6 @@
 }:
 let
   mkLib = import ../lib {
-    inherit (inputs)
-      nixpkgs
-      home-manager
-      agenix
-      agenix-rekey
-      ;
     inherit inputs;
     overlays = lib.attrValues config.flake.overlays;
   };
@@ -91,8 +85,5 @@ let
       { ${name} = mkLib.mkSystem (host // { inherit name; }); };
 in
 {
-  flake.nixosConfigurations = lib.foldlAttrs (
-    acc: name: host:
-    acc // mkConfigs name host
-  ) { } fleet;
+  flake.nixosConfigurations = lib.concatMapAttrs mkConfigs fleet;
 }
