@@ -9,6 +9,7 @@ return {
     { "<leader>tp", "<cmd>TypstPreviewToggle<cr>", desc = "Typst: Toggle preview", ft = "typst" },
   },
   opts = {
+    open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
     dependencies_bin = {
       tinymist = "tinymist",
     },
