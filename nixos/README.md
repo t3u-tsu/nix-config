@@ -12,7 +12,7 @@ System-level NixOS configuration modules, aggregated in [nixos/default.nix](defa
 | [environment/](environment/README.md) | Modular system package categories (`my.packages.*`). |
 | [hardware/](hardware/README.md) | Hardware drivers, NVIDIA hybrid graphics / PRIME offload, and storage diagnostic tools. |
 | [dev-tools/](dev-tools/README.md) | Hardware probe udev rules (WCH-LinkE) and installer utilities. |
-| [profiles/](profiles/README.md) | Machine role profiles (`desktop`, `gateway`, `sbc`, `tower-server`). |
+| [profiles/](profiles/README.md) | Machine role profiles (`desktop`, `gateway`, `tower-server`); `sbc/` is a constraint layer imported by [hosts/torii-chan/sbc.nix](../hosts/torii-chan/sbc.nix) rather than a selectable profile. |
 | [services/](services/README.md) | Fleet services: Minecraft, Discord bridge, Restic backup, desktop daemons. |
 | [virtualisation/](virtualisation/README.md) | Container environments (Distrobox / Podman) and MicroVM runner. |
 

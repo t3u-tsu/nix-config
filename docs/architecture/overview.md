@@ -6,8 +6,8 @@
 
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
-| `flake/` | flake-parts サブモジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
-| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，および Nebula ノード台帳 (`nebula-fleet.nix`)． |
+| `flake/` | flake-parts サブモジュール群 (`hosts`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
+| [lib/](../../lib/) | `mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，および Nebula ノード台帳 (`nebula-fleet.nix`)． |
 | [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
 | [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
@@ -55,21 +55,21 @@ flake.nix
 
 ## 3. ホストからモジュールへの展開
 
-`mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
+`mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
 
 ```text
-mkLib.mkSystem によるモジュール合成
+mkSystem によるモジュール合成
+ ├─ home/                     # Home Manager 共通設定 (shell, programs, agenix)
+ │
  ├─ nixos/                    # システム共通モジュール群 (直接注入)
  │   ├─ base, security (agenix), dev-tools, environment, hardware
  │   └─ networking, services, virtualisation
  │
- ├─ home/                     # Home Manager 共通設定 (shell, programs, agenix)
- │
  ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
  │   ├─ desktop/              # GUI環境 (niri, greetd, fonts, gaming), home/desktop
  │   ├─ tower-server/         # 常時稼働サーバー共通基盤 (boot, security, ssh)
- │   ├─ gateway/              # ルータ・ゲートウェイロール (torii-chan)
- │   └─ sbc/                  # 低スペック SBC 制約緩和 (sbc.nix 経由で適用)
+ │   └─ gateway/              # ルータ・ゲートウェイロール (torii-chan)
+ │                             # (sbc/ は profile ではなく hosts/torii-chan/sbc.nix が import する制約レイヤー)
  │
  ├─ hosts/<name>/default.nix  # ホスト固有定義
  │   ├─ ./hardware.nix        # ハードウェア固有設定 (fileSystems, swap，カーネル)
@@ -83,7 +83,7 @@ mkLib.mkSystem によるモジュール合成
 ## 4. モジュール評価順序と優先度制御
 
 ### 構成モジュールの注入順序
-`modules` リストは `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
+`modules` リストは `../home` → `../nixos` → `profile` → `hosts/<name>/default.nix` → `extraModules` の順序で合成する．プロファイルで基本設定を与え，ホスト固有定義で具体値を確定し，`extraModules` でプラットフォーム差分を注入する．
 
 ### 優先度制御
 スカラー値オプションの競合時はエラーとなる．プロファイル側の初期値には `lib.mkDefault` (優先度 1000)，ホストやモジュールからの強制適用には `lib.mkForce` (優先度 50) を使用する．

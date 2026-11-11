@@ -1,12 +1,12 @@
 # Llama.cpp Server (`nixos/services/llama/`)
 
-Local GGUF inference server (`systemd.services.llama-server`) with per-model INI presets and optional CUDA acceleration.
+Local GGUF inference server (`systemd.services.llama-server`) with per-model preset sections in a single INI and optional CUDA acceleration.
 
 ## Modules
 
-| File | Description | Options |
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [default.nix](default.nix) | `llama-server` systemd unit; renders per-model INI presets from `presets` and applies the `llama-cpp` flake overlay (CUDA build via `enableCuda`). | `my.services.llama.*` |
+| [default.nix](default.nix) | `llama-server` systemd unit; renders per-model preset sections from `presets` (unset keys omitted so `--fit` decides) and enables the `llama-cpp` flake overlay, building the package with `useCuda = cfg.enableCuda`. | `my.services.llama.*` |
 
 ## References
 

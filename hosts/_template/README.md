@@ -15,7 +15,7 @@ Short description of this machine (role, hardware headline, profile).
 
 | Property | Value |
 | :--- | :--- |
-| **Profile** | `desktop` \| `tower-server` \| `gateway` \| `sbc` |
+| **Profile** | `desktop` \| `tower-server` \| `gateway` |
 | **Nebula Mesh** | `10.0.0.X` (groups: `mgmt`, ...) |
 | **Key Services** | `my.services.<name>.enable = true;` |
 
