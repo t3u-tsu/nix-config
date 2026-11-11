@@ -7,7 +7,7 @@
     ./discord-bridge
     ./emergency-ssh
     ./gateway
-    ./llama.nix
+    ./llama
     ./minecraft
   ];
 }

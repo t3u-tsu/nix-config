@@ -142,7 +142,7 @@ nixpkgs.config.cudaCapabilities = [ "8.6" ];
 
 ### llama.cpp サービス構成とメモリチューニング
 
-推論バックエンドとして [nixos/services/llama.nix](../../nixos/services/llama.nix) および [hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix) にてシステムサービス `systemd.services.llama-server` を運用している．
+推論バックエンドとして [nixos/services/llama/](../../nixos/services/llama/) および [hosts/BrokenPC/services/llama.nix](../../hosts/BrokenPC/services/llama.nix) にてシステムサービス `systemd.services.llama-server` を運用している．
 
 ```nix
 my.services.llama = {
