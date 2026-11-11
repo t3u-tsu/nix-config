@@ -24,12 +24,11 @@
 
 ```text
 flake.nix
- ├─ imports: flake/lib.nix, flake/overlays.nix, flake/hosts.nix,
+ ├─ imports: flake/overlays.nix, flake/hosts.nix,
  │           flake/packages.nix, flake/dev.nix
  │
- ├─ flake/lib.nix      → flake.lib.mkLib (lib/default.nix を inputs + overlays 付きで import)
  ├─ flake/overlays.nix → flake.overlays.default (unstable, ubootOrangePiZero3, writeYsh 等)
- ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
+ ├─ flake/hosts.nix    → ホスト台帳 (fleet attrset) から nixosConfigurations を生成
  ├─ flake/packages.nix → torii-chan-vps-iso (mkSystem のビルド成果物)
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
  │

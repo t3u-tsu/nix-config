@@ -1,4 +1,21 @@
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
+let
+  mkLib = import ../lib {
+    inherit (inputs)
+      nixpkgs
+      home-manager
+      agenix
+      agenix-rekey
+      ;
+    inherit inputs;
+    overlays = lib.attrValues config.flake.overlays;
+  };
+in
 {
   perSystem =
     { system, ... }:
@@ -9,9 +26,8 @@
         # fail on the ISO's fileSystems / grub assertions.
         # Build with hosts/torii-chan/build-vps-iso.ysh.
         torii-chan-vps-iso =
-          (config.flake.lib.mkLib.mkSystem {
+          (mkLib.mkSystem {
             name = "torii-chan";
-            username = "t3u";
             system = "x86_64-linux";
             profile = "gateway";
             extraModules = [ ../hosts/torii-chan/vps-installer.nix ];
