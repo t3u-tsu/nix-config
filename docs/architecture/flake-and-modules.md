@@ -18,7 +18,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 全ホストは [lib/default.nix](../../lib/default.nix) に定義された `mkSystem` 関数を経由してインスタンス化する．
 
 ```nix
-mkLib.mkSystem {
+mkSystem {
   name = "hostname";              # ホスト名 (必須)
   system = "x86_64-linux";        # アーキテクチャ (必須: x86_64-linux / aarch64-linux)
   username = "t3u";               # プライマリユーザー名 (任意，既定値: "t3u")
@@ -26,6 +26,35 @@ mkLib.mkSystem {
   extraModules = [ ... ];         # ホスト固有の追加モジュール (任意)
 }
 ```
+
+`mkSystem` の呼び出しは [flake/hosts.nix](../../flake/hosts.nix) が担う．各ホストは `fleet` attrset に 1 エントリとして登録し，エントリは `system` (アーキテクチャ) と `profile`，任意の `extraModules` を持つ．`username` は省略時に `t3u` となる．
+
+```nix
+fleet = {
+  x1c7 = {
+    system = "x86_64-linux";
+    profile = "desktop";
+  };
+  torii-chan = {
+    profile = "gateway";
+    variants = {
+      hdd = {
+        system = "aarch64-linux";
+        extraModules = [
+          ../hosts/torii-chan/sbc.nix
+          ../hosts/torii-chan/fs-hdd.nix
+        ];
+      };
+      vps = {
+        system = "x86_64-linux";
+        extraModules = [ ../hosts/torii-chan/vps.nix ];
+      };
+    };
+  };
+};
+```
+
+同一ロールを複数の起動媒体・プラットフォームで運用するホストは，`variants` に各媒体を列挙する．`mkConfigs` は各 variant を `<name>-<variant>` という名前の `nixosConfiguration` に展開し，variant 側の `system` / `extraModules` はホスト直下の値を上書きする．`variants` を持たないホストは `<name>` という名前で 1 つの `nixosConfiguration` になる．
 
 ### 自動注入される共通機能
 - `specialArgs.inputs` による全モジュールからの `inputs.<name>` 直接参照
