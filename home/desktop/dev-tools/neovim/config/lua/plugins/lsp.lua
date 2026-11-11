@@ -28,9 +28,9 @@ return {
       end,
     })
 
-    -- 保存時の自動フォーマット (Nix, Lua)
+    -- 保存時の自動フォーマット (Nix, Lua, Typst)
     vim.api.nvim_create_autocmd("BufWritePre", {
-      pattern = { "*.nix", "*.lua" },
+      pattern = { "*.nix", "*.lua", "*.typ" },
       callback = function()
         vim.lsp.buf.format({ timeout_ms = 2000 })
       end,
@@ -79,6 +79,15 @@ return {
       perlnavigator = {
         cmd = "perlnavigator",
         opts = {},
+      },
+      tinymist = {
+        cmd = "tinymist",
+        opts = {
+          settings = {
+            exportPdf = "never",
+            formatterMode = "typstyle",
+          },
+        },
       },
     }
 

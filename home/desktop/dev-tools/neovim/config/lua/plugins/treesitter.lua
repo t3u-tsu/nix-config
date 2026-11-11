@@ -2,27 +2,30 @@
 
 return {
   "nvim-treesitter/nvim-treesitter",
-  branch = "master",
+  branch = "main",
+  lazy = false,
   build = ":TSUpdate",
-  event = { "BufReadPost", "BufNewFile" },
   config = function()
-    require("nvim-treesitter.configs").setup({
-      ensure_installed = {
-        "lua",
-        "vim",
-        "vimdoc",
-        "nix",
-        "bash",
-        "perl",
-        "markdown",
-        "markdown_inline",
-      },
-      highlight = {
-        enable = true,
-      },
-      indent = {
-        enable = true,
-      },
+    require("nvim-treesitter").setup({})
+
+    local parsers = {
+      "lua",
+      "vim",
+      "vimdoc",
+      "nix",
+      "bash",
+      "perl",
+      "markdown",
+      "markdown_inline",
+      "typst",
+    }
+    pcall(require("nvim-treesitter").install, parsers)
+
+    vim.api.nvim_create_autocmd("FileType", {
+      group = vim.api.nvim_create_augroup("UserTreesitterHighlight", { clear = true }),
+      callback = function(args)
+        pcall(vim.treesitter.start, args.buf)
+      end,
     })
   end,
 }
