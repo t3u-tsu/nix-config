@@ -16,6 +16,7 @@ return {
         "perl",
         "markdown",
         "markdown_inline",
+        "typst",
       },
       highlight = {
         enable = true,

@@ -12,10 +12,12 @@ Modular and portable Neovim setup managed with Home Manager.
   - [config/lua/config/lazy.lua](config/lua/config/lazy.lua): `lazy.nvim` plugin manager bootstrap and configuration.
   - [config/lua/plugins/](config/lua/plugins/): Directory for plugin specifications (one file per plugin/tool).
     - [cmp.lua](config/lua/plugins/cmp.lua): Autocompletion engine (`nvim-cmp`) with LSP, buffer, path, and snippet sources.
+    - [direnv.lua](config/lua/plugins/direnv.lua): Direnv integration (`direnv.vim`) for automatic environment switching.
     - [gitsigns.lua](config/lua/plugins/gitsigns.lua): Git diff signs in signcolumn and hunk actions (`]c`, `[c`, `<leader>h*`).
-    - [lsp.lua](config/lua/plugins/lsp.lua): LSP configuration (`nil_ls`, `lua_ls`, `bashls`) with conditional startup and auto-format.
+    - [lsp.lua](config/lua/plugins/lsp.lua): LSP configuration (`nil_ls`, `lua_ls`, `bashls`, `perlnavigator`, `tinymist`) with conditional startup and auto-format.
     - [lualine.lua](config/lua/plugins/lualine.lua): Statusline themed with Vesper palette.
     - [oil.lua](config/lua/plugins/oil.lua): Buffer-like file manager (`-` key).
     - [telescope.lua](config/lua/plugins/telescope.lua): Fuzzy finder for files, grep, and buffers (`<leader>f*`).
     - [treesitter.lua](config/lua/plugins/treesitter.lua): Tree-sitter syntax highlighting and indentation.
+    - [typst.lua](config/lua/plugins/typst.lua): Typst live preview (`typst-preview.nvim`) with tinymist integration (`<leader>tp`).
     - [ysh.lua](config/lua/plugins/ysh.lua): Oils / YSH syntax highlighting and filetype support (`oils.vim`).
