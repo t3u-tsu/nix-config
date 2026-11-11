@@ -6,9 +6,10 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 [flake.nix](../../flake.nix) は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとにサブモジュールを分割して読み込む．
 
-- [flake/hosts.nix](../../flake/hosts.nix): ホスト台帳 (`fleet` attrset) から各ホストの `nixosConfigurations` を生成する．[flake/hosts.nix](../../flake/hosts.nix) と [flake/packages.nix](../../flake/packages.nix) は `import ../lib` の戻り値を `mkLib` として束縛する．
+- [flake/hosts.nix](../../flake/hosts.nix): ホスト台帳 (`fleet` attrset) から各ホストの `nixosConfigurations` を生成する．[flake/hosts.nix](../../flake/hosts.nix) は `import ../lib` の戻り値を `mkLib` として束縛する．
 - [flake/overlays.nix](../../flake/overlays.nix): 全ホスト共通の nixpkgs オーバーレイ群 (`unstable`, `ubootOrangePiZero3`, 32-bit PipeWire 回避策) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．外部オーバーレイ (`nur`, `nix-minecraft`, `llama-cpp`, `aagl`) は利用先のモジュールで局所的に適用する．
-- [flake/packages.nix](../../flake/packages.nix): カスタムビルド成果物 (例: `torii-chan-vps-iso`) を `packages.${system}` に公開する．
+- [flake/packages.nix](../../flake/packages.nix): カスタムビルド成果物を `packages.${system}` に公開する．
+- [flake/deploy.nix](../../flake/deploy.nix): deploy-rs によるリモートデプロイ構成を提供する．
 - [flake/dev.nix](../../flake/dev.nix): pre-commit hooks (`git-hooks.nix`) および開発シェル (`devShells`) を提供する．
 
 ---
@@ -45,9 +46,9 @@ fleet = {
           ../hosts/torii-chan/fs-hdd.nix
         ];
       };
-      vps = {
+      gcp = {
         system = "x86_64-linux";
-        extraModules = [ ../hosts/torii-chan/vps.nix ];
+        extraModules = [ ../hosts/torii-chan/gcp.nix ];
       };
     };
   };

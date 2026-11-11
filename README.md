@@ -25,19 +25,20 @@ Declarative NixOS configuration managing desktops, servers, and network gateways
 | Secrets Management | agenix-rekey + agenix + age |
 | Mesh VPN | Nebula |
 | Backup | Restic + ZFS Mirror |
+| Remote Deployment | deploy-rs |
 | IaC | OpenTofu |
 
 ## Directory Structure
 
 - [flake.nix](flake.nix) — flake-parts entrypoint
-- [flake/](flake/) — flake-parts modules (`hosts`, `overlays`, `packages`, `dev`)
+- [flake/](flake/) — flake-parts modules (`hosts`, `overlays`, `packages`, `dev`, `deploy`)
 - [lib/](lib/) — `mkSystem` builder, shared color palette (`palette.nix`), agenix master identity (`agenix.nix`), and the Nebula fleet registry (`nebula-fleet.nix`)
 - [nixos/](nixos/) — Shared system-level NixOS modules
 - [home/](home/) — Home Manager user-level configurations
 - [hosts/](hosts/) — Host definitions and hardware configurations
 - [secrets/](secrets/) — Encrypted secrets managed via agenix-rekey
 - [scripts/](scripts/) — Fleet management and maintenance scripts
-- [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
+- [terraform/](terraform/) — Google Cloud failover gateway infrastructure definitions (OpenTofu)
 - [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures
 
 See [docs/architecture/overview.md](docs/architecture/overview.md) for system architecture and module evaluation flow.
@@ -54,9 +55,8 @@ Available host configurations (defined in [flake/hosts.nix](flake/hosts.nix)):
 | `BrokenPC` | Portable gaming laptop (HP Victus 16-e1065AX) |
 | `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | Tower server cluster |
 | `torii-chan-sd` / `torii-chan-hdd` | Edge VPN gateway on Orange Pi Zero 3 SBC (SD / HDD boot) |
-| `torii-chan-vps` | Failover gateway on ConoHa VPS (x86_64) |
+| `torii-chan-gcp` | On-demand failover gateway on Google Cloud (x86_64) |
 | `torii-chan-sd-installer` | SD card installer image ([hosts/torii-chan/build-sd-image.ysh](hosts/torii-chan/build-sd-image.ysh)) |
-| `torii-chan-vps-iso` | VPS rescue installer ISO package (`nix build .#torii-chan-vps-iso`) |
 
 Apply configuration locally:
 ```bash
@@ -70,9 +70,13 @@ Deploy to a remote machine over Nebula:
 nixos-rebuild switch --flake .#shosoin-tan --target-host t3u@10.0.0.4 --sudo --ask-sudo-password
 ```
 
-Deploy to SBC (`torii-chan`):
+Deploy to SBC (`torii-chan`) or failover node (`torii-chan-gcp`) via deploy-rs (avoids OOM on 1GB RAM nodes):
 ```bash
-nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+# Push deployment to physical SBC
+deploy .#torii-chan
+
+# Push deployment to Google Cloud failover gateway
+deploy .#torii-chan-gcp
 ```
 
 ## Adding a New Host

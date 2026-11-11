@@ -11,11 +11,11 @@
 ## 優先度 中
 
 - shosoin-tan / torii-chan の評価とビルドをオフロードし，リモートビルドでサーバーの負荷とリソース枯渇を防ぐ．
-- deploy-rs によるリモートデプロイを導入し，リモートビルドを含むデプロイ経路を統一する．
+- deploy-rs によるリモートデプロイ対象をタワーサーバー全台 (kagutsuchi-sama, sando-kun) へ拡張し，リモートビルドを含むデプロイ経路を統一する．
 - `.internal` プライベートドメインを導入し，Nebula メッシュ上のホスト間通信 (SSH，Restic，deploy-rs，サービス間連携) の名前解決を統一・整理する．
 - Attic 等のキャッシュサーバーを導入してホスト間でビルドキャッシュを共有し，ライセンス制限パッケージ用のプライベートキャッシュを運用してサーバーのビルド負荷を抑える．
+- Google Cloud オンデマンド・フェイルオーバー設備 (OpenTofu, torii-chan-gcp, deploy-rs, scripts/gcp/failover.ysh) の実機プロビジョニングと自動フェイルオーバー・切り戻し動作の検証．
 
 ## 優先度 低
 
-- OpenTofu (`terraform/`) と Cloudflare DDNS でコード化した ConoHa VPS 構成の実機検証と，torii-chan 障害時の自動フェイルオーバーを整備する．
 - kagutsuchi-sama / shosoin-tan の GPU を用い，LAN 内で共用可能なローカル LLM API サーバーを常時稼働させる (BrokenPC での `llama.cpp` PoC は検証済み)．

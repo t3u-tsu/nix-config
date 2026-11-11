@@ -18,7 +18,7 @@ NixOS システムの評価・ビルド・デプロイ時に発生する障害 (
 - ターミナルに `error: builder for '...' failed with exit code 137` が出力される．
 
 ### 原因
-Nix の評価 (モジュールの再帰的マージやオーバーレイ解決) およびパッケージのコンパイルは大量のメモリを消費する．`torii-chan` (Orange Pi Zero 3: 物理 RAM 1GB) や ConoHa VPS (512MB プラン) などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．
+Nix の評価 (モジュールの再帰的マージやオーバーレイ解決) およびパッケージのコンパイルは大量のメモリを消費する．`torii-chan` (Orange Pi Zero 3: 物理 RAM 1GB) や Google Cloud (`torii-chan-gcp`: `e2-micro` 1GB RAM) などの低スペック機上でローカルビルドを実行した場合，実メモリが枯渇して Linux カーネルの OOM Killer が発動する．本環境では `flake/deploy.nix` による deploy-rs (push型デプロイ) を導入し，管理機上で閉包を事前評価・ビルドして転送・適用することで低メモリ環境下での OOM Kill を回避する．
 
 ### 切り分け・復旧手順
 

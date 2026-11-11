@@ -85,6 +85,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Fetched with the deploy key that nixos/base/private-config.nix installs.
     nix-config-private = {
       url = "git+ssh://git@github-nix-config-private/t3u-tsu/nix-config-private";
@@ -103,6 +113,7 @@
           ./flake/hosts.nix
           ./flake/packages.nix
           ./flake/dev.nix
+          ./flake/deploy.nix
         ];
 
         systems = [

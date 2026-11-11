@@ -13,7 +13,7 @@
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
 | [secrets/](../../secrets/) | agenix-rekey で暗号化された秘密情報 (マスターおよびホスト・ユーザー別再暗号化シークレット)． |
 | [scripts/](../../scripts/) | クラスタ運用・保守スクリプト (シークレット管理，Nebula 証明書運用，ハードウェア復旧，ドキュメント検査等)． |
-| [terraform/](../../terraform/) | ConoHa VPS インフラの OpenTofu 定義． |
+| [terraform/](../../terraform/) | Google Cloud フェイルオーバーゲートウェイインフラの OpenTofu 定義． |
 | `docs/` | システム全体の設計仕様，運用手順書，ハードウェア解説，障害復旧手順． |
 
 ---
@@ -25,11 +25,12 @@
 ```text
 flake.nix
  ├─ imports: flake/overlays.nix, flake/hosts.nix,
- │           flake/packages.nix, flake/dev.nix
+ │           flake/packages.nix, flake/dev.nix, flake/deploy.nix
  │
  ├─ flake/overlays.nix → flake.overlays.default (unstable, ubootOrangePiZero3, writeYsh 等)
  ├─ flake/hosts.nix    → ホスト台帳 (fleet attrset) から nixosConfigurations を生成
- ├─ flake/packages.nix → torii-chan-vps-iso (mkSystem のビルド成果物)
+ ├─ flake/deploy.nix   → deploy-rs によるリモートデプロイ定義
+ ├─ flake/packages.nix → 各種パッケージ定義
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
  │
  └─ lib/default.nix: mkSystem { name, system, username, profile, extraModules }

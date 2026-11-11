@@ -36,7 +36,7 @@ let
     };
 
     # Nebula gateway / Lighthouse + DDNS. The same role runs on the physical
-    # SBC or the failover VPS, one at a time.
+    # SBC or the failover node, one at a time.
     torii-chan = {
       profile = "gateway";
       variants = {
@@ -64,9 +64,10 @@ let
             ../hosts/torii-chan/fs-sd.nix
           ];
         };
-        vps = {
+        # Google Cloud failover node (on-demand low-latency gateway in asia-northeast1).
+        gcp = {
           system = "x86_64-linux";
-          extraModules = [ ../hosts/torii-chan/vps.nix ];
+          extraModules = [ ../hosts/torii-chan/gcp.nix ];
         };
       };
     };

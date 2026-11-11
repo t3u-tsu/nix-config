@@ -4,7 +4,7 @@ Host profile configuring edge routing, discovery lighthouse, and public-facing p
 
 ## Profile Architecture
 
-The gateway profile deploys the network boundary infrastructure shared between the physical SBC (`torii-chan`) and the automated failover cloud VPS (`torii-chan-vps`). It acts as the central pivot for overlay routing, dynamic DNS updates, and WAN ingress traffic forwarding.
+The gateway profile deploys the network boundary infrastructure shared between the physical SBC (`torii-chan`) and the automated failover cloud node (`torii-chan-gcp`). It acts as the central pivot for overlay routing, dynamic DNS updates, and WAN ingress traffic forwarding.
 
 ### Profile Scope
 
@@ -25,6 +25,6 @@ The gateway profile deploys the network boundary infrastructure shared between t
 
 - Gateway services implementation: [nixos/services/gateway/](../../services/gateway/README.md)
 - Orange Pi Zero 3 hardware guide: [docs/hardware/orange-pi-zero3.md](../../../docs/hardware/orange-pi-zero3.md)
-- ConoHa VPS failover & failback runbook: [docs/operations/vps-failover.md](../../../docs/operations/vps-failover.md)
+- Google Cloud failover & failback runbook: [docs/operations/gcp-failover.md](../../../docs/operations/gcp-failover.md)
 - Network topology: [docs/architecture/network-topology.md](../../../docs/architecture/network-topology.md)
 - Host configuration: [hosts/torii-chan/](../../../hosts/torii-chan/README.md)
