@@ -99,7 +99,6 @@
       {
         imports = [
           inputs.agenix-rekey.flakeModule
-          ./flake/lib.nix
           ./flake/overlays.nix
           ./flake/hosts.nix
           ./flake/packages.nix

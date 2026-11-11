@@ -6,8 +6,7 @@ Flake のモジュール構成，`mkSystem` ビルダーの仕組み，および
 
 [flake.nix](../../flake.nix) は [flake-parts](https://github.com/hercules-ci/flake-parts) を採用し，責務ごとにサブモジュールを分割して読み込む．
 
-- [flake/hosts.nix](../../flake/hosts.nix): 各ホストの `nixosConfigurations` を定義する．
-- [flake/lib.nix](../../flake/lib.nix): `mkLib` を公開し，flake inputs と overlays を合成したライブラリを提供する．
+- [flake/hosts.nix](../../flake/hosts.nix): ホスト台帳 (`fleet` attrset) から各ホストの `nixosConfigurations` を生成する．各 flake モジュールは `lib/` を直接 import して `mkLib` を束縛する．
 - [flake/overlays.nix](../../flake/overlays.nix): 全ホスト共通の nixpkgs オーバーレイ群 (`unstable`, `ubootOrangePiZero3`, 32-bit PipeWire 回避策) と，YSH スクリプト生成関数 (`writeYsh`, `writeYshBin`, `writeYshApplication`) を定義する．外部オーバーレイ (`nur`, `nix-minecraft`, `llama-cpp`, `aagl`) は利用先のモジュールで局所的に適用する．
 - [flake/packages.nix](../../flake/packages.nix): カスタムビルド成果物 (例: `torii-chan-vps-iso`) を `packages.${system}` に公開する．
 - [flake/dev.nix](../../flake/dev.nix): pre-commit hooks (`git-hooks.nix`) および開発シェル (`devShells`) を提供する．
@@ -31,6 +30,7 @@ mkLib.mkSystem {
 ### 自動注入される共通機能
 - `specialArgs.inputs` による全モジュールからの `inputs.<name>` 直接参照
 - `agenix-rekey`，`agenix`，および `home-manager` の基盤統合
+- Home Manager 共通設定 ([home/](../../home/default.nix)) の全ホスト注入
 - プロファイル (`nixos/profiles/${profile}`) のホスト個別設定直前への自動配置
 - `nixpkgs.overlays` の全ホスト適用
 

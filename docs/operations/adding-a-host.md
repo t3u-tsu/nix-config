@@ -103,12 +103,10 @@ sed -i "s|# age.rekey.hostPubkey = \"SSH_HOST_PUBKEY\";|age.rekey.hostPubkey = \
 - `hosts/<hostname>/services/nebula.nix`: 必要に応じて個別設定を調整する (`my.networking.nebula.enable = true` で [lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の設定が自動適用される)．
 
 #### 2.3 Flake へのホスト登録
-[flake/hosts.nix](../../flake/hosts.nix) に新しいホストのエントリを追加する．
+[flake/hosts.nix](../../flake/hosts.nix) の `fleet` attrset に新しいホストのエントリを追加する (`username` は [lib/default.nix](../../lib/default.nix) の `mkSystem` 既定値 `t3u` に従う)．同一ロールを複数の起動媒体・プラットフォームで運用する場合は `variants` に列挙する (torii-chan を参照)．
 ```nix
-"<hostname>" = mkLib.mkSystem {
-  name = "<hostname>";
+<hostname> = {
   system = "x86_64-linux";
-  username = "t3u";
   profile = "tower-server";
 };
 ```

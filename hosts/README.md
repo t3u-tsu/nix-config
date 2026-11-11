@@ -1,6 +1,6 @@
 # Hosts (`hosts/`)
 
-Machine configurations for physical and virtual hosts in the fleet. Each host is registered in [flake/hosts.nix](../flake/hosts.nix) using `mkLib.mkSystem` and configured through its `default.nix` entrypoint.
+Machine configurations for physical and virtual hosts in the fleet. Each host is registered once in the `fleet` attrset in [flake/hosts.nix](../flake/hosts.nix) and configured through its `default.nix` entrypoint.
 
 ## Fleet Overview
 
@@ -13,6 +13,40 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 | [sando-kun](sando-kun/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.2` | Core i7-860 Tower | General-purpose tower server (Legacy BIOS) |
 | [torii-chan](torii-chan/README.md) | `gateway` + `sbc` layer | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway |
 | `torii-chan-vps` | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | ConoHa VPS (512MB) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
+
+`torii-chan` is declared with `variants`, so the fleet exposes it as `torii-chan-sd-installer`, `torii-chan-sd`, `torii-chan-hdd`, and `torii-chan-vps`.
+
+## Registration
+
+Every host has exactly one entry in the `fleet` attrset in [flake/hosts.nix](../flake/hosts.nix). The entry carries the platform and role profile; [flake/hosts.nix](../flake/hosts.nix) expands each entry into a `nixosConfiguration` via `mkLib.mkSystem`, which wires in `nixos/profiles/<profile>` and `hosts/<hostname>/default.nix`.
+
+```nix
+x1c7 = {
+  system = "x86_64-linux";
+  profile = "desktop";
+};
+```
+
+Hosts running the same role on multiple boot media or platforms list them under `variants`. Each variant becomes a `<name>-<variant>` configuration, and its `system` / `extraModules` override the host-level values (`torii-chan` is the only current example).
+
+```nix
+torii-chan = {
+  profile = "gateway";
+  variants = {
+    hdd = {
+      system = "aarch64-linux";
+      extraModules = [
+        ../hosts/torii-chan/sbc.nix
+        ../hosts/torii-chan/fs-hdd.nix
+      ];
+    };
+    vps = {
+      system = "x86_64-linux";
+      extraModules = [ ../hosts/torii-chan/vps.nix ];
+    };
+  };
+};
+```
 
 ## Directory Layout
 
@@ -31,7 +65,8 @@ hosts/<hostname>/
 ## Adding a Host
 
 1. Copy the skeleton using `cp -r hosts/_template hosts/<hostname>`.
-2. Follow the step-by-step runbook in [docs/operations/adding-a-host.md](../docs/operations/adding-a-host.md) (covers agenix host keys, Nebula certificates, private input bootstrap, and verification).
+2. Add the host to the `fleet` attrset in [flake/hosts.nix](../flake/hosts.nix) as `{ system = "..."; profile = "..."; }`, listing `variants` when the role runs on several boot media or platforms.
+3. Follow the step-by-step runbook in [docs/operations/adding-a-host.md](../docs/operations/adding-a-host.md) (covers agenix host keys, Nebula certificates, private input bootstrap, and verification).
 
 ## References
 

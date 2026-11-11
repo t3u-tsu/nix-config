@@ -24,12 +24,11 @@
 
 ```text
 flake.nix
- ├─ imports: flake/lib.nix, flake/overlays.nix, flake/hosts.nix,
+ ├─ imports: flake/overlays.nix, flake/hosts.nix,
  │           flake/packages.nix, flake/dev.nix
  │
- ├─ flake/lib.nix      → flake.lib.mkLib (lib/default.nix を inputs + overlays 付きで import)
  ├─ flake/overlays.nix → flake.overlays.default (unstable, ubootOrangePiZero3, writeYsh 等)
- ├─ flake/hosts.nix    → 各ホストの nixosConfigurations を mkLib.mkSystem で定義
+ ├─ flake/hosts.nix    → ホスト台帳 (fleet attrset) から nixosConfigurations を生成
  ├─ flake/packages.nix → torii-chan-vps-iso (mkSystem のビルド成果物)
  ├─ flake/dev.nix      → git-hooks の pre-commit hooks と devShells
  │
@@ -41,6 +40,7 @@ flake.nix
              agenix / agenix-rekey / home-manager / nix-index-database のモジュール
              home-manager 共通設定 (sharedModules: nix-index, agenix, agenix-rekey)
              nixpkgs.overlays
+             ../home                         # Home Manager 共通設定 (shell, programs, agenix)
              ../nixos                        # システム共通モジュール群 (基盤，セキュリティ，サービス等)
              ../nixos/profiles/${profile}    # プロファイル (desktop, tower-server, gateway 等)
              ../hosts/${name}/default.nix    # ホスト固有エントリ
@@ -61,8 +61,9 @@ flake.nix
 mkLib.mkSystem によるモジュール合成
  ├─ nixos/                    # システム共通モジュール群 (直接注入)
  │   ├─ base, security (agenix), dev-tools, environment, hardware
- │   ├─ networking, services, virtualisation
- │   └─ ../home/              # Home Manager 共通設定
+ │   └─ networking, services, virtualisation
+ │
+ ├─ home/                     # Home Manager 共通設定 (shell, programs, agenix)
  │
  ├─ nixos/profiles/<profile>/ # ロール別ベースライン設定
  │   ├─ desktop/              # GUI環境 (niri, greetd, fonts, gaming), home/desktop
