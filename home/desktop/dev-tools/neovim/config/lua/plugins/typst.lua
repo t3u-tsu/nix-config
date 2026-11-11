@@ -13,6 +13,7 @@ return {
     local preview_config = require("typst-preview.config")
 
     preview.setup({
+      debug = true,
       open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
     })
 
@@ -20,6 +21,11 @@ return {
       __index = function(_, key)
         if key == "tinymist" then
           local bin = vim.fn.exepath("tinymist")
+          if bin ~= "" then
+            return bin
+          end
+        elseif key == "websocat" then
+          local bin = vim.fn.exepath("websocat")
           if bin ~= "" then
             return bin
           end

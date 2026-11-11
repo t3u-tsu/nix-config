@@ -28,6 +28,7 @@ in
         gcc
         lua-language-server
         tree-sitter
+        websocat
       ];
       initLua = ''
         vim.g.nix_palette = {
