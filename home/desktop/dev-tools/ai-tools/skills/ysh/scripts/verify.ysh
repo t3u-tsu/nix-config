@@ -1,0 +1,191 @@
+#!/usr/bin/env ysh
+#
+# Check that the idioms documented in this skill still work on the installed ysh.
+#
+# Usage:
+#   ysh scripts/verify.ysh [--verbose]
+#   YSH_BIN=/path/to/ysh ysh scripts/verify.ysh [--verbose]
+
+var verbose = len(ARGV) > 0 and ARGV[0] === '--verbose'
+var ysh_bin = get(ENV, 'YSH_BIN', '')
+if (ysh_bin === '') {
+  var invoked_as = get(ENV, '_', '')
+  if (invoked_as !== '' and invoked_as.endsWith('/ysh')) {
+    setvar ysh_bin = invoked_as
+  } else {
+    setvar ysh_bin = 'ysh'
+  }
+}
+var total = 0
+var failures = 0
+
+proc check(name; ; ; block) {
+  setglobal total += 1
+  var result = io.captureAll(block)
+  if (result.status !== 0) {
+    setglobal failures += 1
+    echo $"[FAIL] $name (status $[result.status])"
+    if (len(result.stderr) > 0) {
+      write --end '' -- $[result.stderr]
+    }
+  } elif (verbose) {
+    echo $"[ok]   $name"
+  }
+}
+
+proc checkRejects(name, src) {
+  setglobal total += 1
+  var status = 0
+  try { $ysh_bin -c $src >/dev/null 2>&1 }
+  if (_error.code === 0) {
+    setglobal failures += 1
+    echo $"[FAIL] $name (accepted, expected rejection)"
+  } elif (verbose) {
+    echo $"[ok]   $name"
+  }
+}
+
+var tmp = $(mktemp -d)
+trap --add EXIT { rm -rf $tmp }
+write -- '{"name": "app", "port": 8080}' > $tmp/cfg.json
+write -- 'line1' 'line2' > $tmp/lines.txt
+
+echo $"ysh $OILS_VERSION"
+
+# Word language
+check 'expr-sub $[expr]' { var n = 3; assert [n + 1 === 4] }
+check 'expr-splice @[list]' { var l = ['a', 'b']; write -- @[l] >/dev/null }
+check 'var-splice @list' { var l = ['a']; write -- @l >/dev/null }
+check 'command-sub $(cmd)' { var s = $(echo hi); assert [s === 'hi'] }
+check 'command-splice @(cmd)' { var l = @(seq 2); assert [len(l) === 2] }
+check 'interpolation "$x"' { var x = 'a'; assert ["$x" === 'a'] }
+check 'interpolation $"${x}"' { var x = 'a'; assert [$"${x}b" === 'ab'] }
+check 'raw string' { var s = r'a\n'; assert [len(s) === 3] }
+check 'j8 string' { var s = u'a\n'; assert [len(s) === 2] }
+check 'byte string' { var s = b'\yff'; assert [len(s) === 1] }
+check 'list literal :| |' { var l = :| a b |; assert [len(l) === 2] }
+check 'triple quoted' { var s = """x"""; assert [s === 'x'] }
+
+# Variables and scope
+check 'var / setvar' { var x = 1; setvar x += 1; assert [x === 2] }
+check 'setglobal' { setglobal VERIFY_G = 1; assert [VERIFY_G === 1] }
+check 'const' { const C = 1; assert [C === 1] }
+check 'get(ENV, default)' { var v = get(ENV, 'VERIFY_MISSING', 'd'); assert [v === 'd'] }
+
+# Data
+check 'list append' { var l = []; call l->append(1); assert [len(l) === 1] }
+check 'list pop' { var l = [1]; assert [l->pop() === 1] }
+check 'list extend' { var l = [1]; call l->extend([2]); assert [len(l) === 2] }
+check 'list indexOf' { var l = [1, 2]; assert [l.indexOf(2) === 1] }
+check 'dict erase' { var d = {a: 1}; call d->erase('a'); assert [len(d) === 0] }
+check 'dict attr set' { var d = {a: 1}; setvar d.a = 2; assert [d.a === 2] }
+check 'dict in' { var d = {k: 1}; assert ['k' in d] }
+check 'concat Str' { assert ['a' ++ 'b' === 'ab'] }
+check 'concat List' { var l = [1] ++ [2]; assert [len(l) === 2] }
+check 'range ..<' { var n = 0; for i in (0 ..< 3) { setvar n += 1 }; assert [n === 3] }
+check 'range ..=' { var n = 0; for i in (0 ..= 2) { setvar n += 1 }; assert [n === 3] }
+check 'slice' { var s = 'abc'; assert [s[1:] === 'bc'] }
+check 'ternary' { assert [('y' if true else 'n') === 'y'] }
+check 'float equality helper' { assert [floatsEqual(float(3), float(3.0))] }
+check 'float via int' { assert [int(3.0) === 3] }
+check 'regex string' { assert ['x.pat' ~ 'pat'] }
+check 'eggex quoted literal' { assert ['x.pat' ~ / 'pat' /] }
+
+# Str methods
+check 'str upper/lower' { assert ['a'.upper() === 'A'] }
+check 'str contains' { assert ['abc'.contains('b')] }
+check 'str replace' { assert ['abc'.replace('b', 'x') === 'axc'] }
+check 'str startsWith' { assert ['abc'.startsWith('a')] }
+check 'str endsWith' { assert ['abc'.endsWith('c')] }
+check 'str trim' { assert [' a '.trim() === 'a'] }
+check 'str split' { assert [len('a;b'.split(';')) === 2] }
+check 'str lines' { assert [len(u'a\nb\n'.lines()) === 2] }
+check 'str search' { var m = 'a1'.search(/ d+ /); assert [m !== null] }
+check 'join positional sep' { assert [join(['a', 'b'], '-') === 'a-b'] }
+
+# proc and func
+check 'func return' { func f(x) { return (x + 1) }; assert [f(1) === 2] }
+check 'proc word args' { proc p(a, b='d') { assert [b === 'd'] }; p x }
+check 'proc rest words' { proc p(a, ...rest) { assert [len(rest) === 2] }; p x y z }
+check 'proc named args' { proc p(; ; n=1) { assert [n === 2] }; p (n=2) }
+check 'proc block param' { proc p(; ; ; block) { call io->eval(block) }; p { true } }
+check 'proc out param' { proc p(; out) { call out->setValue(1) }; var x; p (&x); assert [x === 1] }
+check 'open proc ARGV' { proc p { assert [len(ARGV) === 2] }; p a b }
+
+# Control flow
+check 'if elif else' { if (false) { true } elif (true) { true } else { false } }
+check 'while' { var i = 0; while (i < 2) { setvar i += 1 }; assert [i === 2] }
+check 'until' { var i = 0; until (i >= 2) { setvar i += 1 }; assert [i === 2] }
+check 'break / continue' { var n = 0; for i in (0 ..< 5) { if (i === 1) { continue }; if (i === 3) { break }; setvar n += 1 }; assert [n === 2] }
+check 'for list index' { var n = 0; for i, x in (['a', 'b']) { setvar n += 1 }; assert [n === 2] }
+check 'for dict kv' { for k, v in ({a: 1}) { assert [k === 'a' and v === 1] } }
+check 'for dict ikv' { for i, k, v in ({a: 1}) { assert [i === 0 and k === 'a' and v === 1] } }
+check 'case word glob' { var s = 'x.py'; case (s) { *.py { true } * { false } } }
+check 'case typed alt' { var x = 2; case (x) { (1) | (2) { true } (else) { false } } }
+
+# Blocks
+check 'cd block' { cd /tmp { assert [PWD === '/tmp'] } }
+check 'shvar block' { shvar IFS=/ { assert [IFS === '/'] } }
+check 'shopt block' { shopt --unset verbose_errexit { try { false } } }
+check 'redir block' { redir >/dev/null { echo x } }
+check 'forkwait' { forkwait { true } }
+check 'ctx' { var d = {}; ctx push (d) { ctx set (k='v') }; assert [d.k === 'v'] }
+
+# Errors
+check 'try / failed' { try { false }; if failed { true } else { false } }
+check 'try returns 0' { try { false }; assert [$? === '0'] }
+check 'error named args' { try { error 'x' (code=99) }; assert [_error.code === 99] }
+check 'error message' { try { error 'x' }; assert [_error.message === 'x'] }
+check 'assert' { assert [1 === 1] }
+check 'boolstatus' { if boolstatus test -f /etc/hosts { true } else { false } }
+
+# JSON and I/O
+check 'json write' { json write ({a: 1}, space=0) >/dev/null }
+check 'json read place' { var x = null; json read (&x) < $tmp/cfg.json; assert [x.port === 8080] }
+check 'json read reply' { json read < $tmp/cfg.json; assert [_reply.name === 'app'] }
+check 'toJson8' { assert [toJson8({a: 1}) === '{"a":1}'] }
+check 'fromJson' { var d = fromJson('{"a":1}'); assert [d.a === 1] }
+check 'read --all' { var s = ''; read --all (&s) < $tmp/lines.txt; assert [s === u'line1\nline2\n'] }
+check 'read --raw-line' { var s = ''; read --raw-line (&s) < $tmp/lines.txt; assert [s === 'line1'] }
+check 'io.stdin' { var n = 0; redir < $tmp/lines.txt { for line in (io.stdin) { setvar n += 1 } }; assert [n === 2] }
+check 'io.captureStdout' { assert [io.captureStdout(^(echo hi)) === 'hi'] }
+check 'io.captureAll' { var r = io.captureAll(^(exit 3)); assert [r.status === 3] }
+
+# Modules and stdlib
+check 'source stdlib math' { source $LIB_YSH/math.ysh; assert [abs(-1) === 1] }
+check 'source stdlib list' { source $LIB_YSH/list.ysh; assert [all([true])] }
+check 'parseArgs' { source $LIB_YSH/args.ysh; var spec = {}; parser (&spec) { arg p }; var a = parseArgs(spec, :| x |); assert [a.p === 'x'] }
+check 'source _this_dir' { assert [len(_this_dir) > 0] }
+check 'is-main' { if is-main { true } }
+
+# Documented gotchas: these must be rejected
+checkRejects 'dollar in expression' 'var x = $PWD'
+checkRejects '== operator' 'if (1 == 1) { true }'
+checkRejects 'bare eggex word' "if ('x' ~ /pat/) { true }"
+checkRejects 'proc &block' 'proc p(&block) { true }'
+checkRejects 'try without block' 'try false'
+checkRejects 'empty block' 'if (true) { }'
+checkRejects 'read -0 (&x)' 'var x = ""; read -0 (&x) < /dev/null'
+checkRejects 'export builtin' 'export FOO=bar'
+checkRejects 'local builtin' 'local x=1'
+checkRejects 'float strict equality' 'echo $[3.0 === 3.0]'
+checkRejects 'eval with two args' 'eval echo hi'
+check 'shvar does not set ENV' {
+  shvar VERIFY_SHVAR_ONLY=1 {
+    assert [$(env -u VERIFY_SHVAR_ONLY sh -c 'echo ${VERIFY_SHVAR_ONLY-unset}') === 'unset']
+  }
+}
+
+# Version-gated
+if (strcmp(OILS_VERSION, '0.38.0') >= 0) {
+  check 'dict append [0.38+]' { var d = {}; call d->append('k', 'v'); assert [len(d.k) === 1] }
+  check 'dict update [0.38+]' { var d = {a: 1}; call d->update({b: 2}); assert [len(d) === 2] }
+  check 'dict clear [0.38+]' { var d = {a: 1}; call d->clear(); assert [len(d) === 0] }
+  check 'dict concat [0.38+]' { var d = {a: 1} ++ {b: 2}; assert [len(d) === 2] }
+  checkRejects '_status removed [0.38+]' 'echo $[_status]'
+}
+
+echo $"$[total - failures]/$total checks passed"
+if (failures > 0) {
+  exit 1
+}
