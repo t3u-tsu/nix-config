@@ -9,6 +9,5 @@
     ./dev-tools
     ./services
     ./virtualisation
-    ../home
   ];
 }
