@@ -6,20 +6,19 @@ description: このリポジトリで設定変更を適用するときの手順�
 # 変更・適用手順
 
 1. ブランチ作成とワークツリーの運用:
-   - ブランチ作成の判断は [AGENTS.md](../../../AGENTS.md) の基本ルールに従う (大きな作業はブランチ，単一パッケージ追加などの軽微な変更は `main` 直接コミット・push 可)．
-   - メインツリー (`~/nix-config`)との競合を防ぐため，大きな作業は一時ワークツリー (`.worktrees/<topic-name>/main` または指定ツリー)で実行する．
+   - 単一パッケージ追加や [flake.lock](../../../flake.lock) / `nvfetcher` 更新などの軽微な変更のみ `main` に直接コミット・push してよい ([AGENTS.md](../../../AGENTS.md) の基本ルール参照)．
+   - トピックブランチ (`feat/`・`fix/`・`refactor/`・`docs/`・`chore/`・`revert/`)を切る変更作業は，メインツリー (`~/nix-config`)との競合を防ぐため，すべて専用の一時ワークツリー (`.worktrees/<topic-name>/main`)の作成を必須とする．メインツリー上での `git checkout -b` は行わない (ブランチ作成前の読み取り専用調査のみメインツリー上で実行可)．以降の Step 2〜7 の作業は作成した一時ワークツリー内で実行する．
    ```bash
    git fetch origin main
-
-   # 一時ワークツリーを作成して作業する場合 (.pre-commit-config.yaml もリンクする)
    git worktree add -b feat/topic-name .worktrees/topic-name/main origin/main
    ln -sf ~/nix-config/.pre-commit-config.yaml .worktrees/topic-name/main/.pre-commit-config.yaml
-
-   # 単独ブランチで作業する場合
-   git checkout -b feat/topic-name
+   cd .worktrees/topic-name/main
    ```
 
-2. Nix ファイルや設定ファイルを編集する (実装)．ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `just secret edit` で編集する ([secrets/README.md](../../../secrets/README.md))．
+2. 実装・執筆とワーカー委譲:
+   - Nix ファイル，スクリプト，ドキュメントの作成・編集，および事前の原因調査や設計検討では，ユーザーの明示指示を待たずに外部ワーカー ([.agents/skills/coding-worker/scripts/run.ysh](../coding-worker/scripts/run.ysh) による `pi`, `dsh`, `codewhale`)と内蔵サブエージェント (`invoke_subagent`)を同列に扱い，積極的にタスクを委譲・並列化する (`coding-worker` スキルおよび `dispatching-parallel-agents` スキル参照)．
+   - Gemini 以外のモデルの特性を組み合わせるため，1 ファイル数行の軽微な修正を除き，複数ファイルの変更やまとまった実装・執筆は対象ファイルを排他指定 (`Exclusive Target Files`)してワーカーへディスパッチする．
+   - ドキュメントの新規作成・編集は `documentation-guide` スキルに従い，秘密情報は `just secret edit` で編集する ([secrets/README.md](../../../secrets/README.md))．
 
 3. 検証:
 
@@ -60,10 +59,10 @@ description: このリポジトリで設定変更を適用するときの手順�
    | `end-of-file-fixer` / `trim-trailing-whitespace` | ファイル末尾改行と末尾空白の整形 (強制改行は `<br>` を使用) |
 
 4. レビューと改善:
-   変更規模や内容に応じ，技術的検証および文章・ドキュメントのレビューと改善を実施する．
-   - 技術的検証では，NixOS イディオムや構文・オプション設定の妥当性，コマンド・サービス名の整合，潜在的不具合やエッジケース，復旧手順の抜け漏れを確認する (外部コーディングワーカーへ委譲する場合は `coding-worker` スキルを参照)．
-   - 自然言語・ドキュメント・コメント品質では，執筆方針，文体，他ドキュメントとの整合性，相互参照，コード内コメント (`hush` 規約)を確認する．
-   - レビューで判明した問題点や改善事項は，作業ツリー内でコードやドキュメントへ直接反映する．
+   外部ワーカー ([.agents/skills/coding-worker/scripts/run.ysh](../coding-worker/scripts/run.ysh) による `pi`, `dsh`, `codewhale`)と内蔵サブエージェント (`invoke_subagent`)を自律的にディスパッチし，複数モデルの視点から技術的検証および文章・ドキュメントのレビューと改善を実施する (`coding-worker` スキル参照)．
+   - 技術的検証では，NixOS イディオムや構文・オプション設定の妥当性，コマンド・サービス名の整合，潜在的不具合やエッジケース，復旧手順の抜け漏れを確認する．
+   - 自然言語・ドキュメント・コメント品質では，執筆方針 (`documentation-guide` スキル)，文体，他ドキュメントとの整合性，相互参照，コード内コメント (`hush` 規約)を確認する．
+   - レビューで判明した問題点や改善事項は，作業ワークツリー内でコードやドキュメントへ直接反映する．
 
 5. 設定の適用 (マージ前実機検証):
    トピックブランチの push や PR 作成は先行して構わないが，**`main` へのマージは必ず手元の実機で `switch` (または `test`) を実行し，ユーザーが動作確認を行ってから承認・実行する**．壊れた設定や想定外の挙動を `main` に混入させないための鉄則とする．ワークツリーで作業中の場合は `--flake .worktrees/<topic-name>/main#<hostname>` を指定して適用する．
@@ -118,7 +117,7 @@ description: このリポジトリで設定変更を適用するときの手順�
    gh pr merge --merge --delete-branch
    ```
 
-   リンクされた一時ワークツリーから `gh pr merge --delete-branch` を実行すると，ブランチチェックアウト中につきローカルブランチ削除の警告が出ることがある．マージ自体は成功しているため，後始末の `git branch -d ... || true` で削除する．
+   リンクされた一時ワークツリーから `gh pr merge --delete-branch` を実行すると，ブランチチェックアウト中につきローカルブランチ削除の警告が出ることがある．マージ自体は成功しているため，後始末の `git branch -D ... || true` で削除する．
 
    **メインツリーの同期と後始末**:
    メインツリーへ戻り，用済みの一時ワークツリーを削除した後，空になったタスクディレクトリを削除する:
@@ -130,12 +129,5 @@ description: このリポジトリで設定変更を適用するときの手順�
    ```
 
    メインツリーの `git status --porcelain` を確認し，状態に応じて手元を同期する:
-   - 作業ツリーがクリーンな場合は `git pull origin main` でリモートのマージを同期し，ローカルブランチを削除する (`git branch -d feat/topic-name 2>/dev/null || true`)．
-   - 未コミット変更がある場合は pull や checkout を控え，ユーザーへ手動同期を案内する (作業が一段落した際に `git pull` を促す)．
-
-   単独ブランチで作業していた場合は:
-   ```bash
-   git checkout main
-   git pull origin main
-   git branch -d feat/topic-name
-   ```
+   - メインツリーがクリーンな場合は `git pull origin main` でリモートのマージを同期する．
+   - 未コミット変更がある場合は pull を控え，ユーザーへ手動同期を案内する (作業が一段落した際に `git pull` を促す)．

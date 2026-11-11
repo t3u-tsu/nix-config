@@ -1,34 +1,34 @@
 ---
 name: coding-worker
 description: >-
-  Delegate implementation, refactoring, and technical review tasks to external coding workers (pi, dsh, codewhale) via .agents/skills/coding-worker/scripts/run.ysh.
-  Use when the user asks to use external workers or delegate coding/review tasks.
+  Delegate implementation, refactoring, investigation, documentation, and review tasks to external workers (pi, dsh, codewhale) via .agents/skills/coding-worker/scripts/run.ysh to combine non-Gemini model strengths.
+  Proactively use on an equal footing with subagents without waiting for explicit user requests.
 ---
 
 # Coding Worker
 
-[scripts/run.ysh](scripts/run.ysh) を用いて外部コーディングワーカー (`pi`, `dsh`, `codewhale`)にコード実装・リファクタリング・技術レビューを委譲する手順．親セッション専用であり，サブエージェントや `run.ysh` で起動されたワーカー自身は本スキルを実行しない．複数の独立タスクを並列ディスパッチする際の判断基準は `dispatching-parallel-agents` スキル (`~/.agents/skills/dispatching-parallel-agents/`)を参照．
+[scripts/run.ysh](scripts/run.ysh) を用いて外部ワーカー (`pi`, `dsh`, `codewhale`)にコード実装・リファクタリング・原因調査・設計検証・ドキュメント作成・レビューを委譲する手順．ユーザーの明示的な指示を待たず，内蔵サブエージェント (`invoke_subagent`)と同列の手段として自律的にディスパッチし，Gemini 以外のモデルの特性を組み合わせる．親セッション専用であり，サブエージェントや `run.ysh` で起動されたワーカー自身は本スキルを実行しない．複数の独立タスクを並列ディスパッチする際の判断基準は `dispatching-parallel-agents` スキル (`~/.agents/skills/dispatching-parallel-agents/`)を参照．
 
 ## 基本使用方法
 
 オプション (`--read-only`)は必ずプロンプト引数より前に指定し，プロンプトは引用符で囲んで 1 つの引数として渡す:
 
 ```bash
-# 実装・リファクタリング
-.agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
+# 実装・リファクタリング・ドキュメント作成 (ワークツリー内で実行)
+cd .worktrees/<topic>/main && .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_IN_ENGLISH>"
 
-# 改善差分を直接作成させる技術レビュー
-.agents/skills/coding-worker/scripts/run.ysh "Review the diff origin/main..HEAD for technical correctness and apply necessary improvements."
+# 改善差分を直接作成させる技術・ドキュメントレビュー
+cd .worktrees/<topic>/main && .agents/skills/coding-worker/scripts/run.ysh "Review the diff origin/main..HEAD for technical correctness and documentation rules, and apply necessary improvements."
 
-# 読み取り専用レビュー (ワーキングツリーを変更しない，セッション保存なし)
-.agents/skills/coding-worker/scripts/run.ysh --read-only "Review the diff origin/main..HEAD for technical correctness."
+# 読み取り専用の調査・設計比較・セカンドオピニオン・レビュー (ワーキングツリーを変更しない，セッション保存なし)
+cd .worktrees/<topic>/main && .agents/skills/coding-worker/scripts/run.ysh --read-only "Analyze <target> and propose design trade-offs / review origin/main..HEAD."
 
 # セッション継続 (直前セッション，または特定 TASK_ID セッション)
-CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
-CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
+cd .worktrees/<topic>/main && CONTINUE=1 .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
+cd .worktrees/<topic>/main && CONTINUE=1 TASK_ID="feat-dns" .agents/skills/coding-worker/scripts/run.ysh "<FOLLOW_UP_PROMPT>"
 ```
 
-ワークツリー内で複数ワーカーを並列起動する場合は，単一の作業ワークツリー上で対象ファイルを排他指定 (`Exclusive Target Files`)し，セッション上書きを防ぐため必ず個別の `TASK_ID` を付与して実行する (Antigravity (`agy`)では `run_command` に `WaitMsBeforeAsync: 500` を指定して同一ターン内で同時発行する):
+ワークツリー内で複数ワーカーを並列起動する場合は，単一の作業ワークツリー上で対象ファイルを排他指定 (`Exclusive Target Files`)し，セッション上書きを防ぐため必ず個別の `TASK_ID` を付与して実行する (Antigravity (`agy`)では `run_command` に `WaitMsBeforeAsync: 500` を指定し，`invoke_subagent` も含めて同一ターン内で同時発行する):
 
 ```bash
 cd .worktrees/<topic>/main && TASK_ID="worker-a" .agents/skills/coding-worker/scripts/run.ysh "<PROMPT_A>"

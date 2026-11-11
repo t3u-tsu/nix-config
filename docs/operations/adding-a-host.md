@@ -72,9 +72,12 @@ sudo ./scripts/install/init-host-key.sh
 
 作業場所: 作業機
 
-#### 2.1 トピックブランチの作成
+#### 2.1 トピックブランチとワークツリーの作成
 ```bash
-git checkout -b feat/add-<hostname>
+git fetch origin main
+git worktree add -b feat/add-<hostname> .worktrees/add-<hostname>/main origin/main
+ln -sf ~/nix-config/.pre-commit-config.yaml .worktrees/add-<hostname>/main/.pre-commit-config.yaml
+cd .worktrees/add-<hostname>/main
 ```
 
 #### 2.2 テンプレートの複製と実機構成の自動取得
