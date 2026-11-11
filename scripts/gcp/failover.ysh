@@ -1,0 +1,1812 @@
+#!/usr/bin/env ysh
+#
+# failover.ysh - Google Cloud On-Demand Failover & Failback Controller
+#
+# Commands:
+#   status        - Query GCP instance status and SBC endpoint reachability
+#   healthcheck   - Probe physical SBC endpoint (ping / TCP)
+#   start-failover- Start Tokyo GCP instance and switch Cloudflare DNS
+#   start-failback- Verify SBC recovery, halt Tokyo instance, and restore DNS
+#   watch         - Continuous daemon loop with anti-flapping state machine
+#
+
+shopt --unset verbose_errexit
+
+const DEFAULT_INSTANCE = "torii-chan-gcp"
+const DEFAULT_ZONE = "asia-northeast1-b"
+const DEFAULT_TARGET = "torii-chan.t3u.uk"
+const DEFAULT_PROBE_TARGET = "torii-chan-sbc.t3u.uk"
+const DEFAULT_CF_ZONE = "t3u.uk"
+const DEFAULT_WATCH_INTERVAL = 10
+const DEFAULT_FAILOVER_THRESHOLD = 3
+const DEFAULT_FAILBACK_THRESHOLD = 30
+const DEFAULT_MIN_DWELL_SEC = 600
+const DNS_DOMAINS = ["torii-chan.t3u.uk", "mc.t3u.uk", "*.mc.t3u.uk"]
+
+func format_timestamp() {
+  return ($(date -u "+%Y-%m-%dT%H:%M:%SZ"))
+}
+
+func get_lock_file() {
+  var env_lock = get(ENV, "GCP_FAILOVER_LOCK_FILE", "")
+  if (type(env_lock) === "Str" and len(env_lock) > 0) {
+    return (env_lock)
+  }
+  if test -w "/var/lock" {
+    return ("/var/lock/gcp-failover.lock")
+  }
+  return ("/tmp/gcp-failover.lock")
+}
+
+func get_state_file() {
+  var env_state = get(ENV, "GCP_FAILOVER_STATE_FILE", "")
+  if (type(env_state) === "Str" and len(env_state) > 0) {
+    return (env_state)
+  }
+  if test -w "/var/run" {
+    return ("/var/run/gcp-failover/state.json")
+  }
+  return ("/tmp/gcp-failover/state.json")
+}
+
+# Dry runs keep their own state so a simulation never rewrites the live one.
+func get_effective_state_file(dry_run) {
+  var base = get_state_file()
+  if (dry_run) {
+    return ("$base.dry-run")
+  }
+  return (base)
+}
+
+func extract_vm_status(vm) {
+  if (type(vm) !== "Dict") {
+    return ("UNKNOWN")
+  }
+  var raw = get(vm, "status", "UNKNOWN")
+  if (type(raw) === "Str" and len(raw) > 0) {
+    return (raw)
+  }
+  return ("UNKNOWN")
+}
+
+func extract_nat_ip(vm) {
+  if (type(vm) !== "Dict") {
+    return ("")
+  }
+  var ifaces = get(vm, "networkInterfaces", [])
+  if (type(ifaces) === "List" and len(ifaces) > 0 and type(ifaces[0]) === "Dict") {
+    var acs = get(ifaces[0], "accessConfigs", [])
+    if (type(acs) === "List" and len(acs) > 0 and type(acs[0]) === "Dict") {
+      var ip = get(acs[0], "natIP", "")
+      if (type(ip) === "Str") {
+        return (ip)
+      }
+    }
+  }
+  return ("")
+}
+
+func extract_boot_disk(vm) {
+  if (type(vm) !== "Dict") {
+    return ("none")
+  }
+  var disks = get(vm, "disks", [])
+  if (type(disks) === "List" and len(disks) > 0 and type(disks[0]) === "Dict") {
+    var dname = get(disks[0], "deviceName", "boot")
+    var dsize = get(disks[0], "diskSizeGb", "10")
+    return ("$dname ($dsize GB)")
+  }
+  return ("none")
+}
+
+func default_state(instance_name, zone_name, target_host, probe_target_host = DEFAULT_PROBE_TARGET) {
+  var s = {
+    version: 2,
+    state: "NORMAL",
+    previous_state: "NONE",
+    last_transition_time: 0,
+    last_transition_iso: "1970-01-01T00:00:00Z",
+    last_probe_time: 0,
+    last_probe_result: "NONE",
+    consecutive_healthy: 0,
+    consecutive_failures: 0,
+    failover_start_time: 0,
+    tokyo_instance: {
+      name: instance_name,
+      zone: zone_name,
+      status: "TERMINATED",
+      external_ip: null
+    },
+    primary_endpoint: {
+      host: target_host,
+      probe_target: probe_target_host,
+      saved_wan_ip: null,
+      port: 0,
+      overlay_ip: "10.0.0.1"
+    },
+    thresholds: {
+      probe_interval_sec: DEFAULT_WATCH_INTERVAL,
+      probe_timeout_sec: 2,
+      failure_threshold: DEFAULT_FAILOVER_THRESHOLD,
+      recovery_threshold: DEFAULT_FAILBACK_THRESHOLD,
+      min_dwell_sec: DEFAULT_MIN_DWELL_SEC
+    }
+  }
+  return (s)
+}
+
+func load_state(state_file, instance_name, zone_name, target_host, probe_target_host = DEFAULT_PROBE_TARGET) {
+  if test ! -f "$state_file" {
+    return (default_state(instance_name, zone_name, target_host, probe_target_host))
+  }
+  var loaded = null
+  var ok = true
+  try {
+    json read (&loaded) < "$state_file"
+  }
+  if failed {
+    setvar ok = false
+  }
+  if (ok and type(loaded) === "Dict") {
+    var ep = get(loaded, "primary_endpoint", null)
+    if (type(ep) !== "Dict") {
+      setvar loaded.primary_endpoint = {
+        host: target_host,
+        probe_target: probe_target_host,
+        saved_wan_ip: null,
+        port: 0,
+        overlay_ip: "10.0.0.1"
+      }
+    } else {
+      if (type(get(ep, "probe_target", null)) !== "Str") {
+        setvar loaded.primary_endpoint.probe_target = probe_target_host
+      }
+      if (type(get(ep, "saved_wan_ip", null)) !== "Str") {
+        setvar loaded.primary_endpoint.saved_wan_ip = null
+      }
+    }
+    return (loaded)
+  }
+  return (default_state(instance_name, zone_name, target_host, probe_target_host))
+}
+
+func resolve_ipv4(host) {
+  if (type(host) !== "Str" or len(host) === 0) {
+    return ("")
+  }
+  var resolved = ""
+  try {
+    setvar resolved = $(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | head -n 1)
+  }
+  if (len(resolved) === 0) {
+    try {
+      setvar resolved = $(getent hosts "$host" 2>/dev/null | awk '{print $1}' | head -n 1)
+    }
+  }
+  return (resolved)
+}
+
+func is_same_ip(ip1, ip2) {
+  if (type(ip1) !== "Str" or type(ip2) !== "Str") {
+    return (false)
+  }
+  if (len(ip1) === 0 or len(ip2) === 0) {
+    return (false)
+  }
+  return (ip1 === ip2)
+}
+
+func determine_probe_endpoint(st, target_host, probe_target_host) {
+  var gce_ip = ""
+  var ti = get(st, "tokyo_instance", null)
+  if (type(ti) === "Dict") {
+    var raw_ip = get(ti, "external_ip", "")
+    if (type(raw_ip) === "Str") {
+      setvar gce_ip = raw_ip
+    }
+  }
+
+  var ep = get(st, "primary_endpoint", null)
+  var saved_wan = ""
+  if (type(ep) === "Dict") {
+    var raw_saved = get(ep, "saved_wan_ip", "")
+    if (type(raw_saved) === "Str") {
+      setvar saved_wan = raw_saved
+    }
+  }
+
+  if (len(probe_target_host) > 0) {
+    var resolved_probe = resolve_ipv4(probe_target_host)
+    if (len(resolved_probe) > 0 and not is_same_ip(resolved_probe, gce_ip)) {
+      return ({target: probe_target_host, ip: resolved_probe, source: "probe_target"})
+    }
+  }
+
+  var cur_state = get(st, "state", "NORMAL")
+  if (cur_state === "NORMAL" or cur_state === "DEGRADED") {
+    var resolved_target = resolve_ipv4(target_host)
+    if (len(resolved_target) > 0 and not is_same_ip(resolved_target, gce_ip)) {
+      return ({target: target_host, ip: resolved_target, source: "target_dns"})
+    }
+  }
+
+  if (len(saved_wan) > 0 and not is_same_ip(saved_wan, gce_ip)) {
+    return ({target: saved_wan, ip: saved_wan, source: "saved_wan_ip"})
+  }
+
+  return ({target: "", ip: "", source: "none"})
+}
+
+proc save_state(state_file; state) {
+  var dir = $(dirname "$state_file")
+  mkdir -p "$dir"
+  var tmp_file = "$state_file.tmp.$$"
+  json write (state) > "$tmp_file"
+  mv -f "$tmp_file" "$state_file"
+}
+
+proc log_info(msg) {
+  var ts = format_timestamp()
+  echo "[$ts] [INFO]  $msg"
+}
+
+proc log_warn(msg) {
+  var ts = format_timestamp()
+  echo "[$ts] [WARN]  $msg" >&2
+}
+
+proc log_error(msg) {
+  var ts = format_timestamp()
+  echo "[$ts] [ERROR] $msg" >&2
+}
+
+proc check_command(cmd) {
+  var ok = true
+  try {
+    command -v "$cmd" > /dev/null 2>&1
+  }
+  if failed {
+    setvar ok = false
+  }
+  if (not ok) {
+    log_error "Required tool '$cmd' not found in PATH."
+    return 1
+  }
+  return 0
+}
+
+proc query_instance_json(gcloud_cmd, instance, zone) {
+  var exists = true
+  try {
+    command -v "$gcloud_cmd" > /dev/null 2>&1
+  }
+  if failed {
+    setvar exists = false
+  }
+  if (not exists) {
+    echo "gcloud CLI command '$gcloud_cmd' not found in PATH" >&2
+    return 1
+  }
+
+  var tmp = $(mktemp)
+  var cmd_failed = false
+  try {
+    $gcloud_cmd compute instances describe "$instance" --zone="$zone" --format=json > $tmp 2>&1
+  }
+  if failed {
+    setvar cmd_failed = true
+  }
+
+  var raw = ""
+  read --all (&raw) < $tmp
+  rm -f $tmp
+
+  if (cmd_failed) {
+    echo "$raw" >&2
+    return 1
+  }
+
+  echo "$raw"
+  return 0
+}
+
+proc probe_ping(target, timeout_sec) {
+  var cmd_failed = false
+  var out = ""
+  try {
+    setvar out = $(ping -c 1 -W "$timeout_sec" "$target" 2>&1)
+  }
+  if failed {
+    setvar cmd_failed = true
+  }
+
+  if (cmd_failed) {
+    return 1
+  }
+
+  var rtt = "alive"
+  if (out.contains("time=")) {
+    var parts = out.split("time=")
+    if (len(parts) > 1) {
+      var rtt_sub = parts[1].split(" ")[0]
+      setvar rtt = "$rtt_sub ms"
+    }
+  } elif (out.contains("時間=")) {
+    var ja_parts = out.split("時間=")
+    if (len(ja_parts) > 1) {
+      var ja_rtt_sub = ja_parts[1].split(" ")[0]
+      setvar rtt = "$ja_rtt_sub ms"
+    }
+  }
+  echo "$rtt"
+  return 0
+}
+
+proc probe_tcp(target, port, timeout_sec) {
+  var cmd_failed = false
+  try {
+    nc -z -w "$timeout_sec" "$target" "$port" > /dev/null 2>&1
+  }
+  if failed {
+    setvar cmd_failed = true
+  }
+  if (cmd_failed) {
+    return 1
+  }
+  return 0
+}
+
+proc probe_sbc(target, port, timeout_sec, gce_ip = "") {
+  if (len(gce_ip) > 0) {
+    var resolved = resolve_ipv4(target)
+    if (is_same_ip(resolved, gce_ip)) {
+      echo "Self-probe blocked: target $target resolves to active GCE failover IP ($gce_ip)"
+      return 1
+    }
+  }
+
+  var rtt = ""
+  var ping_ok = true
+  try {
+    setvar rtt = $(probe_ping "$target" "$timeout_sec")
+  }
+  if failed {
+    setvar ping_ok = false
+  }
+
+  if (ping_ok) {
+    echo "ICMP ping alive (rtt=$rtt)"
+    return 0
+  }
+
+  if (port !== "0" and port !== "") {
+    var tcp_ok = true
+    try {
+      probe_tcp "$target" "$port" "$timeout_sec"
+    }
+    if failed {
+      setvar tcp_ok = false
+    }
+    if (tcp_ok) {
+      echo "TCP port $port alive (ICMP ping failed)"
+      return 0
+    }
+  }
+
+  echo "Unreachable (timeout=${timeout_sec}s)"
+  return 1
+}
+
+proc wait_for_instance_running(gcloud_cmd, instance, zone, timeout_sec) {
+  var elapsed = 0
+  var interval = 2
+  # stdout carries the external IP, so progress logs go to stderr.
+  log_info "Waiting for instance $instance to reach RUNNING state (timeout: ${timeout_sec}s)..." >&2
+
+  while (elapsed < timeout_sec) {
+    var raw = ""
+    var q_ok = true
+    try {
+      setvar raw = $(query_instance_json "$gcloud_cmd" "$instance" "$zone")
+    }
+    if failed {
+      setvar q_ok = false
+    }
+
+    var vm = null
+    if (q_ok and len(raw) > 0) {
+      try {
+        json read (&vm) <<< "$raw" 2> /dev/null
+      }
+    }
+
+    if (type(vm) === "Dict") {
+      var st = extract_vm_status(vm)
+      var ip = extract_nat_ip(vm)
+      if (st === "RUNNING" and len(ip) > 0) {
+        log_info "Instance $instance is RUNNING with external IP: $ip" >&2
+        echo "$ip"
+        return 0
+      }
+    }
+
+    sleep $interval
+    setvar elapsed += interval
+  }
+
+  log_error "Timed out waiting for instance $instance to reach RUNNING state."
+  return 1
+}
+
+proc wait_for_instance_stopped(gcloud_cmd, instance, zone, timeout_sec) {
+  var elapsed = 0
+  var interval = 2
+  log_info "Waiting for instance $instance to reach TERMINATED state (timeout: ${timeout_sec}s)..."
+
+  while (elapsed < timeout_sec) {
+    var raw = ""
+    var q_ok = true
+    try {
+      setvar raw = $(query_instance_json "$gcloud_cmd" "$instance" "$zone")
+    }
+    if failed {
+      setvar q_ok = false
+    }
+
+    var vm = null
+    if (q_ok and len(raw) > 0) {
+      try {
+        json read (&vm) <<< "$raw" 2> /dev/null
+      }
+    }
+
+    if (type(vm) === "Dict") {
+      var st = extract_vm_status(vm)
+      if (st === "TERMINATED" or st === "STOPPED") {
+        log_info "Instance $instance is TERMINATED. Compute and IP billing stopped."
+        return 0
+      }
+    }
+
+    sleep $interval
+    setvar elapsed += interval
+  }
+
+  log_error "Timed out waiting for instance $instance to reach TERMINATED state."
+  return 1
+}
+
+proc cloudflare_get_zone_id(token, zone_name) {
+  var url = "https://api.cloudflare.com/client/v4/zones?name=$zone_name"
+  var tmp = $(mktemp)
+  var cmd_failed = false
+
+  try {
+    curl -s -H "Authorization: Bearer $token" -H "Content-Type: application/json" "$url" > $tmp 2>&1
+  }
+  if failed {
+    setvar cmd_failed = true
+  }
+
+  var raw = ""
+  read --all (&raw) < $tmp
+  rm -f $tmp
+
+  if (cmd_failed) {
+    return 1
+  }
+
+  var resp = null
+  try {
+    json read (&resp) <<< "$raw" 2> /dev/null
+  }
+  if failed {
+    return 1
+  }
+
+  if (type(resp) === "Dict") {
+    var res_list = get(resp, "result", [])
+    if (type(res_list) === "List" and len(res_list) > 0 and type(res_list[0]) === "Dict") {
+      var zid = get(res_list[0], "id", "")
+      if (type(zid) === "Str" and len(zid) > 0) {
+        echo "$zid"
+        return 0
+      }
+    }
+  }
+
+  return 1
+}
+
+proc cloudflare_sync_record(; token, zone_id, domain, target_ip, dry_run) {
+  if (dry_run or len(token) === 0) {
+    if (len(token) === 0 and not dry_run) {
+      log_warn "CLOUDFLARE_API_TOKEN is unset: skipping the DNS update for $domain (the failover node's ddclient updates it after boot)."
+    } else {
+      log_info "[DRY-RUN] Cloudflare API call for $domain -> $target_ip:"
+    }
+    echo "curl -s -X PUT \"https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/<record_id>\" \\"
+    echo "  -H \"Authorization: Bearer <CLOUDFLARE_API_TOKEN>\" \\"
+    echo "  -H \"Content-Type: application/json\" \\"
+    echo "  --data '{\"type\":\"A\",\"name\":\"${domain}\",\"content\":\"${target_ip}\",\"ttl\":60,\"proxied\":false}'"
+    return 0
+  }
+
+  var list_url = "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records?name=$domain&type=A"
+  var tmp = $(mktemp)
+  var get_failed = false
+  try {
+    curl -s -H "Authorization: Bearer $token" -H "Content-Type: application/json" "$list_url" > $tmp 2>&1
+  }
+  if failed {
+    setvar get_failed = true
+  }
+
+  var raw_list = ""
+  read --all (&raw_list) < $tmp
+  rm -f $tmp
+
+  if (get_failed) {
+    log_warn "Failed to query Cloudflare DNS records for $domain."
+    return 1
+  }
+
+  var list_resp = null
+  try {
+    json read (&list_resp) <<< "$raw_list" 2> /dev/null
+  }
+  if failed {
+    return 1
+  }
+
+  var record_id = ""
+  var current_content = ""
+  if (type(list_resp) === "Dict") {
+    var results = get(list_resp, "result", [])
+    if (type(results) === "List" and len(results) > 0 and type(results[0]) === "Dict") {
+      var raw_id = get(results[0], "id", "")
+      var raw_content = get(results[0], "content", "")
+      if (type(raw_id) === "Str") {
+        setvar record_id = raw_id
+      }
+      if (type(raw_content) === "Str") {
+        setvar current_content = raw_content
+      }
+    }
+  }
+
+  if (current_content === target_ip) {
+    log_info "Cloudflare DNS for $domain is already up-to-date ($target_ip)."
+    return 0
+  }
+
+  var payload = {
+    type: "A",
+    name: domain,
+    content: target_ip,
+    ttl: 60,
+    proxied: false
+  }
+
+  var put_tmp = $(mktemp)
+  var put_failed = false
+
+  if (len(record_id) > 0) {
+    var put_url = "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id"
+    try {
+      json write (payload) | curl -s -X PUT -H "Authorization: Bearer $token" -H "Content-Type: application/json" "$put_url" --data-binary '@-' > $put_tmp 2>&1
+    }
+    if failed {
+      setvar put_failed = true
+    }
+  } else {
+    var post_url = "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records"
+    try {
+      json write (payload) | curl -s -X POST -H "Authorization: Bearer $token" -H "Content-Type: application/json" "$post_url" --data-binary '@-' > $put_tmp 2>&1
+    }
+    if failed {
+      setvar put_failed = true
+    }
+  }
+
+  var put_raw = ""
+  read --all (&put_raw) < $put_tmp
+  rm -f $put_tmp
+
+  if (put_failed) {
+    log_error "Failed to update Cloudflare DNS record for $domain: $put_raw"
+    return 1
+  }
+
+  var update_resp = null
+  try {
+    json read (&update_resp) <<< "$put_raw" 2> /dev/null
+  }
+  if failed {
+    log_warn "Failed to parse Cloudflare update response: $put_raw"
+    return 1
+  }
+
+  var success = false
+  if (type(update_resp) === "Dict") {
+    var raw_sc = get(update_resp, "success", false)
+    if (type(raw_sc) === "Bool") {
+      setvar success = raw_sc
+    }
+  }
+
+  if (success) {
+    log_info "Successfully updated Cloudflare DNS for $domain -> $target_ip (TTL=60s)"
+    return 0
+  } else {
+    log_error "Cloudflare API rejected DNS update for $domain: $put_raw"
+    return 1
+  }
+}
+
+proc sync_all_cloudflare_dns(; token, zone_name, target_ip, domains, dry_run) {
+  var zone_id = get(ENV, "CLOUDFLARE_ZONE_ID", "")
+  if (len(zone_id) === 0 and len(token) > 0 and not dry_run) {
+    var zid_raw = ""
+    var zid_ok = true
+    try {
+      setvar zid_raw = $(cloudflare_get_zone_id "$token" "$zone_name")
+    }
+    if failed {
+      setvar zid_ok = false
+    }
+    if (zid_ok and len(zid_raw) > 0) {
+      setvar zone_id = zid_raw
+    } else {
+      log_error "Could not resolve Cloudflare Zone ID for '$zone_name'; skipping DNS updates."
+      return 1
+    }
+  }
+  if (len(zone_id) === 0) {
+    setvar zone_id = "<zone_id>"
+  }
+
+  for domain in (domains) {
+    cloudflare_sync_record (token, zone_id, domain, target_ip, dry_run)
+  }
+}
+
+proc execute_failover(; state_data, instance, zone, target_ip_in, primary_ip_override = "", dry_run = false) {
+  var gcloud_cmd = get(ENV, "GCLOUD_CMD", "gcloud")
+  var cf_token = get(ENV, "CLOUDFLARE_API_TOKEN", "")
+  var cf_zone = get(ENV, "CLOUDFLARE_ZONE", DEFAULT_CF_ZONE)
+  var target_ip = target_ip_in
+
+  # Save primary WAN IP before failover rewrites Cloudflare DNS
+  var current_saved = get(state_data.primary_endpoint, "saved_wan_ip", "")
+  if (type(primary_ip_override) === "Str" and len(primary_ip_override) > 0) {
+    setvar state_data.primary_endpoint.saved_wan_ip = primary_ip_override
+    log_info "Saved primary WAN IP override before failover: $primary_ip_override"
+  } elif (type(current_saved) !== "Str" or len(current_saved) === 0) {
+    var p_target = get(state_data.primary_endpoint, "probe_target", "")
+    var resolved = ""
+    if (type(p_target) === "Str" and len(p_target) > 0) {
+      setvar resolved = resolve_ipv4(p_target)
+    }
+    if (len(resolved) === 0) {
+      var t_host = get(state_data.primary_endpoint, "host", DEFAULT_TARGET)
+      if (type(t_host) === "Str" and len(t_host) > 0) {
+        setvar resolved = resolve_ipv4(t_host)
+      }
+    }
+    if (len(resolved) > 0) {
+      log_info "Captured primary physical WAN IP before failover: $resolved"
+      setvar state_data.primary_endpoint.saved_wan_ip = resolved
+    } else {
+      log_warn "Could not resolve physical WAN IP before failover."
+    }
+  }
+
+  if (dry_run) {
+    log_info "[DRY-RUN] Would start instance $instance in zone $zone"
+    if (len(target_ip) === 0) {
+      # RFC 5737 documentation address, never a real instance IP.
+      setvar target_ip = "192.0.2.1"
+    }
+  } else {
+    var cmd_ok = true
+    try {
+      check_command "$gcloud_cmd"
+    }
+    if failed {
+      setvar cmd_ok = false
+    }
+    if (not cmd_ok) {
+      log_error "Command '$gcloud_cmd' not found in PATH."
+      return 1
+    }
+    var raw_out = ""
+    var q_ok = true
+    try {
+      setvar raw_out = $(query_instance_json "$gcloud_cmd" "$instance" "$zone")
+    }
+    if failed {
+      setvar q_ok = false
+    }
+
+    var vm = null
+    if (q_ok and len(raw_out) > 0) {
+      try {
+        json read (&vm) <<< "$raw_out" 2> /dev/null
+      }
+    }
+
+    var current_st = "UNKNOWN"
+    if (type(vm) === "Dict") {
+      setvar current_st = extract_vm_status(vm)
+    }
+
+    if (current_st === "RUNNING") {
+      log_info "Instance $instance is already RUNNING."
+      if (len(target_ip) === 0) {
+        setvar target_ip = extract_nat_ip(vm)
+      }
+    } else {
+      log_info "Starting instance $instance via $gcloud_cmd..."
+      var start_failed = false
+      try {
+        $gcloud_cmd compute instances start "$instance" --zone="$zone" --format=json > /dev/null 2>&1
+      }
+      if failed {
+        setvar start_failed = true
+      }
+      if (start_failed) {
+        log_error "Failed to start GCP instance $instance."
+        return 1
+      }
+
+      var running_ip = ""
+      var wait_ok = true
+      try {
+        setvar running_ip = $(wait_for_instance_running "$gcloud_cmd" "$instance" "$zone" 60)
+      }
+      if failed {
+        setvar wait_ok = false
+      }
+      if (not wait_ok or len(running_ip) === 0) {
+        log_error "Instance did not obtain external IP within timeout."
+        return 1
+      }
+      if (len(target_ip) === 0) {
+        setvar target_ip = running_ip
+      }
+    }
+  }
+
+  log_info "Syncing Cloudflare DNS to failover IP: $target_ip"
+  sync_all_cloudflare_dns (cf_token, cf_zone, target_ip, DNS_DOMAINS, dry_run)
+
+  setvar state_data.tokyo_instance.status = "RUNNING"
+  setvar state_data.tokyo_instance.external_ip = target_ip
+  return 0
+}
+
+proc execute_failback(; state_data, instance, zone, target, primary_ip_in, dry_run = false) {
+  var gcloud_cmd = get(ENV, "GCLOUD_CMD", "gcloud")
+  var cf_token = get(ENV, "CLOUDFLARE_API_TOKEN", "")
+  var cf_zone = get(ENV, "CLOUDFLARE_ZONE", DEFAULT_CF_ZONE)
+
+  var gce_ip = get(state_data.tokyo_instance, "external_ip", "")
+  if (type(gce_ip) !== "Str") {
+    setvar gce_ip = ""
+  }
+
+  if (len(gce_ip) === 0) {
+    var raw_vm = ""
+    var q_ok = true
+    try {
+      setvar raw_vm = $(query_instance_json "$gcloud_cmd" "$instance" "$zone" 2> /dev/null)
+    }
+    if failed {
+      setvar q_ok = false
+    }
+    var vm_obj = null
+    if (q_ok and len(raw_vm) > 0) {
+      try {
+        json read (&vm_obj) <<< "$raw_vm" 2> /dev/null
+      }
+    }
+    if (type(vm_obj) === "Dict") {
+      var live_ip = extract_nat_ip(vm_obj)
+      if (len(live_ip) > 0) {
+        setvar gce_ip = live_ip
+        var ti = get(state_data, "tokyo_instance", null)
+        if (type(ti) === "Dict") {
+          setvar state_data.tokyo_instance.external_ip = live_ip
+        }
+        log_info "Discovered live GCE external IP from GCP instance: $gce_ip"
+      }
+    }
+  }
+
+  var primary_ip = primary_ip_in
+  if (len(primary_ip) > 0 and len(gce_ip) > 0 and is_same_ip(primary_ip, gce_ip)) {
+    log_warn "Explicit primary IP matches GCE instance external IP ($gce_ip). Rejecting."
+    setvar primary_ip = ""
+  }
+
+  var ep = get(state_data, "primary_endpoint", null)
+
+  # 1. State-persisted WAN IP
+  if (len(primary_ip) === 0 and type(ep) === "Dict") {
+    var saved = get(ep, "saved_wan_ip", "")
+    if (type(saved) === "Str" and len(saved) > 0 and (len(gce_ip) === 0 or not is_same_ip(saved, gce_ip))) {
+      setvar primary_ip = saved
+      log_info "Restoring Cloudflare DNS using saved primary WAN IP from state: $primary_ip"
+    }
+  }
+
+  # 2. Probe target resolution
+  if (len(primary_ip) === 0 and type(ep) === "Dict") {
+    var pt = get(ep, "probe_target", "")
+    if (type(pt) === "Str" and len(pt) > 0) {
+      var r_pt = resolve_ipv4(pt)
+      if (len(r_pt) > 0 and (len(gce_ip) === 0 or not is_same_ip(r_pt, gce_ip))) {
+        setvar primary_ip = r_pt
+        log_info "Restoring Cloudflare DNS using dedicated probe target ($pt): $primary_ip"
+      }
+    }
+  }
+
+  # 3. Target DNS resolution (reject if it resolves to GCE IP or if GCE IP is unknown)
+  if (len(primary_ip) === 0) {
+    var r_tgt = resolve_ipv4(target)
+    if (len(r_tgt) > 0) {
+      if (len(gce_ip) > 0 and is_same_ip(r_tgt, gce_ip)) {
+        log_warn "Target $target currently resolves to GCE ephemeral IP ($r_tgt). Will NOT overwrite Cloudflare DNS with GCE IP."
+      } elif (len(gce_ip) === 0) {
+        log_warn "Target $target resolves to $r_tgt, but GCE external IP is unknown. Refusing target DNS to prevent overwriting with GCE failover IP."
+      } else {
+        setvar primary_ip = r_tgt
+      }
+    }
+  }
+
+  # Final safety guard: NEVER overwrite Cloudflare DNS with the GCE instance external IP
+  if (len(primary_ip) > 0 and len(gce_ip) > 0 and is_same_ip(primary_ip, gce_ip)) {
+    log_warn "Safety guard: primary IP $primary_ip matches GCE IP. Blocking Cloudflare DNS overwrite."
+    setvar primary_ip = ""
+  }
+
+  if (dry_run) {
+    log_info "[DRY-RUN] STONITH: Would stop instance $instance in zone $zone"
+    if (len(primary_ip) > 0) {
+      log_info "[DRY-RUN] Restoring Cloudflare DNS to primary IP: $primary_ip"
+      sync_all_cloudflare_dns (cf_token, cf_zone, primary_ip, DNS_DOMAINS, true)
+    } else {
+      log_info "[DRY-RUN] Primary SBC ddclient will automatically restore Cloudflare DNS to home WAN IP."
+    }
+  } else {
+    var cmd_ok = true
+    try {
+      check_command "$gcloud_cmd"
+    }
+    if failed {
+      setvar cmd_ok = false
+    }
+    if (not cmd_ok) {
+      log_error "STONITH FAILED: Required tool '$gcloud_cmd' not found in PATH."
+      return 1
+    }
+
+    log_info "STONITH: Stopping Tokyo instance $instance to prevent dual-active split-brain..."
+    var stop_failed = false
+    try {
+      $gcloud_cmd compute instances stop "$instance" --zone="$zone" --format=json > /dev/null 2>&1
+    }
+    if failed {
+      setvar stop_failed = true
+    }
+    if (stop_failed) {
+      log_error "STONITH FAILED: Failed to send stop command to GCP instance $instance. Aborting failback to prevent split-brain."
+      return 1
+    }
+
+    var wait_ok = true
+    try {
+      wait_for_instance_stopped "$gcloud_cmd" "$instance" "$zone" 60
+    }
+    if failed {
+      setvar wait_ok = false
+    }
+    if (not wait_ok) {
+      log_error "STONITH FAILED: Instance $instance did not reach TERMINATED state within timeout. Aborting failback to prevent split-brain."
+      return 1
+    }
+
+    if (len(primary_ip) > 0) {
+      log_info "Restoring Cloudflare DNS to primary WAN IP: $primary_ip"
+      sync_all_cloudflare_dns (cf_token, cf_zone, primary_ip, DNS_DOMAINS, false)
+    } else {
+      log_info "Primary SBC ddclient will automatically restore Cloudflare DNS to home WAN IP."
+    }
+  }
+
+  setvar state_data.tokyo_instance.status = "TERMINATED"
+  setvar state_data.tokyo_instance.external_ip = null
+  return 0
+}
+
+proc step_watch_tick(; state_file, instance, zone, target, probe_target = DEFAULT_PROBE_TARGET, interval = DEFAULT_WATCH_INTERVAL, failover_threshold = DEFAULT_FAILOVER_THRESHOLD, failback_threshold = DEFAULT_FAILBACK_THRESHOLD, min_dwell_sec = DEFAULT_MIN_DWELL_SEC, dry_run = false) {
+  var st = load_state(state_file, instance, zone, target, probe_target)
+  var th = st.thresholds
+  var timeout_sec = get(th, "probe_timeout_sec", 2)
+  # Record the thresholds actually in effect so the state file matches the daemon.
+  setvar st.thresholds.probe_interval_sec = interval
+  setvar st.thresholds.failure_threshold = failover_threshold
+  setvar st.thresholds.recovery_threshold = failback_threshold
+  setvar st.thresholds.min_dwell_sec = min_dwell_sec
+  var port = get(st.primary_endpoint, "port", 0)
+  var port_str = "$port"
+  var timeout_str = "$timeout_sec"
+
+  var endpoint = determine_probe_endpoint(st, target, probe_target)
+  var actual_target = endpoint.target
+  var gce_ip = ""
+  var ti = get(st, "tokyo_instance", null)
+  if (type(ti) === "Dict") {
+    var raw_ip = get(ti, "external_ip", "")
+    if (type(raw_ip) === "Str") {
+      setvar gce_ip = raw_ip
+    }
+  }
+
+  var detail = ""
+  var is_healthy = true
+  if (len(actual_target) === 0) {
+    setvar is_healthy = false
+    setvar detail = "probe blocked: target resolves to active GCE failover IP and no distinct probe endpoint is available"
+    log_warn "$detail"
+  } else {
+    try {
+      setvar detail = $(probe_sbc "$actual_target" "$port_str" "$timeout_str" "$gce_ip")
+    }
+    if failed {
+      setvar is_healthy = false
+      setvar detail = "probe timeout / unreachable ($actual_target)"
+    }
+  }
+
+  # When healthy in NORMAL state, save latest resolved physical WAN IP
+  if (st.state === "NORMAL" and is_healthy and len(endpoint.ip) > 0) {
+    setvar st.primary_endpoint.saved_wan_ip = endpoint.ip
+  }
+
+  var now = int($(date +%s))
+  var iso = format_timestamp()
+  setvar st.last_probe_time = now
+  if (is_healthy) {
+    setvar st.last_probe_result = "SUCCESS"
+  } else {
+    setvar st.last_probe_result = "FAILURE"
+  }
+
+  var cur = st.state
+
+  case (cur) {
+    ("NORMAL") {
+      if (is_healthy) {
+        setvar st.consecutive_healthy += 1
+        setvar st.consecutive_failures = 0
+      } else {
+        setvar st.previous_state = cur
+        setvar st.state = "DEGRADED"
+        setvar st.last_transition_time = now
+        setvar st.last_transition_iso = iso
+        setvar st.consecutive_failures = 1
+        setvar st.consecutive_healthy = 0
+        log_warn "State transition: NORMAL -> DEGRADED (first probe failure: $detail)"
+      }
+    }
+    ("DEGRADED") {
+      if (is_healthy) {
+        setvar st.previous_state = cur
+        setvar st.state = "NORMAL"
+        setvar st.last_transition_time = now
+        setvar st.last_transition_iso = iso
+        setvar st.consecutive_healthy = 1
+        setvar st.consecutive_failures = 0
+        log_info "State transition: DEGRADED -> NORMAL (transient failure recovered: $detail)"
+      } else {
+        setvar st.consecutive_failures += 1
+        log_warn "Primary SBC outage persisting: $[st.consecutive_failures]/$failover_threshold"
+        if (st.consecutive_failures >= failover_threshold) {
+          setvar st.previous_state = cur
+          setvar st.state = "FAILING_OVER"
+          setvar st.last_transition_time = now
+          setvar st.last_transition_iso = iso
+          save_state "$state_file" (st)
+
+          log_warn "Outage threshold reached! Initiating failover to Tokyo..."
+          var fo_ok = true
+          try {
+            execute_failover (st, instance, zone, "", "", dry_run)
+          }
+          if failed {
+            setvar fo_ok = false
+          }
+
+          if (fo_ok) {
+            setvar st.failover_start_time = now
+            setvar st.previous_state = "FAILING_OVER"
+            setvar st.state = "FAILOVER"
+            setvar st.last_transition_time = now
+            setvar st.last_transition_iso = iso
+            setvar st.consecutive_healthy = 0
+            log_info "State transition: -> FAILOVER (Tokyo instance active)"
+          } else {
+            log_error "Failover sequence failed; remaining in DEGRADED state."
+            setvar st.state = "DEGRADED"
+          }
+        }
+      }
+    }
+    ("FAILOVER") {
+      if (is_healthy) {
+        setvar st.previous_state = cur
+        setvar st.state = "RECOVERING"
+        setvar st.last_transition_time = now
+        setvar st.last_transition_iso = iso
+        setvar st.consecutive_healthy = 1
+        log_info "State transition: FAILOVER -> RECOVERING (Primary SBC detected online: $detail)"
+      } else {
+        setvar st.consecutive_failures += 1
+        setvar st.consecutive_healthy = 0
+      }
+    }
+    ("RECOVERING") {
+      if (not is_healthy) {
+        setvar st.previous_state = cur
+        setvar st.state = "FAILOVER"
+        setvar st.last_transition_time = now
+        setvar st.last_transition_iso = iso
+        setvar st.consecutive_healthy = 0
+        setvar st.consecutive_failures += 1
+        log_warn "Primary SBC flapped back to offline ($detail). Resetting recovery stabilization to FAILOVER."
+      } else {
+        setvar st.consecutive_healthy += 1
+        var dwell = now - st.failover_start_time
+        log_info "Stabilizing recovery: $[st.consecutive_healthy]/$failback_threshold, Dwell: ${dwell}/${min_dwell_sec}s"
+        if (st.consecutive_healthy >= failback_threshold and dwell >= min_dwell_sec) {
+          setvar st.previous_state = cur
+          setvar st.state = "FAILING_BACK"
+          setvar st.last_transition_time = now
+          setvar st.last_transition_iso = iso
+          save_state "$state_file" (st)
+
+          log_info "Recovery threshold and minimum dwell time satisfied. Initiating STONITH failback..."
+          var fb_ok = true
+          try {
+            execute_failback (st, instance, zone, target, "", dry_run)
+          }
+          if failed {
+            setvar fb_ok = false
+          }
+
+          if (fb_ok) {
+            setvar st.previous_state = "FAILING_BACK"
+            setvar st.state = "NORMAL"
+            setvar st.last_transition_time = now
+            setvar st.last_transition_iso = iso
+            setvar st.failover_start_time = 0
+            setvar st.consecutive_failures = 0
+            setvar st.consecutive_healthy = 1
+            log_info "State transition: -> NORMAL (Failback complete, edge restored to SBC)"
+          } else {
+            log_error "Failback sequence failed; remaining in RECOVERING state."
+            setvar st.previous_state = "FAILING_BACK"
+            setvar st.state = "RECOVERING"
+          }
+        }
+      }
+    }
+    (else) {
+      log_warn "Unknown state '$cur'. Resetting to NORMAL."
+      setvar st.state = "NORMAL"
+    }
+  }
+
+  save_state "$state_file" (st)
+}
+
+# --- Command Implementations ---
+
+proc usage_status() {
+  echo "Usage: failover.ysh status [options...]"
+  echo ""
+  echo "Query Google Cloud failover instance status and primary SBC reachability."
+  echo ""
+  echo "Options:"
+  echo "  --instance <name>     GCP instance name (default: torii-chan-gcp)"
+  echo "  --zone <zone>         GCP zone (default: asia-northeast1-b)"
+  echo "  --target <host>       Physical SBC target hostname (default: torii-chan.t3u.uk)"
+  echo "  --probe-target <host> Dedicated probe target hostname (default: torii-chan-sbc.t3u.uk)"
+  echo "  -h, --help            Show this help message"
+}
+
+proc cmd_status(; args) {
+  for arg in (args) {
+    case (arg) {
+      ("-h") { usage_status; return 0 }
+      ("--help") { usage_status; return 0 }
+    }
+  }
+
+  var instance = get(ENV, "GCP_FAILOVER_INSTANCE", DEFAULT_INSTANCE)
+  var zone = get(ENV, "GCP_FAILOVER_ZONE", DEFAULT_ZONE)
+  var target = get(ENV, "GCP_FAILOVER_TARGET", DEFAULT_TARGET)
+  var probe_target = get(ENV, "GCP_FAILOVER_PROBE_TARGET", DEFAULT_PROBE_TARGET)
+  var gcloud_cmd = get(ENV, "GCLOUD_CMD", "gcloud")
+
+  var i = 0
+  while (i < len(args)) {
+    var arg = args[i]
+    case (arg) {
+      ("--instance") {
+        setvar i += 1
+        if (i < len(args)) { setvar instance = args[i] }
+      }
+      ("--zone") {
+        setvar i += 1
+        if (i < len(args)) { setvar zone = args[i] }
+      }
+      ("--target") {
+        setvar i += 1
+        if (i < len(args)) { setvar target = args[i] }
+      }
+      ("--probe-target") {
+        setvar i += 1
+        if (i < len(args)) { setvar probe_target = args[i] }
+      }
+    }
+    setvar i += 1
+  }
+
+  echo "============================================================"
+  echo " Google Cloud Failover Infrastructure Status"
+  echo "============================================================"
+
+  var raw_out = ""
+  var q_ok = true
+  try {
+    setvar raw_out = $(query_instance_json "$gcloud_cmd" "$instance" "$zone")
+  }
+  if failed {
+    setvar q_ok = false
+  }
+
+  var vm = null
+  if (q_ok and len(raw_out) > 0) {
+    try {
+      json read (&vm) <<< "$raw_out" 2> /dev/null
+    }
+  }
+
+  if (type(vm) === "Dict") {
+    var st = extract_vm_status(vm)
+    var ip = extract_nat_ip(vm)
+    var disk = extract_boot_disk(vm)
+    if (len(ip) === 0) {
+      setvar ip = "none (instance stopped)"
+    }
+    echo "GCP Instance   : $instance"
+    echo "Zone           : $zone"
+    echo "Status         : $st"
+    echo "External IPv4  : $ip"
+    echo "Boot Disk      : $disk"
+  } else {
+    echo "GCP Instance   : $instance (Zone: $zone)"
+    echo "Query Error    : Unable to query instance via $gcloud_cmd."
+    if (len(raw_out) > 0) {
+      echo "gcloud Output  : $raw_out"
+    }
+  }
+
+  var state_file = get_state_file()
+  var sm_state = null
+  if test -f "$state_file" {
+    setvar sm_state = load_state(state_file, instance, zone, target, probe_target)
+  }
+
+  echo "------------------------------------------------------------"
+  var gce_ip = ""
+  if (type(vm) === "Dict") {
+    setvar gce_ip = extract_nat_ip(vm)
+  }
+  var probe_st = sm_state
+  if (probe_st === null) {
+    setvar probe_st = default_state(instance, zone, target, probe_target)
+  }
+  if (len(gce_ip) > 0) {
+    var ti = get(probe_st, "tokyo_instance", null)
+    if (type(ti) === "Dict") {
+      setvar probe_st.tokyo_instance.external_ip = gce_ip
+    }
+  }
+  var ep = determine_probe_endpoint(probe_st, target, probe_target)
+  var probe_host = ep.target
+  if (len(probe_host) === 0) {
+    setvar probe_host = target
+  }
+
+  var detail = ""
+  var sbc_ok = true
+  try {
+    setvar detail = $(probe_sbc "$probe_host" "0" "2" "$gce_ip")
+  }
+  if failed {
+    setvar sbc_ok = false
+  }
+
+  var sbc_verdict = "HEALTHY"
+  if (not sbc_ok) {
+    setvar sbc_verdict = "DOWN / UNREACHABLE"
+  }
+  echo "Primary SBC    : $target"
+  echo "Probe Target   : $probe_target"
+  echo "Active Endpoint: $probe_host ($[ep.source])"
+  echo "Health Status  : $sbc_verdict ($detail)"
+
+  var resolved_ip = resolve_ipv4(target)
+  if (len(resolved_ip) > 0) {
+    echo "Resolved Target: $resolved_ip"
+  }
+  var resolved_probe = resolve_ipv4(probe_target)
+  if (len(resolved_probe) > 0) {
+    echo "Resolved Probe : $resolved_probe"
+  }
+
+  if (sm_state !== null) {
+    var ep_dict = get(sm_state, "primary_endpoint", {})
+    var saved_ip = get(ep_dict, "saved_wan_ip", "none")
+    echo "Saved WAN IP   : $saved_ip"
+    echo "------------------------------------------------------------"
+    echo "State Machine  : $[sm_state.state] (prev: $[sm_state.previous_state])"
+    echo "Last Transition: $[sm_state.last_transition_iso]"
+    echo "Last Probe     : $[sm_state.last_probe_result] (consecutive OK: $[sm_state.consecutive_healthy], fail: $[sm_state.consecutive_failures])"
+  }
+
+  echo "============================================================"
+  return 0
+}
+
+proc usage_healthcheck() {
+  echo "Usage: failover.ysh healthcheck [options...]"
+  echo ""
+  echo "Probe physical SBC reachability via ICMP ping and optional TCP port."
+  echo ""
+  echo "Options:"
+  echo "  --target <host>       Physical SBC target hostname (default: torii-chan.t3u.uk)"
+  echo "  --probe-target <host> Dedicated probe target hostname (default: torii-chan-sbc.t3u.uk)"
+  echo "  --port <port>         TCP port to probe if ping fails (e.g. 25565 or 4242)"
+  echo "  --timeout <sec>       Probe timeout in seconds (default: 2)"
+  echo "  -h, --help            Show this help message"
+}
+
+proc cmd_healthcheck(; args) {
+  for arg in (args) {
+    case (arg) {
+      ("-h") { usage_healthcheck; return 0 }
+      ("--help") { usage_healthcheck; return 0 }
+    }
+  }
+
+  var target = get(ENV, "GCP_FAILOVER_TARGET", DEFAULT_TARGET)
+  var probe_target = get(ENV, "GCP_FAILOVER_PROBE_TARGET", DEFAULT_PROBE_TARGET)
+  var port = "0"
+  var timeout_sec = "2"
+  var probe_target_specified = (get(ENV, "GCP_FAILOVER_PROBE_TARGET", "") !== "")
+
+  var i = 0
+  while (i < len(args)) {
+    var arg = args[i]
+    case (arg) {
+      ("--target") {
+        setvar i += 1
+        if (i < len(args)) { setvar target = args[i] }
+      }
+      ("--probe-target") {
+        setvar i += 1
+        if (i < len(args)) {
+          setvar probe_target = args[i]
+          setvar probe_target_specified = true
+        }
+      }
+      ("--port") {
+        setvar i += 1
+        if (i < len(args)) {
+          var p_str = args[i]
+          try { setvar port = $(echo "$p_str" | tr -cd '0-9') }
+        }
+      }
+      ("--timeout") {
+        setvar i += 1
+        if (i < len(args)) {
+          var t_str = args[i]
+          try { setvar timeout_sec = $(echo "$t_str" | tr -cd '0-9') }
+        }
+      }
+    }
+    setvar i += 1
+  }
+
+  var host_to_probe = target
+  if (probe_target_specified or len(resolve_ipv4(target)) === 0) {
+    if (len(resolve_ipv4(probe_target)) > 0) {
+      setvar host_to_probe = probe_target
+    }
+  }
+
+  var detail = ""
+  var ok = true
+  try {
+    setvar detail = $(probe_sbc "$host_to_probe" "$port" "$timeout_sec")
+  }
+  if failed {
+    setvar ok = false
+  }
+
+  if (ok) {
+    log_info "Health check PASSED for $host_to_probe: $detail"
+    return 0
+  } else {
+    log_error "Health check FAILED for $host_to_probe: $detail"
+    return 1
+  }
+}
+
+proc usage_start_failover() {
+  echo "Usage: failover.ysh start-failover [options...]"
+  echo ""
+  echo "Start Tokyo GCP instance, wait for RUNNING state, and switch Cloudflare DNS."
+  echo ""
+  echo "Options:"
+  echo "  --instance <name>     GCP instance name (default: torii-chan-gcp)"
+  echo "  --zone <zone>         GCP zone (default: asia-northeast1-b)"
+  echo "  --target <host>       Physical SBC target hostname (default: torii-chan.t3u.uk)"
+  echo "  --probe-target <host> Dedicated probe target hostname (default: torii-chan-sbc.t3u.uk)"
+  echo "  --target-ip <ip>      Override target IP instead of querying GCP ephemeral IP"
+  echo "  --primary-ip <ip>     Override primary physical WAN IP saved before failover"
+  echo "  --dry-run             Simulate cloud actions without altering state"
+  echo "  -h, --help            Show this help message"
+}
+
+proc cmd_start_failover(; args) {
+  for arg in (args) {
+    case (arg) {
+      ("-h") { usage_start_failover; return 0 }
+      ("--help") { usage_start_failover; return 0 }
+    }
+  }
+
+  var instance = get(ENV, "GCP_FAILOVER_INSTANCE", DEFAULT_INSTANCE)
+  var zone = get(ENV, "GCP_FAILOVER_ZONE", DEFAULT_ZONE)
+  var target = get(ENV, "GCP_FAILOVER_TARGET", DEFAULT_TARGET)
+  var probe_target = get(ENV, "GCP_FAILOVER_PROBE_TARGET", DEFAULT_PROBE_TARGET)
+  var primary_ip_override = ""
+  var dry_run = false
+  var target_ip = ""
+
+  var i = 0
+  while (i < len(args)) {
+    var arg = args[i]
+    case (arg) {
+      ("--instance") {
+        setvar i += 1
+        if (i < len(args)) { setvar instance = args[i] }
+      }
+      ("--zone") {
+        setvar i += 1
+        if (i < len(args)) { setvar zone = args[i] }
+      }
+      ("--target") {
+        setvar i += 1
+        if (i < len(args)) { setvar target = args[i] }
+      }
+      ("--probe-target") {
+        setvar i += 1
+        if (i < len(args)) { setvar probe_target = args[i] }
+      }
+      ("--target-ip") {
+        setvar i += 1
+        if (i < len(args)) { setvar target_ip = args[i] }
+      }
+      ("--primary-ip") {
+        setvar i += 1
+        if (i < len(args)) { setvar primary_ip_override = args[i] }
+      }
+      ("--dry-run") {
+        setvar dry_run = true
+      }
+    }
+    setvar i += 1
+  }
+
+  var lock_file = get_lock_file()
+  var lock_dir = $(dirname "$lock_file")
+  mkdir -p "$lock_dir"
+
+  var state_file = get_effective_state_file(dry_run)
+
+  log_info "Initiating failover sequence to Tokyo instance '$instance' in zone '$zone'..."
+
+  {
+    var lock_ok = true
+    try { flock -w 30 9 }
+    if failed { setvar lock_ok = false }
+    if (not lock_ok) {
+      log_error "Failed to acquire lock ($lock_file) within 30 seconds. Another operation is active."
+      return 1
+    }
+    echo "$$" >&9
+
+    var st = load_state(state_file, instance, zone, target, probe_target)
+    var now = int($(date +%s))
+    var iso = format_timestamp()
+
+    setvar st.previous_state = st.state
+    setvar st.state = "FAILING_OVER"
+    setvar st.last_transition_time = now
+    setvar st.last_transition_iso = iso
+    save_state "$state_file" (st)
+
+    var fo_ok = true
+    try {
+      execute_failover (st, instance, zone, target_ip, primary_ip_override, dry_run)
+    }
+    if failed {
+      setvar fo_ok = false
+    }
+
+    if (fo_ok) {
+      setvar st.previous_state = "FAILING_OVER"
+      setvar st.state = "FAILOVER"
+      setvar st.failover_start_time = now
+      setvar st.last_transition_time = now
+      setvar st.last_transition_iso = iso
+      setvar st.consecutive_healthy = 0
+      save_state "$state_file" (st)
+      log_info "Failover sequence complete. Traffic routed to Tokyo instance."
+      return 0
+    } else {
+      setvar st.previous_state = "FAILING_OVER"
+      setvar st.state = "DEGRADED"
+      save_state "$state_file" (st)
+      log_error "Failover sequence failed; state reset to DEGRADED so the next probe retries."
+      return 1
+    }
+  } 9> "$lock_file"
+}
+
+proc usage_start_failback() {
+  echo "Usage: failover.ysh start-failback [options...]"
+  echo ""
+  echo "Verify SBC recovery, stop Tokyo GCP instance (STONITH), and restore Cloudflare DNS."
+  echo ""
+  echo "Options:"
+  echo "  --instance <name>     GCP instance name (default: torii-chan-gcp)"
+  echo "  --zone <zone>         GCP zone (default: asia-northeast1-b)"
+  echo "  --target <host>       Physical SBC target hostname (default: torii-chan.t3u.uk)"
+  echo "  --probe-target <host> Dedicated probe target hostname (default: torii-chan-sbc.t3u.uk)"
+  echo "  --primary-ip <ip>     Primary WAN IP for Cloudflare DNS restoration"
+  echo "  --dry-run             Simulate cloud actions without altering state"
+  echo "  --force               Bypass SBC pre-flight reachability gate"
+  echo "  -h, --help            Show this help message"
+}
+
+proc cmd_start_failback(; args) {
+  for arg in (args) {
+    case (arg) {
+      ("-h") { usage_start_failback; return 0 }
+      ("--help") { usage_start_failback; return 0 }
+    }
+  }
+
+  var instance = get(ENV, "GCP_FAILOVER_INSTANCE", DEFAULT_INSTANCE)
+  var zone = get(ENV, "GCP_FAILOVER_ZONE", DEFAULT_ZONE)
+  var target = get(ENV, "GCP_FAILOVER_TARGET", DEFAULT_TARGET)
+  var probe_target = get(ENV, "GCP_FAILOVER_PROBE_TARGET", DEFAULT_PROBE_TARGET)
+  var primary_ip = ""
+  var dry_run = false
+  var force = false
+
+  var i = 0
+  while (i < len(args)) {
+    var arg = args[i]
+    case (arg) {
+      ("--instance") {
+        setvar i += 1
+        if (i < len(args)) { setvar instance = args[i] }
+      }
+      ("--zone") {
+        setvar i += 1
+        if (i < len(args)) { setvar zone = args[i] }
+      }
+      ("--target") {
+        setvar i += 1
+        if (i < len(args)) { setvar target = args[i] }
+      }
+      ("--probe-target") {
+        setvar i += 1
+        if (i < len(args)) { setvar probe_target = args[i] }
+      }
+      ("--primary-ip") {
+        setvar i += 1
+        if (i < len(args)) { setvar primary_ip = args[i] }
+      }
+      ("--dry-run") {
+        setvar dry_run = true
+      }
+      ("--force") {
+        setvar force = true
+      }
+    }
+    setvar i += 1
+  }
+
+  var lock_file = get_lock_file()
+  var lock_dir = $(dirname "$lock_file")
+  mkdir -p "$lock_dir"
+  var state_file = get_effective_state_file(dry_run)
+
+  log_info "Initiating failback sequence to primary SBC ($target)..."
+
+  if (not force) {
+    var pre_st = load_state(state_file, instance, zone, target, probe_target)
+    var pre_endpoint = determine_probe_endpoint(pre_st, target, probe_target)
+    var check_target = pre_endpoint.target
+    var gce_ip = ""
+    var ti = get(pre_st, "tokyo_instance", null)
+    if (type(ti) === "Dict") {
+      var raw_ip = get(ti, "external_ip", "")
+      if (type(raw_ip) === "Str") { setvar gce_ip = raw_ip }
+    }
+
+    var detail = ""
+    var sbc_ok = true
+    if (len(check_target) === 0) {
+      setvar sbc_ok = false
+      setvar detail = "probe blocked: target resolves to active GCE failover IP and no distinct probe endpoint is available"
+    } else {
+      try {
+        setvar detail = $(probe_sbc "$check_target" "0" "3" "$gce_ip")
+      }
+      if failed {
+        setvar sbc_ok = false
+        setvar detail = "probe timeout / unreachable ($check_target)"
+      }
+    }
+    if (not sbc_ok) {
+      log_error "Primary SBC is not reachable ($detail). Refusing failback to prevent edge blackout."
+      log_error "Verify SBC connectivity or pass --force to override."
+      return 1
+    }
+    log_info "Pre-flight check passed: Primary SBC is alive at $check_target ($detail)."
+  }
+
+  {
+    var lock_ok = true
+    try { flock -w 30 9 }
+    if failed { setvar lock_ok = false }
+    if (not lock_ok) {
+      log_error "Failed to acquire lock ($lock_file) within 30 seconds. Another operation is active."
+      return 1
+    }
+    echo "$$" >&9
+
+    var st = load_state(state_file, instance, zone, target, probe_target)
+    var now = int($(date +%s))
+    var iso = format_timestamp()
+
+    setvar st.previous_state = st.state
+    setvar st.state = "FAILING_BACK"
+    setvar st.last_transition_time = now
+    setvar st.last_transition_iso = iso
+    save_state "$state_file" (st)
+
+    var fb_ok = true
+    try {
+      execute_failback (st, instance, zone, target, primary_ip, dry_run)
+    }
+    if failed {
+      setvar fb_ok = false
+    }
+
+    if (fb_ok) {
+      setvar st.previous_state = "FAILING_BACK"
+      setvar st.state = "NORMAL"
+      setvar st.last_transition_time = now
+      setvar st.last_transition_iso = iso
+      setvar st.failover_start_time = 0
+      setvar st.consecutive_failures = 0
+      setvar st.consecutive_healthy = 1
+      save_state "$state_file" (st)
+      log_info "Failback sequence complete. Edge routing restored to primary SBC."
+      return 0
+    } else {
+      setvar st.previous_state = "FAILING_BACK"
+      setvar st.state = "RECOVERING"
+      save_state "$state_file" (st)
+      log_error "Failback sequence failed."
+      return 1
+    }
+  } 9> "$lock_file"
+}
+
+proc usage_watch() {
+  echo "Usage: failover.ysh watch [options...]"
+  echo ""
+  echo "Run continuous monitoring daemon with anti-flapping hysteresis and STONITH failback."
+  echo ""
+  echo "Options:"
+  echo "  --interval <sec>             Probe interval in seconds (default: 10)"
+  echo "  --failover-threshold <num>   Consecutive probe failures to trigger failover (default: 3)"
+  echo "  --failback-threshold <num>   Consecutive probe successes to trigger failback (default: 30)"
+  echo "  --min-dwell <sec>            Minimum failover dwell time in seconds (default: 600)"
+  echo "  --instance <name>            GCP instance name (default: torii-chan-gcp)"
+  echo "  --zone <zone>                GCP zone (default: asia-northeast1-b)"
+  echo "  --target <host>              Physical SBC target hostname (default: torii-chan.t3u.uk)"
+  echo "  --probe-target <host>        Dedicated probe target hostname (default: torii-chan-sbc.t3u.uk)"
+  echo "  --dry-run                    Simulate cloud actions without altering state"
+  echo "  -h, --help                   Show this help message"
+}
+
+proc cmd_watch(; args) {
+  for arg in (args) {
+    case (arg) {
+      ("-h") { usage_watch; return 0 }
+      ("--help") { usage_watch; return 0 }
+    }
+  }
+
+  var interval = DEFAULT_WATCH_INTERVAL
+  var failover_threshold = DEFAULT_FAILOVER_THRESHOLD
+  var failback_threshold = DEFAULT_FAILBACK_THRESHOLD
+  var min_dwell = DEFAULT_MIN_DWELL_SEC
+  var target = get(ENV, "GCP_FAILOVER_TARGET", DEFAULT_TARGET)
+  var probe_target = get(ENV, "GCP_FAILOVER_PROBE_TARGET", DEFAULT_PROBE_TARGET)
+  var instance = get(ENV, "GCP_FAILOVER_INSTANCE", DEFAULT_INSTANCE)
+  var zone = get(ENV, "GCP_FAILOVER_ZONE", DEFAULT_ZONE)
+  var dry_run = false
+
+  var i = 0
+  while (i < len(args)) {
+    var arg = args[i]
+    case (arg) {
+      ("--interval") {
+        setvar i += 1
+        if (i < len(args)) {
+          var int_str = args[i]
+          try { setvar interval = int($(echo "$int_str" | tr -cd '0-9')) }
+        }
+      }
+      ("--failover-threshold") {
+        setvar i += 1
+        if (i < len(args)) {
+          var fo_str = args[i]
+          try { setvar failover_threshold = int($(echo "$fo_str" | tr -cd '0-9')) }
+        }
+      }
+      ("--failback-threshold") {
+        setvar i += 1
+        if (i < len(args)) {
+          var fb_str = args[i]
+          try { setvar failback_threshold = int($(echo "$fb_str" | tr -cd '0-9')) }
+        }
+      }
+      ("--min-dwell") {
+        setvar i += 1
+        if (i < len(args)) {
+          var dw_str = args[i]
+          try { setvar min_dwell = int($(echo "$dw_str" | tr -cd '0-9')) }
+        }
+      }
+      ("--target") {
+        setvar i += 1
+        if (i < len(args)) { setvar target = args[i] }
+      }
+      ("--probe-target") {
+        setvar i += 1
+        if (i < len(args)) { setvar probe_target = args[i] }
+      }
+      ("--instance") {
+        setvar i += 1
+        if (i < len(args)) { setvar instance = args[i] }
+      }
+      ("--zone") {
+        setvar i += 1
+        if (i < len(args)) { setvar zone = args[i] }
+      }
+      ("--dry-run") {
+        setvar dry_run = true
+      }
+    }
+    setvar i += 1
+  }
+
+  log_info "Starting US Always Free Watcher Daemon..."
+  log_info "Target SBC         : $target"
+  log_info "Probe Target SBC   : $probe_target"
+  log_info "Tokyo Failover VM  : $instance ($zone)"
+  log_info "Probe Interval     : ${interval}s"
+  log_info "Outage Threshold   : ${failover_threshold} consecutive failures ($[failover_threshold * interval]s)"
+  log_info "Recovery Threshold : ${failback_threshold} consecutive successes ($[failback_threshold * interval]s)"
+  log_info "Min Dwell Time     : ${min_dwell}s"
+
+  var state_file = get_effective_state_file(dry_run)
+  var lock_file = get_lock_file()
+  var lock_dir = $(dirname "$lock_file")
+  mkdir -p "$lock_dir"
+
+  trap --add INT {
+    log_info "Watcher daemon interrupted by SIGINT. Terminating gracefully."
+    exit 0
+  }
+  trap --add TERM {
+    log_info "Watcher daemon received SIGTERM. Terminating gracefully."
+    exit 0
+  }
+
+  while (true) {
+    {
+      var lock_ok = true
+      try { flock -n 9 }
+      if failed { setvar lock_ok = false }
+
+      if (not lock_ok) {
+        log_warn "Lock ($lock_file) held by concurrent process. Skipping watch tick."
+      } else {
+        echo "$$" >&9
+        step_watch_tick (state_file, instance, zone, target, probe_target, interval, failover_threshold, failback_threshold, min_dwell, dry_run)
+      }
+    } 9> "$lock_file"
+
+    sleep $interval
+  }
+}
+
+proc usage() {
+  echo "Usage: failover.ysh <command> [options...]"
+  echo ""
+  echo "Google Cloud On-Demand Failover & Failback Controller"
+  echo ""
+  echo "Commands:"
+  echo "  status         Query GCP instance status and SBC endpoint reachability"
+  echo "  healthcheck    Probe physical SBC endpoint (ping / TCP)"
+  echo "  start-failover Start Tokyo VM, wait for RUNNING, sync Cloudflare DNS"
+  echo "  start-failback Verify SBC, stop Tokyo VM (STONITH), restore Cloudflare DNS"
+  echo "  watch          Continuous daemon loop with anti-flapping state machine"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help     Show this usage guide"
+  echo ""
+  echo "Run 'failover.ysh <command> --help' for details on a specific command."
+}
+
+if (len(ARGV) === 0) {
+  usage
+  exit 2
+}
+
+var command = ARGV[0]
+var rest_args = ARGV[1:]
+
+case (command) {
+  ("status") { cmd_status (rest_args) }
+  ("healthcheck") { cmd_healthcheck (rest_args) }
+  ("start-failover") { cmd_start_failover (rest_args) }
+  ("start-failback") { cmd_start_failback (rest_args) }
+  ("watch") { cmd_watch (rest_args) }
+  ("-h") { usage; exit 0 }
+  ("--help") { usage; exit 0 }
+  (else) {
+    log_error "Unknown command: $command"
+    usage
+    exit 2
+  }
+}

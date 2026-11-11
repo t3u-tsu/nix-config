@@ -7,13 +7,14 @@
 ### 1. [アーキテクチャ設計](architecture/)
 - [architecture/overview.md](architecture/overview.md) — リポジトリの層構成とモジュール評価フロー
 - [architecture/network-topology.md](architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，ポートフォワード，DNS 設計
+- [architecture/gcp-cost-analysis.md](architecture/gcp-cost-analysis.md) — Google Cloud 料金・遅延設計分析
 - [architecture/flake-and-modules.md](architecture/flake-and-modules.md) — Flake 構成，`mkSystem`, `my.*` オプション設計原則
 
 ### 2. [運用手順書](operations/)
 - [operations/adding-a-host.md](operations/adding-a-host.md) — 新規マシンの追加・初期セットアップの標準手順
 - [operations/secret-management.md](operations/secret-management.md) — agenix-rekey / age / Bitwarden 鍵ライフサイクル，証明書更新
 - [operations/backup-and-restore.md](operations/backup-and-restore.md) — Restic バックアップ運用，障害時完全復旧 (DR) 手順
-- [operations/vps-failover.md](operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替・切戻し手順
+- [operations/gcp-failover.md](operations/gcp-failover.md) — Google Cloud フェイルオーバー運用手順書
 - [operations/emergency-cf-ssh.md](operations/emergency-cf-ssh.md) — Cloudflare Tunnel を用いた非常用 SSH アクセス手順 (帯域外管理)
 - [operations/maintenance.md](operations/maintenance.md) — 日次自動更新，ガベージコレクション，定期保守
 

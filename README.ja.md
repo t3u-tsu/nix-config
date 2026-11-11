@@ -25,19 +25,20 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 | シークレット管理 | agenix-rekey + agenix + age |
 | メッシュ VPN | Nebula |
 | バックアップ | Restic + ZFS Mirror |
+| リモートデプロイ | deploy-rs |
 | IaC | OpenTofu |
 
 ## ディレクトリ構成
 
 - [flake.nix](flake.nix) — flake-parts エントリポイント
-- [flake/](flake/) — flake-parts モジュール群 (`hosts`, `overlays`, `packages`, `dev`)
+- [flake/](flake/) — flake-parts モジュール群 (`hosts`, `overlays`, `packages`, `dev`, `deploy`)
 - [lib/](lib/) — `mkSystem` システムビルダー，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，Nebula ノード台帳 (`nebula-fleet.nix`)
 - [nixos/](nixos/) — 全ホスト共通のシステムレベル NixOS モジュール群
 - [home/](home/) — Home Manager ユーザー環境モジュール群
 - [hosts/](hosts/) — マシン固有の設定・ハードウェア定義
 - [secrets/](secrets/) — agenix-rekey で暗号化された秘密情報
 - [scripts/](scripts/) — クラスタ運用・保守スクリプト
-- [terraform/](terraform/) — ConoHa VPS インフラの OpenTofu 定義
+- [terraform/](terraform/) — Google Cloud フェイルオーバーゲートウェイインフラの OpenTofu 定義
 - [docs/](docs/) — 設計仕様，運用手順書，ハードウェア解説，障害復旧手順
 
 システムアーキテクチャとモジュール評価フローは [docs/architecture/overview.md](docs/architecture/overview.md) を参照．
@@ -54,9 +55,8 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 | `BrokenPC` | 可搬ゲーミングノートPC (HP Victus 16-e1065AX) |
 | `shosoin-tan`, `kagutsuchi-sama`, `sando-kun` | タワーサーバークラスタ |
 | `torii-chan-sd` / `torii-chan-hdd` | Orange Pi Zero 3 SBC 上のエッジ VPN ゲートウェイ (SD / HDD ブート) |
-| `torii-chan-vps` | ConoHa VPS 上のフェイルオーバーゲートウェイ (x86_64) |
+| `torii-chan-gcp` | Google Cloud 上のオンデマンド・フェイルオーバーゲートウェイ (x86_64) |
 | `torii-chan-sd-installer` | SD カードインストーライメージ ([hosts/torii-chan/build-sd-image.ysh](hosts/torii-chan/build-sd-image.ysh)) |
-| `torii-chan-vps-iso` | VPS レスキューインストーラ ISO パッケージ (`nix build .#torii-chan-vps-iso`) |
 
 ローカルマシンへの設定適用:
 ```bash
@@ -70,9 +70,13 @@ Nebula 経由でのリモートサーバーへのデプロイ:
 nixos-rebuild switch --flake .#shosoin-tan --target-host t3u@10.0.0.4 --sudo --ask-sudo-password
 ```
 
-SBC (`torii-chan`)へのリモートデプロイ:
+SBC (`torii-chan`) またはフェイルオーバーノード (`torii-chan-gcp`) への deploy-rs プッシュデプロイ (1 GB RAM 機での OOM 回避):
 ```bash
-nixos-rebuild switch --flake .#torii-chan-hdd --target-host t3u@10.0.0.1 --sudo --ask-sudo-password --option sandbox false --option filter-syscalls false
+# 物理 SBC へのプッシュデプロイ
+deploy .#torii-chan
+
+# Google Cloud フェイルオーバーゲートウェイへのプッシュデプロイ
+deploy .#torii-chan-gcp
 ```
 
 ## 新規ホストの追加

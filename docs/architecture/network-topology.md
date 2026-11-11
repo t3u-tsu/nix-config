@@ -4,7 +4,7 @@
 
 ## 1. マルチサイト・ネットワーク全体トポロジ
 
-拠点T (エッジゲートウェイ・Lighthouse)，拠点A (サーバークラスタ・端末群)，およびクラウド (待機系 VPS) を Nebula メッシュ VPN (`10.0.0.0/24`, MTU 1320) で相互接続する．クライアント端末 (BrokenPC, x1c7) は拠点A LAN 内および公衆網 (モバイル) から Nebula を経由してクラスタへ参加する．
+拠点T (エッジゲートウェイ・Lighthouse)，拠点A (サーバークラスタ・端末群)，およびクラウド (Google Cloud オンデマンド待機系ゲートウェイ) を Nebula メッシュ VPN (`10.0.0.0/24`, MTU 1320) で相互接続する．クライアント端末 (BrokenPC, x1c7) は拠点A LAN 内および公衆網 (モバイル) から Nebula を経由してクラスタへ参加する．
 
 ```mermaid
 flowchart TD
@@ -21,8 +21,8 @@ flowchart TD
         TRouter --- Torii
     end
 
-    subgraph Failover["【クラウド】 (待機系 VPS)"]
-        VPS["torii-chan-vps (10.0.0.1 待機系)<br>ConoHa VPS (x86_64)<br>・待機系 Lighthouse & Relay<br>・SBC 停止時に 10.0.0.1 を引き継ぐ"]
+    subgraph Failover["【クラウド】 (Google Cloud 待機系)"]
+        GCP["torii-chan-gcp (10.0.0.1 待機系)<br>Google Cloud (x86_64, asia-northeast1)<br>・低遅延オンデマンド Lighthouse & Relay<br>・SBC 停止時に 10.0.0.1 を引き継ぐ"]
     end
 
     subgraph SiteA["【拠点A】 (LAN: 192.168.42.0/24)"]
@@ -58,7 +58,7 @@ flowchart TD
     Shosoin -->|"Restic SFTP (10.0.0.3)"| Kagutsuchi
 
     %% フェイルオーバー
-    Torii -.->|"障害時切替"| VPS
+    Torii -.->|"障害時切替"| GCP
 ```
 
 ---
@@ -75,7 +75,7 @@ flowchart TD
 | `shosoin-tan` | `10.0.0.4` | 拠点A (`192.168.42.x`) | `mgmt,app` | Minecraft サーバー，Discord Bridge，ZFS ストレージ |
 | `BrokenPC` | `10.0.0.100` | 拠点A / モバイル | `mgmt,app` | サブ機 (可搬ノートPC)，ローカル LLM 推論 |
 | `x1c7` | `10.0.0.101` | 拠点A / モバイル | `mgmt,app` | モバイルノートPC (ThinkPad X1C7) |
-| `torii-chan-vps` | `10.0.0.1` (待機系) | クラウド (ConoHa VPS) | `mgmt` | 待機系 Lighthouse & Relay (SBC 停止時に 10.0.0.1 を引き継ぐ) |
+| `torii-chan-gcp` | `10.0.0.1` (待機系) | クラウド (Google Cloud, asia-northeast1) | `mgmt` | 待機系 Lighthouse & Relay (SBC 停止時に 10.0.0.1 を引き継ぐ) |
 
 ---
 
@@ -84,7 +84,7 @@ flowchart TD
 ### 3.1 メッシュネットワークの適用範囲と通信構造
 - 管理下の全ノード (`10.0.0.0/24`) 間でメッシュを構成し，外部インターネットや未登録端末とは論理的に分離する．
 - 同一 LAN (拠点A 内など) にあるノード間は直接通信し，拠点間など直接到達できない場合は Lighthouse / Relay (`torii-chan`) を経由して接続する．
-- プライマリ Lighthouse (`torii-chan`) 障害時は，クラウド上の待機系 VPS (`torii-chan-vps`) へ切り替えて接続性を維持する (詳細は [../operations/vps-failover.md](../operations/vps-failover.md) 参照)．
+- プライマリ Lighthouse (`torii-chan`) 障害時は，クラウド上のオンデマンド待機系ゲートウェイ (`torii-chan-gcp`) へ切り替えて接続性を維持する (詳細は [../operations/gcp-failover.md](../operations/gcp-failover.md) および [gcp-cost-analysis.md](gcp-cost-analysis.md) 参照)．
 
 ### 3.2 外部公開とポートフォワーディング
 - 拠点Tの `torii-chan` 上で稼働する Cloudflare DDNS サービスが，動的グローバル IPv4 アドレスを検知して A レコード (`torii-chan.t3u.uk`, `mc.t3u.uk`, `*.mc.t3u.uk` 等) を自動更新する．
@@ -128,5 +128,6 @@ Cloudflare Tunnel 経由の接続は以下の 3 層で保護する:
 - [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](../operations/emergency-cf-ssh.md) — Cloudflare Tunnel 経由の非常用アクセス手順
 - [リポジトリ全体アーキテクチャ](overview.md) — リポジトリの全体構成と設計方針
 - [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
-- [ConoHa VPS プロビジョニング & フェイルオーバー手順](../operations/vps-failover.md) — VPS 待機系への切り替えと切り戻し手順
+- [Google Cloud オンデマンド・フェイルオーバー手順](../operations/gcp-failover.md) — GCP 待機系への切り替えと切り戻し手順
+- [Google Cloud 料金・遅延設計分析](gcp-cost-analysis.md) — 東京オンデマンド構成の維持費試算とワークロード遅延分析
 - [トラブルシューティング: ネットワーク](../troubleshooting/network-recovery.md) — ネットワーク障害時の切り分けと復旧手順

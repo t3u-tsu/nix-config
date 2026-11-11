@@ -12,9 +12,9 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 | [kagutsuchi-sama](kagutsuchi-sama/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.3` | Xeon E5-2650 v2 Tower | Compute server, Restic backup receiver |
 | [sando-kun](sando-kun/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.2` | Core i7-860 Tower | General-purpose tower server (Legacy BIOS) |
 | [torii-chan](torii-chan/README.md) | `gateway` | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway; SBC constraints from [sbc.nix](torii-chan/sbc.nix) |
-| `torii-chan-vps` | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | ConoHa VPS (512MB) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
+| `torii-chan-gcp` | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | Google Cloud e2-micro (asia-northeast1) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
 
-`torii-chan` is declared with `variants`, so the fleet exposes it as `torii-chan-sd-installer`, `torii-chan-sd`, `torii-chan-hdd`, and `torii-chan-vps`.
+`torii-chan` is declared with `variants`, so the fleet exposes it as `torii-chan-sd-installer`, `torii-chan-sd`, `torii-chan-hdd`, and `torii-chan-gcp`.
 
 ## Registration
 
@@ -40,9 +40,9 @@ torii-chan = {
         ../hosts/torii-chan/fs-hdd.nix
       ];
     };
-    vps = {
+    gcp = {
       system = "x86_64-linux";
-      extraModules = [ ../hosts/torii-chan/vps.nix ];
+      extraModules = [ ../hosts/torii-chan/gcp.nix ];
     };
   };
 };
@@ -50,7 +50,7 @@ torii-chan = {
 
 ## Directory Layout
 
-Most host configurations follow this layout. `torii-chan` is the exception: its `default.nix` only carries the shared role, and the boot chain, filesystems, and WAN networking come from per-platform modules (`sbc.nix` / `vps.nix` / `fs-hdd.nix` / `fs-sd.nix`) selected in [flake/hosts.nix](../flake/hosts.nix).
+Most host configurations follow this layout. `torii-chan` is the exception: its `default.nix` only carries the shared role, and the boot chain, filesystems, and WAN networking come from per-platform modules (`sbc.nix` / `gcp.nix` / `fs-hdd.nix` / `fs-sd.nix`) selected in [flake/hosts.nix](../flake/hosts.nix).
 
 ```text
 hosts/<hostname>/
@@ -73,3 +73,4 @@ hosts/<hostname>/
 - Host addition runbook: [docs/operations/adding-a-host.md](../docs/operations/adding-a-host.md)
 - Network topology & IP allocation: [docs/architecture/network-topology.md](../docs/architecture/network-topology.md)
 - System evaluation architecture: [docs/architecture/overview.md](../docs/architecture/overview.md)
+- Failover gateway runbook: [docs/operations/gcp-failover.md](../docs/operations/gcp-failover.md)

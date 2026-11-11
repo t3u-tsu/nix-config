@@ -190,4 +190,4 @@ sudo nixos-rebuild switch --rollback
 - [ネットワークアーキテクチャ](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
 - [ネットワーク障害トラブルシューティング](../troubleshooting/network-recovery.md) — Nebula メッシュ不通，物理 LAN SSH 遮断，NAT loopback 回避
 - [シークレット & 鍵ライフサイクル管理](secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
-- [ConoHa VPS プロビジョニング & フェイルオーバー手順](vps-failover.md) — VPS フェイルオーバー起動と切り戻し手順
+- [Google Cloud フェイルオーバー運用手順書](gcp-failover.md) — GCP 待機系への切り替えと切り戻し手順

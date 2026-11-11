@@ -1,5 +1,4 @@
-# Common settings for the "installer" stage, shared by the SBC SD image
-# (sd-installer.nix) and the VPS installer ISO (vps-installer.nix): production
+# Common settings for the installer stage: production
 # gateway services and agenix-managed password hashes are not used, login is by a
 # temporary password (injected by build-*.ysh in an --impure build) or public key.
 {
@@ -49,11 +48,7 @@ in
     allowPasswordAuthentication = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = ''
-        Allow SSH password authentication. LAN-only installers (SBC) can enable
-        this for convenience together with the temporary password; installers
-        exposed to the internet (VPS) should keep it disabled (key-only).
-      '';
+      description = "Allow SSH password authentication for the installer environment.";
     };
 
     firewallOpenPorts = lib.mkOption {

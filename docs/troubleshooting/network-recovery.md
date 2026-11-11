@@ -248,7 +248,7 @@ getent hosts torii-chan.t3u.uk
 ## 関連ドキュメント
 - [非常用 SSH アクセス運用マニュアル (Cloudflare Tunnel)](../operations/emergency-cf-ssh.md) — Cloudflare Tunnel を用いた非常用帯域外 SSH アクセス
 - [ネットワークアーキテクチャ設計](../architecture/network-topology.md) — Nebula メッシュネットワーク，IP 体系，DNS 設計
-- [VPS フェイルオーバー手順](../operations/vps-failover.md) — ConoHa VPS プロビジョニング & フェイルオーバー切替手順
+- [Google Cloud フェイルオーバー運用手順書](../operations/gcp-failover.md) — GCP 待機系への切り替えと切り戻し手順
 - [シークレット & 鍵ライフサイクル管理](../operations/secret-management.md) — agenix-rekey, age, Bitwarden による鍵・暗号化管理方針
 - [Nebula モジュール実装](../../nixos/networking/nebula.nix) — 本リポジトリの Nebula メッシュ VPN 定義
 - [ローカルネットワーク最適化モジュール](../../nixos/networking/local-network.nix) — NAT loopback 回避と hosts / gai.conf 最適化

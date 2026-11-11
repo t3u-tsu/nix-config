@@ -1,7 +1,6 @@
 # Installer SD card image for the Orange Pi Zero3: provisions the production SD
 # (torii-chan-sd) or HDD (torii-chan-hdd) config, so no production services run.
-# Shares installer-common.nix with the VPS installer ISO; the temporary password
-# is only valid in the live environment (build via ./build-sd-image.ysh).
+# The temporary password is only valid in the live environment (build via ./build-sd-image.ysh).
 {
   pkgs,
   modulesPath,
@@ -26,7 +25,7 @@
   my.installer = {
     enable = true;
     # LAN-only (static 192.168.0.128 from sbc.nix), so the temporary password is
-    # allowed; the VPS installer is key-only.
+    # allowed.
     allowPasswordAuthentication = true;
   };
 }

@@ -1,6 +1,6 @@
 # Host: torii-chan (Nebula Gateway / Lighthouse & Relay)
 
-Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), with automated failover to ConoHa VPS.
+Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), with failover support.
 
 ## Hardware Specifications
 
@@ -18,7 +18,7 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 - Runs Cloudflare DDNS to synchronize `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk` with the edge dynamic IP.
 - Forwards public `tcp/25565` traffic (DNAT) to `shosoin-tan` (`10.0.0.4:25565`) across the Nebula overlay.
 - Restricts SSH access (port 22) to `nebula0` while publicly exposing UDP `4242` (Nebula) and TCP `25565` (Minecraft).
-- Shares hostname and agenix secrets with `torii-chan-vps` for automated failover.
+- Shares hostname and agenix secrets with the failover node.
 
 ## Configuration Summary
 
@@ -33,13 +33,12 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 
 | File | Description | Target / Role |
 | :--- | :--- | :--- |
-| [default.nix](default.nix) | Shared gateway host definition (host key, emergency SSH); platform wiring comes from the modules selected in [flake/hosts.nix](../../flake/hosts.nix). | Shared by SBC and VPS targets |
+| [default.nix](default.nix) | Shared gateway host definition (host key, emergency SSH); platform wiring comes from the modules selected in [flake/hosts.nix](../../flake/hosts.nix). | Shared by gateway targets |
 | [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP). | `torii-chan-hdd`, `torii-chan-sd` |
-| [vps.nix](vps.nix) | Hardware and networking layer for ConoHa VPS failover instance. | `torii-chan-vps` |
 | [fs-hdd.nix](fs-hdd.nix) | Filesystem declarations for USB SATA HDD root deployment. | `torii-chan-hdd` |
 | [fs-sd.nix](fs-sd.nix) | Filesystem declarations for MicroSD root deployment. | `torii-chan-sd` |
+| [gcp.nix](gcp.nix) | GCE platform layer for Google Cloud on-demand failover (GRUB, DHCP, swap). | `torii-chan-gcp` |
 | [sd-installer.nix](sd-installer.nix) | Minimal bootstrap installer definition for Orange Pi Zero 3. | `torii-chan-sd-installer` |
-| [vps-installer.nix](vps-installer.nix) | Minimal installer ISO generator for ConoHa VPS rescue environment. | `torii-chan-vps-iso` |
 | [installer-common.nix](installer-common.nix) | Common SSH keys and networking setup for bootstrap installers. | Shared by installers |
 
 ## Flake Targets
@@ -48,9 +47,8 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | :--- | :--- | :--- |
 | `torii-chan-hdd` | `aarch64-linux` | Production SBC deployment (Root on USB SATA HDD) |
 | `torii-chan-sd` | `aarch64-linux` | Production SBC deployment (Root on MicroSD) |
-| `torii-chan-vps` | `x86_64-linux` | Failover deployment on ConoHa VPS (512MB) |
 | `torii-chan-sd-installer` | `aarch64-linux` | Minimal SD installer image (nixosConfiguration) |
-| `torii-chan-vps-iso` | `x86_64-linux` | Rescue installer ISO package (`nix build .#torii-chan-vps-iso`, not a nixosConfiguration) |
+| `torii-chan-gcp` | `x86_64-linux` | Google Cloud on-demand failover node (e2-micro in asia-northeast1) |
 
 ## Quick Operations
 
@@ -67,6 +65,6 @@ nixos-rebuild switch \
 ## References
 
 - Hardware architecture, U-Boot, and storage: [docs/hardware/orange-pi-zero3.md](../../docs/hardware/orange-pi-zero3.md)
-- ConoHa VPS failover & failback runbook: [docs/operations/vps-failover.md](../../docs/operations/vps-failover.md)
+- GCP failover & recovery runbook: [docs/operations/gcp-failover.md](../../docs/operations/gcp-failover.md)
 - Network topology: [docs/architecture/network-topology.md](../../docs/architecture/network-topology.md)
 - Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)

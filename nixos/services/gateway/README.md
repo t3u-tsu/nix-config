@@ -1,6 +1,6 @@
 # Gateway Services (`nixos/services/gateway/`)
 
-Network routing and gateway services for the `torii-chan` role, shared between the physical SBC and failover VPS.
+Network routing and gateway services for the `torii-chan` role, shared between the physical SBC and failover cloud node (`torii-chan-gcp`).
 
 ## Services Architecture
 
@@ -17,13 +17,13 @@ Network routing and gateway services for the `torii-chan` role, shared between t
 
 | Port / Protocol | Inbound Interface | Destination | Description |
 | :--- | :--- | :--- | :--- |
-| **UDP 4242** | WAN (`end0`; `eth0` on the VPS) | Localhost (`torii-chan`) | Nebula Lighthouse discovery and relay traffic |
-| **TCP 25565** | WAN (`end0`; `eth0` on the VPS) | `10.0.0.4:25565` (`shosoin-tan`) | Public Minecraft DNAT forwarding |
+| **UDP 4242** | WAN (`end0`; `eth0` on the cloud VM) | Localhost (`torii-chan`) | Nebula Lighthouse discovery and relay traffic |
+| **TCP 25565** | WAN (`end0`; `eth0` on the cloud VM) | `10.0.0.4:25565` (`shosoin-tan`) | Public Minecraft DNAT forwarding |
 | **TCP 22** | Mesh (`nebula0`) | Localhost (`torii-chan`) | Administrative SSH access (blocked on WAN) |
 
 ## References
 
 - Hardware guide (Orange Pi Zero 3): [docs/hardware/orange-pi-zero3.md](../../../docs/hardware/orange-pi-zero3.md)
-- Failover runbook (ConoHa VPS): [docs/operations/vps-failover.md](../../../docs/operations/vps-failover.md)
+- Failover runbook (Google Cloud): [docs/operations/gcp-failover.md](../../../docs/operations/gcp-failover.md)
 - Network topology: [docs/architecture/network-topology.md](../../../docs/architecture/network-topology.md)
 - Host configuration: [hosts/torii-chan/](../../../hosts/torii-chan/README.md)
