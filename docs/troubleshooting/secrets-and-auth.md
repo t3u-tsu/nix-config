@@ -8,6 +8,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 | `home-manager` の `agenix.service` 復号失敗 (`~/.ssh/id_ed25519 not present`) | 作業端末の `~/.ssh/id_ed25519` 欠落，または旧 `sops-nix` のリンク切れ (`/run/secrets/...`) | `just secret doctor` で状態確認，`just secret ssh-restore` で Bitwarden から復元 |
 | private flake input フェッチ失敗 | SSH エイリアス `github-nix-config-private` 未設定 (初回時) | `/root/.ssh/config` とデプロイキーの一時配備 (ブートストラップ) |
 | activation 失敗で emergency mode | シークレット復号失敗，`users.mutableUsers = false` によるパスワード不能 | GRUB から健全世代選択ブート，または `init=/bin/sh` で前世代 boot 復旧 |
+| GNOME Keyring 解錠失敗 (`failed to unlock login keyring on startup`) | greetd で誤パスワード入力後に指紋認証で通過し，未検証 authtok で keyring がサイレント再暗号化された | `~/.local/share/keyrings/login.keyring` を退避・削除し，デーモン再起動後に正規パスワードで再作成 |
 
 ---
 
@@ -217,6 +218,47 @@ GRUB メニューからの通常起動で解決しない場合，カーネルパ
    /nix/var/nix/profiles/system-<前世代番号>-link/bin/switch-to-configuration boot
    reboot -f
    ```
+
+---
+
+## 4. greetd / fprintd 併用環境における GNOME Keyring 解錠失敗
+
+### 現象・エラーメッセージ
+- ログイン時またはデスクトップ起動時に `gnome-keyring-daemon` が以下を出力する:
+  ```text
+  failed to unlock login keyring on startup
+  ```
+- アプリケーション起動時やシークレット参照時にパスワードプロンプト (`gcr-prompter`) が表示され，正規のログインパスワードを入力しても `The password was incorrect` と判定されて解錠できない．
+- `journalctl --user -u gnome-keyring-daemon` に以下のログが記録されている:
+  ```text
+  fixed login keyring password to match login password
+  ```
+
+### 原因
+1. `greetd` のログイン画面でパスワード入力を誤ると，`pam_unix.so` の認証が失敗する．
+2. 前段にある `pam_gnome_keyring.so` は `pam_unix` の成否を検査せず，入力された未検証の誤パスワード文字列 (`PAM_AUTHTOK`) を内部に保持 (stash) する．
+3. 続けて `pam_fprintd.so` による指紋認証が成功すると，PAM スタック全体の `sufficient` 評価により認証が成立してセッションが開始される．
+4. セッション開始時 (`pam_sm_open_session`)，`pam_gnome_keyring` は保持していた誤文字列を `gnome-keyring-daemon` へ渡すが，既存の `login.keyring` の解錠に失敗する (`failed to unlock login keyring on startup`)．
+5. デスクトップ起動後，ユーザーが GUI プロンプトで正規パスワードを入力して解錠した瞬間，デーモンのパスワード自動同期機能 (`fixed login keyring password to match login password`) が動作し，直前に stash された誤文字列で `~/.local/share/keyrings/login.keyring` をサイレントに再暗号化してディスクへ書き込む．
+6. 次回以降のログイン時は，正規パスワードを入力してもキーリング側が誤文字列で暗号化されているため解錠不能となる．
+
+### 切り分け・復旧手順
+
+#### Step 1: 破損したキーリングの退避
+既存の `login.keyring` をバックアップ退避する:
+```bash
+mv ~/.local/share/keyrings/login.keyring ~/.local/share/keyrings/login.keyring.bak
+```
+
+#### Step 2: キーリングデーモンの再起動
+実行中のデーモンを停止し，Secret Service コンポーネントを再起動する:
+```bash
+killall gnome-keyring-daemon
+gnome-keyring-daemon --replace --daemonize --components=secrets
+```
+
+#### Step 3: 正規パスワードでの再作成
+シークレット参照時または次回ログイン時に表示されるプロンプトで正規のログインパスワードを入力し，`login.keyring` を再生成する．
 
 ---
 
