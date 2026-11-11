@@ -1,6 +1,6 @@
 # SBC Profile (`nixos/profiles/sbc/`)
 
-System profile optimized for resource-constrained Single-Board Computers (e.g. Orange Pi Zero 3 with 1 GB RAM).
+Constraint layer for resource-constrained Single-Board Computers (e.g. Orange Pi Zero 3 with 1 GB RAM). No host selects it as a `profile`; [hosts/torii-chan/sbc.nix](../../../hosts/torii-chan/sbc.nix) imports it and the `torii-chan` SBC variants attach that module through `extraModules`.
 
 ## Key Optimizations
 

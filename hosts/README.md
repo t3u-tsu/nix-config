@@ -11,14 +11,14 @@ Machine configurations for physical and virtual hosts in the fleet. Each host is
 | [shosoin-tan](shosoin-tan/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.4` | Core i7-870 Tower | Minecraft server, Discord Bridge, ZFS Mirror storage |
 | [kagutsuchi-sama](kagutsuchi-sama/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.3` | Xeon E5-2650 v2 Tower | Compute server, Restic backup receiver |
 | [sando-kun](sando-kun/README.md) | `tower-server` | `x86_64-linux` | `10.0.0.2` | Core i7-860 Tower | General-purpose tower server (Legacy BIOS) |
-| [torii-chan](torii-chan/README.md) | `gateway` + `sbc` layer | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway |
+| [torii-chan](torii-chan/README.md) | `gateway` | `aarch64-linux` | `10.0.0.1` | Orange Pi Zero 3 | Primary Nebula Lighthouse & Relay, NAT gateway; SBC constraints from [sbc.nix](torii-chan/sbc.nix) |
 | `torii-chan-vps` | `gateway` | `x86_64-linux` | `10.0.0.1` (standby) | ConoHa VPS (512MB) | Failover Lighthouse & Relay (takes over 10.0.0.1 on SBC outage) |
 
 `torii-chan` is declared with `variants`, so the fleet exposes it as `torii-chan-sd-installer`, `torii-chan-sd`, `torii-chan-hdd`, and `torii-chan-vps`.
 
 ## Registration
 
-Every host has exactly one entry in the `fleet` attrset in [flake/hosts.nix](../flake/hosts.nix). The entry carries the platform and role profile; [flake/hosts.nix](../flake/hosts.nix) expands each entry into a `nixosConfiguration` via `mkLib.mkSystem`, which wires in `nixos/profiles/<profile>` and `hosts/<hostname>/default.nix`.
+Every host has exactly one entry in the `fleet` attrset in [flake/hosts.nix](../flake/hosts.nix). The entry carries the platform and role profile; [flake/hosts.nix](../flake/hosts.nix) expands each entry into a `nixosConfiguration` via `mkSystem` in [lib/default.nix](../lib/default.nix), which wires in `nixos/profiles/<profile>` and `hosts/<hostname>/default.nix`.
 
 ```nix
 x1c7 = {
@@ -27,7 +27,7 @@ x1c7 = {
 };
 ```
 
-Hosts running the same role on multiple boot media or platforms list them under `variants`. Each variant becomes a `<name>-<variant>` configuration, and its `system` / `extraModules` override the host-level values (`torii-chan` is the only current example).
+Hosts running the same role on multiple boot media or platforms list them under `variants`. Each variant becomes a `<name>-<variant>` configuration; variant fields override the host-level ones, except `extraModules`, which are appended to the host-level list (`torii-chan` is the only current example).
 
 ```nix
 torii-chan = {

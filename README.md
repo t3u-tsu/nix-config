@@ -30,7 +30,7 @@ Declarative NixOS configuration managing desktops, servers, and network gateways
 ## Directory Structure
 
 - [flake.nix](flake.nix) — flake-parts entrypoint
-- [flake/](flake/) — flake-parts modules (`hosts`, `lib`, `overlays`, `packages`, `dev`)
+- [flake/](flake/) — flake-parts modules (`hosts`, `overlays`, `packages`, `dev`)
 - [lib/](lib/) — `mkSystem` builder, shared color palette (`palette.nix`), agenix master identity (`agenix.nix`), and the Nebula fleet registry (`nebula-fleet.nix`)
 - [nixos/](nixos/) — Shared system-level NixOS modules
 - [home/](home/) — Home Manager user-level configurations

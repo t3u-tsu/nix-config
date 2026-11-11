@@ -10,9 +10,9 @@ let
     overlays = lib.attrValues config.flake.overlays;
   };
 
-  # Fleet declaration: one entry per host directory in hosts/. Hosts running
-  # the same role on multiple boot media or platforms list them under
-  # variants; each variant becomes a "<name>-<variant>" configuration.
+  # Fleet declaration: one entry per configured host in hosts/ (not _template).
+  # A host whose role runs on several boot media or platforms lists them under
+  # variants; each becomes a "<name>-<variant>" configuration.
   fleet = {
     shosoin-tan = {
       system = "x86_64-linux";
@@ -72,18 +72,39 @@ let
     };
   };
 
-  mkConfigs =
+  # Variant fields override host-level ones, except extraModules, which are
+  # appended to the host-level list rather than replacing it.
+  mkHostConfigs =
     name: host:
+    let
+      mkConfig =
+        variant:
+        mkLib.mkSystem (
+          lib.removeAttrs host [ "variants" ]
+          // variant
+          // {
+            inherit name;
+            extraModules = (host.extraModules or [ ]) ++ (variant.extraModules or [ ]);
+          }
+        );
+    in
     if host ? variants then
-      lib.mapAttrs' (
-        variant: cfg:
-        lib.nameValuePair "${name}-${variant}" (
-          mkLib.mkSystem (removeAttrs host [ "variants" ] // cfg // { inherit name; })
-        )
-      ) host.variants
+      lib.mapAttrs' (variant: cfg: lib.nameValuePair "${name}-${variant}" (mkConfig cfg)) host.variants
     else
-      { ${name} = mkLib.mkSystem (host // { inherit name; }); };
+      { ${name} = mkConfig { }; };
+
+  configurations = lib.concatMapAttrs mkHostConfigs fleet;
+
+  # listToAttrs keeps the first duplicate, so a name collision would silently
+  # drop a configuration.
+  expectedConfigCount = lib.foldl' lib.add 0 (
+    lib.mapAttrsToList (
+      _: host: if host ? variants then lib.length (lib.attrNames host.variants) else 1
+    ) fleet
+  );
 in
 {
-  flake.nixosConfigurations = lib.concatMapAttrs mkConfigs fleet;
+  flake.nixosConfigurations =
+    assert lib.length (lib.attrNames configurations) == expectedConfigCount;
+    configurations;
 }

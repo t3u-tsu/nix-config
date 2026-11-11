@@ -103,13 +103,14 @@ sed -i "s|# age.rekey.hostPubkey = \"SSH_HOST_PUBKEY\";|age.rekey.hostPubkey = \
 - `hosts/<hostname>/services/nebula.nix`: 必要に応じて個別設定を調整する (`my.networking.nebula.enable = true` で [lib/nebula-fleet.nix](../../lib/nebula-fleet.nix) の設定が自動適用される)．
 
 #### 2.3 Flake へのホスト登録
-[flake/hosts.nix](../../flake/hosts.nix) の `fleet` attrset に新しいホストのエントリを追加する (`username` は [lib/default.nix](../../lib/default.nix) の `mkSystem` 既定値 `t3u` に従う)．同一ロールを複数の起動媒体・プラットフォームで運用する場合は `variants` に列挙する (torii-chan を参照)．
+[flake/hosts.nix](../../flake/hosts.nix) の `fleet` attrset に新しいホストのエントリを追加する．`username` は [lib/default.nix](../../lib/default.nix) の `mkSystem` 既定値 `t3u` に従う．同一ロールを複数の起動媒体・プラットフォームで運用する場合は `variants` に列挙する (torii-chan を参照)．
 ```nix
 <hostname> = {
   system = "x86_64-linux";
   profile = "tower-server";
 };
 ```
+`variants` の各エントリは `<hostname>-<variant>` という構成名に展開される．`system` などの variant 側の値はホスト直下の値を上書きし，`extraModules` はホスト直下のリストに追記される．
 
 ---
 
