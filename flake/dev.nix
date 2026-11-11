@@ -142,6 +142,7 @@ in
           pkgs.mkpasswd
           pkgs.nebula
           pkgs.nh
+          pkgs.nil
           pkgs.nix-tree
           pkgs.nvfetcher
           pkgs.oils-for-unix
@@ -149,6 +150,7 @@ in
           pkgs.openssh
           pkgs.openssl
           pkgs.perl
+          pkgs.perlnavigator
           pkgs.ssh-to-age
         ];
         inputsFrom = [ config.pre-commit.devShell ];

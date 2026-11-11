@@ -8,7 +8,7 @@ Core modules are enabled by default; full modules require `my.home.desktop.full.
 
 | File | Description | Options / Notes |
 | :--- | :--- | :--- |
-| [neovim.nix](neovim.nix) | Neovim configuration with palette-driven highlights and a desktop entry. | Core (`my.home.desktop.dev-tools.neovim.enable`) |
+| [neovim/](neovim/) | Modular Neovim configuration with portable Lua setup and palette integration. | Core (`my.home.desktop.dev-tools.neovim.enable`) |
 | [ghostty.nix](ghostty.nix) | Ghostty GPU-accelerated terminal emulator configuration. | Core (`my.home.desktop.dev-tools.ghostty.enable`) |
 | [git-tools.nix](git-tools.nix) | Git TUI (`lazygit`), GitHub CLI (`gh`), and `gh`-backed Git credential helper. | Core (`my.home.desktop.dev-tools.git-tools.enable`) |
 | [nix.nix](nix.nix) | Nix utilities (`nh`, `nix-tree`, `nix-output-monitor`) and formatters/linters (`nixfmt`, `statix`). | Core (`my.home.desktop.dev-tools.nix.enable`) |
