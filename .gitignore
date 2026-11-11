@@ -28,4 +28,5 @@ keys.txt
 .worktrees/
 
 .agents/skills/coding-worker/.state/
+.agents/teamwork/
 .codewhale/*
