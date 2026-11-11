@@ -10,8 +10,16 @@ return {
   },
   opts = {
     open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
-    dependencies_bin = {
-      tinymist = "tinymist",
-    },
+    dependencies_bin = setmetatable({}, {
+      __index = function(_, key)
+        if key == "tinymist" then
+          local bin = vim.fn.exepath("tinymist")
+          if bin ~= "" then
+            return bin
+          end
+        end
+        return nil
+      end,
+    }),
   },
 }
