@@ -9,7 +9,7 @@
 対象機での作業は，実機コンソール直接または作業機から `ssh root@<target-ip>` で接続して進める．Live USB 環境では `sudo passwd root` 等で一時パスワードを設定し，`ip a` で IP アドレスを確認する．
 
 ### 作業前チェックリスト
-- [ ] 適用プロファイルの選定: `desktop`, `tower-server`, `gateway`, `sbc`
+- [ ] 適用プロファイルの選定: `desktop`, `tower-server`, `gateway` (SBC 向け制約は `profile` ではなく `extraModules` で [hosts/torii-chan/sbc.nix](../../hosts/torii-chan/sbc.nix) のように `nixos/profiles/sbc` を import する)
 - [ ] 割り当て Nebula IP の決定: [ネットワークアーキテクチャ](../architecture/network-topology.md) の台帳で空いている `10.0.0.0/24` 内のアドレス
 - [ ] 対象機のネットワーク接続: 有線 LAN または Wi-Fi
 

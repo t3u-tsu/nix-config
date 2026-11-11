@@ -30,7 +30,7 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 ## ディレクトリ構成
 
 - [flake.nix](flake.nix) — flake-parts エントリポイント
-- [flake/](flake/) — flake-parts モジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)
+- [flake/](flake/) — flake-parts モジュール群 (`hosts`, `overlays`, `packages`, `dev`)
 - [lib/](lib/) — `mkSystem` システムビルダー，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，Nebula ノード台帳 (`nebula-fleet.nix`)
 - [nixos/](nixos/) — 全ホスト共通のシステムレベル NixOS モジュール群
 - [home/](home/) — Home Manager ユーザー環境モジュール群

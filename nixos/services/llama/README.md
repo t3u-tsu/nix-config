@@ -4,7 +4,7 @@ Local GGUF inference server (`systemd.services.llama-server`) with per-model INI
 
 ## Modules
 
-| File | Description | Options |
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | `llama-server` systemd unit; renders per-model INI presets from `presets` and applies the `llama-cpp` flake overlay (CUDA build via `enableCuda`). | `my.services.llama.*` |
 

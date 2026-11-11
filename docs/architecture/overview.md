@@ -6,8 +6,8 @@
 
 | レイヤ / ディレクトリ | 役割と責務 |
 | :--- | :--- |
-| `flake/` | flake-parts サブモジュール群 (`hosts`, `lib`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
-| [lib/](../../lib/) | `mkLib.mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，および Nebula ノード台帳 (`nebula-fleet.nix`)． |
+| `flake/` | flake-parts サブモジュール群 (`hosts`, `overlays`, `packages`, `dev`)．Flake エントリポイントの分割． |
+| [lib/](../../lib/) | `mkSystem` ヘルパー関数，共通カラーパレット (`palette.nix`)，agenix マスター識別子 (`agenix.nix`)，および Nebula ノード台帳 (`nebula-fleet.nix`)． |
 | [nixos/](../../nixos/) | 全ホスト共有の NixOS システムモジュール群 (基盤，セキュリティ，ネットワーク，各種サービス)． |
 | [home/](../../home/) | Home Manager モジュール群 (シェル，CLI ツール，GUI アプリケーション，デスクトップ環境)． |
 | [hosts/](../../hosts/) | 各マシン固有のハードウェア定義，ローカルサービス，プラットフォーム固有パッチ． |
@@ -55,10 +55,10 @@ flake.nix
 
 ## 3. ホストからモジュールへの展開
 
-`mkLib.mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
+`mkSystem` により，プロファイル，ホスト固有定義，および共通モジュールを合成する．
 
 ```text
-mkLib.mkSystem によるモジュール合成
+mkSystem によるモジュール合成
  ├─ nixos/                    # システム共通モジュール群 (直接注入)
  │   ├─ base, security (agenix), dev-tools, environment, hardware
  │   └─ networking, services, virtualisation
