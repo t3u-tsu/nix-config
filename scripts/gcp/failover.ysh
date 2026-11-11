@@ -49,6 +49,15 @@ func get_state_file() {
   return ("/tmp/gcp-failover/state.json")
 }
 
+# Dry runs keep their own state so a simulation never rewrites the live one.
+func get_effective_state_file(dry_run) {
+  var base = get_state_file()
+  if (dry_run) {
+    return ("$base.dry-run")
+  }
+  return (base)
+}
+
 func extract_vm_status(vm) {
   if (type(vm) !== "Dict") {
     return ("UNKNOWN")
@@ -391,7 +400,8 @@ proc probe_sbc(target, port, timeout_sec, gce_ip = "") {
 proc wait_for_instance_running(gcloud_cmd, instance, zone, timeout_sec) {
   var elapsed = 0
   var interval = 2
-  log_info "Waiting for instance $instance to reach RUNNING state (timeout: ${timeout_sec}s)..."
+  # stdout carries the external IP, so progress logs go to stderr.
+  log_info "Waiting for instance $instance to reach RUNNING state (timeout: ${timeout_sec}s)..." >&2
 
   while (elapsed < timeout_sec) {
     var raw = ""
@@ -414,7 +424,7 @@ proc wait_for_instance_running(gcloud_cmd, instance, zone, timeout_sec) {
       var st = extract_vm_status(vm)
       var ip = extract_nat_ip(vm)
       if (st === "RUNNING" and len(ip) > 0) {
-        log_info "Instance $instance is RUNNING with external IP: $ip"
+        log_info "Instance $instance is RUNNING with external IP: $ip" >&2
         echo "$ip"
         return 0
       }
@@ -508,9 +518,13 @@ proc cloudflare_get_zone_id(token, zone_name) {
   return 1
 }
 
-proc cloudflare_sync_record(token, zone_id, domain, target_ip, dry_run) {
+proc cloudflare_sync_record(; token, zone_id, domain, target_ip, dry_run) {
   if (dry_run or len(token) === 0) {
-    log_info "[DRY-RUN / MANUAL] Cloudflare API call for $domain -> $target_ip:"
+    if (len(token) === 0 and not dry_run) {
+      log_warn "CLOUDFLARE_API_TOKEN is unset: skipping the DNS update for $domain (the failover node's ddclient updates it after boot)."
+    } else {
+      log_info "[DRY-RUN] Cloudflare API call for $domain -> $target_ip:"
+    }
     echo "curl -s -X PUT \"https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/<record_id>\" \\"
     echo "  -H \"Authorization: Bearer <CLOUDFLARE_API_TOKEN>\" \\"
     echo "  -H \"Content-Type: application/json\" \\"
@@ -644,8 +658,8 @@ proc sync_all_cloudflare_dns(; token, zone_name, target_ip, domains, dry_run) {
     if (zid_ok and len(zid_raw) > 0) {
       setvar zone_id = zid_raw
     } else {
-      log_warn "Could not resolve Cloudflare Zone ID for '$zone_name'. Falling back to print mode."
-      setvar zone_id = "<zone_id>"
+      log_error "Could not resolve Cloudflare Zone ID for '$zone_name'; skipping DNS updates."
+      return 1
     }
   }
   if (len(zone_id) === 0) {
@@ -653,7 +667,7 @@ proc sync_all_cloudflare_dns(; token, zone_name, target_ip, domains, dry_run) {
   }
 
   for domain in (domains) {
-    cloudflare_sync_record "$token" "$zone_id" "$domain" "$target_ip" "$dry_run"
+    cloudflare_sync_record (token, zone_id, domain, target_ip, dry_run)
   }
 }
 
@@ -691,7 +705,8 @@ proc execute_failover(; state_data, instance, zone, target_ip_in, primary_ip_ove
   if (dry_run) {
     log_info "[DRY-RUN] Would start instance $instance in zone $zone"
     if (len(target_ip) === 0) {
-      setvar target_ip = "34.84.0.1"
+      # RFC 5737 documentation address, never a real instance IP.
+      setvar target_ip = "192.0.2.1"
     }
   } else {
     var cmd_ok = true
@@ -921,6 +936,11 @@ proc step_watch_tick(; state_file, instance, zone, target, probe_target = DEFAUL
   var st = load_state(state_file, instance, zone, target, probe_target)
   var th = st.thresholds
   var timeout_sec = get(th, "probe_timeout_sec", 2)
+  # Record the thresholds actually in effect so the state file matches the daemon.
+  setvar st.thresholds.probe_interval_sec = interval
+  setvar st.thresholds.failure_threshold = failover_threshold
+  setvar st.thresholds.recovery_threshold = failback_threshold
+  setvar st.thresholds.min_dwell_sec = min_dwell_sec
   var port = get(st.primary_endpoint, "port", 0)
   var port_str = "$port"
   var timeout_str = "$timeout_sec"
@@ -1411,7 +1431,7 @@ proc cmd_start_failover(; args) {
   var lock_dir = $(dirname "$lock_file")
   mkdir -p "$lock_dir"
 
-  var state_file = get_state_file()
+  var state_file = get_effective_state_file(dry_run)
 
   log_info "Initiating failover sequence to Tokyo instance '$instance' in zone '$zone'..."
 
@@ -1454,7 +1474,10 @@ proc cmd_start_failover(; args) {
       log_info "Failover sequence complete. Traffic routed to Tokyo instance."
       return 0
     } else {
-      log_error "Failover sequence failed."
+      setvar st.previous_state = "FAILING_OVER"
+      setvar st.state = "DEGRADED"
+      save_state "$state_file" (st)
+      log_error "Failover sequence failed; state reset to DEGRADED so the next probe retries."
       return 1
     }
   } 9> "$lock_file"
@@ -1529,7 +1552,7 @@ proc cmd_start_failback(; args) {
   var lock_file = get_lock_file()
   var lock_dir = $(dirname "$lock_file")
   mkdir -p "$lock_dir"
-  var state_file = get_state_file()
+  var state_file = get_effective_state_file(dry_run)
 
   log_info "Initiating failback sequence to primary SBC ($target)..."
 
@@ -1715,7 +1738,7 @@ proc cmd_watch(; args) {
   log_info "Recovery Threshold : ${failback_threshold} consecutive successes ($[failback_threshold * interval]s)"
   log_info "Min Dwell Time     : ${min_dwell}s"
 
-  var state_file = get_state_file()
+  var state_file = get_effective_state_file(dry_run)
   var lock_file = get_lock_file()
   var lock_dir = $(dirname "$lock_file")
   mkdir -p "$lock_dir"
