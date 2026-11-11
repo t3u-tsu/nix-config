@@ -8,9 +8,15 @@ return {
   keys = {
     { "<leader>tp", "<cmd>TypstPreviewToggle<cr>", desc = "Typst: Toggle preview", ft = "typst" },
   },
-  opts = {
-    open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
-    dependencies_bin = setmetatable({}, {
+  config = function()
+    local preview = require("typst-preview")
+    local preview_config = require("typst-preview.config")
+
+    preview.setup({
+      open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
+    })
+
+    setmetatable(preview_config.opts.dependencies_bin, {
       __index = function(_, key)
         if key == "tinymist" then
           local bin = vim.fn.exepath("tinymist")
@@ -20,6 +26,6 @@ return {
         end
         return nil
       end,
-    }),
-  },
+    })
+  end,
 }
