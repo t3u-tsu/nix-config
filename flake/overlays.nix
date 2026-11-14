@@ -75,10 +75,13 @@
           prev.writeTextFile {
             inherit
               name
-              meta
               passthru
               derivationArgs
               ;
+            meta = {
+              mainProgram = name;
+            }
+            // meta;
             executable = true;
             destination = "/bin/${name}";
             allowSubstitutes = true;

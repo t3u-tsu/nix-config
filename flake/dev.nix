@@ -41,7 +41,7 @@ in
           name = "ysh-check";
           description = "Check syntax of YSH scripts";
           files = "\\.ysh$";
-          entry = "${pkgs.oils-for-unix}/bin/ysh -n";
+          entry = "${pkgsYsh.oils-for-unix}/bin/ysh -n";
         };
         ja-punctuation = {
           enable = true;
@@ -145,7 +145,7 @@ in
           pkgs.nil
           pkgs.nix-tree
           pkgs.nvfetcher
-          pkgs.oils-for-unix
+          pkgsYsh.oils-for-unix
           pkgs.opentofu
           pkgs.openssh
           pkgs.openssl
