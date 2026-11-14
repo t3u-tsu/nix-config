@@ -54,9 +54,9 @@ fleet = {
 };
 ```
 
-同一ロールを複数の起動媒体・プラットフォームで運用するホストは，`variants` に各媒体を列挙する．`mkConfigs` は各 variant を `<name>-<variant>` という名前の `nixosConfiguration` に展開し，variant 側の `system` / `extraModules` はホスト直下の値を上書きする．`variants` を持たないホストは `<name>` という名前で 1 つの `nixosConfiguration` になる．
+同一ロールを複数の起動媒体・プラットフォームで運用するホストは，`variants` に各媒体を列挙する．`mkHostConfigs` は各 variant を `<name>-<variant>` という名前の `nixosConfiguration` に展開する．variant 側の `system` などのスカラー値はホスト直下の値を上書きし，`extraModules` だけは `(host.extraModules or []) ++ (variant.extraModules or [])` としてホスト直下のリストに追記する ([flake/hosts.nix](../../flake/hosts.nix))．`variants` を持たないホストは `<name>` という名前で 1 つの `nixosConfiguration` になる．
 
-### 自動注入される共通機能
+### 2.1 自動注入される共通機能
 - `specialArgs.inputs` による全モジュールからの `inputs.<name>` 直接参照
 - `agenix-rekey`，`agenix`，および `home-manager` の基盤統合
 - Home Manager 共通設定 ([home/](../../home/default.nix)) の全ホスト注入
@@ -82,8 +82,8 @@ fleet = {
 | `my.installer.<name>` | [hosts/torii-chan/installer-common.nix](../../hosts/torii-chan/installer-common.nix) | ブートストラップインストーラ共通設定 (例: `my.installer.enable`, `my.installer.hostName`) |
 | `my.home.desktop.<category>.<name>` | `home/desktop/` | デスクトップ環境のユーザー設定 (例: `my.home.desktop.dev-tools.ghostty`) |
 
-### オプション設計の原則
-- 各モジュールは `enable = mkEnableOption "..."` を持ち，明示的に有効化 (`true`) しない限り適用されない (デフォルト無効)．
+### 3.1 オプション設計の原則
+- 大半のモジュールは `enable = mkEnableOption "..."` を持ち，明示的に有効化 (`true`) しない限り適用されない (既定で無効)．例外として `my.base.i18n.enable` ([nixos/base/i18n.nix](../../nixos/base/i18n.nix)) と `my.packages.*.enable` ([nixos/environment/default.nix](../../nixos/environment/default.nix)) は `default = true` を指定し，無効化する場合のみ `false` を明示する (既定で有効)．
 - サービス有効化に必要なファイアウォール開放，ユーザー作成，シークレット設定，systemd ユニット定義は当該モジュール内で完結させる (自己完結性)．
 - statix の規約に従い，同一属性セットは 1 つのブロックで定義してトップレベルキーを集約する．
 

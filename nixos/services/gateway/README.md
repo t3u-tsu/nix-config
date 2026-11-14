@@ -2,16 +2,16 @@
 
 Network routing and gateway services for the `torii-chan` role, shared between the physical SBC and failover VPS.
 
-## Services Architecture
+## Modules
 
-| Module | Role & Responsibilities |
-| :--- | :--- |
-| [firewall.nix](firewall.nix) | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft DNAT) with iptables/nftables NAT MASQUERADE rules. |
-| [hardening.nix](hardening.nix) | Linux kernel sysctl hardening (`kptr_restrict`, `dmesg_restrict`, BPF JIT, `rp_filter`, ICMP redirects). |
-| [nebula.nix](nebula.nix) | Nebula Lighthouse & Relay configuration (`10.0.0.1:4242`) with inbound rules for management and application traffic. |
-| [ssh.nix](ssh.nix) | Key-only OpenSSH daemon; [firewall.nix](firewall.nix) blocks WAN input, and `nebula0` is trusted, so operator access is mesh-only. |
-| [ddns.nix](ddns.nix) | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`. |
-| [default.nix](default.nix) | Service aggregator enabled via `my.services.gateway.enable`. |
+| File | Description | Options |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | Service aggregator importing gateway firewall, hardening, Nebula, SSH, and DDNS modules. | `my.services.gateway.enable` |
+| [firewall.nix](firewall.nix) | WAN firewall restricting exposed traffic to TCP 25565 (Minecraft DNAT) with iptables/nftables NAT MASQUERADE rules. | Enabled via `my.services.gateway.enable` |
+| [hardening.nix](hardening.nix) | Linux kernel sysctl hardening (`kptr_restrict`, `dmesg_restrict`, BPF JIT, `rp_filter`, ICMP redirects). | Enabled via `my.services.gateway.enable` |
+| [nebula.nix](nebula.nix) | Nebula Lighthouse & Relay configuration (`10.0.0.1:4242`) with inbound rules for management and application traffic. | Enabled via `my.services.gateway.enable` |
+| [ssh.nix](ssh.nix) | Key-only OpenSSH daemon; [firewall.nix](firewall.nix) blocks WAN input, and `nebula0` is trusted, so operator access is mesh-only. | Enabled via `my.services.gateway.enable` |
+| [ddns.nix](ddns.nix) | Cloudflare DDNS client (`ddclient`) dynamically updating `torii-chan.t3u.uk`, `mc.t3u.uk`, and `*.mc.t3u.uk`. | Enabled via `my.services.gateway.enable` |
 
 ## Network Forwarding & Port Map
 

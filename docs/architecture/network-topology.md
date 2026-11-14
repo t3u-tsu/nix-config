@@ -103,23 +103,21 @@ flowchart TD
 
 ## 4. セキュリティ境界
 
-### SSH の Nebula 限定リッスン
+### 4.1 SSH の Nebula 限定リッスン
 拠点Aのサーバー群 (`shosoin-tan`, `kagutsuchi-sama`, `sando-kun`) の SSH ポート 22 は，物理 LAN や外部 WAN からは遮断し，`nebula0` インターフェース (`10.0.0.0/24`) 経由の接続のみ許可する．
 
-### グループによるゾーン分離
+### 4.2 グループによるゾーン分離
 - `mgmt`: 全ノードに付与する基本管理グループ．
 - `app`: アプリケーション通信 (Minecraft, Discord Bridge，デスクトップ作業) を許可するグループ．
 
-### 証明書の有効期限管理
+### 4.3 証明書の有効期限管理
 Nebula ルート CA およびノード証明書は有効期間 10 年で発行する (更新手順は [../operations/secret-management.md](../operations/secret-management.md) 参照)．
 
-### 帯域外アクセスの多層防御
-Cloudflare Tunnel 経由の接続は以下の 3 層で保護する:
+### 4.4 帯域外アクセスの多層防御
+Cloudflare Tunnel はアウトバウンド接続のみで確立するため，外部からの直接走査や総当たり試行の対象にならず，接続は次の 3 層で保護する:
 - エッジでの Cloudflare Zero Trust (Access) 認証 (メール OTP または SSO)
 - Cloudflare SSH CA による有効期限 3 分の短期証明書検証 (Web ターミナル接続時)
 - OS 側の ED25519 ユーザー公開鍵認証 (PC CLI 接続時)
-
-アウトバウンドトンネル方式により，外部からの直接走査や総当たり試行から隔離される．
 
 ---
 

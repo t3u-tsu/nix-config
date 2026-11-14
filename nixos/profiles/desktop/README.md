@@ -2,6 +2,12 @@
 
 Configures system-level services and Home Manager user environments for graphical desktop systems.
 
+## Modules
+
+| File | Description | Options |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | Desktop profile module wiring system desktop services and Home Manager desktop configuration. | `my.services.desktop.enable`, `my.services.desktop.full.enable` |
+
 ## Profile Architecture
 
 Desktop modules are divided into a lightweight baseline core and an opt-in full desktop stack:

@@ -2,11 +2,11 @@
 
 Linux における生体認証 (指紋) とパスワードの同時待ち受け (並行マルチモーダル認証) について，単一 PAM スタック内での実現が不可能な構造的理由，および GDM / Noctalia / greetd / polkit / sudo における実装仕様の調査記録．
 
-| 項目 | 対象・バージョン |
+| 項目 | 要件・確認事項 |
 | :--- | :--- |
-| 対象ホスト | x1c7 (Synaptics Prometheus `06cb:00bd`) |
-| 実機検証環境 | Linux-PAM 1.7.2 / fprintd 1.94.5 / libfprint 1.94.10 / greetd 0.10.3 / Noctalia 5.2.1 |
-| upstream 調査リビジョン | greetd `d6733e9` / gdm `ba34b08` / noctalia `f157ebe` / fprintd `b10251e` / linux-pam `584ef22` / gnome-keyring `a4a1730` / polkit `d3ba690` / sudo `43defa1` (2026-10-15 時点の HEAD) |
+| 対象ホスト | `x1c7` (Synaptics Prometheus `06cb:00bd`) |
+| 検証環境 | Linux-PAM 1.7.2 / fprintd 1.94.5 / libfprint 1.94.10 / greetd 0.10.3 / Noctalia 5.2.1 |
+| upstream リビジョン | greetd `d6733e9` / gdm `ba34b08` / noctalia `f157ebe` / fprintd `b10251e` / linux-pam `584ef22` / gnome-keyring `a4a1730` / polkit `d3ba690` / sudo `43defa1` (2026-10-15 時点の HEAD) |
 
 ---
 
@@ -14,13 +14,13 @@ Linux における生体認証 (指紋) とパスワードの同時待ち受け 
 
 | 問い | 回答 |
 | :--- | :--- |
-| Linux で指紋とパスワードを同時に待ち受けられるか | 可能．単一の PAM 会話内では不可能 |
+| Linux で指紋とパスワードを同時に待ち受けられるか | 可能．ただし単一の PAM 会話内では不可能 |
 | 単一 PAM スタックで可能か | 不可能．`pam_authenticate()` は逐次ディスパッチであり，`pam_conv` は 1 ハンドルに 1 個で同期 request/response しか表現できない |
-| アプリケーション層での実現方式 | アプリケーションが複数の PAM トランザクション (複数の `pam_handle_t`) を別プロセス／別スレッドで並行実行し，先行成立した処理以外をキャンセルするオーケストレータとなる (GDM の実装方式) |
+| アプリケーション層での実現方式 | アプリケーションが複数の PAM トランザクション (複数の `pam_handle_t`) を別プロセス／別スレッドで並行実行し，先行成立した処理以外をキャンセルする調停を組む (GDM の実装方式) |
 | もうひとつの実現方式 | デュアルチャネル調停 (パスワードは PAM，指紋は `net.reactivated.Fprint` D-Bus 経由での直接呼び出し)．Noctalia ロック画面が採用．センサの二重 Claim を回避するため検証処理は直列化される |
 | greetd / polkit / sudo で可能か | 設定変更では不可能．いずれも「1 リクエスト = 1 PAM トランザクション」を前提とした API / プロトコルであり，並行化には本体の再設計が必要 |
-
-要約: 並行待ち受けが不可能なのは単一の標準 PAM 会話内部に限定される．実現にはアプリケーション側で複数 PAM を調停するオーケストレータ (dual-PAM) を組むか，生体認証を PAM 外部へ分離して D-Bus 経由で直接制御する (デュアルチャネル調停) 設計が必要となる．
+| 本リポジトリでの運用は | greetd は空送信フォールスルーを維持し，`pam_fprintd` の `timeout` 短縮で待ち時間を抑える．polkit-1 / sudo は既定順序のまま `timeout = 5`, `max-tries = 3` でパスワードへ早期フォールバックする ([thinkpad-x1c7.md](../hardware/thinkpad-x1c7.md)) |
+| 完全な並行認証を導入するには | GDM 相当の調停デーモンを実装するか ([greetd-parallel-design.md](greetd-parallel-design.md))，Noctalia ロック画面のような D-Bus 直接呼び出しと明示調停を組み合わせる |
 
 ---
 
@@ -112,11 +112,11 @@ rules.auth.unix.settings = {
 rules.auth.fprintd.order = config.security.pam.services.greetd.rules.auth.unix.order + 10;
 ```
 
-x1c7 では `sudo` と `polkit-1` について，[hosts/x1c7/default.nix](../../hosts/x1c7/default.nix) で既定の順序 (`pam_fprintd` 11400 → `pam_unix` 11700) を維持したまま `max-tries = 3`, `timeout = 5` に短縮し，5 秒のタイムアウトまたは 3 回の失敗でパスワード入力へフォールバックする構成としている．`su` は既定スタック (`timeout = 30`, `max-tries = 3`) のままである．
+x1c7 の `sudo` / `polkit-1` / `su` における評価順序と `pam_fprintd` のオプションは [thinkpad-x1c7.md](../hardware/thinkpad-x1c7.md) に記載する．
 
 ---
 
-## 3. GDM の実装方式 — dual-PAM オーケストレータ
+## 3. GDM の実装方式 — 複数 PAM 会話の並行調停
 
 GDM は「単一スタックの限界」を PAM の外側で回避する．PAM サービスごとに会話処理と専用の worker プロセスを持ち，複数を同時に進行させる．
 
@@ -173,6 +173,23 @@ flowchart LR
 ### 3.2 勝者の確定と敗者のキャンセル
 
 いずれかの会話が成功すると `verification-complete` が発火し，greeter はそのサービスでセッション開始を要求する．GDM はこのとき勝者以外の会話を停止する．
+
+```mermaid
+sequenceDiagram
+    participant G as gnome-shell (AuthServices)
+    participant S as gdm-session
+    participant P as worker [pam/gdm-password]
+    participant F as worker [pam/gdm-fingerprint]
+
+    G->>S: BeginVerification (gdm-password)
+    S->>P: spawn gdm-session-worker
+    G->>S: BeginVerification (gdm-fingerprint)
+    S->>F: spawn gdm-session-worker
+    F->>S: verification-complete (指紋が先行)
+    S->>S: start_session (gdm-fingerprint)
+    S->>P: stop_all_other_conversations (敗者を停止)
+    S->>G: セッション開始
+```
 
 ```c
 /* daemon/gdm-session.c */
@@ -246,7 +263,7 @@ if inner.configuring.is_some() {
 }
 ```
 
-判定: greetd はプロトコル構造上，並行認証に対応できない．本リポジトリにおける指紋対応は，単一 PAM スタックを「空送信フォールスルー」で処理する逐次的な運用回避策である．
+greetd はプロトコル構造上，並行認証に対応できない．本リポジトリの指紋対応は，単一 PAM スタックを空送信フォールスルーで処理する逐次的な運用回避策である．
 
 ### 4.2 polkit-1 — 単一 pam_authenticate() 実行制約
 
@@ -263,7 +280,7 @@ rc = pam_authenticate (pam_h, 0);
 - `PolkitAgentTextListener` は `active_session` が既にあると `"An authentication session is already underway."` で拒否する (`src/polkitagent/polkitagenttextlistener.c`)．
 - API 自体が「1 リクエスト = 1 begin/response/completed」であり，2 つの認証を同一リクエストに対して並行に走らせ，敗者を捨てる概念がない．
 
-判定: 並行化には polkit 本体，エージェント API，および helper プロセスの再設計を要する．実用上の対策は，PAM スタックの順序見直しや `pam_fprintd` の `timeout` 値短縮による UX 改善に限定される．
+並行化には polkit 本体，エージェント API，および helper プロセスの再設計を要する．実用上の対策は，PAM スタックの順序見直しや `pam_fprintd` の `timeout` 値短縮による UX 改善に限られる．
 
 ### 4.3 sudo — 逐次ループによる認証エンジン
 
@@ -285,9 +302,7 @@ pam_status = pam_start (pam_service, pw->pw_name, &pam_conv, &pamh);
 *pam_status = pam_authenticate (pamh, def_pam_silent ? PAM_SILENT : 0);
 ```
 
-`def_passwd_tries` によるリトライは同じ認証経路を逐次再実行する．
-
-判定: `def_passwd_tries` による再試行ループは逐次実行される．sudo での並行認証には内部認証エンジンの抜本的な書き換えを要するため，設定レベルでの対応は不可能である．
+`def_passwd_tries` による再試行ループは同じ認証経路を逐次再実行する．sudo での並行認証には内部認証エンジンの書き換えを要するため，設定レベルでの対応はできない．
 
 ### 4.4 Noctalia ロック画面 — デュアルチャネル調停と直列化検証
 
@@ -325,29 +340,16 @@ std::thread([...]() {
 }).detach();
 ```
 
-指紋照合が成功した場合は `setAuthenticatedCallback` から即座に `unlock()` が呼ばれる．一方，パスワードが送信された場合は，`stopFingerprint()` で指紋センサーを解放してから子プロセスで PAM 認証を実行する．指紋検証はロック画面の表示中は常時アームされているが，fprintd の Claim と D-Bus 経由の直接 Claim がセンサーを取り合うため，パスワード検証と同時に進行することはない．
-
-Noctalia は 2 つの認証トランザクションを直列化して処理する．「PAM と D-Bus の 2 チャネルを同時にアームし，ユーザーが先行完了した操作で解錠するが，実際の検証処理は直列化する」設計であり，同時待ち受けの UX を満たしつつセンサ競合を避ける調停モデルを採る．GDM は複数の PAM 会話を別 worker プロセスで並行実行する dual-PAM オーケストレーションを採る．
+指紋検証はロック画面の表示中は常時アームされるが，fprintd の Claim と D-Bus 経由の直接 Claim がセンサーを取り合うため，パスワード検証と同時に進行することはない．Noctalia は「PAM と D-Bus の 2 チャネルを同時にアームし，ユーザーが先行完了した操作で解錠するが，検証処理は直列化する」調停モデルを採る．
 
 ここで述べたのはロック画面である．ログイン画面は `noctalia-greeter` が別実装であり，本リポジトリでは greetd 経由で動作する．
 
----
-
-## 5. まとめ
-
-- Linux で指紋とパスワードを同時に待ち受けることは可能である．単一の標準 PAM 会話内では不可能である．`pam_authenticate()` は逐次ディスパッチであり，`pam_conv` は 1 ハンドル 1 個の同期 request/response しか持てない．
-- 実現手段は次の 2 つに大別できる．
+### 4.5 実現方式の比較
 
 | 方式 | 仕組み | 実装例 | 敗者キャンセル | キーリング |
 | :--- | :--- | :--- | :--- | :--- |
-| dual-PAM オーケストレータ | 複数 PAM サービス (`gdm-password` / `gdm-fingerprint` 等) を別ハンドル・別 worker プロセスで同時実行 | GDM (`gdm-session.c` の conversations 多重化) | `stop_all_other_conversations()` | 指紋勝ち時は `PAM_AUTHTOK` 無し → 後でフォールバックプロンプト |
-| デュアルチャネル + 調停 | 片方を PAM，もう片方を D-Bus 等で直接駆動し，共有資源 (センサ) の Claim を明示調停 | Noctalia ロック画面 (PAM `login` + `net.reactivated.Fprint`) | アプリが明示的に `stopFingerprint()` | 直接 D-Bus のため PAM キーリングとは無関係 |
-
-- `greetd` / `polkit-1` / `sudo` は，いずれも「1 リクエスト = 1 PAM トランザクション」を前提としたプロトコル / API / 実装であり，設定や PAM 順序の工夫では並行化できない．並行化には各プロジェクト本体の改修が必要である．
-- 本リポジトリでの現実的な選択肢として，以下のアプローチが挙げられる．
-  - greetd では，本体や noctalia-greeter を改修しない限り完全な並行化は行えない．現在の「空送信フォールスルー」を維持しつつ，`pam_fprintd` の `timeout` を短縮して体感待ち時間を低減する設計が妥当である．
-  - polkit-1, sudo, su では，既定の順序 (`pam_fprintd` → `pam_unix`) のまま `pam_fprintd` に `timeout = 5`, `max-tries = 3` などを設定して 30 秒間のブロックを回避し，タイムアウトや失敗時に速やかにパスワード入力へフォールバックさせる ([fprintd-triage-notes.md](fprintd-triage-notes.md) の推奨と一致)．
-  - 完全な並行認証が必要な場合は，GDM 相当の dual-PAM オーケストレータを実装するか，Noctalia ロック画面のような D-Bus 直接呼び出しと明示調停を組み合わせる方式を採用する．
+| PAM 会話の並行調停 | 複数 PAM サービス (`gdm-password` / `gdm-fingerprint` 等) を別ハンドル・別 worker プロセスで同時実行 | GDM (`gdm-session.c` の conversations 多重化) | `stop_all_other_conversations()` | 指紋勝ち時は `PAM_AUTHTOK` 無し → 後でフォールバックプロンプト |
+| デュアルチャネル調停 | 片方を PAM，もう片方を D-Bus 等で直接駆動し，共有資源 (センサ) の Claim を明示調停 | Noctalia ロック画面 (PAM `login` + `net.reactivated.Fprint`) | アプリが明示的に `stopFingerprint()` | 直接 D-Bus のため PAM キーリングとは無関係 |
 
 ---
 

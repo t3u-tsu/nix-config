@@ -8,8 +8,8 @@ When installing NixOS on a new machine (from a live USB or rescue image), these 
 
 | Script | Purpose | Typical Environment |
 | :--- | :--- | :--- |
-| `init-host-key.sh` / `init-host-key.ysh` | Generate host SSH key in `<target_root>/etc/ssh/` for `age.rekey.hostPubkey` | Live installer / Rescue ISO |
-| `setup-deploy-key.sh` / `setup-deploy-key.ysh` | Decrypt private flake deploy key and configure GitHub SSH alias | Target machine under installation |
+| [init-host-key.sh](init-host-key.sh) / [init-host-key.ysh](init-host-key.ysh) | Generate host SSH key in `<target_root>/etc/ssh/` for `age.rekey.hostPubkey` | Live installer / Rescue ISO |
+| [setup-deploy-key.sh](setup-deploy-key.sh) / [setup-deploy-key.ysh](setup-deploy-key.ysh) | Decrypt private flake deploy key and configure GitHub SSH alias | Target machine under installation |
 
 ## Architecture: Why `.sh` and `.ysh` Pairs Exist
 
@@ -17,7 +17,7 @@ Minimal rescue environments and standard NixOS minimal installer ISOs do not hav
 
 1. **`.sh` Wrapper (Bootstrap Entry Point)**:
    - Written in portable Bash (`set -euo pipefail`).
-   - Checks whether the tools the paired `.ysh` script needs (`ysh` plus `ssh-keygen`, and `age` for `setup-deploy-key`) are present in `PATH`.
+   - Checks whether the tools the paired `.ysh` script needs (`ysh` plus `ssh-keygen`, and `age` for [setup-deploy-key.ysh](setup-deploy-key.ysh)) are present in `PATH`.
    - If missing, launches `nix-shell -p oils-for-unix ...` on the fly to provide a transient runtime.
    - Execs the corresponding `.ysh` script transparently.
 
@@ -49,3 +49,8 @@ Run on the target machine when private flake inputs (`nix-config-private`) need 
 # Decrypts deploy key using the target host key and registers github-nix-config-private:
 scripts/install/setup-deploy-key.sh <hostname> /mnt
 ```
+
+## References
+
+- Host addition runbook: [docs/operations/adding-a-host.md](../../docs/operations/adding-a-host.md)
+- Scripts directory index: [scripts/README.md](../README.md)

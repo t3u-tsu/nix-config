@@ -37,6 +37,7 @@ Declarative NixOS configuration managing desktops, servers, and network gateways
 - [hosts/](hosts/) — Host definitions and hardware configurations
 - [secrets/](secrets/) — Encrypted secrets managed via agenix-rekey
 - [scripts/](scripts/) — Fleet management and maintenance scripts
+- [just/](just/) — Modular `just` recipe files (`system`, `secret`, `update`, `qa`, `docs`, `nebula`, `hardware`)
 - [terraform/](terraform/) — ConoHa VPS infrastructure definitions (OpenTofu)
 - [docs/](docs/) — Architecture designs, operational runbooks, hardware guides, and troubleshooting procedures
 

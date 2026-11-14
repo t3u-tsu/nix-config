@@ -6,6 +6,8 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 
 | Domain / Script | Purpose | Prerequisites |
 | :--- | :--- | :--- |
+| **Shared Libraries** | | |
+| [lib/common.ysh](lib/common.ysh) | Shared YSH helpers (`file_exists`, `path_exists`, `command_exists`, `die`, `issue_temp_password`, `sha512_crypt_hash`). | Sourced by YSH scripts |
 | **Secrets Management** | | |
 | [secrets/secret.ysh](secrets/secret.ysh) | Backward-compatibility router that forwards subcommands to the single-purpose scripts below. | Same as the target script |
 | [secrets/rekey.ysh](secrets/rekey.ysh) | Re-encrypt every master secret for all hosts with the Bitwarden master identity. | `bw`, `age-keygen`, `agenix` |
@@ -30,95 +32,44 @@ Operator maintenance scripts for fleet management, credential provisioning, and 
 | **Hardware Quirks** | | |
 | [hardware/restart-touchpad.ysh](hardware/restart-touchpad.ysh) | Recovers and rebinds the AMD I2C controller and Synaptics touchpad on HP Victus 16. | `ysh`, `pkexec` |
 | **Host Installation & Provisioning** | | |
-| [install/init-host-key.sh](install/init-host-key.sh) | Wrapper that runs `init-host-key.ysh` and installs `oils-for-unix` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keygen` |
+| [install/init-host-key.sh](install/init-host-key.sh) | Wrapper that runs [init-host-key.ysh](install/init-host-key.ysh) and installs `oils-for-unix` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keygen` |
 | [install/init-host-key.ysh](install/init-host-key.ysh) | Generates the SSH host key in `<target_root>/etc/ssh` and prints the public key for `age.rekey.hostPubkey`. Reuses an existing key and refuses an unmounted target root. | `ysh`, `ssh-keygen`, `mountpoint` |
-| [install/setup-deploy-key.sh](install/setup-deploy-key.sh) | Wrapper that runs `setup-deploy-key.ysh` and installs `oils-for-unix` / `age` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keyscan` |
+| [install/setup-deploy-key.sh](install/setup-deploy-key.sh) | Wrapper that runs [setup-deploy-key.ysh](install/setup-deploy-key.ysh) and installs `oils-for-unix` / `age` / `openssh` through `nix-shell` when missing. | `bash`, `nix-shell`, `ssh-keyscan` |
 | [install/setup-deploy-key.ysh](install/setup-deploy-key.ysh) | Decrypts `secrets/rekeyed/hosts/<hostname>/*-deploy_key.age` with the target host key and registers the `github-nix-config-private` SSH alias for private flake inputs. | `ysh`, `age`, `ssh`, `ssh-keyscan` |
 
 Installer wrapper behaviour and usage are described in [install/README.md](install/README.md).
 
-## Secret CLI
+## CLI Quick Reference
 
-Run `just secret <recipe>` for the common operations, or call a single-purpose script directly. Each recipe is also listed by `just --list secret`. All command scripts, including [rekey](secrets/rekey.ysh), [edit](secrets/edit.ysh), [unlock](secrets/unlock.ysh), [lock](secrets/lock.ysh), [apply-staging](secrets/apply-staging.ysh), [set-host-password](secrets/set-host-password.ysh), [ssh-restore](secrets/ssh-restore.ysh), [ssh-backup](secrets/ssh-backup.ysh), and [doctor](secrets/doctor.ysh), share the Bitwarden helpers in [secrets/lib/bitwarden.ysh](secrets/lib/bitwarden.ysh). When no active session is present, interactive commands trigger `bw login` (when unauthenticated) or `bw unlock` (when locked) only when stdin is a TTY; non-interactive runs must pass `BW_SESSION`. Running [unlock](secrets/unlock.ysh) passes the session token to an in-memory resident agent daemon ([secrets/lib/agent.pl](secrets/lib/agent.pl)) over a mode 0600 Unix domain socket. The session token is held strictly in the agent process heap memory (RAM) and is never written to the file system (including tmpfs). Subsequent commands automatically retrieve the session over the socket without requiring `export BW_SESSION=...`. The agent maintains a sliding 15-minute inactivity timeout (configurable via `AGENIX_BW_SESSION_TTL`), refreshing the timer on each command. When the timeout expires, the agent zero-fills its memory, runs `bw lock`, and terminates. Under this fail-closed model, terminating or killing the agent process destroys the session without leaving any persisted plaintext files. Running [lock](secrets/lock.ysh) signals the agent to purge memory immediately and lock the vault. Commands re-execute under a systemd user scope with `MemorySwapMax=0`, and the master identity is written only to the dedicated noswap tmpfs at `/run/agenix-master`. Missing tools and Bitwarden states are reported with the command to fix them (for example `bw login` or `nix develop`).
-
-The legacy [secrets/secret.ysh](secrets/secret.ysh) router still forwards `secret.ysh <command>` invocations to the matching script.
+Inside `nix develop`, [justfile](../justfile) wraps the scripts under `just <group> <recipe>`:
 
 ```bash
-# Unlock Bitwarden and store the session in the in-memory agent (also supports --raw / --env)
-ysh scripts/secrets/unlock.ysh
-
-# Lock Bitwarden, zero agent memory, and terminate the agent
-ysh scripts/secrets/lock.ysh
-
-# Rekey every host (all arguments are passed to agenix)
-ysh scripts/secrets/rekey.ysh
-
-# Edit a master secret
-ysh scripts/secrets/edit.ysh secrets/master/hosts/BrokenPC/user_password_hash.age
-
-# Restore user SSH key (~/.ssh/id_ed25519 and .pub) from Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/ssh-restore.ysh [hostname] [--file <path>] [--force]
-
-# Back up local ~/.ssh/id_ed25519 to Bitwarden nix-config/ssh/<hostname>
-ysh scripts/secrets/ssh-backup.ysh [hostname] [--file <path>] [--force]
-
-# Check tools, master identity, ~/.ssh/id_ed25519 health, staging state, and Bitwarden status
-ysh scripts/secrets/doctor.ysh
-```
-
-### Staged Imports
-
-`.secrets-staging/` is a git-ignored area for plaintext that an agent or operator prepares without the master key. Paths mirror `secrets/master/`:
-
-```text
-.secrets-staging/hosts/BrokenPC/user_password_hash
-  -> secrets/master/hosts/BrokenPC/user_password_hash.age
-```
-
-```bash
-# Show the encryption plan without touching Bitwarden or the files
-ysh scripts/secrets/apply-staging.ysh --dry-run
-
-# Encrypt staged files, shred the plaintext, and rekey every host
-ysh scripts/secrets/apply-staging.ysh
-
-# Encrypt and remove staging files without rekeying
-ysh scripts/secrets/apply-staging.ysh --no-rekey
-```
-
-### Common Justfile Recipes
-
-```bash
-# Secrets management (subcommand: just secret <recipe>, legacy: just secret-<recipe>)
+# Secrets management (just --list secret)
 just secret unlock
 just secret rekey
 just secret edit secrets/master/hosts/BrokenPC/user_password_hash.age
-just secret apply-staging
-just secret ssh-restore
-just secret ssh-backup
+just secret apply-staging [--dry-run | --no-rekey]
+just secret set-host-password [--all | <host>...]
+just secret ssh-restore [hostname] [--file <path>] [--force]
+just secret ssh-backup [hostname] [--file <path>] [--force]
 just secret doctor
 just secret lock
 
-# System operations (subcommand: just system <recipe>)
+# System operations (just --list system)
 just switch
 just diff
 just test
 just build
-just system boot
-just system gc
-just system rollback
-just system info
+just system boot | gc | rollback | info
 
 # Dependency updates
-just update flake
-just update nvfetcher
+just update flake | nvfetcher
 
 # QA and documentation
 just check
 just lint
 just fmt path/to/file.nix
-just docs check
-just docs linkify
+just docs check | linkify
 
 # Nebula mesh VPN
 just nebula rotate-ca
@@ -128,43 +79,17 @@ just nebula import-secrets
 just hardware restart-touchpad
 ```
 
-## Secret CLI Configuration
+### Environment Variables (`secrets/`)
 
-Set `age.rekey.masterIdentities` to the same `master-key.txt` path. The default
-is the dedicated noswap tmpfs at `/run/agenix-master`; the file is created with
-mode 0400 and removed on exit, including on signals (EXIT/INT/TERM/HUP/QUIT). The CLI
-re-executes itself under a systemd user scope with `MemorySwapMax=0`; set
-`AGENIX_REQUIRE_SWAP_GUARD=1` to fail closed when that scope cannot be entered.
-Non-tmpfs override directories require `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE=1`.
+| Variable | Purpose | Default |
+| :--- | :--- | :--- |
+| `BW_SESSION` | Bitwarden session token for non-interactive runs | Retrieved from [secrets/lib/agent.pl](secrets/lib/agent.pl) |
+| `AGENIX_BW_SESSION_TTL` | In-memory session agent sliding inactivity timeout (seconds) | `900` (15 minutes) |
+| `AGENIX_REQUIRE_SWAP_GUARD` | Set to `1` to fail closed if `systemd-run --user` (`MemorySwapMax=0`) cannot be entered | Unset |
+| `AGENIX_MASTER_KEY_DIR_ALLOW_UNSAFE` | Set to `1` to allow non-tmpfs master key directories | Unset |
 
-## Other Workflows
+## References
 
-### Set or Update Host Passwords
-
-```bash
-# Prompt for user password (with confirmation), hash with yescrypt (independent salts per host),
-# and write master secrets (supports specific hosts or --all)
-just secret set-host-password --all
-just secret set-host-password BrokenPC x1c7
-# or: ysh scripts/secrets/set-host-password.ysh BrokenPC x1c7
-
-# Propagate the new hashes into secrets/rekeyed/hosts/
-just secret rekey
-```
-
-### Rotate the Fleet Nebula CA
-
-A full CA rotation issues a new root CA and signs all node certificates anew:
-
-```bash
-# Generate a new CA in ~/.nebula-ca and issue certs for every node in lib/nebula-fleet.nix
-just nebula rotate-ca
-# or: ysh scripts/nebula/rotate-ca.ysh
-
-# Publish ca.crt / hosts/<name>/nebula.crt and encrypt keys to secrets/master/
-just nebula import-secrets
-# or: ysh scripts/nebula/import-secrets.ysh
-
-# Distribute rekeyed secrets to each host
-just secret rekey
-```
+- Secret management & Bitwarden/age/SSH runbook: [docs/operations/secret-management.md](../docs/operations/secret-management.md)
+- Host installation scripts: [scripts/install/README.md](install/README.md)
+- Encrypted secrets directory: [secrets/README.md](../secrets/README.md)

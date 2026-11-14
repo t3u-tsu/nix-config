@@ -2,6 +2,12 @@
 
 NixOS service module integrating the Go-based [minecraft-discord-bridge](https://github.com/t3u-tsu/minecraft-discord-bridge) for automated Discord-Minecraft player whitelist management.
 
+## Modules
+
+| File | Description | Options |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | NixOS service module running the `minecraft-discord-bridge` daemon under the `minecraft` user with secret environment injection. | `my.services.minecraft-discord-bridge.enable`, `settings`, `environmentFiles`, `environmentSecretFiles` |
+
 ## Module Architecture
 
 - Builds from the `minecraft-discord-bridge` flake input package.
