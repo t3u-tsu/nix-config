@@ -73,4 +73,5 @@ jobs:
           if [ "$BASE" = "$(git rev-parse HEAD)" ]; then
             exit 0
           fi
-          nix run nixpkgs#convco -- check --ignore-reverts "$BASE..HEAD"
+          NIXPKGS_REV=$(jq -er '.nodes.nixpkgs.locked.rev' flake.lock)
+          nix run "github:NixOS/nixpkgs/${NIXPKGS_REV}#convco" -- check --ignore-reverts "$BASE..HEAD"
