@@ -101,6 +101,15 @@ check 'str trim' { assert [' a '.trim() === 'a'] }
 check 'str split' { assert [len('a;b'.split(';')) === 2] }
 check 'str lines' { assert [len(u'a\nb\n'.lines()) === 2] }
 check 'str search' { var m = 'a1'.search(/ d+ /); assert [m !== null] }
+check 'Match.group' { var m = 'p:8443'.search(/ ':' <capture d+ as port> /); assert [m.group('port') === '8443'] }
+check 'Eggex char class and :int' {
+  var pat = / 'host=' <capture [a-z A-Z 0-9 '._-']+ as host> ' port=' <capture d+ as port : int> /
+  var m = 'host=api-1.local port=8443'.leftMatch(pat)
+  assert [m !== null and m.group('host') === 'api-1.local' and m.group('port') === 8443]
+}
+check '_group with ~' { assert ['p:8443' ~ / ':' <capture d+> / and _group(1) === '8443'] }
+check 'strcmp' { assert [strcmp('a', 'b') < 0] }
+check 'external sort' { var raw = ['b', 'a']; var s = @(write -- @raw | LC_ALL=C sort); assert [s[0] === 'a' and s[1] === 'b'] }
 check 'join positional sep' { assert [join(['a', 'b'], '-') === 'a-b'] }
 
 # proc and func
@@ -154,7 +163,7 @@ check 'io.captureAll' { var r = io.captureAll(^(exit 3)); assert [r.status === 3
 # Modules and stdlib
 check 'source stdlib math' { source $LIB_YSH/math.ysh; assert [abs(-1) === 1] }
 check 'source stdlib list' { source $LIB_YSH/list.ysh; assert [all([true])] }
-check 'parseArgs' { source $LIB_YSH/args.ysh; var spec = {}; parser (&spec) { arg p }; var a = parseArgs(spec, :| x |); assert [a.p === 'x'] }
+check 'parseArgs' { source $LIB_YSH/args.ysh; var spec = {}; parser (&spec) { flag -p --min-port (Int, default=0); arg p }; var a = parseArgs(spec, :| -p 80 x |); assert [a['min-port'] === 80 and a.p === 'x'] }
 check 'source _this_dir' { assert [len(_this_dir) > 0] }
 check 'is-main' { if is-main { true } }
 
@@ -170,6 +179,13 @@ checkRejects 'export builtin' 'export FOO=bar'
 checkRejects 'local builtin' 'local x=1'
 checkRejects 'float strict equality' 'echo $[3.0 === 3.0]'
 checkRejects 'eval with two args' 'eval echo hi'
+checkRejects 'flat scope redeclaration' 'func f(b) { if (b) { var x = 1 } else { var x = 2 } }'
+checkRejects 'string < comparison' 'echo $["a" < "b"]'
+checkRejects 'List->sort()' 'var l = [2, 1]; call l->sort()'
+checkRejects 'unquoted glob(*.py)' 'echo @[glob(*.py)]'
+checkRejects 'Eggex unspaced char class' 'var r = /[a-zA-Z0-9._]/'
+checkRejects 'Eggex double-quoted literal' 'var r = /"abc"/'
+checkRejects 'Eggex multiline' u'var r = /\n \'a\'\n/'
 check 'shvar does not set ENV' {
   shvar VERIFY_SHVAR_ONLY=1 {
     assert [$(env -u VERIFY_SHVAR_ONLY sh -c 'echo ${VERIFY_SHVAR_ONLY-unset}') === 'unset']

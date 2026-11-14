@@ -1,6 +1,6 @@
 # YSH Cheatsheet
 
-Compact reference for Oils 0.37.0 (this repo) and 0.38.0 (oils.pub docs).
+Compact reference for Oils 0.38.0.
 `->` marks a mutating method (call with `call x->m(...)`); `.` marks a
 transforming method that returns a new value.
 
@@ -57,20 +57,31 @@ Indexing and slicing are byte-based: `s[1]`, `s[-1]`, `s[1:-1]`, `s[2:]`.
 | `indexOf` | `.` | `indexOf(x)` → Int, `-1` if absent |
 | `lastIndexOf` | `.` | `lastIndexOf(x)` |
 
-`List` has no `contains`; use `indexOf(x) >= 0`.
+`List` has no `contains` (`indexOf(x) >= 0`) and no `sort` (pipe `write -- @list | LC_ALL=C sort` into `@(...)`).
+
+## Match methods
+
+Returned by `s.search(eggex)` and `s.leftMatch(eggex)` (or `null` if no match).
+
+| Method | Kind | Signature |
+| :--- | :--- | :--- |
+| `group` | `.` | `group(0)` (whole), `group(i)` (index), `group('name')` (named capture) |
+| `start` | `.` | `start(i_or_name)` → Int byte offset |
+| `end` | `.` | `end(i_or_name)` → Int byte offset |
+
+For global `s ~ eggex` matches, use builtin functions `_group()`, `_start()`, `_end()` instead.
 
 ## Dict methods
 
-| Method | Kind | Signature | Version |
-| :--- | :--- | :--- | :--- |
-| `erase` | `->` | `erase(key)`; idempotent | 0.37 |
-| `clear` | `->` | `clear()` | 0.38+ |
-| `append` | `->` | `append(key, value)`; appends to the list at `key` | 0.38+ |
-| `inc` | `->` | `inc(key, n)`; missing key starts at 0 | 0.38+ |
-| `update` | `->` | `update(other)`; right side wins | 0.38+ |
+| Method | Kind | Signature |
+| :--- | :--- | :--- |
+| `erase` | `->` | `erase(key)`; idempotent |
+| `clear` | `->` | `clear()` |
+| `append` | `->` | `append(key, value)`; appends to the list at `key` |
+| `inc` | `->` | `inc(key, n)`; missing key starts at 0 |
+| `update` | `->` | `update(other)`; right side wins |
 
-`++` concatenates Str and List on 0.37. `Dict ++ Dict` (a new Dict, neither
-side mutated) is `[0.38+]`.
+`++` concatenates `Str`, `List`, and `Dict` (returns a new `Dict`, neither side mutated).
 
 ## Builtin functions
 
@@ -105,6 +116,7 @@ side mutated) is `[0.38+]`.
 | `setVar` | `setVar(name, value; global=false)` | |
 | `shvarGet` | `shvarGet(name)` | dynamic scope lookup |
 | `parseCommand` | `parseCommand(s)` | → Command |
+| `_group`, `_start`, `_end` | `_group(0)` / `_group('name')` | submatch from `~` operator (not `search()`) |
 | `vm.id` | `vm.id(v)` | identity for mutable values |
 
 Stdlib functions require a `source`:
@@ -184,23 +196,36 @@ Stdlib functions require a `source`:
 | `_this_dir` | directory of the current script |
 | `$0`, `$1`, `$@`, `$?`, `$!` | POSIX specials still work |
 | `PIPESTATUS` | internal `InternalStringArray`; only `@PIPESTATUS` works |
-| `OILS_VERSION` | e.g. `0.37.0` |
+| `OILS_VERSION` | e.g. `0.38.0` |
 | `LIB_YSH`, `LIB_OSH` | embedded stdlib prefixes |
 
-`_status` is removed in 0.38; use `_error.code`.
+## Runtime quirks (0.38.0)
 
-## Version notes
+- `===` / `!==` on `Float` is a runtime error (use `floatsEqual(float(a), float(b))`).
+- `var x: Int` type annotations are parsed and ignored at runtime.
+- `_status` is removed; use `_error.code`.
+- Upstream `toc-ysh.md` also lists unimplemented (`X`-marked) items such as
+  `each-line`, `table`, `binascii`, and `${x %.3f}`—do not use them.
 
-| Feature | 0.37.0 | 0.38.0 |
-| :--- | :--- | :--- |
-| `Dict->append`, `Dict->inc`, `Dict->update`, `Dict->clear` | absent | present |
-| `Dict ++ Dict` | absent | present |
-| `_status` | present (deprecated) | removed |
-| `Str.lines()` | present | present |
-| `json8` | present | present |
-| `parseArgs` | present | present |
-| `===` on `Float` | runtime error for any pair | runtime error (docs say false) |
-| `var x: Int` annotations | parsed, ignored | parsed, ignored |
+## Bash to YSH
 
-Check the installed version with `ysh --version` before relying on a
-version-dependent feature.
+| Bash | YSH |
+| :--- | :--- |
+| `x=foo` | `var x = 'foo'` |
+| `x="$x more"` | `setvar x = x ++ ' more'` |
+| `"$@"` / `"${arr[@]}"` | `@ARGV` / `@arr` |
+| `$((1 + 2))` | `$[1 + 2]` |
+| `[ "$a" = "$b" ]` | `if (a === b)` |
+| `[ "$a" \< "$b" ]` | `if (strcmp(a, b) < 0)` |
+| `[[ $x =~ $pat ]]` | `if (x ~ pat)` (quote literal: `~ 'pat'`) |
+| `[[ $x == *.py ]]` | `if (x ~~ '*.py')` |
+| `echo -n "$x"` / `printf '%s\n' "$x"` | `write -n -- $x` / `write -- $x` |
+| `IFS= read -r line` | `read --raw-line (&line)` |
+| `while read -r l; do ...; done` | `for l in (io.stdin) { ... }` |
+| `read -d ''` / `$(cat file)` | `read --all (&x)` |
+| `( cd /tmp; cmd )` | `cd /tmp { cmd }` |
+| `{ cmd; } >out` | `redir >out { cmd }` |
+| `cmd &` | `fork { cmd }` |
+| `export FOO=bar` / `$EDITOR` | `setglobal ENV.FOO = 'bar'` / `$[ENV.EDITOR]` |
+| `jq .key file` | `json read (&x) < file; $[x.key]` |
+| `jq -Rs . < file` | `read --all (&s) < file; $[toJson(s)]` |

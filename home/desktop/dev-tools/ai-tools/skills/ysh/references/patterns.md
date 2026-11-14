@@ -1,7 +1,7 @@
 # YSH Patterns
 
-Task-oriented recipes. Each example is written for Oils 0.37.0 unless marked
-`[0.38+]`. See [cheatsheet.md](cheatsheet.md) for signatures.
+Task-oriented recipes for Oils 0.38.0. See [cheatsheet.md](cheatsheet.md) for
+signatures.
 
 ## Script skeleton
 
@@ -32,6 +32,9 @@ if is-main { main (ARGV) }
 
 `is-main` returns 0 in the entry file and 1 when the file is sourced, so the
 same file works as a script and as a library.
+If `main` is an open proc (`proc main { ... }`), pass `main @ARGV` (an open
+proc's `ARGV` holds only the arguments passed to it, not the script's top-level
+`ARGV`).
 
 ## Parse arguments
 
@@ -47,13 +50,14 @@ parser (&spec) {
 }
 
 var args = parseArgs(spec, ARGV)
-echo $[args.source]
+echo $[args['dry-run']]    # hyphenated flags keep hyphens as Dict keys
 echo $[args.jobs]
 for p in (args.paths) { echo $p }
 ```
 
 `parseArgs` raises on unknown flags or missing required args. Use `--` to pass
-everything after it into `rest`.
+everything after it into `rest`. Hyphenated flag names are NOT converted to
+underscores: access `--dry-run` as `args['dry-run']`, not `args.dry_run`.
 
 ## Read a JSON config
 
@@ -299,6 +303,59 @@ proc log(msg) {
 
 Use `>&2` for diagnostics and stdout for data that a caller may capture with
 `$(...)`.
+
+## Extract with Eggex
+
+Use `s.search(...)` for `Match` objects (`m.group(...)`), or `~` for global
+`_group(...)`:
+
+```ysh
+var line = 'host=api-1.local port=8443'
+var pat = / 'host=' <capture [a-z A-Z 0-9 '._-']+ as host> ' port=' <capture d+ as port : int> /
+var m = line.search(pat)
+if (m !== null) {
+  echo "$[m.group('host')] $[m.group('port')]"   # port is already Int
+}
+
+if (line ~ / ':' <capture d+> /) {
+  echo $[_group(1)]
+}
+```
+
+Eggex rules that differ from PCRE:
+- Keep `/ ... /` on a single line (newlines inside `/ ... /` are parse errors).
+- Literal text uses single quotes (`'host='`), never double quotes.
+- Character class ranges must be space-separated, and punctuation other than
+  `_` must be single-quoted: `[a-z A-Z 0-9 '._-']`, not `[a-zA-Z0-9._-]`.
+- Negation is `![...]` or `!digit`; anchors are `%start` and `%end`.
+- Do not mix `Match` and `_group()`: `_group()` fails after `s.search()`.
+
+## Sort a list
+
+`List` has no `sort()` method and strings do not support `<` (`strcmp` only).
+For newline-free strings, delegate to external `sort`:
+
+```ysh
+var raw = ['beta', 'alpha', 'gamma']
+var sorted = @(write -- @raw | LC_ALL=C sort)
+```
+
+## Declare before branching (flat scope)
+
+Inside `proc` and `func`, `if`/`for`/`cd` blocks share one flat scope.
+Declare variables once before the branch and mutate with `setvar`:
+
+```ysh
+func classify(n) {
+  var label = null
+  if (n > 0) {
+    setvar label = 'positive'
+  } else {
+    setvar label = 'non-positive'
+  }
+  return (label)
+}
+```
 
 ## Tests
 
