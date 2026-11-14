@@ -24,6 +24,8 @@
         config.allowUnfree = true;
       };
 
+      oils-for-unix = final.unstable.oils-for-unix;
+
       ubootOrangePiZero3 = prev.buildUBoot {
         version = "2024.01";
         defconfig = "orangepi_zero3_defconfig";
@@ -73,10 +75,13 @@
           prev.writeTextFile {
             inherit
               name
-              meta
               passthru
               derivationArgs
               ;
+            meta = {
+              mainProgram = name;
+            }
+            // meta;
             executable = true;
             destination = "/bin/${name}";
             allowSubstitutes = true;
