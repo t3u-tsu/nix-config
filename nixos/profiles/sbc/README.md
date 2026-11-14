@@ -2,6 +2,12 @@
 
 Constraint layer for resource-constrained Single-Board Computers (e.g. Orange Pi Zero 3 with 1 GB RAM). No host selects it as a `profile`; [hosts/torii-chan/sbc.nix](../../../hosts/torii-chan/sbc.nix) imports it and the `torii-chan` SBC variants attach that module through `extraModules`.
 
+## Modules
+
+| File | Description | Options |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | Resource-constrained SBC constraint layer (build sandbox, syscall filter, swapfile, `vm.swappiness`). | Imported via `extraModules` in [hosts/torii-chan/sbc.nix](../../../hosts/torii-chan/sbc.nix) |
+
 ## Key Optimizations
 
 | Category | Setting | Description |

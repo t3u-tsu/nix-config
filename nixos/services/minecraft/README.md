@@ -2,6 +2,18 @@
 
 Declarative multi-server Minecraft infrastructure deployed on `shosoin-tan` with automated proxy routing, Discord integration, and version-pinned plugins.
 
+## Modules
+
+| File | Description | Options |
+| :--- | :--- | :--- |
+| [default.nix](default.nix) | Service aggregator, `nix-minecraft` overlay, and `minecraft-secrets.service` generator for local secrets. | `my.services.minecraft.enable`, `forwardingSecretPath`, `rconSecretPath` |
+| [proxy.nix](proxy.nix) | Velocity reverse proxy routing `mc.t3u.uk` and `nitac23s.mc.t3u.uk` on port `25565`. | Enabled via `my.services.minecraft.enable` |
+| [servers/default.nix](servers/default.nix) | Backend Paper server aggregator importing `lobby` and `nitac23s`. | Imported by [default.nix](default.nix) |
+| [servers/common.nix](servers/common.nix) | Shared helper library (`plugins`, `lunachat`, `ldLibraryPath`, `mkPaperGlobalPreStart`). | Imported by server modules |
+| [servers/lobby.nix](servers/lobby.nix) | Lightweight Adventure-mode void waiting lobby on port `25566`. | Enabled via `my.services.minecraft.enable` |
+| [servers/nitac23s.nix](servers/nitac23s.nix) | Primary survival Paper server on port `25567` with RCON enabled for Discord bridge. | Enabled via `my.services.minecraft.enable` |
+| [plugins/lunachat.nix](plugins/lunachat.nix) | Shared LunaChat Japanese conversion plugin configuration. | Imported by [servers/common.nix](servers/common.nix) |
+
 ## Architecture & Server Topology
 
 The Minecraft network deploys a lightweight Velocity/Paper reverse proxy routing inbound traffic to segregated backend servers:

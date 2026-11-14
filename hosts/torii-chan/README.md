@@ -29,9 +29,9 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | **Nebula Mesh** | `10.0.0.1` (lighthouse & relay, groups: `mgmt`) |
 | **Key Services** | Nebula lighthouse & relay, Cloudflare DDNS, `tcp/25565` DNAT forwarding to `shosoin-tan` |
 
-## Host Modules & Architecture Files
+## Host Services & Modules
 
-| File | Description | Target / Role |
+| File | Description | Options / Notes |
 | :--- | :--- | :--- |
 | [default.nix](default.nix) | Shared gateway host definition (host key, emergency SSH); platform wiring comes from the modules selected in [flake/hosts.nix](../../flake/hosts.nix). | Shared by SBC and VPS targets |
 | [sbc.nix](sbc.nix) | Hardware platform layer for Orange Pi Zero 3 (U-Boot, static LAN IP). | `torii-chan-hdd`, `torii-chan-sd` |
@@ -41,6 +41,9 @@ Edge gateway deployed at Site T on an Orange Pi Zero 3 SBC (`192.168.0.128`), wi
 | [sd-installer.nix](sd-installer.nix) | Minimal bootstrap installer definition for Orange Pi Zero 3. | `torii-chan-sd-installer` |
 | [vps-installer.nix](vps-installer.nix) | Minimal installer ISO generator for ConoHa VPS rescue environment. | `torii-chan-vps-iso` |
 | [installer-common.nix](installer-common.nix) | Common SSH keys and networking setup for bootstrap installers. | Shared by installers |
+| [build-sd-image.ysh](build-sd-image.ysh) | Builds `torii-chan-sd-installer` with a generated temporary password (`TORII_INSTALLER_TEMP_PASSWORD_HASH`). | Outputs `result-sd-image` and `result-sd-temp-password.txt` |
+| [build-vps-iso.ysh](build-vps-iso.ysh) | Builds `torii-chan-vps-iso` with a generated temporary password (`TORII_INSTALLER_TEMP_PASSWORD_HASH`). | Outputs `result-iso` and `result-iso-temp-password.txt` |
+| [install-nixos.sh](install-nixos.sh) | Bash installer script shipped inside `torii-chan-vps-iso` to configure static networking, partition `/dev/vda`, and install NixOS on ConoHa VPS. | Run in rescue ISO (`install-nixos help`) |
 
 ## Flake Targets
 

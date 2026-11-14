@@ -37,6 +37,7 @@ Nix Flakes でデスクトップ，サーバー群，ネットワークゲート
 - [hosts/](hosts/) — マシン固有の設定・ハードウェア定義
 - [secrets/](secrets/) — agenix-rekey で暗号化された秘密情報
 - [scripts/](scripts/) — クラスタ運用・保守スクリプト
+- [just/](just/) — 用途別の `just` レシピ群 (`system`, `secret`, `update`, `qa`, `docs`, `nebula`, `hardware`)
 - [terraform/](terraform/) — ConoHa VPS インフラの OpenTofu 定義
 - [docs/](docs/) — 設計仕様，運用手順書，ハードウェア解説，障害復旧手順
 
