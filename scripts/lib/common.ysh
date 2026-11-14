@@ -1,0 +1,40 @@
+#!/usr/bin/env ysh
+#
+# Shared helpers for the operational scripts under scripts/.
+#
+# Sourced, never executed:
+#   source $_this_dir/../lib/common.ysh
+
+if source-guard common.ysh {
+  func file_exists(path) {
+    try { test -f $path }
+    return (_error.code === 0)
+  }
+
+  func path_exists(path) {
+    try { test -e $path }
+    return (_error.code === 0)
+  }
+
+  func command_exists(name) {
+    try { command -v $name >/dev/null 2>&1 }
+    return (_error.code === 0)
+  }
+
+  proc die(msg) {
+    echo $"ERROR: ${msg}" >&2
+    exit 1
+  }
+
+  func issue_temp_password() {
+    var password = get(ENV, 'TEMP_PASSWORD', '')
+    if (password === '') {
+      setvar password = $(openssl rand -hex 8)
+    }
+    return (password)
+  }
+
+  func sha512_crypt_hash(password) {
+    return ($(printf '%s\n' $password | openssl passwd -6 -stdin))
+  }
+}

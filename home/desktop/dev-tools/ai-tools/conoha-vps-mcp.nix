@@ -15,7 +15,11 @@ let
     runtimeInputs = [ pkgs.nodejs ];
     text = ''
       var credentials = ""
-      read --all (&credentials) < ${config.age.secrets.conoha_vps_mcp_credentials.path}
+      try { read --all (&credentials) < ${config.age.secrets.conoha_vps_mcp_credentials.path} } 2>/dev/null
+      if failed {
+        echo 'conoha-vps-mcp: cannot read credentials secret ${config.age.secrets.conoha_vps_mcp_credentials.path}' >&2
+        exit 1
+      }
       for line in (credentials.lines()) {
         var entry = line.trim()
         if (len(entry) === 0 or entry.startsWith('#')) { continue }
@@ -23,6 +27,7 @@ let
         var eq = entry.find('=')
         if (eq <= 0) { continue }
         var name = entry[:eq].trim()
+        if (not (name ~ / %start [a-z A-Z _] [a-z A-Z 0-9 _]* %end /)) { continue }
         var value = entry[eq + 1:].trim()
         var quote = value[:1]
         if (len(value) >= 2 and (quote === '"' or quote === "'") and value.endsWith(quote)) {

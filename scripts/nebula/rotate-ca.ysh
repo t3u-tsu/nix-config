@@ -16,75 +16,27 @@
 #   ysh scripts/nebula/import-secrets.ysh "$CA_DIR"
 #   just secret rekey
 
+source $_this_dir/../lib/common.ysh
 source $_this_dir/lib/fleet.ysh
+source $LIB_YSH/args.ysh
 
 const CA_NAME = 't3u-home-ca'
 const DURATION = '87600h'
 
 shopt --unset verbose_errexit
 
-proc usage() {
-  echo 'usage: ysh scripts/nebula/rotate-ca.ysh [CA_DIR]'
-  echo ''
-  echo '  CA_DIR   output directory (default: ~/.nebula-ca)'
-}
-
-var ca_dir = ''
-var i = 0
-while (i < len(ARGV)) {
-  var arg = ARGV[i]
-  if (arg === '-h' or arg === '--help') {
-    usage
-    exit 0
+proc usage(; ; to_stderr=false) {
+  var lines = [
+    'usage: ysh scripts/nebula/rotate-ca.ysh [CA_DIR]',
+    '',
+    '  CA_DIR   output directory (default: ~/.nebula-ca)',
+  ]
+  if (to_stderr) {
+    write -- @lines >&2
   } else {
-    if (ca_dir !== '') {
-      echo 'ERROR: only one CA_DIR may be given' >&2
-      exit 2
-    }
-    setvar ca_dir = arg
-    setvar i += 1
+    write -- @lines
   }
 }
-
-if (ca_dir === '') {
-  setvar ca_dir = default_ca_dir()
-}
-if (ca_dir === '') {
-  echo 'ERROR: HOME is unset; pass CA_DIR explicitly.' >&2
-  exit 2
-}
-var subnet = FLEET_SUBNET
-
-for tool in (['nebula-cert', 'script', 'sort', 'base64']) {
-  if (not command_exists(tool)) {
-    echo $"ERROR: required tool '${tool}' not found. Run within nix develop, or add it to PATH." >&2
-    exit 1
-  }
-}
-
-var group_set = {}
-for node in (FLEET) {
-  for group in (node.groups) {
-    setvar group_set[group] = true
-  }
-}
-var group_names = @(printf '%s\n' @[keys(group_set)] | sort)
-var ca_groups = join(group_names, ',')
-if (ca_groups === '') {
-  echo 'ERROR: no groups defined in FLEET.' >&2
-  exit 1
-}
-
-echo '== Nebula CA rotation =='
-echo $"  CA dir : ${ca_dir}"
-echo $"  subnet : ${subnet}"
-echo $"  CA gps : ${ca_groups}"
-if (file_exists($"${ca_dir}/ca.crt")) {
-  echo 'WARN: replacing the existing CA in this directory.' >&2
-}
-
-umask 077
-mkdir -p $ca_dir
 
 # nebula-cert prompts for a passphrase, so run it under a pty fed from stdin.
 proc run_nebula(passphrase, ...cmd) {
@@ -102,54 +54,142 @@ proc run_nebula(passphrase, ...cmd) {
   }
 }
 
-cd $ca_dir {
-  if (file_exists('passphrase')) {
-    echo 'Reusing the existing CA passphrase.'
-  } else {
-    head -c 24 /dev/urandom | base64 > passphrase
+func subnet_prefix_length(subnet) {
+  var parts = subnet.split('/')
+  if (len(parts) !== 2) {
+    return ('')
   }
-  chmod 600 passphrase
-
-  var passphrase = ''
-  try { read --all (&passphrase) < passphrase }
-  if failed {
-    echo 'ERROR: cannot read the CA passphrase file.' >&2
-    exit 1
-  }
-  setvar passphrase = passphrase.trim()
-  if (passphrase === '') {
-    echo 'ERROR: CA passphrase file is empty.' >&2
-    exit 1
-  }
-
-  echo '== creating CA =='
-  run_nebula $passphrase nebula-cert ca \
-    -name $CA_NAME \
-    -networks $subnet \
-    -groups $ca_groups \
-    -duration $DURATION \
-    -encrypt \
-    -out-crt ca.crt \
-    -out-key ca.key
-
-  for node in (FLEET) {
-    var name = node.name
-    var ip = node.ip
-    var groups = join(node.groups, ',')
-    echo $"== sign ${name} (${ip}/24, ${groups}) =="
-    run_nebula $passphrase nebula-cert sign \
-      -name $name \
-      -networks $"${ip}/24" \
-      -groups $groups \
-      -ca-crt ca.crt \
-      -ca-key ca.key \
-      -out-crt $"${name}.crt" \
-      -out-key $"${name}.key"
-  }
+  return (parts[1])
 }
 
-echo
-echo $"== done. Certificates written to ${ca_dir} =="
-echo 'Next, re-import them (uses the Bitwarden master identity):'
-echo $"  ysh scripts/nebula/import-secrets.ysh ${ca_dir}"
-echo '  just secret rekey'
+proc main(; argv) {
+  var spec = {}
+  parser (&spec) {
+    flag -h --help (Bool, help='show this help')
+    rest args
+  }
+  var parsed = null
+  try { setvar parsed = parseArgs(spec, argv) }
+  if failed {
+    usage (to_stderr=true)
+    exit 2
+  }
+  if (parsed.help) {
+    usage
+    exit 0
+  }
+
+  var ca_dir = ''
+  if (len(parsed.args) > 1) {
+    echo 'ERROR: only one CA_DIR may be given' >&2
+    usage (to_stderr=true)
+    exit 2
+  }
+  if (len(parsed.args) === 1) {
+    setvar ca_dir = parsed.args[0]
+  }
+  if (ca_dir === '') {
+    setvar ca_dir = default_ca_dir()
+  }
+  if (ca_dir === '') {
+    echo 'ERROR: HOME is unset; pass CA_DIR explicitly.' >&2
+    exit 2
+  }
+
+  if (not FLEET_LOADED) {
+    echo 'ERROR: failed to load the Nebula fleet from lib/nebula-fleet.nix' >&2
+    exit 1
+  }
+
+  var subnet = FLEET_SUBNET
+  var prefix_len = subnet_prefix_length(subnet)
+  if (prefix_len === '') {
+    echo $"ERROR: FLEET_SUBNET must be CIDR, got '${subnet}'." >&2
+    exit 1
+  }
+
+  for tool in (['nebula-cert', 'script', 'sort', 'base64']) {
+    if (not command_exists(tool)) {
+      echo $"ERROR: required tool '${tool}' not found. Run within nix develop, or add it to PATH." >&2
+      exit 1
+    }
+  }
+
+  var group_set = {}
+  for node in (FLEET) {
+    for group in (node.groups) {
+      setvar group_set[group] = true
+    }
+  }
+  var group_names = @(write -- @[keys(group_set)] | LC_ALL=C sort)
+  var ca_groups = join(group_names, ',')
+  if (ca_groups === '') {
+    echo 'ERROR: no groups defined in FLEET.' >&2
+    exit 1
+  }
+
+  echo '== Nebula CA rotation =='
+  echo $"  CA dir : ${ca_dir}"
+  echo $"  subnet : ${subnet}"
+  echo $"  CA gps : ${ca_groups}"
+  if (file_exists($"${ca_dir}/ca.crt")) {
+    echo 'WARN: replacing the existing CA in this directory.' >&2
+  }
+
+  umask 077
+  mkdir -p $ca_dir
+
+  cd $ca_dir {
+    if (file_exists('passphrase')) {
+      echo 'Reusing the existing CA passphrase.'
+    } else {
+      head -c 24 /dev/urandom | base64 > passphrase
+    }
+    chmod 600 passphrase
+
+    var passphrase = ''
+    try { read --all (&passphrase) < passphrase }
+    if failed {
+      echo 'ERROR: cannot read the CA passphrase file.' >&2
+      exit 1
+    }
+    setvar passphrase = passphrase.trim()
+    if (passphrase === '') {
+      echo 'ERROR: CA passphrase file is empty.' >&2
+      exit 1
+    }
+
+    echo '== creating CA =='
+    run_nebula $passphrase nebula-cert ca \
+      -name $CA_NAME \
+      -networks $subnet \
+      -groups $ca_groups \
+      -duration $DURATION \
+      -encrypt \
+      -out-crt ca.crt \
+      -out-key ca.key
+
+    for node in (FLEET) {
+      var name = node.name
+      var ip = node.ip
+      var groups = join(node.groups, ',')
+      echo $"== sign ${name} (${ip}/${prefix_len}, ${groups}) =="
+      run_nebula $passphrase nebula-cert sign \
+        -name $name \
+        -networks $"${ip}/${prefix_len}" \
+        -groups $groups \
+        -ca-crt ca.crt \
+        -ca-key ca.key \
+        -out-crt $"${name}.crt" \
+        -out-key $"${name}.key"
+    }
+  }
+
+  echo
+  echo $"== done. Certificates written to ${ca_dir} =="
+  echo 'Next, re-import them (uses the Bitwarden master identity):'
+  echo $"  ysh scripts/nebula/import-secrets.ysh ${ca_dir}"
+  echo '  just secret rekey'
+}
+
+if is-main { main (ARGV) }

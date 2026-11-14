@@ -1,19 +1,14 @@
 #!/usr/bin/env ysh
 #
 # Shared Nebula mesh helpers. Loads the node fleet from lib/nebula-fleet.nix.
+#
+# Sourcing this file populates FLEET and FLEET_SUBNET and sets FLEET_LOADED;
+# callers must check FLEET_LOADED and exit themselves.
+
+source $_this_dir/../../lib/common.ysh
 
 var FLEET = []
 var FLEET_SUBNET = '10.0.0.0/24'
-
-func file_exists(path) {
-  try { test -f $path }
-  return (_error.code === 0)
-}
-
-func command_exists(name) {
-  try { command -v $name >/dev/null 2>&1 }
-  return (_error.code === 0)
-}
 
 func default_ca_dir() {
   var home = get(ENV, 'HOME', '')
@@ -36,24 +31,36 @@ func load_fleet_from_nix() {
   }
   var json_str = ''
   try { setvar json_str = $(nix eval --json --file $nix_file) }
-  if (_error.code !== 0 or json_str === '') {
+  if failed {
+    return (false)
+  }
+  if (json_str === '') {
     return (false)
   }
   var parsed = null
   try { json read (&parsed) <<< $json_str }
-  if (_error.code !== 0 or parsed === null) {
+  if failed {
     return (false)
   }
-  if (parsed.subnet !== null) {
-    setglobal FLEET_SUBNET = parsed.subnet
+  if (type(parsed) !== 'Dict') {
+    return (false)
   }
-  if (parsed.fleet !== null) {
-    setglobal FLEET = parsed.fleet
+  var subnet = get(parsed, 'subnet', null)
+  if (subnet !== null) {
+    setglobal FLEET_SUBNET = subnet
+  }
+  var fleet = get(parsed, 'fleet', null)
+  if (fleet !== null) {
+    setglobal FLEET = fleet
   }
   return (true)
 }
 
-if (not load_fleet_from_nix()) {
-  echo 'ERROR: failed to load the Nebula fleet from lib/nebula-fleet.nix' >&2
-  exit 1
+var FLEET_LOADED = load_fleet_from_nix()
+
+if is-main {
+  if (not FLEET_LOADED) {
+    echo 'ERROR: failed to load the Nebula fleet from lib/nebula-fleet.nix' >&2
+    exit 1
+  }
 }
