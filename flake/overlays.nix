@@ -24,6 +24,8 @@
         config.allowUnfree = true;
       };
 
+      oils-for-unix = final.unstable.oils-for-unix;
+
       ubootOrangePiZero3 = prev.buildUBoot {
         version = "2024.01";
         defconfig = "orangepi_zero3_defconfig";
