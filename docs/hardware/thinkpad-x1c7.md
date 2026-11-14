@@ -225,7 +225,7 @@ libinput list-devices | grep -A4 -E "TrackPoint|Touchpad"
 
 ### 4.3 fprintd のライフサイクル
 
-`fprintd.service` は `Type=dbus` / `BusName=net.reactivated.Fprint` で動作し，未使用のまま 30 秒経過すると `Deactivated successfully` で終了する (`src/fprintd.h` の `#define TIMEOUT 30`)．必要時に systemd が D-Bus 経由で自動起動するため，`systemctl status fprintd` が常時 `inactive` でも異常ではない．サスペンド復帰用の個別サービスも不要である．
+`fprintd.service` は `Type=dbus` / `BusName=net.reactivated.Fprint` で動作し，未使用のまま 30 秒経過すると `Deactivated successfully` で終了する (`src/fprintd.h` の `#define TIMEOUT 30`)．必要時に systemd が D-Bus 経由で自動起動するため，`systemctl status fprintd` が常時 `inactive` でも異常ではない．サスペンド復帰側の個別サービスは不要だが，停止側には `systemd.services.fprintd-pre-sleep` (`Type=oneshot`, `before` / `wantedBy` = `sleep.target`) を置き，`sleep.target` の前に `fprintd.service` を停止する．
 
 ### 4.4 PAM 統合と評価順序の調整
 
@@ -245,7 +245,9 @@ Noctalia シェルの `shell.polkit_agent` は無効化している (`polkit_age
 
 ### 4.6 USB 電源管理とエラーログの扱い
 
-udev ルール (`power/control=on`, `power/persist=1`) と TLP の `USB_DENYLIST = "06cb:00bd"` により autosuspend を二重に防止している．サスペンド復帰時には `xhci_hcd ... xHC error in resume, USBSTS 0x401` が記録されることがあるが，Noctalia は復帰後に新しいハンドルで Claim し直すため実害はない．
+udev ルールは `ATTR{power/control}="on"` と `ATTR{power/persist}="0"` を明示し，TLP の `USB_DENYLIST = "06cb:00bd"` と併せて autosuspend を二重に防止している．persist を 0 に強制するのは，persist=1 を保持した既存セッションが復帰後もその値を維持する経路を塞ぐためである．libfprint (`fp-device.c` / `fp-context.c` / `fpi-device.c`) は resume 時の reset / replug を unplug として扱い，デバイスを再生成するため，persist を 1 に固定すると古い USB ハンドルが残る ([トリアージ記録 第 2.2 節](../research/fprintd-triage-notes.md))．
+
+サスペンド直前に画面ロックが走ると，Noctalia がサスペンドをまたいで fprintd の Claim / VerifyStart を保持する．この状態で USB 1-9 が再列挙されると fprintd は `AlreadyInUse` や `No such device [-4]` を返して応答しなくなる．`systemd.services.fprintd-pre-sleep` は `sleep.target` の前に `fprintd.service` を停止するため，Claim / VerifyStart がサスペンドと USB 再列挙をまたがない．復帰後に Noctalia が発行する ClaimDevice は再試行と再取得を行うため，fprintd は D-Bus 経由で自動起動して新しいハンドルで Claim する．`AlreadyInUse` は Noctalia が再試行しないため，停止を先に済ませる構成とする．停止処理は `systemd.services.fprintd.serviceConfig.TimeoutStopSec = "5s"` で 5 秒に制限し，`ExecStartPre` の `udevadm settle --timeout=5` で復帰時の USB 再列挙完了を待ってから D-Bus activation のデバイス探索を始める ([hosts/x1c7/default.nix](../../hosts/x1c7/default.nix))．サスペンド復帰時には `xhci_hcd ... xHC error in resume, USBSTS 0x401` が記録されることがあるが，上記の再取得で実害はない．
 
 照合失敗時のログ `Failed to match fingerprint` は，未登録の指や置き方による `verify-no-match` の正常通知であり，テンプレート破損を示すものではない．デバイス初期化後の初回 probe で SENSOR_CMD_GET_VERSION の応答 status が 789 (0x0315) となり `Device responded with error` の warning が出ることがあるが，Synaptics ドライバは 1 回だけ即時リトライして成功するため，照合結果には影響しない．
 

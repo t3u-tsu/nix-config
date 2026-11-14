@@ -38,9 +38,29 @@
     fwupd.enable = true;
 
     udev.extraRules = ''
-      # Keep Synaptics fingerprint reader awake and persistent across power events.
-      ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="06cb", ATTR{idProduct}=="00bd", ATTR{power/control}="on", ATTR{power/persist}="1"
+      # Keep Synaptics fingerprint reader awake; force power/persist=0 so libfprint handles unplug/replug cleanly.
+      ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="06cb", ATTR{idProduct}=="00bd", ATTR{power/control}="on", ATTR{power/persist}="0"
     '';
+  };
+
+  systemd.services = {
+    fprintd.serviceConfig = {
+      # Wait for USB re-enumeration on resume before D-Bus activation probes devices.
+      ExecStartPre = "${config.systemd.package}/bin/udevadm settle --timeout=5";
+      # Bound fprint_device_release()'s nested main loop if a stale USB handle hangs on stop.
+      TimeoutStopSec = "5s";
+    };
+
+    # Stop fprintd before sleep so active lock-screen claims do not cross USB re-enumeration.
+    fprintd-pre-sleep = {
+      description = "Stop fprintd before sleep";
+      before = [ "sleep.target" ];
+      wantedBy = [ "sleep.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${config.systemd.package}/bin/systemctl stop fprintd.service";
+      };
+    };
   };
 
   # Enabled ahead of a possible LUKS migration; nothing on this host uses the
