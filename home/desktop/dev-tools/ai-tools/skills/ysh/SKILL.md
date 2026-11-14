@@ -138,6 +138,6 @@ For `use` modules (namespaced `Obj`), the module must define `var __provide__ = 
 ## References
 
 Read these on demand rather than end-to-end:
-- [references/cheatsheet.md](references/cheatsheet.md): exact signatures for types, `Str`/`List`/`Dict`/`Match` methods, builtins, operators, special vars, Bash-to-YSH table, and 0.37 vs 0.38 differences.
+- [references/cheatsheet.md](references/cheatsheet.md): exact signatures for types, `Str`/`List`/`Dict`/`Match` methods, builtins, operators, special vars, runtime quirks, and Bash-to-YSH table.
 - [references/patterns.md](references/patterns.md): full recipes for script skeleton, `parseArgs`, JSON config, subprocess capture, regex extraction, sorting, modules, and tests.
 - [scripts/verify.ysh](scripts/verify.ysh): runnable 0.37.0/0.38.0 verification suite.

@@ -120,7 +120,7 @@ For global `s ~ eggex` matches, use builtin functions `_group()`, `_start()`, `_
 | `_group`, `_start`, `_end` | `_group(0)` / `_group('name')` | submatch from `~` operator (not `search()`) |
 | `vm.id` | `vm.id(v)` | identity for mutable values |
 
-Stdlib functions require a `source`:
+Stdlib modules (prefer `use` when loading multiple modules, since stdlib defines `const __provide__`):
 
 | Module | Functions |
 | :--- | :--- |
