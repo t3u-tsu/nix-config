@@ -59,27 +59,31 @@ in
                   read --all (&content) < $f
                   var lines = content.split(u'\n')
                   var in_fence = false
-                  var fence = ""
+                  var fence = null
                   var out = []
                   for line in (lines) {
-                    var trimmed = line.trim()
-                    var marker = ""
-                    if (len(trimmed) >= 3 and (trimmed[0:3] === '```' or trimmed[0:3] === '~~~')) {
-                      var fence_char = trimmed[0]
+                    var indent = 0
+                    while (indent < 4 and indent < len(line) and line[indent] === ' ') {
+                      setvar indent += 1
+                    }
+                    var body = line[indent:]
+                    var marker = null
+                    if (indent <= 3 and len(body) >= 3 and (body[0:3] === '```' or body[0:3] === '~~~')) {
+                      var fence_char = body[0]
                       var width = 0
-                      while (width < len(trimmed) and trimmed[width] === fence_char) {
+                      while (width < len(body) and body[width] === fence_char) {
                         setvar width += 1
                       }
-                      setvar marker = trimmed[0:width]
+                      setvar marker = body[0:width]
                     }
                     if (in_fence) {
                       call out->append(line)
-                      if (marker !== "" and marker[0] === fence[0] and len(marker) >= len(fence) and len(marker) === len(trimmed)) {
+                      if (marker !== null and marker[0] === fence[0] and len(marker) >= len(fence) and len(marker) === len(body.trimEnd())) {
                         setvar in_fence = false
                       }
                       continue
                     }
-                    if (marker !== "") {
+                    if (marker !== null) {
                       setvar in_fence = true
                       setvar fence = marker
                       call out->append(line)

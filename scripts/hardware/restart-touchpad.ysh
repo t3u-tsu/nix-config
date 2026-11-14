@@ -7,17 +7,14 @@
 #
 # Re-executes through pkexec when not running as root.
 
+source $_this_dir/../lib/common.ysh
+
 shopt --unset verbose_errexit
 
 const CONTROLLER = 'AMDI0010:03'
 const PLATFORM_DIR = '/sys/bus/platform/drivers/i2c_designware'
 const I2C_DIR = '/sys/bus/i2c/drivers/i2c_hid_acpi'
 const TOUCHPAD = 'i2c-SYNA32CD:00'
-
-func path_exists(path) {
-  try { test -e $path }
-  return (_error.code === 0)
-}
 
 func resolve_parent(path) {
   var parts = path.split(u'/')
@@ -28,13 +25,8 @@ func resolve_parent(path) {
 }
 
 func find_ysh() {
-  var found = ''
-  try { setvar found = $(command -v ysh 2>/dev/null) }
-  if failed {
-    setvar found = ''
-  }
-  if (found !== '') {
-    return (found)
+  if (command_exists('ysh')) {
+    return ($(command -v ysh))
   }
   var exe = ''
   try { setvar exe = $(readlink -f /proc/$$/exe) }
@@ -44,36 +36,10 @@ func find_ysh() {
   return (resolve_parent(exe) ++ '/ysh')
 }
 
-var script_path = $(readlink -f $0)
-var euid = $(id -u)
-if (euid !== '0') {
-  var pkexec_bin = ''
-  try { setvar pkexec_bin = $(command -v pkexec 2>/dev/null) }
-  if failed {
-    setvar pkexec_bin = ''
-  }
-  if (pkexec_bin === '') {
-    echo 'ERROR: pkexec is required to elevate privileges but was not found.' >&2
-    exit 1
-  }
-  var ysh_bin = find_ysh()
-  if (ysh_bin === '' or not path_exists(ysh_bin)) {
-    echo 'ERROR: cannot locate the ysh interpreter for pkexec.' >&2
-    exit 1
-  }
-  echo '[restart-touchpad] Root privileges required; requesting elevation via pkexec...'
-  exec $pkexec_bin $ysh_bin $script_path @[ARGV]
-}
-
-if (not path_exists(PLATFORM_DIR)) {
-  echo $"ERROR: ${PLATFORM_DIR} not found; this host does not use the AMD DesignWare I2C driver." >&2
-  exit 1
-}
-
-func set_power_control() {
+proc set_power_control() {
   var control = $"/sys/bus/platform/devices/${CONTROLLER}/power/control"
   if (not path_exists(control)) {
-    return (null)
+    return
   }
   try { echo 'on' > $control }
   if failed {
@@ -81,36 +47,63 @@ func set_power_control() {
   }
 }
 
-# The controller can stay asleep after a suspend/resume cycle, so force it on
-# before rebinding the driver.
-set_power_control
-
-if (path_exists($"${PLATFORM_DIR}/${CONTROLLER}")) {
-  try { echo $CONTROLLER > $"${PLATFORM_DIR}/unbind" }
+proc elevate_via_pkexec(script_path; ; argv) {
+  var pkexec_bin = ''
+  try { setvar pkexec_bin = $(command -v pkexec 2>/dev/null) }
   if failed {
-    echo $"ERROR: cannot unbind ${CONTROLLER}." >&2
-    exit 1
+    setvar pkexec_bin = ''
   }
-  sleep 0.5
+  if (pkexec_bin === '') {
+    die 'pkexec is required to elevate privileges but was not found.'
+  }
+  var ysh_bin = find_ysh()
+  if (ysh_bin === '' or not path_exists(ysh_bin)) {
+    die 'cannot locate the ysh interpreter for pkexec.'
+  }
+  echo '[restart-touchpad] Root privileges required; requesting elevation via pkexec...'
+  exec $pkexec_bin $ysh_bin $script_path @argv
 }
 
-if (path_exists($"/sys/bus/platform/devices/${CONTROLLER}")) {
-  try { echo $CONTROLLER > $"${PLATFORM_DIR}/bind" }
-  if failed {
-    echo $"ERROR: cannot bind ${CONTROLLER}." >&2
-    exit 1
+proc main(; argv) {
+  var script_path = $(readlink -f $0)
+  if ($(id -u) !== '0') {
+    elevate_via_pkexec $script_path (argv=argv)
   }
-  sleep 0.5
+
+  if (not path_exists(PLATFORM_DIR)) {
+    die $"${PLATFORM_DIR} not found; this host does not use the AMD DesignWare I2C driver."
+  }
+
+  # The controller can stay asleep after a suspend/resume cycle, so force it on
+  # before rebinding the driver.
+  set_power_control
+
+  if (path_exists($"${PLATFORM_DIR}/${CONTROLLER}")) {
+    try { echo $CONTROLLER > $"${PLATFORM_DIR}/unbind" }
+    if failed {
+      die $"cannot unbind ${CONTROLLER}."
+    }
+    sleep 0.5
+  }
+
+  if (path_exists($"/sys/bus/platform/devices/${CONTROLLER}")) {
+    try { echo $CONTROLLER > $"${PLATFORM_DIR}/bind" }
+    if failed {
+      die $"cannot bind ${CONTROLLER}."
+    }
+    sleep 0.5
+  }
+
+  set_power_control
+
+  if (path_exists($"/sys/bus/i2c/devices/${TOUCHPAD}") and not path_exists($"${I2C_DIR}/${TOUCHPAD}")) {
+    try { echo $TOUCHPAD > $"${I2C_DIR}/bind" }
+    if failed {
+      die $"cannot bind ${TOUCHPAD}."
+    }
+  }
+
+  echo '[restart-touchpad] Recovery sequence completed.'
 }
 
-set_power_control
-
-if (path_exists($"/sys/bus/i2c/devices/${TOUCHPAD}") and not path_exists($"${I2C_DIR}/${TOUCHPAD}")) {
-  try { echo $TOUCHPAD > $"${I2C_DIR}/bind" }
-  if failed {
-    echo $"ERROR: cannot bind ${TOUCHPAD}." >&2
-    exit 1
-  }
-}
-
-echo '[restart-touchpad] Recovery sequence completed.'
+if is-main { main (ARGV) }
