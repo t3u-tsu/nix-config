@@ -97,10 +97,11 @@ For global `s ~ eggex` matches, use builtin functions `_group()`, `_start()`, `_
 | `dict` | `dict(x)` | shallow copy |
 | `keys` | `keys(d)` | insertion order |
 | `values` | `values(d)` | insertion order |
-| `get` | `get(d, key, default=null)` | default only for a missing key |
+| `get` | `get(d, key, default=null)` | default only for missing key (`d` must be `Dict`/`Obj`) |
 | `join` | `join(list, sep='')` | positional separator; `sep=` is rejected |
 | `maybe` | `maybe(s)` | `[]` if empty, `[s]` otherwise |
-| `shSplit` | `shSplit(s)` | `$IFS` splitting; prefer `split()` |
+| `split` | `split(s)` | split on `$IFS` (or `s.split(sep)` for exact sep) |
+| `shSplit` | `shSplit(s)` | collapse `$IFS` whitespace (use `s.split(sep)` for exact sep) |
 | `strcmp` | `strcmp(a, b)` | `0`, `-1`, `1` |
 | `floatsEqual` | `floatsEqual(a, b)` | both args must be `Float` |
 | `first` | `first(obj)` | property Dict (shared storage) |
@@ -125,7 +126,7 @@ Stdlib functions require a `source`:
 | :--- | :--- |
 | `$LIB_YSH/math.ysh` | `identity`, `abs`, `max`, `min`, `sum` |
 | `$LIB_YSH/list.ysh` | `all`, `any`, `repeat` |
-| `$LIB_YSH/args.ysh` | `parser`, `flag`, `arg`, `rest`, `parseArgs` |
+| `$LIB_YSH/args.ysh` | `parser`, `parseArgs` (block DSL: `flag`, `arg`, `rest`) |
 
 `sum` is in `math.ysh` on both versions; check with
 `ysh -c 'source $LIB_YSH/math.ysh; = __provide__'`.
@@ -145,7 +146,7 @@ Stdlib functions require a `source`:
 | `try { ... }` | capture failure in `_error`, always status 0 |
 | `failed` | `(_error.code !== 0)` |
 | `error 'msg' (code=10, key=val)` | raise; named args become `_error` keys |
-| `boolstatus cmd { ... } else { ... }` | distinguish status 1 from real errors |
+| `if boolstatus cmd { ... } else { ... }` | distinguish status 1 from real errors |
 | `assert [expr]` | fail unless truthy; prints expected vs actual |
 | `cd DIR { ... }` | scoped working directory |
 | `shvar NAME=VAL { ... }` | scoped shell variable (not `ENV`) |
@@ -198,12 +199,16 @@ Stdlib functions require a `source`:
 | `PIPESTATUS` | internal `InternalStringArray`; only `@PIPESTATUS` works |
 | `OILS_VERSION` | e.g. `0.38.0` |
 | `LIB_YSH`, `LIB_OSH` | embedded stdlib prefixes |
+| `io` | I/O object: `io.stdin`, `io.captureStdout(cmd)`, `io.captureAll(cmd)`, `io->eval(block)` |
 
 ## Runtime quirks (0.38.0)
 
+- `errexit`, `pipefail`, and `inherit_errexit` are on by default.
 - `===` / `!==` on `Float` is a runtime error (use `floatsEqual(float(a), float(b))`).
 - `var x: Int` type annotations are parsed and ignored at runtime.
-- `_status` is removed; use `_error.code`.
+- `_status` is removed; use `_error.code`. `_error.message` may be absent (e.g. `json read` failures); use `get(_error, 'message', '')`.
+- Unset an environment variable with `setglobal ENV.X = null` (`= ''` leaves an empty string; `unset ENV.X` fails).
+- `exec` replaces the current process and cannot be caught by `try`.
 - Upstream `toc-ysh.md` also lists unimplemented (`X`-marked) items such as
   `each-line`, `table`, `binascii`, and `${x %.3f}`—do not use them.
 

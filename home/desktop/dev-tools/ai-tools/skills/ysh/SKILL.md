@@ -46,13 +46,13 @@ Four rules prevent most failures:
 | `'a' < 'b'` or `call list->sort()` | `strcmp(a, b) < 0` / `@(write -- @list \| LC_ALL=C sort)` | `<` is numeric-only; `List` has no `sort()` |
 | `'x' in s` / `'x' in list` / `s ++= 'a'` | `s.contains('x')` / `list.indexOf('x') >= 0` / `List->append` + `join()` | `in` is `Dict`-only; no `++=` on `Str` |
 | `var p = ~/src` / `@[glob(*.py)]` | `"$HOME/src"` / `@[glob('*.py')]` | Expression mode does not expand `~` or bare globs |
-| `$FOO` / `export FOO=1` / `shvar` for child | `ENV.FOO` / `get(ENV, 'FOO', 'd')` / `setglobal ENV.FOO = '1'` / `FOO=1 cmd` | `ENV` is separate; `shvar` is shell-only |
+| `$FOO` / `export FOO=1` / `shvar` for child | `ENV.FOO` / `get(ENV, 'FOO', 'd')` / `setglobal ENV.FOO = '1'` (`= null` to unset) / `FOO=1 cmd` | `ENV` is separate; `shvar` is shell-only |
 | `$d.key` / `$"${obj.attr}"` | `$[d.key]` or bind `var v = obj.attr; $"${v}"` | No nested attr access in words or `$"..."` |
 | `'\n'` / `str([1])` / `3.0 === 3.0` | `u'\n'` or `r'\n'` / `toJson8(x)` / `floatsEqual(float(a), float(b))` | Ambiguous `\`; `str()` rejects containers; `===` rejects `Float` |
 | `return ((a + b) * c)` / `(80 \| 8080)` | `return ( (a + b) * c )` / `(80) \| (8080)` | `((` starts bash arith; `\|` inside `(...)` is bitwise OR |
 | `/pat/` / `/"a"/` / `/[a-zA-Z0-9._]/` / multiline `/ /` | `/ 'pat' /` / `/ [a-z A-Z 0-9 '._-'] /` (single-line) | Eggex requires single quotes, spaced ranges, `![...]` |
 | `_group(1)` after `s.search(...)` | `m.group(1)` for `search()`/`leftMatch()`; `_group(1)` for `~` | `Match` and global `_group` do not mix |
-| `if isValid x` / `load-fleet(x)` / `proc p(&b)` | `if (isValid(x))` / `load-fleet $x` / `proc p(; ; ; block)` + `call io->eval(block)` | `func` is expr-only; hyphenated names are cmd-only |
+| `if isValid x` / `load-fleet(x)` / `proc p(&b)` | `if (isValid(x))` / `load-fleet $x` / `proc p(; ; ; block)` + `call io->eval(block)` | `func` in cmd pos fails (status 127); hyphenated names are cmd-only |
 | `myproc (&out) \| grep foo` | Avoid `&out` on left of pipe | Left pipe stages run in subshells |
 | `args.min_port` for `--min-port` | `args['min-port']` | `parseArgs` keeps hyphens in Dict keys |
 | `local`/`declare`, `echo -n`, `try cmd`, `read -0 (&x)`, `{ }` | `var`, `write -n --`, `try { cmd }`, `read -0 x`, `{ true }` | Disabled OSH / parser rules; `_status` removed |
@@ -89,7 +89,7 @@ func add(a, b; factor=1) {
 Open proc (`proc p { ... }`) sees only the arguments passed to `p` in `ARGV` (not top-level `ARGV`—pass `main @ARGV` or use `proc main(; argv)` + `main (ARGV)`). Closed proc (`proc p(x) { ... }`) has empty `ARGV`. Out-params use `Place`: `proc p(; out) { call out->setValue(42) }`, called as `p (&x)`.
 
 ### Control flow, blocks & errors
-`errexit` is on by default. Wrap expected failures in `try { ... }` and check `if failed` (`_error.code !== 0`).
+`errexit`, `pipefail`, and `inherit_errexit` are on by default. Wrap expected failures in `try { ... }` (note: `exec` replaces the process and cannot be caught by `try`) and check `if failed` (`_error.code !== 0`).
 ```ysh
 shopt --unset verbose_errexit {
   try { grep -q 'pat' $file }
@@ -115,7 +115,7 @@ case (port) {
 ### JSON, I/O & modules
 ```ysh
 var cfg = null
-try { json read (&cfg) < $path }        # or: cmd | json read -> _reply
+try { json read (&cfg) < $path }        # or: cmd | json read  # writes to _reply
 json write (cfg, space=2) > $out_path
 
 var text = ''
@@ -125,7 +125,7 @@ write --end '' -- $text > $copy         # exact bytes
 source $_this_dir/lib/common.ysh        # eval in current namespace
 if is-main { main (ARGV) }
 ```
-For `use` modules (namespaced `Obj`), the module must define `var __provide__ = [...]`.
+For `use` modules (namespaced `Obj`), the module must define `var __provide__ = [...]`. Prefer `use` when loading multiple `$LIB_YSH/*` stdlib modules (`source` collides on `const __provide__`).
 
 ## 4. Verification & Nix integration
 

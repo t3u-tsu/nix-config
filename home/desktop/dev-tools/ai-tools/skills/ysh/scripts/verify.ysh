@@ -36,7 +36,7 @@ proc check(name; ; ; block) {
 proc checkRejects(name, src) {
   setglobal total += 1
   var status = 0
-  try { $ysh_bin -c $src >/dev/null 2>&1 }
+  cd $tmp { try { $ysh_bin -c $src >/dev/null 2>&1 } }
   if (_error.code === 0) {
     setglobal failures += 1
     echo $"[FAIL] $name (accepted, expected rejection)"
@@ -191,6 +191,17 @@ check 'shvar does not set ENV' {
     assert [$(env -u VERIFY_SHVAR_ONLY sh -c 'echo ${VERIFY_SHVAR_ONLY-unset}') === 'unset']
   }
 }
+check 'unset ENV with null' {
+  setglobal ENV.VERIFY_TMP = '1'
+  setglobal ENV.VERIFY_TMP = null
+  assert [$(sh -c 'echo ${VERIFY_TMP-unset}') === 'unset']
+}
+check 'split and shSplit' {
+  assert [len(split('a b')) === 2 and len(shSplit('a  b')) === 2]
+}
+checkRejects 'json read -> _reply' "echo '{}' | json read -> _reply"
+checkRejects 'get on non-Dict' "var _ = get(null, 'k', '')"
+checkRejects 'boolstatus without if' 'boolstatus true { echo ok } else { echo no }'
 
 # Version-gated
 if (strcmp(OILS_VERSION, '0.38.0') >= 0) {

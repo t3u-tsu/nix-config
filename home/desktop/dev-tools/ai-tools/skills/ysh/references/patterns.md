@@ -148,7 +148,7 @@ while read --raw-line (&line) {   # unbuffered, needed for interactive input
 }
 ```
 
-Do not use `IFS= read -r line`; it does not work in YSH.
+Prefer `read --raw-line (&line)` over `read -r line` to avoid `$IFS` whitespace trimming and pass an explicit place.
 
 ## Write files exactly
 
@@ -242,7 +242,7 @@ file in the current namespace:
 
 ```ysh
 # lib/fleet.ysh
-var FLEET = []
+var FLEET = {}
 
 proc load-fleet(path) {
   var raw = ''
@@ -278,7 +278,9 @@ echo $[module.MY_VALUE]
 
 Bindings are copied into the namespace, so `setglobal` inside the module does
 not update `module.FLEET`. Mutate a shared object in place, or use `source`
-when the module has mutable state.
+when the module has mutable state. When loading multiple `$LIB_YSH/*` stdlib
+modules in one scope, use `use` rather than `source` (stdlib modules define
+`const __provide__`, which collides on a second `source`).
 
 ## Run a subprocess with a scoped environment
 
