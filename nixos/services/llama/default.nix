@@ -112,11 +112,40 @@ in
     nixpkgs.overlays = [
       inputs.llama-cpp.overlays.default
       (_final: prev: {
-        llama-cpp = prev.llama-cpp.override {
-          cudaPackages = prev.cudaPackages // {
-            cccl = prev.cudaPackages.cuda_cccl;
-          };
-        };
+        llama-cpp =
+          (prev.llama-cpp.override {
+            cudaPackages = prev.cudaPackages // {
+              cccl = prev.cudaPackages.cuda_cccl;
+            };
+          }).overrideAttrs
+            (
+              _finalAttrs: prevAttrs: {
+                webui = prevAttrs.webui.overrideAttrs (oldWebui: {
+                  # Nix store files are 0444; copyFileSync fails on the second pwa-assets pass without unlinking first.
+                  postPatch = (oldWebui.postPatch or "") + ''
+                    substituteInPlace scripts/brand-favicons.ts \
+                      --replace-warn \
+                        "import { copyFileSync, mkdirSync } from 'node:fs';" \
+                        "import { copyFileSync, mkdirSync, rmSync } from 'node:fs';" \
+                      --replace-warn \
+                        "copyFileSync(require.resolve(specifier), resolve(outDir, fileName));" \
+                        "rmSync(resolve(outDir, fileName), { force: true }); copyFileSync(require.resolve(specifier), resolve(outDir, fileName));"
+                  '';
+                  npmDeps = oldWebui.npmDeps.overrideAttrs (oldNpmDeps: {
+                    # importNpmLock links codeload tarballs verbatim instead of unpacking them.
+                    postInstall = (oldNpmDeps.postInstall or "") + ''
+                      brand="$out/node_modules/llama-brand"
+                      if [ ! -d "$brand" ] && [ -e "$brand" ]; then
+                        tarball="$(readlink -f "$brand")"
+                        rm "$brand"
+                        mkdir -p "$brand"
+                        tar -xzf "$tarball" --strip-components=1 -C "$brand"
+                      fi
+                    '';
+                  });
+                });
+              }
+            );
       })
     ];
 
