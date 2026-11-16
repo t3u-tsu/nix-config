@@ -11,10 +11,12 @@ Modular and portable Neovim setup managed with Home Manager.
 | [config/lua/config/options.lua](config/lua/config/options.lua) | Core editor options. | Loaded by [config/init.lua](config/init.lua) |
 | [config/lua/config/theme.lua](config/lua/config/theme.lua) | Vesper color palette highlights with Nix fallback. | Loaded by [config/init.lua](config/init.lua) |
 | [config/lua/config/lazy.lua](config/lua/config/lazy.lua) | `lazy.nvim` plugin manager bootstrap and configuration. | Loaded by [config/init.lua](config/init.lua) |
-| [config/lua/plugins/cmp.lua](config/lua/plugins/cmp.lua) | Autocompletion engine (`nvim-cmp`) with LSP, buffer, path, and snippet sources. | `lazy.nvim` plugin spec |
+| [config/after/ftplugin/julia.lua](config/after/ftplugin/julia.lua) | Julia buffer-local settings (4-space indentation, `!` in `iskeyword`). | Loaded for `julia` filetype |
+| [config/after/indent/julia.lua](config/after/indent/julia.lua) | Julia Tree-sitter indentation override. | Loaded for `julia` filetype |
+| [config/lua/plugins/cmp.lua](config/lua/plugins/cmp.lua) | Autocompletion engine (`nvim-cmp`) with LSP, buffer, path, snippet, and Julia LaTeX symbol sources. | `lazy.nvim` plugin spec |
 | [config/lua/plugins/direnv.lua](config/lua/plugins/direnv.lua) | Direnv integration (`direnv.vim`) for automatic environment switching. | `lazy.nvim` plugin spec |
 | [config/lua/plugins/gitsigns.lua](config/lua/plugins/gitsigns.lua) | Git diff signs in signcolumn and hunk actions (`]c`, `[c`, `<leader>h*`). | `lazy.nvim` plugin spec |
-| [config/lua/plugins/lsp.lua](config/lua/plugins/lsp.lua) | LSP configuration (`nil_ls`, `lua_ls`, `bashls`, `perlnavigator`, `tinymist`) with conditional startup and auto-format. | `lazy.nvim` plugin spec |
+| [config/lua/plugins/lsp.lua](config/lua/plugins/lsp.lua) | LSP configuration (`nil_ls`, `lua_ls`, `bashls`, `perlnavigator`, `tinymist`, `julials`) with conditional startup, direnv reload, and auto-format. Requires `LanguageServer.jl` in the active Julia environment for `julials`. | `lazy.nvim` plugin spec |
 | [config/lua/plugins/lualine.lua](config/lua/plugins/lualine.lua) | Statusline themed with Vesper palette. | `lazy.nvim` plugin spec |
 | [config/lua/plugins/oil.lua](config/lua/plugins/oil.lua) | Buffer-like file manager (`-` key). | `lazy.nvim` plugin spec |
 | [config/lua/plugins/telescope.lua](config/lua/plugins/telescope.lua) | Fuzzy finder for files, grep, and buffers (`<leader>f*`). | `lazy.nvim` plugin spec |

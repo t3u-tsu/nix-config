@@ -9,6 +9,7 @@ return {
     "hrsh7th/cmp-path",
     "L3MON4D3/LuaSnip",
     "saadparwaiz1/cmp_luasnip",
+    "kdheepak/cmp-latex-symbols",
   },
   config = function()
     local cmp = require("cmp")
@@ -46,6 +47,16 @@ return {
       }),
       sources = cmp.config.sources({
         { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "path" },
+        { name = "buffer" },
+      }),
+    })
+
+    cmp.setup.filetype("julia", {
+      sources = cmp.config.sources({
+        { name = "nvim_lsp" },
+        { name = "latex_symbols", option = { strategy = 1 } },
         { name = "luasnip" },
         { name = "path" },
         { name = "buffer" },

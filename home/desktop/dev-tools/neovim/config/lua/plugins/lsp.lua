@@ -80,6 +80,10 @@ return {
         cmd = "perlnavigator",
         opts = {},
       },
+      julials = {
+        cmd = "julia",
+        opts = {},
+      },
       tinymist = {
         cmd = "tinymist",
         opts = {
@@ -94,12 +98,28 @@ return {
     local has_cmp, cmp_lsp = pcall(require, "cmp_nvim_lsp")
     local default_caps = has_cmp and cmp_lsp.default_capabilities() or vim.lsp.protocol.make_client_capabilities()
 
-    for name, srv in pairs(servers) do
-      if vim.fn.executable(srv.cmd) == 1 then
-        local opts = vim.tbl_deep_extend("force", { capabilities = default_caps }, srv.opts or {})
-        vim.lsp.config(name, opts)
-        vim.lsp.enable(name)
+    local enabled = {}
+
+    local function enable_server(name, srv)
+      if enabled[name] or vim.fn.executable(srv.cmd) ~= 1 then
+        return
       end
+      local opts = vim.tbl_deep_extend("force", { capabilities = default_caps }, srv.opts or {})
+      vim.lsp.config(name, opts)
+      vim.lsp.enable(name)
+      enabled[name] = true
     end
+
+    for name, srv in pairs(servers) do
+      enable_server(name, srv)
+    end
+
+    vim.api.nvim_create_autocmd("User", {
+      group = vim.api.nvim_create_augroup("UserJuliaLsp", { clear = true }),
+      pattern = "DirenvLoaded",
+      callback = function()
+        enable_server("julials", servers.julials)
+      end,
+    })
   end,
 }
