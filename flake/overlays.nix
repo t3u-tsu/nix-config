@@ -26,6 +26,26 @@
 
       oils-for-unix = final.unstable.oils-for-unix;
 
+      tree-sitter-grammars = prev.tree-sitter-grammars // {
+        tree-sitter-julia =
+          let
+            localPatch = ../home/desktop/dev-tools/neovim/patches/tree-sitter-julia-juxtaposition.patch;
+          in
+          if builtins.pathExists localPatch then
+            prev.tree-sitter-grammars.tree-sitter-julia.overrideAttrs (old: {
+              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+                prev.tree-sitter
+                prev.nodejs
+              ];
+              patches = (old.patches or [ ]) ++ [ localPatch ];
+              preBuild = (old.preBuild or "") + ''
+                tree-sitter generate
+              '';
+            })
+          else
+            prev.tree-sitter-grammars.tree-sitter-julia;
+      };
+
       ubootOrangePiZero3 = prev.buildUBoot {
         version = "2024.01";
         defconfig = "orangepi_zero3_defconfig";

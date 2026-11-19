@@ -19,6 +19,7 @@ in
     ./ai-tools
     ./hardware.nix
     ./ghostty.nix
+    ./julia.nix
     ./unity.nix
   ];
 

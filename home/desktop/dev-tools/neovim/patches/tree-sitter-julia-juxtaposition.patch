@@ -1,0 +1,40 @@
+--- a/grammar.js
++++ b/grammar.js
+@@ -156,6 +156,7 @@
+   conflicts: $ => [
+     [$.juxtaposition_expression, $._primary_expression], // adjoint
+     [$.juxtaposition_expression, $._expression],
++    [$._array, $.juxtaposition_expression],
+     [$.matrix_row, $.comprehension_expression], // Comprehensions with newlines
+     [$.argument_list, $.tuple_expression],
+     [$.argument_list, $.parenthesized_expression],
+@@ -881,13 +882,23 @@
+       ),
+     )),
+
+-    juxtaposition_expression: $ => prec.left(seq(
+-      choice(
+-        $.integer_literal,
+-        $.float_literal,
+-        $.adjoint_expression,
++    juxtaposition_expression: $ => prec.left(choice(
++      seq(
++        choice(
++          $.integer_literal,
++          $.float_literal,
++          $.adjoint_expression,
++        ),
++        $._primary_expression,
++      ),
++      seq(
++        choice(
++          $.parenthesized_expression,
++          $.vector_expression,
++          $.matrix_expression,
++        ),
++        $.prefixed_string_literal,
+       ),
+-      $._primary_expression,
+     )),
+
+     compound_assignment_expression: $ => prec.right(PREC.assign, seq(

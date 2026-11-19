@@ -43,6 +43,23 @@ return {
       },
     }
 
+    local function lsp_status()
+      local clients = vim.lsp.get_clients({ bufnr = 0 })
+      local progress = vim.lsp.status()
+      if #clients == 0 and progress == "" then
+        return ""
+      end
+      local names = {}
+      for _, client in ipairs(clients) do
+        table.insert(names, client.name)
+      end
+      local label = #names > 0 and ("LSP: " .. table.concat(names, ", ")) or ""
+      if progress ~= "" then
+        return label ~= "" and (label .. " " .. progress) or progress
+      end
+      return label
+    end
+
     return {
       options = {
         theme = vesper_theme,
@@ -53,7 +70,7 @@ return {
         lualine_a = { "mode" },
         lualine_b = { "branch", "diff", "diagnostics" },
         lualine_c = { { "filename", path = 1 } },
-        lualine_x = { "encoding", "fileformat", "filetype" },
+        lualine_x = { lsp_status, "encoding", "fileformat", "filetype" },
         lualine_y = { "progress" },
         lualine_z = { "location" },
       },
