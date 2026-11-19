@@ -102,7 +102,7 @@ secrets/
 │       ├── backup/                  # Restic バックアップ (password.age, ssh_key.age)
 │       ├── ddns/                    # Cloudflare DDNS (cloudflare_api.env.age)
 │       ├── discord-bridge/          # Discord Bot トークン (bridge.env.age)
-│       ├── signing/                 # Git コミット署名用 GPG 鍵 (gpg_private_key.age)
+│       ├── signing/                 # 署名用秘密鍵 (ssh_signing_key.age, gpg_private_key.age)
 │       └── conoha-vps-mcp/          # ConoHa API 認証情報 (credentials.env.age)
 └── rekeyed/                         # agenix rekey で自動生成されるホスト・ユーザー別 .age 群 (Git 管理)
     ├── home/<hostname>/<username>/  # home-manager シークレット (ユーザー SSH 鍵で復号)

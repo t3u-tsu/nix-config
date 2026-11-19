@@ -19,6 +19,7 @@ in
     ./media.nix
     ./niri
     ./noctalia
+    ./ssh-signing.nix
     ./theme.nix
     ./xdg.nix
     ./locales.nix
@@ -46,6 +47,7 @@ in
       noctalia.enable = lib.mkDefault true;
       thunar.enable = lib.mkDefault true;
       gpg-signing.enable = lib.mkDefault true;
+      ssh-signing.enable = lib.mkDefault true;
       dev-tools.enable = lib.mkDefault true;
       documents.enable = lib.mkDefault true;
 

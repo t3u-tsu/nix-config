@@ -8,7 +8,7 @@ Desktop modules provide a baseline configuration and an optional full desktop su
 
 | Option | Description | Included Modules |
 | :--- | :--- | :--- |
-| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `documents`, `gpg-signing`, `locales`, `niri`, `noctalia`, `theme`, `thunar`, `xdg` |
+| `my.home.desktop.enable` | Baseline desktop core | `bitwarden`, `browsers`, `communication`, `dev-tools` (core), `documents`, `gpg-signing`, `locales`, `niri`, `noctalia`, `ssh-signing`, `theme`, `thunar`, `xdg` |
 | `my.home.desktop.full.enable` | Full desktop suite | Adds `gaming`, `creative`, `media`, and heavy dev/AI tooling |
 
 ## Modules
@@ -23,11 +23,12 @@ Desktop modules provide a baseline configuration and an optional full desktop su
 | [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). | `my.home.desktop.dev-tools.*` |
 | [documents.nix](documents.nix) | Document viewers and office tools (LibreOffice, Sioyek, MarkText). | `my.home.desktop.documents.enable` |
 | [gaming.nix](gaming.nix) | Gaming clients and NVIDIA PRIME offload wrappers. | `my.home.desktop.gaming.enable` |
-| [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and agenix-managed commit signing key import. | `my.home.desktop.gpg-signing.enable` |
+| [gpg-signing.nix](gpg-signing.nix) | GnuPG agent setup and agenix-managed GPG key import. | `my.home.desktop.gpg-signing.enable` |
 | [locales.nix](locales.nix) | Locale and Fcitx5 / Mozc Japanese input method settings. | `my.home.desktop.locales.enable` |
 | [media.nix](media.nix) | Media playback (Spotify via Spicetify, VLC). | `my.home.desktop.media.enable` |
 | [niri/](niri/README.md) | Niri scrollable-tiling Wayland compositor configuration (`config.kdl`). | `my.home.desktop.niri.enable` |
 | [noctalia/](noctalia/README.md) | Noctalia Wayland desktop shell (bar, app launcher, notifications, wallpaper). | `my.home.desktop.noctalia.enable` |
+| [ssh-signing.nix](ssh-signing.nix) | SSH commit signing setup with an agenix-managed key and allowed signers configuration. | `my.home.desktop.ssh-signing.enable` |
 | [theme.nix](theme.nix) | GTK, Qt, and cursor theming derived from [lib/palette.nix](../../lib/palette.nix). | `my.home.desktop.theme.enable` |
 | [thunar.nix](thunar.nix) | Thunar file manager user preferences. | `my.home.desktop.thunar.enable` |
 | [xdg.nix](xdg.nix) | XDG base directories and default MIME application associations. | `my.home.desktop.xdg.enable` |

@@ -10,18 +10,12 @@ let
 in
 {
   options.my.home.desktop.gpg-signing = {
-    enable = lib.mkEnableOption "GPG signing with an agenix-managed key";
+    enable = lib.mkEnableOption "GnuPG agent and agenix-managed key import";
   };
 
   config = lib.mkIf cfg.enable {
     programs = {
       gpg.enable = true;
-
-      git.settings = {
-        user.signingkey = "9FC270ACC3631FB4";
-        commit.gpgsign = true;
-        gpg.format = "openpgp";
-      };
     };
 
     age.secrets.gpg_private_key = {
