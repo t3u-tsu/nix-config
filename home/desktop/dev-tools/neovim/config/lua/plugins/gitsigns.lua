@@ -18,7 +18,6 @@ return {
         vim.keymap.set(mode, l, r, { buffer = bufnr, desc = "Git: " .. desc })
       end
 
-      -- ナビゲーション
       map("n", "]c", function()
         if vim.wo.diff then
           return "]c"
@@ -39,7 +38,6 @@ return {
         return "<Ignore>"
       end, "Prev hunk")
 
-      -- ハンク操作
       map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
       map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
       map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")

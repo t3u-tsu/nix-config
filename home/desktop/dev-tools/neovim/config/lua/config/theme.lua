@@ -19,7 +19,6 @@ local hi = function(g, o)
   vim.api.nvim_set_hl(0, g, o)
 end
 
--- 基本エディタハイライト
 hi("Normal", { fg = v.fg, bg = v.bg })
 hi("NormalFloat", { fg = v.fg, bg = v.bg2 })
 hi("Comment", { fg = v.fg2 })
@@ -34,8 +33,8 @@ hi("PreProc", { fg = v.tertiary })
 hi("Special", { fg = v.secondary })
 hi("Operator", { fg = v.fg2 })
 hi("Error", { fg = v.err })
+hi("@function.macro", { fg = v.tertiary })
 
--- UI 要素
 hi("LineNr", { fg = v.fg2 })
 hi("CursorLine", { bg = v.bg2 })
 hi("CursorLineNr", { fg = v.primary, bg = v.bg2 })
@@ -50,7 +49,7 @@ hi("TabLineSel", { bg = v.bg, fg = v.primary })
 hi("Search", { bg = v.primary, fg = v.bg })
 hi("IncSearch", { bg = v.secondary, fg = v.bg })
 
--- 将来導入するプラグイン用ハイライト
+-- Highlights for optional/future plugins
 hi("TelescopeNormal", { fg = v.fg, bg = v.bg })
 hi("TelescopeBorder", { fg = v.dim, bg = v.bg })
 hi("TelescopePromptTitle", { fg = v.bg, bg = v.primary })

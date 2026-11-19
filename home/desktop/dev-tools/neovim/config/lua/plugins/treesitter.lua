@@ -18,7 +18,6 @@ return {
       "markdown",
       "markdown_inline",
       "typst",
-      "julia",
     }
     pcall(require("nvim-treesitter").install, parsers)
 
