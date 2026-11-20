@@ -26,8 +26,8 @@ in
       enable = true;
       enableZshIntegration = true;
       pinentry.package = pkgs.pinentry-qt;
-      defaultCacheTtl = 3600;
-      maxCacheTtl = 86400;
+      defaultCacheTtl = 28800;
+      maxCacheTtl = 604800;
     };
 
     systemd.user.services.import-gpg-key = {
