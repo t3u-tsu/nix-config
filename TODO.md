@@ -19,4 +19,3 @@
 
 - OpenTofu (`terraform/`) と Cloudflare DDNS でコード化した ConoHa VPS 構成の実機検証と，torii-chan 障害時の自動フェイルオーバーを整備する．
 - kagutsuchi-sama / shosoin-tan の GPU を用い，LAN 内で共用可能なローカル LLM API サーバーを常時稼働させる (BrokenPC での `llama.cpp` PoC は検証済み)．
-- Thunderbird を `programs.thunderbird` へ移行し，`withExternalGnupg = true` 等で既存の GPG 鍵とメール署名を宣言的に連携する．

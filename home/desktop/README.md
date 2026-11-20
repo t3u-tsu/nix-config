@@ -18,7 +18,7 @@ Desktop modules provide a baseline configuration and an optional full desktop su
 | [default.nix](default.nix) | Desktop module aggregator and profile definitions. | `my.home.desktop.enable`, `my.home.desktop.full.enable` |
 | [bitwarden.nix](bitwarden.nix) | Bitwarden desktop client, CLI (`bitwarden-cli`), and persistent autostart configuration. | `my.home.desktop.bitwarden.enable` |
 | [browsers/](browsers/README.md) | Declarative browser configs (Chromium, Zen Browser, userscript wrappers). | `my.home.desktop.browsers.*` |
-| [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, Thunderbird). | `my.home.desktop.communication.enable` |
+| [communication.nix](communication.nix) | Messaging applications (Discord (optional), Vesktop, declarative Thunderbird with external GnuPG). | `my.home.desktop.communication.enable` |
 | [creative.nix](creative.nix) | Creative production tools (GIMP, Blender, OBS Studio). | `my.home.desktop.creative.enable` |
 | [dev-tools/](dev-tools/README.md) | Development environments (Neovim, Ghostty, Git, Nix, AI agents). | `my.home.desktop.dev-tools.*` |
 | [documents.nix](documents.nix) | Document viewers and office tools (LibreOffice, Sioyek, MarkText). | `my.home.desktop.documents.enable` |
