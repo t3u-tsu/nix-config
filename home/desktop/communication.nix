@@ -66,17 +66,23 @@ in
           };
         };
 
-        accounts.email.accounts.primary = privateAccounts.primary // {
-          primary = true;
-          thunderbird = {
-            enable = true;
-            profiles = [ "default" ];
-          };
-          gpg = {
-            key = thunderbirdGpgKeyId;
-            signByDefault = false;
-          };
-        };
+        accounts.email.accounts = lib.mapAttrs (
+          name: account:
+          account
+          // {
+            primary = name == "primary";
+            thunderbird = {
+              enable = true;
+              profiles = [ "default" ];
+            };
+          }
+          // lib.optionalAttrs (name == "primary") {
+            gpg = {
+              key = thunderbirdGpgKeyId;
+              signByDefault = false;
+            };
+          }
+        ) privateAccounts;
 
         home.activation.thunderbirdOpenPgpKey = config.lib.dag.entryAfter [ "writeBoundary" ] ''
           if [ -z "''${DRY_RUN:-}" ]; then
