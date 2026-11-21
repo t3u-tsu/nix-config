@@ -1,0 +1,63 @@
+proc emit_notice (out, colored, title, ...details) {
+  if (colored) {
+    printf '\033[1;36m[direnv]\033[0m \033[1m%s\033[0m\n' $title > $out
+    for line in (details) {
+      printf '  \033[2m%s\033[0m\n' $line > $out
+    }
+  } else {
+    printf '[direnv] %s\n' $title > $out
+    for line in (details) {
+      printf '  %s\n' $line > $out
+    }
+  }
+}
+
+proc print_notice (title, ...details) {
+  var no_color = get(ENV, 'NO_COLOR', "") !== ""
+  try {
+    emit_notice /dev/tty (not no_color) $title @details
+  }
+  if failed {
+    emit_notice /dev/stderr false $title @details
+  }
+}
+
+if (len(ARGV) >= 4 and ARGV[0] === '--run') {
+  var reload_bin = ARGV[1]
+  var unit = ARGV[2]
+  var workdir = ARGV[3]
+
+  shopt --unset verbose_errexit {
+    try { $reload_bin }
+  }
+  if failed {
+    var code = _error.code
+    try { notify-send -u critical -a direnv 'nix-direnv' "reload failed: $workdir (journalctl --user -u $unit)" }
+    exit $code
+  }
+  try { notify-send -u normal -a direnv 'nix-direnv' "reload finished: $workdir" }
+  exit 0
+}
+
+if (len(ARGV) < 3) {
+  print_notice 'invalid arguments' 'expected: <profile_rc> <reload_bin> <workdir>'
+  exit 1
+}
+
+var profile_rc = ARGV[0]
+var reload_bin = ARGV[1]
+var workdir = ARGV[2]
+
+if test -e $profile_rc && test -x $reload_bin {
+  var escaped = $(systemd-escape -p $workdir)
+  var unit = "nix-direnv-reload-$escaped"
+  try { systemctl --user reset-failed $unit >/dev/null 2>&1 }
+  print_notice 'reloading in background' "unit: $unit  (ndr-ps / ndr-log)"
+  systemd-run --user --quiet --unit=$unit --description='nix-direnv reload' \
+    $0 --run $reload_bin $unit $workdir
+} elif test -x $reload_bin {
+  print_notice 'building initial cache in foreground' "dir: $workdir"
+  $reload_bin
+} else {
+  print_notice 'cache does not exist' "run 'direnv reload' to build"
+}
