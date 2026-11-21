@@ -85,7 +85,17 @@ in
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+      silent = true;
       stdlib = ''
+        _nix_direnv_notify_tty() {
+          local msg=$1
+          if [[ -w /dev/tty ]]; then
+            printf '\033[33m[direnv]\033[0m %s\n' "$msg" >/dev/tty
+          else
+            printf '[direnv] %s\n' "$msg" >&2
+          fi
+        }
+
         _nix_direnv_warn_manual_reload() {
           local profile_rc=$1
           local layout_dir
@@ -97,16 +107,15 @@ in
               local unit
               unit="nix-direnv-reload-$(systemd-escape -p "$PWD")"
               systemctl --user reset-failed "$unit" 2>/dev/null || true
-              _nix_direnv_warning "cache is out of date; reloading in background (unit: $unit)..."
+              _nix_direnv_notify_tty "reloading in background (ndr-ps / ndr-log)"
               systemd-run --user --quiet --unit="$unit" --description="nix-direnv reload" \
                 ${lib.getExe nixDirenvReloadNotify} "$reload_bin" "$unit" "$PWD"
             else
-              _nix_direnv_warning 'cache is out of date; reloading in foreground...'
-              _nix_direnv_force_reload=1
+              _nix_direnv_notify_tty "reloading in foreground..."
+              "$reload_bin"
             fi
           else
-            _nix_direnv_warning 'cache does not exist. creating in foreground...'
-            _nix_direnv_force_reload=1
+            _nix_direnv_notify_tty "cache does not exist; run 'ndr' to build"
           fi
         }
 
