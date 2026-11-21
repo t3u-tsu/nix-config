@@ -33,6 +33,6 @@ in
   home.shellAliases = {
     da = "direnv allow";
     ndr-ps = "systemctl --user list-units 'nix-direnv-reload-*' --all --no-pager";
-    ndr-log = "journalctl --user -u 'nix-direnv-reload-*' -f -n 50";
+    ndr-log = ''journalctl --user -u "nix-direnv-reload-$(systemd-escape -p "$PWD")" --invocation=0 -o cat -f'';
   };
 }
