@@ -4,6 +4,27 @@
   ...
 }:
 
+let
+  nixDirenvReloadNotify = pkgs.writeYshApplication {
+    name = "nix-direnv-reload-notify";
+    runtimeInputs = [ pkgs.libnotify ];
+    text = ''
+      var reload_bin = ARGV[0]
+      var unit = ARGV[1]
+      var workdir = ARGV[2]
+
+      shopt --unset verbose_errexit {
+        try { $reload_bin }
+      }
+      if failed {
+        var code = _error.code
+        try { notify-send -u critical -a direnv "nix-direnv" "reload failed: $workdir (journalctl --user -u $unit)" }
+        exit $code
+      }
+      try { notify-send -u normal -a direnv "nix-direnv" "reload finished: $workdir" }
+    '';
+  };
+in
 {
   programs = {
     bat = {
@@ -64,7 +85,6 @@
     direnv = {
       enable = true;
       nix-direnv.enable = true;
-      silent = true;
       stdlib = ''
         _nix_direnv_warn_manual_reload() {
           local profile_rc=$1
@@ -78,19 +98,8 @@
               unit="nix-direnv-reload-$(systemd-escape -p "$PWD")"
               systemctl --user reset-failed "$unit" 2>/dev/null || true
               _nix_direnv_warning "cache is out of date; reloading in background (unit: $unit)..."
-              systemd-run --user --quiet --unit="$unit" --description="nix-direnv reload" bash -c '
-                if "$1"; then
-                  if command -v notify-send >/dev/null 2>&1; then
-                    notify-send -u normal "nix-direnv" "reload finished: $3"
-                  fi
-                else
-                  status=$?
-                  if command -v notify-send >/dev/null 2>&1; then
-                    notify-send -u critical "nix-direnv" "reload failed: $3 (journalctl --user -u $2)"
-                  fi
-                  exit "$status"
-                fi
-              ' nix-direnv-reload "$reload_bin" "$unit" "$PWD"
+              systemd-run --user --quiet --unit="$unit" --description="nix-direnv reload" \
+                ${lib.getExe nixDirenvReloadNotify} "$reload_bin" "$unit" "$PWD"
             else
               _nix_direnv_warning 'cache is out of date; reloading in foreground...'
               _nix_direnv_force_reload=1
