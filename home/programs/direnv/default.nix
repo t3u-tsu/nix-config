@@ -32,7 +32,6 @@ in
 
   home.shellAliases = {
     da = "direnv allow";
-    ndr = "nix-direnv-reload";
     ndr-ps = "systemctl --user list-units 'nix-direnv-reload-*' --all --no-pager";
     ndr-log = "journalctl --user -u 'nix-direnv-reload-*' -f -n 50";
   };
