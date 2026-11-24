@@ -15,7 +15,7 @@ return {
     local utils = require("typst-preview.utils")
 
     preview.setup({
-      open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s" or nil,
+      open_cmd = vim.fn.executable("chromium") == 1 and "chromium --app=%s 2>/dev/null" or nil,
     })
 
     setmetatable(preview_config.opts.dependencies_bin, {

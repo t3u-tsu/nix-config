@@ -20,6 +20,7 @@ in
       DefaultBrowserSettingEnabled = false;
       BrowserSignin = 0;
       SyncDisabled = true;
+      TranslateEnabled = false;
     };
   };
 }
