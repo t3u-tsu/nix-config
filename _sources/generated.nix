@@ -22,10 +22,10 @@
   };
   codewhale = {
     pname = "codewhale";
-    version = "v0.10.3";
+    version = "v0.10.4";
     src = fetchurl {
-      url = "https://github.com/Hmbown/Codewhale/releases/download/v0.10.3/codewhale-linux-x64";
-      sha256 = "sha256-0U7e/H7dmXb8t2+xhzRCh94l+AkK0q9Jz94ufzY0Pms=";
+      url = "https://github.com/Hmbown/Codewhale/releases/download/v0.10.4/codewhale-linux-x64";
+      sha256 = "sha256-gdgqFc7CZepy92UV+ZHO0Hqj++N3qj37U7cP5OowzmA=";
     };
   };
   danime-plus = {

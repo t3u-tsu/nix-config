@@ -28,11 +28,11 @@
         "pinned": false,
         "src": {
             "name": null,
-            "sha256": "sha256-0U7e/H7dmXb8t2+xhzRCh94l+AkK0q9Jz94ufzY0Pms=",
+            "sha256": "sha256-gdgqFc7CZepy92UV+ZHO0Hqj++N3qj37U7cP5OowzmA=",
             "type": "url",
-            "url": "https://github.com/Hmbown/Codewhale/releases/download/v0.10.3/codewhale-linux-x64"
+            "url": "https://github.com/Hmbown/Codewhale/releases/download/v0.10.4/codewhale-linux-x64"
         },
-        "version": "v0.10.3"
+        "version": "v0.10.4"
     },
     "danime-plus": {
         "cargoLock": null,
