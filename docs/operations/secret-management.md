@@ -272,10 +272,10 @@ TPM2 搭載機 (`x1c7`) では TPM2 を封印鍵に使用する．
 
 ```bash
 mkdir -p ~/.config/credstore.encrypted
-systemd-ask-password -n | systemd-creds encrypt --user --with-key=tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 ```
 
-TPM2 非搭載機 (`BrokenPC`) では `--with-key=tpm2` を省略する (既定の `auto` によるホスト鍵 `/var/lib/systemd/credential.secret` で暗号化される)．
+TPM2 非搭載機 (`BrokenPC`) では `--with-key=host+tpm2` を省略する (既定の `auto` によるホスト鍵 `/var/lib/systemd/credential.secret` で暗号化される)．
 
 ```bash
 mkdir -p ~/.config/credstore.encrypted

@@ -273,8 +273,8 @@ TPM2 状態やホスト鍵の変化後は，クレデンシャルを作り直す
 ```bash
 mkdir -p ~/.config/credstore.encrypted
 # TPM2 搭載機 (x1c7)
-systemd-ask-password -n | systemd-creds encrypt --user --with-key=tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
-# TPM2 非搭載機 (BrokenPC): --with-key=tpm2 を省略する (ホスト鍵で暗号化)
+systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+# TPM2 非搭載機 (BrokenPC): --with-key=host+tpm2 を省略する (ホスト鍵で暗号化)
 systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 systemctl --user restart oo7-daemon
 ```
