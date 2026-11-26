@@ -80,6 +80,9 @@
     };
   };
 
+  # AMD fTPM 2.0 used by systemd-creds for oo7 keyring auto-unlock.
+  security.tpm2.enable = true;
+
   my = {
     services = {
       desktop.full.enable = true;

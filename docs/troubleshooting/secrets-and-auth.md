@@ -253,7 +253,7 @@ systemd-creds decrypt --user --name=oo7.keyring-encryption-password \
   ~/.config/credstore.encrypted/oo7.keyring-encryption-password >/dev/null && echo decrypted
 ```
 
-ファイルが存在しない場合は [クレデンシャルの登録手順](../operations/secret-management.md#step-8-デスクトップキーリング解錠クレデンシャルの登録-systemd-creds) で作成する．`systemd-creds decrypt` が失敗する場合は TPM2/ホスト鍵の不一致であり，対策 4 で再作成する．
+ファイルが存在しない場合は [クレデンシャルの管理手順](../operations/secret-management.md#step-8-デスクトップキーリング解錠クレデンシャルの管理-systemd-creds) で作成する．`systemd-creds decrypt` が失敗する場合は TPM2/ホスト鍵の不一致であり，対策 4 で再作成する．
 
 #### 対策 3: gnome-keyring 由来キーリングの退避
 
@@ -272,9 +272,9 @@ TPM2 状態やホスト鍵の変化後は，クレデンシャルを作り直す
 
 ```bash
 mkdir -p ~/.config/credstore.encrypted
-# TPM2 搭載機 (x1c7)
+# TPM2 搭載機 (x1c7, BrokenPC)
 systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
-# TPM2 非搭載機 (BrokenPC): --with-key=host+tpm2 を省略する (ホスト鍵で暗号化)
+# TPM2 非搭載機: --with-key=host+tpm2 を省略する (ホスト鍵で暗号化)
 systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 systemctl --user restart oo7-daemon
 ```

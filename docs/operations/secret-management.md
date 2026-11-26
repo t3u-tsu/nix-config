@@ -258,24 +258,25 @@ just nebula import-secrets "$CA_DIR"
 just secret rekey
 ```
 
-### Step 8: デスクトップキーリング解錠クレデンシャルの登録 (systemd-creds)
+### Step 8: デスクトップキーリング解錠クレデンシャルの管理 (systemd-creds)
 
-デスクトップ機 (`x1c7`, `BrokenPC`) の Secret Service 実装は `oo7-daemon` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) であり，キーリング解錠パスワードを `systemd-creds` で暗号化したクレデンシャルを `~/.config/credstore.encrypted/oo7.keyring-encryption-password` に配置する．`oo7-daemon.service` は `ImportCredential=oo7.keyring-encryption-password` で起動時にクレデンシャルを取り込み，ログインごとにキーリングを自動解錠する．操作は対象ホストにログインしたユーザーで実行する．
+デスクトップ機 (`x1c7`, `BrokenPC`) の Secret Service 実装は `oo7-daemon` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) である．新規インストール時は `oo7-init-credential.service` が初回ログイン前にランダム鍵を生成して `~/.config/credstore.encrypted/oo7.keyring-encryption-password` へ自動封印 (`systemd-creds encrypt --user`，既定 `auto` により TPM2 有効機では `host+tpm2`) するため，手動登録は不要である．
 
-gnome-keyring からの移行時は，初回 `nixos-rebuild switch` の前に既存キーリングをバックアップする．
+既存の gnome-keyring (`~/.local/share/keyrings/login.keyring`) を引き継ぐ場合，または TPM2 状態の変化後に手動で再作成する場合のみ，対象ホストにログインしたユーザーで以下を実行する．
 
 ```bash
+# gnome-keyring からの移行時は初回 nixos-rebuild switch の前に退避
 cp ~/.local/share/keyrings/login.keyring ~/.local/share/keyrings/login.keyring.bak-$(date +%Y%m%d)
 ```
 
-TPM2 搭載機 (`x1c7`) では TPM2 を封印鍵に使用する．
+TPM2 搭載機 (`x1c7`, `BrokenPC`) ではホスト鍵と TPM2 の双方を封印鍵に使用する．
 
 ```bash
 mkdir -p ~/.config/credstore.encrypted
 systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 ```
 
-TPM2 非搭載機 (`BrokenPC`) では `--with-key=host+tpm2` を省略する (既定の `auto` によるホスト鍵 `/var/lib/systemd/credential.secret` で暗号化される)．
+TPM2 非搭載機では `--with-key=host+tpm2` を省略する (既定の `auto` によるホスト鍵 `/var/lib/systemd/credential.secret` で暗号化される)．
 
 ```bash
 mkdir -p ~/.config/credstore.encrypted
