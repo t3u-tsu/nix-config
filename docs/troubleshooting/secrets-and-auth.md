@@ -1,6 +1,6 @@
 # シークレット・認証トラブルシューティング
 
-agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-config-private`) 認証失敗，activation 失敗による emergency mode の切り分けと脱出手順．
+agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-config-private`) 認証失敗，activation 失敗による emergency mode，Secret Service (oo7-daemon) 解錠失敗の切り分けと脱出手順．
 
 | 障害種別 | エラー兆候 | 影響ホスト | 初動対応 |
 | :--- | :--- | :--- | :--- |
@@ -8,7 +8,7 @@ agenix (agenix-rekey) 復号エラー，プライベートリポジトリ (`nix-
 | `home-manager` の `agenix.service` 復号失敗 | `~/.ssh/id_ed25519 not present` | 作業端末 | `just secret doctor`，`just secret ssh-restore` |
 | private flake input フェッチ失敗 | `Could not resolve hostname github-nix-config-private` | 新規インストール機，未適用機 | `/root/.ssh/config` とデプロイキーの一時配備 |
 | activation 失敗による emergency mode | `You are in emergency mode.` | 全ホスト | `init=/bin/sh` 緊急シェルからの前世代 boot 復旧 |
-| GNOME Keyring 解錠失敗 | `failed to unlock login keyring on startup` | デスクトップ機 (`BrokenPC`, `x1c7`) | `login.keyring` の退避と正規パスワードでの再作成 |
+| Secret Service (oo7-daemon) 解錠失敗 | `Failed to open system credential oo7.keyring-encryption-password`, `failed to unlock, incorrect secret.`，およびシークレット参照時のパスワードプロンプト | デスクトップ機 (`BrokenPC`, `x1c7`) | `journalctl --user -u oo7-daemon` とクレデンシャル復号の確認，TPM2/ホスト鍵不一致時のクレデンシャル再作成，旧 `login.keyring` の退避 |
 
 ---
 
@@ -211,46 +211,82 @@ journalctl -xb -p 3
 
 ---
 
-## 4. greetd / fprintd 併用環境における GNOME Keyring 解錠失敗
+## 4. oo7-daemon / systemd-creds による Secret Service 解錠失敗
+
+デスクトップ機の Secret Service 実装は `oo7-server` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) であり，解錠パスワードは `systemd-creds` で暗号化したクレデンシャル (`~/.config/credstore.encrypted/oo7.keyring-encryption-password`) を `oo7-daemon.service` が `ImportCredential=` で取り込む．gnome-keyring は使用しない．
 
 ### 現象
 
 ```text
-failed to unlock login keyring on startup
-fixed login keyring password to match login password
+Failed to open system credential oo7.keyring-encryption-password
+failed to unlock, incorrect secret.
+Keyring cannot be decrypted. Invalid secret.
 ```
 
-アプリケーション起動時やシークレット参照時にパスワードプロンプト (`gcr-prompter`) が表示され，正規のログインパスワードを入力しても `The password was incorrect` と判定されて解錠できない．上記のログは `journalctl --user -u gnome-keyring-daemon` で確認できる．
+アプリケーション起動時やシークレット参照時にパスワードプロンプトが表示され，`oo7-cli list` がエラーで終了する，または解錠済みコレクションが空になる．`systemctl --user status oo7-daemon` で `oo7-daemon.service` が failed，または active でも解錠未了の状態を確認できる．ログは `journalctl --user -u oo7-daemon` で確認する．
 
 ### 原因
 
-1. `greetd` のログイン画面でパスワード入力を誤ると，`pam_unix.so` の認証が失敗する．
-2. 前段の `pam_gnome_keyring.so` は `pam_unix` の成否を検査せず，入力された未検証の誤パスワード文字列 (`PAM_AUTHTOK`) を保持する．
-3. 続けて `pam_fprintd.so` による指紋認証が成功すると，PAM スタック全体の `sufficient` 評価により認証が成立してセッションが開始される．
-4. セッション開始時 (`pam_sm_open_session`) に `pam_gnome_keyring` が保持していた誤文字列を `gnome-keyring-daemon` へ渡すが，既存の `login.keyring` の解錠に失敗する (`failed to unlock login keyring on startup`)．
-5. デスクトップ起動後，GUI プロンプトで正規パスワードを入力して解錠した瞬間，デーモンのパスワード自動同期機能 (`fixed login keyring password to match login password`) が動作し，先に保持された誤文字列で `~/.local/share/keyrings/login.keyring` を再暗号化してディスクへ書き込む．
-6. 次回以降のログインでは，正規パスワードを入力してもキーリングが誤文字列で暗号化されているため解錠できない．
+| 原因 | 内容と影響 |
+| :--- | :--- |
+| クレデンシャル未作成 | `~/.config/credstore.encrypted/oo7.keyring-encryption-password` が存在せず，`ImportCredential=oo7.keyring-encryption-password` による取り込みが行われない (`Failed to open system credential ...`)． |
+| TPM2/ホスト鍵の不一致 | クレデンシャルは TPM2 (PCR 7 の状態) またはホスト鍵 (`/var/lib/systemd/credential.secret`) に封印されているため，UEFI ファームウェア更新，TPM2 状態の変化，`/etc/machine-id` 再生成後の起動で `systemd-creds` による復号に失敗する (`x1c7`, `BrokenPC` は `host+tpm2` 封印)． |
+| gnome-keyring 由来キーリングの残留 | gnome-keyring から移行した環境で，旧パスワードで暗号化された `~/.local/share/keyrings/login.keyring` が残り，クレデンシャルの解錠パスワードと一致しない (`failed to unlock, incorrect secret.`)． |
 
 ### 切り分け・復旧手順
 
-#### 対策 1: 破損したキーリングの退避
+#### 対策 1: oo7-daemon ユニットと D-Bus 状態の確認
 
 ```bash
-mv ~/.local/share/keyrings/login.keyring ~/.local/share/keyrings/login.keyring.bak
+systemctl --user status oo7-daemon
+journalctl --user -u oo7-daemon -b
+busctl --user status org.freedesktop.secrets
 ```
 
-#### 対策 2: キーリングデーモンの再起動
+`oo7-daemon.service` が active でも `Failed to open system credential` がログに記録される場合は，クレデンシャルの復号または取り込みに失敗している．対策 2〜4 へ進む．
 
-実行中のデーモンを停止し，Secret Service コンポーネントを再起動する．
+#### 対策 2: クレデンシャルの存在と復号確認
 
 ```bash
-killall gnome-keyring-daemon
-gnome-keyring-daemon --replace --daemonize --components=secrets
+ls -l ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+systemd-creds decrypt --user --name=oo7.keyring-encryption-password \
+  ~/.config/credstore.encrypted/oo7.keyring-encryption-password >/dev/null && echo decrypted
 ```
 
-#### 対策 3: 正規パスワードでの再作成
+ファイルが存在しない場合は [クレデンシャルの管理手順](../operations/secret-management.md#step-8-デスクトップキーリング解錠クレデンシャルの管理-systemd-creds) で作成する．`systemd-creds decrypt` が失敗する場合は TPM2/ホスト鍵の不一致であり，対策 4 で再作成する．
 
-シークレット参照時または次回ログイン時に表示されるプロンプトで正規のログインパスワードを入力し，`login.keyring` を再生成する．
+#### 対策 3: gnome-keyring 由来キーリングの退避
+
+gnome-keyring から移行した環境でクレデンシャルのパスワードと旧キーリングが一致しない場合，旧キーリングを退避し，デーモンを再起動する．
+
+```bash
+mv ~/.local/share/keyrings/login.keyring ~/.local/share/keyrings/login.keyring.bak-$(date +%Y%m%d)
+systemctl --user restart oo7-daemon
+```
+
+退避後，次回のシークレット保存時にクレデンシャルの解錠パスワードで新規 `login.keyring` が作成される．シークレットの中身は前世代のバックアップファイルから手動で再登録する．
+
+#### 対策 4: クレデンシャルの再作成
+
+TPM2 状態やホスト鍵の変化後は，クレデンシャルを作り直す．
+
+TPM2 搭載機 (`x1c7`, `BrokenPC`):
+
+```bash
+mkdir -p ~/.config/credstore.encrypted
+systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+systemctl --user restart oo7-daemon
+```
+
+TPM2 非搭載機 (既定の `auto` によるホスト鍵で暗号化):
+
+```bash
+mkdir -p ~/.config/credstore.encrypted
+systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+systemctl --user restart oo7-daemon
+```
+
+再作成後の確認は対策 1 と，`oo7-cli list` (または `secret-tool lookup`) で実施する．
 
 ---
 

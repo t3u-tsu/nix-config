@@ -1,0 +1,62 @@
+--- a/src/service/mod.rs
++++ b/src/service/mod.rs
+@@ -225,8 +225,10 @@
+                 // Here we just perform the unlock operation
+                 let collections = service.collections.lock().await;
+                 for object in &not_unlocked {
++                    let resolved = Service::resolve_alias_path(&collections, object).await;
++                    let target = resolved.as_ref().unwrap_or(object);
+                     // Try to find as collection first
+-                    if let Some(collection) = collections.get(object) {
++                    if let Some(collection) = collections.get(target) {
+                         let _ = collection.set_locked(false, Some(secret.clone())).await;
+                     } else {
+                         // Try to find as item within collections
+@@ -779,9 +781,11 @@
+         let collections = self.collections.lock().await;
+
+         for object in objects {
++            let resolved = Self::resolve_alias_path(&collections, object).await;
++            let target = resolved.as_ref().unwrap_or(object);
+             for (path, collection) in collections.iter() {
+                 let collection_locked = collection.is_locked().await;
+-                if *object == *path {
++                if *target == *path {
+                     if collection_locked == locked {
+                         tracing::debug!(
+                             "Collection: {} is already {}.",
+@@ -835,9 +839,33 @@
+         self.connection().object_server()
+     }
+
++    async fn resolve_alias_path(
++        collections: &HashMap<OwnedObjectPath, Collection>,
++        path: &ObjectPath<'_>,
++    ) -> Option<OwnedObjectPath> {
++        let alias = path
++            .as_str()
++            .strip_prefix("/org/freedesktop/secrets/aliases/")?;
++        let alias_to_find = if alias == Self::LOGIN_ALIAS {
++            oo7::dbus::Service::DEFAULT_COLLECTION
++        } else {
++            alias
++        };
++        for (col_path, collection) in collections.iter() {
++            if collection.alias().await == alias_to_find {
++                return Some(col_path.clone());
++            }
++        }
++        None
++    }
++
+     pub async fn collection_from_path(&self, path: &ObjectPath<'_>) -> Option<Collection> {
+         let collections = self.collections.lock().await;
+-        collections.get(path).cloned()
++        if let Some(collection) = collections.get(path) {
++            return Some(collection.clone());
++        }
++        let resolved = Self::resolve_alias_path(&collections, path).await?;
++        collections.get(&resolved).cloned()
+     }
+
+     pub async fn session_index(&self) -> u32 {

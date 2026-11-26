@@ -258,11 +258,44 @@ just nebula import-secrets "$CA_DIR"
 just secret rekey
 ```
 
-### Step 8: CA の一括ローテーション
+### Step 8: デスクトップキーリング解錠クレデンシャルの管理 (systemd-creds)
+
+デスクトップ機 (`x1c7`, `BrokenPC`) の Secret Service 実装は `oo7-daemon` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) である．新規インストール時は `oo7-init-credential.service` が初回セッション起動時 (`oo7-daemon.service` 起動前) にランダム鍵を生成して `~/.config/credstore.encrypted/oo7.keyring-encryption-password` へ自動封印 (`systemd-creds encrypt --user`，既定 `auto` により TPM2 有効機では `host+tpm2`) するため，手動登録は不要である．
+
+既存の gnome-keyring (`~/.local/share/keyrings/login.keyring`) を引き継ぐ場合，または TPM2 状態の変化後に手動で再作成する場合のみ，対象ホストにログインしたユーザーで以下を実行する．
+
+```bash
+# gnome-keyring からの移行時は初回 nixos-rebuild switch の前に退避
+cp ~/.local/share/keyrings/login.keyring ~/.local/share/keyrings/login.keyring.bak-$(date +%Y%m%d)
+```
+
+TPM2 搭載機 (`x1c7`, `BrokenPC`) ではホスト鍵と TPM2 の双方を封印鍵に使用する．
+
+```bash
+mkdir -p ~/.config/credstore.encrypted
+systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+```
+
+TPM2 非搭載機では `--with-key=host+tpm2` を省略する (既定の `auto` によるホスト鍵 `/var/lib/systemd/credential.secret` で暗号化される)．
+
+```bash
+mkdir -p ~/.config/credstore.encrypted
+systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
+```
+
+クレデンシャルの取り込みは systemd の `ImportCredential=` が担い，PAM (`PAM_AUTHTOK`) を経由しない．greetd + fprintd 併用環境では，指紋認証とパスワードログインのいずれでもキーリングが自動解錠される．ファームウェア更新や TPM2 状態の変化でクレデンシャルの復号に失敗した場合は再作成し，解錠失敗の切り分けは [トラブルシューティング](../troubleshooting/secrets-and-auth.md) を参照する．
+
+```bash
+systemctl --user status oo7-daemon
+busctl --user status org.freedesktop.secrets
+oo7-cli list   # または: secret-tool lookup で個別のエントリを検索
+```
+
+### Step 9: CA の一括ローテーション
 
 ルート CA を再作成する場合は，`just nebula rotate-ca` ([scripts/nebula/rotate-ca.ysh](../../scripts/nebula/rotate-ca.ysh)) で新 CA と全ノードの証明書・鍵を一括生成する．続いて `just nebula import-secrets` ([scripts/nebula/import-secrets.ysh](../../scripts/nebula/import-secrets.ysh)) で公開証明書の配置とノード秘密鍵の暗号化を行い，`just secret rekey` で全ホストを再暗号化する．
 
-### Step 9: ホスト破棄時の鍵失効
+### Step 10: ホスト破棄時の鍵失効
 
 ホストを完全に撤退させる場合の手順．
 
@@ -279,7 +312,7 @@ just secret rekey
    just secret rekey
    ```
 
-### Step 10: ホスト再インストール時のホスト鍵ローテーション
+### Step 11: ホスト再インストール時のホスト鍵ローテーション
 
 OS 再インストール等で SSH ホスト鍵が更新された場合の手順．
 

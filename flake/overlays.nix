@@ -25,6 +25,8 @@
       };
 
       oils-for-unix = final.unstable.oils-for-unix;
+      # Track unstable so desktop IPC stays compatible with the auto-updating browser extension.
+      bitwarden-desktop = final.unstable.bitwarden-desktop;
 
       tree-sitter-grammars = prev.tree-sitter-grammars // {
         tree-sitter-julia =
