@@ -171,9 +171,9 @@ in
                   # Nix store files are 0444; copyFileSync fails on the second pwa-assets pass without unlinking first.
                   postPatch = (oldWebui.postPatch or "") + ''
                     substituteInPlace scripts/brand-favicons.ts \
-                      --replace-warn \
-                        "import { copyFileSync, mkdirSync } from 'node:fs';" \
-                        "import { copyFileSync, mkdirSync, rmSync } from 'node:fs';" \
+                      --replace-fail \
+                        "import { chmodSync, copyFileSync, mkdirSync } from 'node:fs';" \
+                        "import { chmodSync, copyFileSync, mkdirSync, rmSync } from 'node:fs';" \
                       --replace-warn \
                         "copyFileSync(require.resolve(specifier), resolve(outDir, fileName));" \
                         "rmSync(resolve(outDir, fileName), { force: true }); copyFileSync(require.resolve(specifier), resolve(outDir, fileName));"
