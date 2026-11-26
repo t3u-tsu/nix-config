@@ -16,6 +16,7 @@ System-level background daemons, hardware integration, and policy managers for t
 | [networkmanager.nix](networkmanager.nix) | NetworkManager daemon and polkit permission delegation. | Core (`desktop.enable`) |
 | [chromium.nix](chromium.nix) | Declarative managed policies written to `/etc/chromium/policies/managed`. | Core (`desktop.enable`) |
 | [bitwarden.nix](bitwarden.nix) | System-level Bitwarden package providing polkit policy for biometric unlock. | Core (`desktop.enable`) |
+| [oo7.nix](oo7.nix) | oo7-server Secret Service daemon (`org.freedesktop.secrets`) with `oo7-cli` and libsecret clients plus the Seahorse keyring GUI. The keyring unlock password is imported from a systemd-creds credential (`ImportCredential=oo7.keyring-encryption-password`). | Core (`desktop.enable`) |
 | [gaming.nix](gaming.nix) | Steam hardware udev rules, GameMode daemon, and offload launchers. | Full (`full.enable`) |
 | [unity.nix](unity.nix) | Rootless Podman container support backing the Unity development environment. | Full (`full.enable`) |
 | [default.nix](default.nix) | Aggregator declaring `my.services.desktop.enable` and `full.enable` aggregate options. | — |

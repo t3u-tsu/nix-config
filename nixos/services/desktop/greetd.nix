@@ -116,18 +116,8 @@ in
       };
     };
 
-    services.gnome.gnome-keyring.enable = true;
-    programs.seahorse.enable = true;
-
     security.pam.services = {
       greetd = {
-        enableGnomeKeyring = true;
-        # Requires unix-early (inserted by enableGnomeKeyring) to populate PAM_AUTHTOK
-        # first, allowing a single empty submission to fall through to fprintd immediately.
-        rules.auth.unix.settings = {
-          try_first_pass = lib.mkForce false;
-          use_first_pass = lib.mkForce true;
-        };
         rules.auth.fprintd.order = config.security.pam.services.greetd.rules.auth.unix.order + 10;
       };
 

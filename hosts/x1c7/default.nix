@@ -63,8 +63,8 @@
     };
   };
 
-  # Enabled ahead of a possible LUKS migration; nothing on this host uses the
-  # TPM yet.
+  # Used by systemd-creds for oo7 keyring auto-unlock, and ahead of a
+  # possible LUKS migration.
   security.tpm2.enable = true;
 
   # Place pam_fprintd ahead of pam_unix (default order) with up to 3 tries

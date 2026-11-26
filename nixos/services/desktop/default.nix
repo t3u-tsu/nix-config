@@ -22,6 +22,7 @@ in
     ./networkmanager.nix
     ./chromium.nix
     ./bitwarden.nix
+    ./oo7.nix
   ];
 
   options.my.services.desktop = {
@@ -49,6 +50,7 @@ in
         fonts.enable = lib.mkDefault true;
         chromium.enable = lib.mkDefault true;
         bitwarden.enable = lib.mkDefault true;
+        oo7.enable = lib.mkDefault true;
 
         gaming.enable = lib.mkDefault cfg.full.enable;
         unity.enable = lib.mkDefault cfg.full.enable;
@@ -66,5 +68,8 @@ in
         "gamemode"
       ];
     };
+
+    # Replaces gcr-ssh-agent previously pulled in via gnome-keyring.
+    programs.ssh.startAgent = lib.mkDefault true;
   };
 }

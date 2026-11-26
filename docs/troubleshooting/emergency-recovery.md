@@ -265,7 +265,7 @@ grub rescue>
 
 #### 対策 1: 健全な管理端末からの再構築
 
-管理端末 (`BrokenPC` または `x1c7`) が稼働している場合，[新規ホスト追加手順](../operations/adding-a-host.md) の Step 1〜Step 5 に従って再構築する．ディスクの初期化，ホスト鍵の生成，`age.rekey.hostPubkey` の更新と `just secret rekey`，deploy key の設定，`nixos-install` は同手順に含まれる．新しいホスト鍵による再暗号化と旧鍵の失効は [ホスト再インストール時のホスト鍵ローテーション](../operations/secret-management.md#step-10-ホスト再インストール時のホスト鍵ローテーション) を参照する．
+管理端末 (`BrokenPC` または `x1c7`) が稼働している場合，[新規ホスト追加手順](../operations/adding-a-host.md) の Step 1〜Step 5 に従って再構築する．ディスクの初期化，ホスト鍵の生成，`age.rekey.hostPubkey` の更新と `just secret rekey`，deploy key の設定，`nixos-install` は同手順に含まれる．新しいホスト鍵による再暗号化と旧鍵の失効は [ホスト再インストール時のホスト鍵ローテーション](../operations/secret-management.md#step-11-ホスト再インストール時のホスト鍵ローテーション) を参照する．
 
 データサーバー (`shosoin-tan`) は再起動後に [バックアップ運用 & ディザスタリカバリ (DR)](../operations/backup-and-restore.md) に従って Restic からデータを復元する．
 
