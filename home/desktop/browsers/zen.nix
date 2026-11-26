@@ -14,20 +14,23 @@ in
   imports = [ inputs.zen-browser.homeModules.default ];
 
   config = lib.mkIf (cfg.enable && cfg.zen.enable) {
+    # MIME associations are managed via handlr in home/desktop/xdg.nix.
+    home.sessionVariables.BROWSER = "zen-beta";
+
     programs.zen-browser = {
       enable = true;
-      # Non-browser handlers stay in home/desktop/xdg.nix (handlr); this
-      # claims the HTTP machinery and sets $BROWSER.
-      setAsDefaultBrowser = true;
 
       policies = {
-        DisableTelemetry = true;
         DisableFirefoxStudies = true;
         DisablePocket = true;
         OverrideFirstRunPage = "";
         OverridePostUpdatePage = "";
         DontCheckDefaultBrowser = true;
         DisplayBookmarksToolbar = "always";
+        PasswordManagerEnabled = false;
+        OfferToSaveLogins = false;
+        AutofillAddressEnabled = false;
+        AutofillCreditCardEnabled = false;
 
         ExtensionSettings =
           let
@@ -76,6 +79,65 @@ in
           devSpace = "15c09d3d-9c81-4945-988d-130f2bca1fd1";
 
           spaceRoutes = import (inputs.nix-config-private + "/zen/space-routes.nix");
+
+          spaceTheme =
+            accent: ratio:
+            let
+              hexDigit = {
+                "0" = 0;
+                "1" = 1;
+                "2" = 2;
+                "3" = 3;
+                "4" = 4;
+                "5" = 5;
+                "6" = 6;
+                "7" = 7;
+                "8" = 8;
+                "9" = 9;
+                "a" = 10;
+                "b" = 11;
+                "c" = 12;
+                "d" = 13;
+                "e" = 14;
+                "f" = 15;
+              };
+              hexByte =
+                s:
+                let
+                  cs = lib.stringToCharacters (lib.toLower s);
+                in
+                hexDigit.${builtins.elemAt cs 0} * 16 + hexDigit.${builtins.elemAt cs 1};
+              channels = hex: map hexByte (builtins.match "#(..)(..)(..)" hex);
+              base = channels palette.bg2;
+              target = channels accent;
+              blended =
+                i:
+                let
+                  b = builtins.elemAt base i;
+                  t = builtins.elemAt target i;
+                  v = b + ((t - b) * ratio);
+                in
+                lib.max 0 (lib.min 255 (builtins.floor (v + 0.5)));
+            in
+            {
+              type = "gradient";
+              colors = [
+                {
+                  red = blended 0;
+                  green = blended 1;
+                  blue = blended 2;
+                  # isCustom = true expects a CSS string in color.c, while
+                  # zen-browser-flake emits an [r g b] array.
+                  custom = false;
+                  algorithm = "floating";
+                  primary = true;
+                  lightness = 0;
+                  type = "undefined";
+                }
+              ];
+              opacity = 1.0;
+              texture = 0.0;
+            };
         in
         {
           isDefault = true;
@@ -86,22 +148,19 @@ in
           # restyle the pages themselves. The Noctalia zen template cannot be
           # used here because nix-managed Zen profiles are read-only.
           userChrome = ''
-            /* Vesper dark UI for Zen. */
+            /* Vesper dark UI for Zen (background stays owned by per-space themes). */
             @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
             :root {
               --zen-primary-color: ${palette.primary};
               --zen-secondary-color: ${palette.secondary};
               --zen-accent-color: ${palette.primary};
-              --toolbar-bgcolor: ${palette.bg} !important;
               --toolbar-color: ${palette.fg} !important;
-              --lwt-accent-color: ${palette.bg} !important;
               --lwt-text-color: ${palette.fg} !important;
             }
-            #browser, #appcontent { background-color: ${palette.bg} !important; }
-            #zen-sidebar-content, #sidebar-box { background-color: ${palette.bg2} !important; }
+            #appcontent { background-color: ${palette.bg} !important; }
+            #sidebar-box { background-color: ${palette.bg2} !important; }
             .tab-background[selected="true"] { background-color: ${palette.bg3} !important; }
             .tab-label, .tab-text { color: ${palette.fg} !important; }
-            #nav-bar { background-color: ${palette.bg} !important; }
             #urlbar-background { background-color: ${palette.bg2} !important; }
             #urlbar, #urlbar-input { color: ${palette.fg} !important; }
             /* Text selection inside the chrome (e.g. urlbar); without this
@@ -157,32 +216,26 @@ in
             };
           };
 
+          # id = 2 preserves the existing School cookies and avoids colliding
+          # with legacy id = 1 data.
           containers = {
-            "Personal" = {
-              id = 1;
-              icon = "fingerprint";
-              color = "green";
-            };
             "School" = {
               id = 2;
               icon = "circle";
               color = "blue";
             };
-            "Dev" = {
-              id = 3;
-              icon = "briefcase";
-              color = "purple";
-            };
           };
 
           containersForce = true;
+
+          spacesForce = true;
 
           spaces = {
             "Home" = {
               id = homeSpace;
               position = 1000;
               icon = "🏠";
-              container = 1;
+              theme = spaceTheme palette.bg2 0.0;
             };
             "School" = {
               id = schoolSpace;
@@ -190,12 +243,13 @@ in
               icon = "🎓";
               container = 2;
               routes = spaceRoutes.school;
+              theme = spaceTheme palette.link 0.12;
             };
             "Dev" = {
               id = devSpace;
               position = 3000;
               icon = "💻";
-              container = 3;
+              theme = spaceTheme palette.primary 0.12;
             };
           };
 
@@ -219,23 +273,22 @@ in
             "{446900e4-71c2-419f-a6a7-df9c091e268b}" # Bitwarden
           ];
 
+          keyboardShortcuts = [
+            {
+              id = "key_quitApplication";
+              disabled = true;
+            }
+          ];
+
           settings = {
             "extensions.autoDisableScopes" = 0;
             # Zen is a self-compiled fork, so this pref is honoured. Without it
             # the unsigned userscript xpis are silently ignored.
             "xpinstall.signatures.required" = false;
             "browser.aboutConfig.showWarning" = false;
-            "browser.shell.checkDefaultBrowser" = false;
             "browser.newtabpage.enabled" = false;
             "browser.startup.page" = 3; # resume last session
-            "browser.toolbars.bookmarks.visibility" = "always";
             "browser.bookmarks.addedImportButton" = false;
-
-            "signon.rememberSignons" = false;
-            "signon.autofillForms" = false;
-            "signon.generation.enabled" = false;
-            "signon.management.page.breach-alerts.enabled" = false;
-            "signon.showAutoCompleteFooter" = false;
 
             "intl.accept_languages" = "ja-jp,ja,en-us,en";
             "intl.locale.requested" = "ja";
@@ -244,8 +297,9 @@ in
             "zen.theme.content-element-separation" = 0;
             "zen.workspaces.show-workspace-indicator" = true;
             "zen.workspaces.continue-where-left-off" = true;
-            # Spaces bind to containers below, so Zen's default per-container
-            # essentials would hide every essential whose userContextId is 0.
+            # Home/Dev/Essentials share the default context 0 and School binds
+            # to container 2, so Zen's per-container essentials would hide
+            # every essential whose userContextId is 0.
             "zen.workspaces.separate-essentials" = false;
             # A container tab lands in the space bound to that container.
             "zen.workspaces.force-container-workspace" = true;
@@ -263,12 +317,10 @@ in
             # 0=dark, 1=light, 2=system, 3=browser
             "layout.css.prefers-color-scheme.content-override" = 2;
 
-            "privacy.trackingprotection.enabled" = true;
-            "privacy.trackingprotection.socialtracking.enabled" = true;
-            "dom.security.https_only_mode" = true;
+            # Prevent Mozilla Sync from colliding with Nix-declared spaces.
+            "services.sync.engine.spaces" = false;
 
             "gfx.webrender.all" = true;
-            "media.ffmpeg.vaapi.enabled" = true;
           };
         };
     };

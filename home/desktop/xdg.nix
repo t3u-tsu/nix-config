@@ -38,9 +38,9 @@ in
       com.mitchellh.ghostty.desktop
     '';
 
-    # Zen claims text/html, the http(s)/about/unknown schemes, text/plain and
-    # application/json through setAsDefaultBrowser, so only the non-browser
-    # handlers belong here.
+    # Zen no longer sets xdg.mimeApps (inactive when xdg.mimeApps.enable is
+    # false and conflicts with handlr), so browser HTTP/HTML handlers are
+    # declared here with handlr while Zen sets $BROWSER.
     home.activation.setDefaultHandlers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
       HANDLR="${pkgs.handlr-regex}/bin/handlr"
 
@@ -49,6 +49,12 @@ in
       run $HANDLR set application/pdf sioyek.desktop
 
       run $HANDLR set text/markdown marktext.desktop
+
+      run $HANDLR set x-scheme-handler/http zen-beta.desktop
+      run $HANDLR set x-scheme-handler/https zen-beta.desktop
+      run $HANDLR set x-scheme-handler/about zen-beta.desktop
+      run $HANDLR set x-scheme-handler/unknown zen-beta.desktop
+      run $HANDLR set text/html zen-beta.desktop
 
       run $HANDLR set text/plain nvim.desktop
       run $HANDLR set application/json nvim.desktop
