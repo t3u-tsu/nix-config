@@ -34,6 +34,9 @@ in
       systemd.enable = true;
 
       settings = {
+        lockscreen = {
+          transition = [ "zoom" ];
+        };
         accessibility = {
           ui_scale = 1.0;
         };
