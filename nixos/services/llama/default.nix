@@ -19,6 +19,16 @@ let
         (if preset.ngl != null then "n-gpu-layers = ${toString preset.ngl}" else null)
         (if preset.ncmoe != null then "n-cpu-moe = ${toString preset.ncmoe}" else null)
         (if preset.ctxSize != null then "ctx-size = ${toString preset.ctxSize}" else null)
+        (if preset.fitTarget != null then "fit-target = ${toString preset.fitTarget}" else null)
+        (if preset.cacheTypeK != null then "cache-type-k = ${preset.cacheTypeK}" else null)
+        (if preset.cacheTypeV != null then "cache-type-v = ${preset.cacheTypeV}" else null)
+        (if preset.moeCacheMib != null then "moe-cache-mib = ${toString preset.moeCacheMib}" else null)
+        (
+          if preset.moeCacheCpuShare != null then
+            "moe-cache-cpu-share = ${toString preset.moeCacheCpuShare}"
+          else
+            null
+        )
       ];
     in
     ''
@@ -70,6 +80,18 @@ in
       description = "CPU thread count (null = let llama.cpp pick automatically).";
     };
 
+    threadsBatch = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
+      default = null;
+      description = "CPU thread count for batch/prompt processing (null = let llama.cpp pick automatically).";
+    };
+
+    cacheRam = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.unsigned;
+      default = null;
+      description = "Prompt cache RAM budget in MiB (null = let llama.cpp use its default).";
+    };
+
     presets = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {
@@ -93,6 +115,31 @@ in
               type = lib.types.nullOr lib.types.ints.unsigned;
               default = null;
               description = "Prompt context size. Leave null to use the model's native context with --fit reduction enabled; set 0 explicitly to forbid context reduction.";
+            };
+            fitTarget = lib.mkOption {
+              type = lib.types.nullOr lib.types.ints.unsigned;
+              default = null;
+              description = "Target free VRAM margin in MiB for --fit (null = omit from INI).";
+            };
+            cacheTypeK = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "KV cache data type for K (e.g. 'q8_0'; null = omit from INI).";
+            };
+            cacheTypeV = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "KV cache data type for V (e.g. 'q8_0'; null = omit from INI).";
+            };
+            moeCacheMib = lib.mkOption {
+              type = lib.types.nullOr lib.types.ints.unsigned;
+              default = null;
+              description = "MoE expert cache size in MiB (null = omit from INI).";
+            };
+            moeCacheCpuShare = lib.mkOption {
+              type = lib.types.nullOr (lib.types.numbers.between 0.0 1.0);
+              default = null;
+              description = "Fraction of MoE expert cache kept on CPU between 0.0 and 1.0 (null = omit from INI).";
             };
           };
         }
@@ -124,9 +171,9 @@ in
                   # Nix store files are 0444; copyFileSync fails on the second pwa-assets pass without unlinking first.
                   postPatch = (oldWebui.postPatch or "") + ''
                     substituteInPlace scripts/brand-favicons.ts \
-                      --replace-warn \
-                        "import { copyFileSync, mkdirSync } from 'node:fs';" \
-                        "import { copyFileSync, mkdirSync, rmSync } from 'node:fs';" \
+                      --replace-fail \
+                        "import { chmodSync, copyFileSync, mkdirSync } from 'node:fs';" \
+                        "import { chmodSync, copyFileSync, mkdirSync, rmSync } from 'node:fs';" \
                       --replace-warn \
                         "copyFileSync(require.resolve(specifier), resolve(outDir, fileName));" \
                         "rmSync(resolve(outDir, fileName), { force: true }); copyFileSync(require.resolve(specifier), resolve(outDir, fileName));"
@@ -172,6 +219,14 @@ in
           ++ lib.optionals (cfg.threads != null) [
             "--threads"
             (toString cfg.threads)
+          ]
+          ++ lib.optionals (cfg.threadsBatch != null) [
+            "--threads-batch"
+            (toString cfg.threadsBatch)
+          ]
+          ++ lib.optionals (cfg.cacheRam != null) [
+            "--cache-ram"
+            (toString cfg.cacheRam)
           ]
           ++ lib.optionals (cfg.presets != { }) [
             "--models-preset"
