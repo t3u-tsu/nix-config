@@ -230,7 +230,7 @@ Keyring cannot be decrypted. Invalid secret.
 | 原因 | 内容と影響 |
 | :--- | :--- |
 | クレデンシャル未作成 | `~/.config/credstore.encrypted/oo7.keyring-encryption-password` が存在せず，`ImportCredential=oo7.keyring-encryption-password` による取り込みが行われない (`Failed to open system credential ...`)． |
-| TPM2/ホスト鍵の不一致 | クレデンシャルは TPM2 (PCR 7 の状態) またはホスト鍵 (`/var/lib/systemd/credential.secret`) に封印されているため，UEFI ファームウェア更新，TPM2 状態の変化，`/etc/machine-id` 再生成後の起動で `systemd-creds` による復号に失敗する (`x1c7` は TPM2 封印，`BrokenPC` はホスト鍵)． |
+| TPM2/ホスト鍵の不一致 | クレデンシャルは TPM2 (PCR 7 の状態) またはホスト鍵 (`/var/lib/systemd/credential.secret`) に封印されているため，UEFI ファームウェア更新，TPM2 状態の変化，`/etc/machine-id` 再生成後の起動で `systemd-creds` による復号に失敗する (`x1c7`, `BrokenPC` は `host+tpm2` 封印)． |
 | gnome-keyring 由来キーリングの残留 | gnome-keyring から移行した環境で，旧パスワードで暗号化された `~/.local/share/keyrings/login.keyring` が残り，クレデンシャルの解錠パスワードと一致しない (`failed to unlock, incorrect secret.`)． |
 
 ### 切り分け・復旧手順
@@ -270,11 +270,18 @@ systemctl --user restart oo7-daemon
 
 TPM2 状態やホスト鍵の変化後は，クレデンシャルを作り直す．
 
+TPM2 搭載機 (`x1c7`, `BrokenPC`):
+
 ```bash
 mkdir -p ~/.config/credstore.encrypted
-# TPM2 搭載機 (x1c7, BrokenPC)
 systemd-ask-password -n | systemd-creds encrypt --user --with-key=host+tpm2 --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
-# TPM2 非搭載機: --with-key=host+tpm2 を省略する (ホスト鍵で暗号化)
+systemctl --user restart oo7-daemon
+```
+
+TPM2 非搭載機 (既定の `auto` によるホスト鍵で暗号化):
+
+```bash
+mkdir -p ~/.config/credstore.encrypted
 systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 systemctl --user restart oo7-daemon
 ```

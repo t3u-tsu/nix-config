@@ -260,7 +260,7 @@ just secret rekey
 
 ### Step 8: デスクトップキーリング解錠クレデンシャルの管理 (systemd-creds)
 
-デスクトップ機 (`x1c7`, `BrokenPC`) の Secret Service 実装は `oo7-daemon` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) である．新規インストール時は `oo7-init-credential.service` が初回ログイン前にランダム鍵を生成して `~/.config/credstore.encrypted/oo7.keyring-encryption-password` へ自動封印 (`systemd-creds encrypt --user`，既定 `auto` により TPM2 有効機では `host+tpm2`) するため，手動登録は不要である．
+デスクトップ機 (`x1c7`, `BrokenPC`) の Secret Service 実装は `oo7-daemon` ([nixos/services/desktop/oo7.nix](../../nixos/services/desktop/oo7.nix)) である．新規インストール時は `oo7-init-credential.service` が初回セッション起動時 (`oo7-daemon.service` 起動前) にランダム鍵を生成して `~/.config/credstore.encrypted/oo7.keyring-encryption-password` へ自動封印 (`systemd-creds encrypt --user`，既定 `auto` により TPM2 有効機では `host+tpm2`) するため，手動登録は不要である．
 
 既存の gnome-keyring (`~/.local/share/keyrings/login.keyring`) を引き継ぐ場合，または TPM2 状態の変化後に手動で再作成する場合のみ，対象ホストにログインしたユーザーで以下を実行する．
 
@@ -283,7 +283,7 @@ mkdir -p ~/.config/credstore.encrypted
 systemd-ask-password -n | systemd-creds encrypt --user --name=oo7.keyring-encryption-password - ~/.config/credstore.encrypted/oo7.keyring-encryption-password
 ```
 
-クレデンシャルの取り込みは systemd の `ImportCredential=` が担い，PAM (`PAM_AUTHTOK`) を経由しない．greetd + fprintd 併用環境でも指紋認証とパスワードログインのいずれでもキーリングが自動解錠される．ファームウェア更新や TPM2 状態の変化でクレデンシャルの復号に失敗した場合は再作成し，解錠失敗の切り分けは [トラブルシューティング](../troubleshooting/secrets-and-auth.md) を参照する．
+クレデンシャルの取り込みは systemd の `ImportCredential=` が担い，PAM (`PAM_AUTHTOK`) を経由しない．greetd + fprintd 併用環境では，指紋認証とパスワードログインのいずれでもキーリングが自動解錠される．ファームウェア更新や TPM2 状態の変化でクレデンシャルの復号に失敗した場合は再作成し，解錠失敗の切り分けは [トラブルシューティング](../troubleshooting/secrets-and-auth.md) を参照する．
 
 ```bash
 systemctl --user status oo7-daemon

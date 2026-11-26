@@ -14,7 +14,7 @@
                          // Try to find as item within collections
 @@ -779,9 +781,11 @@
          let collections = self.collections.lock().await;
- 
+
          for object in objects {
 +            let resolved = Self::resolve_alias_path(&collections, object).await;
 +            let target = resolved.as_ref().unwrap_or(object);
@@ -28,7 +28,7 @@
 @@ -835,9 +839,33 @@
          self.connection().object_server()
      }
- 
+
 +    async fn resolve_alias_path(
 +        collections: &HashMap<OwnedObjectPath, Collection>,
 +        path: &ObjectPath<'_>,
@@ -58,5 +58,5 @@
 +        let resolved = Self::resolve_alias_path(&collections, path).await?;
 +        collections.get(&resolved).cloned()
      }
- 
+
      pub async fn session_index(&self) -> u32 {

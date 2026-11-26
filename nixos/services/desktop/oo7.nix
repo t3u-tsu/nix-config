@@ -21,7 +21,10 @@ let
       config.systemd.package
     ];
     text = ''
-      var config_home = get(ENV, 'XDG_CONFIG_HOME', "$[ENV.HOME]/.config")
+      var config_home = get(ENV, 'XDG_CONFIG_HOME', "")
+      if (len(config_home) === 0) {
+        setvar config_home = "$[ENV.HOME]/.config"
+      }
       var cred_dir = "$config_home/credstore.encrypted"
       var cred_file = "$cred_dir/oo7.keyring-encryption-password"
       if test -e $cred_file {
